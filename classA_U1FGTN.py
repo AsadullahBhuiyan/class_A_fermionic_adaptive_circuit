@@ -3,566 +3,491 @@ import math
 import time
 import os
 import matplotlib.animation as animation
-from IPython.display import clear_output
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
+
+def _format_interval(seconds: float) -> str:
+    # Pretty hh:mm:ss like tqdm.format_interval, but local to avoid import details
+    seconds = max(0.0, float(seconds))
+    m, s = divmod(int(seconds), 60)
+    h, m = divmod(m, 60)
+    if h:
+        return f"{h:d}:{m:02d}:{s:02d}"
+    return f"{m:02d}:{s:02d}"
+
+
 class classA_U1FGTN:
-
-    def __init__(self, Nx, Ny, alpha_init = 1.0, DW = True, nshell=None, cycles = 5, keep_history_init=True, filling_frac = 1/2, G0 = None):
+    def __init__(self, Nx, Ny, DW=True, cycles=None, nshell=None, filling_frac=1/2, G0=None):
         """
-        1) Initialize random complex covariance over top and bottom layers with init charge in [Q_tot/4, 3Q_tot/4]
-
+        1) Initialize random complex covariance over top and bottom layers
+           with prescribed filling fraction.
         2) Build overcomplete Wannier spinors for a Chern insulator model.
-
         """
         self.Nx, self.Ny = int(Nx), int(Ny)
-        self.cycles = int(cycles)
-        self.keep_history_default = bool(keep_history_init)
-        
-        if DW is not True:
-            self.alpha = alpha_init
+        self.DW = bool(DW)
+        self.Ntot = 4 * self.Nx * self.Ny     # 2 orbitals × Nx × Ny × 2 layers
+        if cycles is None:
+            self.cycles = 5
+        else:
+            self.cycles = cycles
 
-        self.Ntot = 2*self.Nx*self.Ny*2 # orbtial * xdim * ydim * layers 
+        if G0 is None:
+            G = self.random_complex_fermion_covariance(N=self.Ntot, filling_frac=filling_frac)
+            # initialize bottom layer as a product state (stochastic measurement)
+            self.G0 = self.measure_all_bottom_modes(G)
+        else:
+            self.G0 = np.asarray(G0, dtype=np.complex128)
 
-        if G0 is None:  
-            self.G0 = self.random_complex_fermion_covariance(N = self.Ntot, filling_frac = filling_frac)
-        
-        # initialize bottom layer as product state
-        self.G0 = self.measure_all_bottom_modes(self.G0)
-        
-        # --- Build overcomplete Wannier data; evolve only if not already cached ---
-        # Construct OW (may set a spatially varying alpha if DW=True)
-        self.construct_OW_projectors(nshell=nshell, DW = DW)
-    
+        # Build OW data
+        self.construct_OW_projectors(nshell=nshell, DW=self.DW)
+
+        print("------------------------- classA_U1FGTN Initialized -------------------------")
+
+    # ------------------------------ Utilities ------------------------------
+
     def _ensure_outdir(self, path):
         os.makedirs(path, exist_ok=True)
         return path
 
     def random_unitary(self, N, rng=None):
         """
-        Generate a random unitary U = exp(i H),
-        where H is Hermitian from a Gaussian matrix M.
+        Generate a random unitary U = V exp(i diag(w)) V^†, with H=H^† from a complex Gaussian.
         """
-        if rng is None:
-            rng = np.random.default_rng()
+        rng = np.random.default_rng() if rng is None else rng
         M = rng.standard_normal((N, N)) + 1j * rng.standard_normal((N, N))
         H = 0.5 * (M + M.conj().T)
-
-        # Diagonalize H and exponentiate eigenvalues
-        w, V = np.linalg.eigh(H)      # H = V diag(w) V^†
+        w, V = np.linalg.eigh(H)
         U = V @ np.diag(np.exp(1j * w)) @ V.conj().T
-        return U    
-    
+        return U
+
     def random_complex_fermion_covariance(self, N, filling_frac, rng=None):
         """
-        Build G = U^† D U, where D = diag(1,...,1,-1,...,-1) with half +1 and half -1.
-        Dimension is 2*Nx*Ny x 2*Nx*Ny.
+        Build G = U^† D U with D = diag(+1...+1, -1...-1) at the specified filling fraction.
         """
         assert N % 2 == 0, "Total dimension N must be even."
+        rng = np.random.default_rng() if rng is None else rng
 
-        if rng is None:
-            rng = np.random.default_rng()
-
-        Nfill = int(round(filling_frac*N))
-        Nempty = N - Nfill
-        diag = np.concatenate([np.ones(Nfill), -np.ones(Nempty)])
+        Nfill = int(round(filling_frac * N))
+        Nfill = max(0, min(N, Nfill))
+        diag = np.concatenate([np.ones(Nfill), -np.ones(N - Nfill)])
         D = np.diag(diag).astype(np.complex128)
 
         U = self.random_unitary(N, rng=rng)
-        G = U.conj().T @ D @ U
-        return G
+        return U.conj().T @ D @ U
+
+    def _solve_regularized(self, K, B, eps=1e-9):
+        """
+        Solve K X = B with a small Tikhonov ridge if needed; fall back to pinv.
+        """
+        try:
+            return np.linalg.solve(K, B)
+        except np.linalg.LinAlgError:
+            pass
+        n = K.shape[0]
+        K_reg = K + eps * np.eye(n, dtype=K.dtype)
+        try:
+            return np.linalg.solve(K_reg, B)
+        except np.linalg.LinAlgError:
+            return np.linalg.pinv(K_reg) @ B
+
+    def _block_diag2(self, A, B):
+        """
+        Minimal block_diag(A,B) without scipy. Returns [[A,0],[0,B]].
+        """
+        n, m = A.shape[0], B.shape[0]
+        Z1 = np.zeros((n, m), dtype=A.dtype)
+        Z2 = np.zeros((m, n), dtype=B.dtype)
+        return np.block([[A, Z1],
+                         [Z2, B]])
+
+    # ------------------ Overcomplete Wannier (OW) projectors ------------------
 
     def construct_OW_projectors(self, nshell, DW):
-        
         Nx, Ny = self.Nx, self.Ny
 
+        # Mass profile alpha(x) for the Dirac-CI model
         if DW:
-            # Create two domain walls: alpha = 1 in the central slab
-            # [Nx//2 - floor(0.2*Nx), Nx//2 + floor(0.2*Nx)] × [0, Ny)
-            # and alpha = 3 elsewhere.
-            alpha = np.full((Nx, Ny), 3, dtype=complex)  # outside slab (Chern=0)
-            half = self.Nx // 2
-            w = int(np.floor(0.2 * Nx))
+            alpha = np.full((Nx, Ny), 3, dtype=np.complex128)  # trivial
+            half = Nx // 2
+            w = max(1, int(np.floor(0.2 * Nx)))
             x0 = max(0, half - w)
-            # Python slices are end-exclusive; include the right edge by +1, then clamp
-            x1 = min(Nx, half + w + 1)
-            alpha[x0:x1, :] = 1  # inside slab (Chern=1)
+            x1 = min(Nx, half + w + 1)  # inclusive slab -> slice end-exclusive
+            alpha[x0:x1, :] = 1         # topological region
             print(f"DWs at x=({int(x0)}, {int(x1-1)})")
-            self.alpha = alpha
         else:
-            alpha = np.ones((Nx, Ny))
-            self.alpha = alpha
+            alpha = np.ones((Nx, Ny), dtype=np.complex128)
+        self.alpha = alpha
 
-        # k-grids in radians per lattice spacing (FFT ordering)
-        kx = 2*np.pi * np.fft.fftfreq(Nx, d=1.0)     # shape (Nx,)
-        ky = 2*np.pi * np.fft.fftfreq(Ny, d=1.0)     # shape (Ny,)
-        KX, KY = np.meshgrid(kx, ky, indexing='ij')  # shape (Nx, Ny)
+        # k-grid (FFT order)
+        kx = 2*np.pi * np.fft.fftfreq(Nx)
+        ky = 2*np.pi * np.fft.fftfreq(Ny)
+        KX, KY = np.meshgrid(kx, ky, indexing='ij')  # (Nx, Ny)
 
-        # model vector n(k)
-        nx = np.sin(KX)[:, :, None, None] # (Nx, Ny, Rx, Ry)
-        ny = np.sin(KY)[:, :, None, None] # (Nx, Ny, Rx, Ry)
-        nz = alpha[None, None, :, :] - np.cos(KX)[:, :, None, None] - np.cos(KY)[:, :, None, None] # (Nx, Ny, Rx, Ry)
-        nmag = np.sqrt(nx**2 + ny**2 + nz**2) # (Nx, Ny, Rx, Ry)
-        nmag = np.where(nmag == 0, 1e-15, nmag)  # avoid divide-by-zero
+        # unit vector n(k)
+        nx = np.sin(KX)[:, :, None, None]
+        ny = np.sin(KY)[:, :, None, None]
+        nz = alpha[None, None, :, :] - np.cos(KX)[:, :, None, None] - np.cos(KY)[:, :, None, None]
+        nmag = np.sqrt(nx**2 + ny**2 + nz**2)
+        nmag = np.where(nmag == 0, 1e-15, nmag)
 
-        # --- Pauli matrices ---
-        pauli_x = np.array([[0, 1], [1, 0]], dtype=complex)
-        pauli_y = np.array([[0, -1j], [1j, 0]], dtype=complex)
-        pauli_z = np.array([[1, 0], [0, -1]], dtype=complex)
+        # Pauli matrices
+        sx = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+        sy = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+        sz = np.array([[1, 0], [0, -1]], dtype=np.complex128)
+        I2 = np.eye(2, dtype=np.complex128)
 
-        # construct 2x2 identity (broadcasts over k-grid)
-        Id = np.eye(2, dtype=complex)
+        # h(k) = n̂ · σ
+        hk = (nx[..., None, None] * sx +
+              ny[..., None, None] * sy +
+              nz[..., None, None] * sz) / nmag[..., None, None]  # (Nx,Ny,Rx,Ry,2,2)
 
-        # construct k-space single-particle h(k) = n̂ · σ (unit vector)
-        hk = (nx[..., None, None] * pauli_x +
-              ny[..., None, None] * pauli_y +
-              nz[..., None, None] * pauli_z) / nmag[..., None, None]  # (Nx, Ny, Rx, Ry, 2, 2)
+        # band projectors in k-space
+        self.Pminus = 0.5 * (I2 - hk)
+        self.Pplus  = 0.5 * (I2 + hk)
 
-        # construct upper and lower band projectors
-        self.Pminus = 0.5 * (Id - hk)   # (Nx, Ny, Rx, Ry, 2, 2)
-        self.Pplus  = 0.5 * (Id + hk)   # (Nx, Ny, Rx, Ry, 2, 2)
+        # local 2-spinors
+        tauA = (1/np.sqrt(2)) * np.array([[1], [1]],  dtype=np.complex128)
+        tauB = (1/np.sqrt(2)) * np.array([[1], [-1]], dtype=np.complex128)
 
-        # local choice of orbitals
-        tauA = (1/np.sqrt(2)) * np.array([[1], [1]], dtype=complex)   # (2,1)
-        tauB = (1/np.sqrt(2)) * np.array([[1], [-1]], dtype=complex)  # (2,1)
-
-        # --- phases for all centers (R_x, R_y) ---
-        Rx_grid = np.arange(Nx)                                   # (Rx,)
-        Ry_grid = np.arange(Ny)                                   # (Ry,)
+        # phases for centers R=(Rx,Ry)
+        Rx_grid = np.arange(Nx)
+        Ry_grid = np.arange(Ny)
         phase_x = np.exp(1j * KX[..., None, None] * Rx_grid[None, None, :, None])  # (Nx,Ny,Rx,1)
         phase_y = np.exp(1j * KY[..., None, None] * Ry_grid[None, None, None, :])  # (Nx,Ny,1,Ry)
-        phase   = phase_x * phase_y                                # (Nx,Ny,Rx,Ry)
+        phase   = phase_x * phase_y
 
-        # Helper: do FFT over k-axes only (0,1), for every (R_x,R_y)
-        def k2_to_r2(Ak):  # Ak shape (Nx, Ny, Rx, Ry)
+        def k2_to_r2(Ak):
+            # FFT over k-axes (0,1) for all centers
             return np.fft.fft2(Ak, axes=(0, 1))
 
-        # ------------------------------
-        # helper to build a normalized W for every center
-        # row spinor in k-space: psi_k = tau^† P(k)
-        # ------------------------------
+        # Build normalized W for each center from tau^† P(k)
         def make_W(Pband, tau, phase):
-            # tau^\dagger P(k): (2,)^* with (...,2,2) over left index -> (...,2)
-            tau_dag = tau[:, 0].conj()                              # (2,)
-            psi_k   = np.einsum('m,...mn->...n', tau_dag, Pband)    # (Nx,Ny,Rx,Ry,2)
+            tau_dag = tau[:, 0].conj()
+            psi_k   = np.einsum('m,...mn->...n', tau_dag, Pband, optimize=True)  # (...,2)
 
-            # Broadcast psi_k components over centers, then FFT over k-axes
-            F0 = phase * psi_k[..., 0]  # (Nx,Ny,Rx,Ry)
-            F1 = phase * psi_k[..., 1]  # (Nx,Ny,Rx,Ry)
-            W0 = k2_to_r2(F0)           # (Nx,Ny,Rx,Ry)
-            W1 = k2_to_r2(F1)           # (Nx,Ny,Rx,Ry)
+            F0 = phase * psi_k[..., 0]
+            F1 = phase * psi_k[..., 1]
+            W0 = k2_to_r2(F0)  # (Nx,Ny,Rx,Ry)
+            W1 = k2_to_r2(F1)  # (Nx,Ny,Rx,Ry)
 
-            # Stack μ=0,1 as the 3rd axis → (Nx,Ny,2,Rx,Ry)
-            W  = np.moveaxis(np.stack([W0, W1], axis=-1), -1, 2) # (Nx,Ny,2,Rx,Ry)
+            W  = np.moveaxis(np.stack([W0, W1], axis=-1), -1, 2)  # (Nx,Ny,2,Rx,Ry)
 
-            # --- Helper: construct a square window mask for truncation ---
-            def _square_window_mask(nshell):
-                # Returns mask of shape (Nx, Ny, Rx, Ry): True if (x,y) within window of nshell around (Rx,Ry)
-                x = np.arange(Nx)[:, None, None, None]  # (Nx,1,1,1)
-                y = np.arange(Ny)[None, :, None, None]  # (1,Ny,1,1)
-                Rx = np.arange(Nx)[None, None, :, None] # (1,1,Rx,1)
-                Ry = np.arange(Ny)[None, None, None, :] # (1,1,1,Ry)
-                dx_wrap = ((x - Rx + Nx//2) % Nx) - Nx//2  # (Nx,1,Rx,1)
-                dy_wrap = ((y - Ry + Ny//2) % Ny) - Ny//2  # (1,Ny,1,Ry)
-                mask = (np.abs(dx_wrap) <= nshell) & (np.abs(dy_wrap) <= nshell)  # (Nx,Ny,Rx,Ry)
-                return mask
-            
-            # If truncation is requested, apply window and renormalize per center
             if nshell is not None:
-                mask = _square_window_mask(nshell)  # (Nx,Ny,Rx,Ry)
-                # Expand mask to (Nx,Ny,1,Rx,Ry) to match W (Nx,Ny,2,Rx,Ry)
-                mask_exp = mask[:, :, None, :, :]  # (Nx,Ny,1,Rx,Ry)
-                W = W * mask_exp  # (Nx,Ny,2,Rx,Ry)
-                # Compute norm per center (Rx,Ry), sum over (x,y,μ)
-                norm2 = np.sum(np.abs(W)**2, axis=(0, 1, 2), keepdims=True)  # (1,1,1,Rx,Ry)
-                # Avoid division by zero: only normalize where norm2 > 1e-15
-                norm_mask = (norm2 > 1e-15)
-                W_normed = np.zeros_like(W)
-                W_normed[..., :, :] = W  # default (will overwrite below)
-                # Only normalize where norm2 > 1e-15
-                W_normed = np.where(norm_mask, W / (np.sqrt(norm2) + 1e-15), W)
-                return W_normed
-            else:
-                # Normalize per center (R_x,R_y) across (x,y,μ)
-                denom = np.sqrt(np.sum(np.abs(W)**2, axis=(0, 1, 2), keepdims=True)) + 1e-15
-                return W / denom
-        
-        
-        # Build the four overcomplete Wannier spinors for ALL centers: (Nx,Ny,2,Rx,Ry)
-        W_Ap = make_W(self.Pplus, tauA, phase)
-        W_Bp = make_W(self.Pplus, tauB, phase)
+                x = np.arange(Nx)[:, None, None, None]
+                y = np.arange(Ny)[None, :, None, None]
+                Rx = np.arange(Nx)[None, None, :, None]
+                Ry = np.arange(Ny)[None, None, None, :]
+                dxw = ((x - Rx + Nx//2) % Nx) - Nx//2
+                dyw = ((y - Ry + Ny//2) % Ny) - Ny//2
+                mask = ((np.abs(dxw) <= nshell) & (np.abs(dyw) <= nshell))[:, :, None, :, :]
+                W = W * mask
+            # Normalize per center (Rx,Ry) over (x,y,μ)
+            denom = np.sqrt(np.sum(np.abs(W)**2, axis=(0, 1, 2), keepdims=True)) + 1e-15
+            return W / denom
+
+        # Wannier spinors (Nx,Ny,2,Rx,Ry)
+        W_Ap = make_W(self.Pplus,  tauA, phase)
+        W_Bp = make_W(self.Pplus,  tauB, phase)
         W_Am = make_W(self.Pminus, tauA, phase)
         W_Bm = make_W(self.Pminus, tauB, phase)
 
         def flatten_centers(W):
-            # W: (Nx, Ny, 2, Rx, Ry)
-            # Move (μ, x, y) up front => (2, Nx, Ny, Rx, Ry)
-            W_mu_xy = np.transpose(W, (2, 0, 1, 3, 4))
-            # Flatten (μ, x, y) into D = 2*Nx*Ny, keeping (Rx, Ry)
+            # (Nx,Ny,2,Rx,Ry) -> (2*Nx*Ny, Rx, Ry) with i=μ+2x+2Nx y (Fortran on μ,x,y)
+            W_mu_xy = np.transpose(W, (2, 0, 1, 3, 4))                 # (2,Nx,Ny,Rx,Ry)
             return W_mu_xy.reshape(2 * Nx * Ny, Nx, Ny, order='F')
 
-        self.WF_Ap = flatten_centers(W_Ap)  # (D=2*Nx*Ny, Rx, Ry)
+        # Spinors flattened
+        self.WF_Ap = flatten_centers(W_Ap)
         self.WF_Bp = flatten_centers(W_Bp)
         self.WF_Am = flatten_centers(W_Am)
         self.WF_Bm = flatten_centers(W_Bm)
 
-        # Projectors per center: χ χ†  → (D,D,Rx,Ry)
+        # Projectors per center: χ χ†
         def projectors(WF):   # WF: (D, Rx, Ry)
-            return np.einsum('dxy, exy->dexy', WF, WF.conj(), optimize=True)
+            return np.einsum('dxy,exy->dexy', WF, WF.conj(), optimize=True)
 
         self.P_Ap = projectors(self.WF_Ap)
         self.P_Bp = projectors(self.WF_Bp)
         self.P_Am = projectors(self.WF_Am)
         self.P_Bm = projectors(self.WF_Bm)
 
-    def measure_bottom_layer(self, G, P, particle = True, symmetrize=True):
+    # --------------------------- Measurement updates ---------------------------
+
+    def measure_bottom_layer(self, G, P, particle=True, symmetrize=True):
         """
-        Meausure bottom layer using a Charge-Conserving EPR-state via the Choi isomorphism.
-
-        Inputs
-        ------
-        G : (4*Nx*Ny, 4*Nx*Ny) complex ndarray
-            Complex fermion covariance on both layers (Hermitian).
-        P : (2*Nx*Ny, 2*Nx*Ny) complex ndarray
-            Projector (Hermitian, idempotent: P^2 = P). Specifies the measured subspace.
-        occupied : bool
-            If True, measure P (occupied). If False, measure (I - P) i.e. "unoccupied".
-        rcond : float
-            Tikhonov regularization magnitude used only if (H11 - inv(G)) is near singular.
-        symmetrize : bool
-            If True, return (G' + G'^†)/2 to clean up numerical noise.
-
-        Returns
-        -------
-        G_prime : (4*Nx*Ny, 4*Nx*Ny) complex ndarray
-            Updated covariance.
+        Charge-conserving EPR update on bottom layer with projector P.
         """
         Ntot = self.Ntot
-        Nlayer = Ntot//2
-        G = np.asarray(G)
-        P = np.asarray(P)
-        if G.shape != (Ntot, Ntot):
-            raise ValueError(f"G must have shape {(Ntot, Ntot)}, "
-                             f"got {G.shape}")
-        elif P.shape != (Nlayer, Nlayer):
-            raise ValueError(f"P must have shape {(Nlayer, Nlayer)}, "
-                             f"got {P.shape}")
+        Nlayer = Ntot // 2
 
-        Ilayer = np.eye(Nlayer, dtype=P.dtype) # Identity matrix over a layer subspace
+        G = np.asarray(G, dtype=np.complex128)
+        P = np.asarray(P, dtype=np.complex128)
 
-        Gtt = G[0:Nlayer, 0:Nlayer]
+        Il = np.eye(Nlayer, dtype=np.complex128)
+
+        Gtt = G[:Nlayer, :Nlayer]
         Gbb = G[Nlayer:, Nlayer:]
-        Gtb = G[0:Nlayer, Nlayer:]
+        Gtb = G[:Nlayer, Nlayer:]
 
-        # Build H blocks
         if particle:
-            # occupied: H = [[-P, I-P], [I-P, P]]
-            H11 = -P
-            H21 = Ilayer - P
-            H22 = P
+            H11, H21, H22 = -P, (Il - P), P
         else:
-            # Unoccupied: H = [[P, I-P], [I-P, -P]]
-            H11 = P
-            H21 = Ilayer - P
-            H22 = -P
+            H11, H21, H22 =  P, (Il - P), -P
 
-        # Build inverse
-        K = np.block([[Gbb, -Ilayer],[-Ilayer, H11]])
-        L = np.block_diag(Gtb, H21)
-        invK_Ldag = np.linalg.solve(K, L.conj().T) # solve for inv(K) @ L^\dagger        
+        K = np.block([[Gbb,    -Il],
+                      [-Il,     H11]])
+        L = self._block_diag2(Gtb, H21)
 
-        # update G
-        M = np.block_diag(Gtt, H22)
-        G_prime = M - L @ invK_Ldag
+        invK_Ldag = self._solve_regularized(K, L.conj().T, eps=1e-9)
+
+        M = self._block_diag2(Gtt, H22)
+        Gp = M - L @ invK_Ldag
 
         if symmetrize:
-            G_prime = 0.5 * (G_prime + G_prime.conj().T)
+            Gp = 0.5 * (Gp + Gp.conj().T)
+        return Gp
 
-        return G_prime
-    
-    def measure_top_layer(self, G, P, particle = True, symmetrize=True):
+    def measure_top_layer(self, G, P, particle=True, symmetrize=True):
         """
-        Meausure top layer using a Charge-Conserving EPR-state via the Choi isomorphism.
-
-        Inputs
-        ------
-        G : (4*Nx*Ny, 4*Nx*Ny) complex ndarray
-            Complex fermion covariance on both layers (Hermitian).
-        P : (2*Nx*Ny, 2*Nx*Ny) complex ndarray
-            Projector (Hermitian, idempotent: P^2 = P). Specifies the measured subspace.
-        occupied : bool
-            If True, measure P (occupied). If False, measure (I - P) i.e. "unoccupied".
-        rcond : float
-            Tikhonov regularization magnitude used only if (H11 - inv(G)) is near singular.
-        symmetrize : bool
-            If True, return (G' + G'^†)/2 to clean up numerical noise.
-
-        Returns
-        -------
-        G_prime : (4*Nx*Ny, 4*Nx*Ny) complex ndarray
-            Updated covariance.
+        Charge-conserving EPR update on top layer with projector P.
         """
         Ntot = self.Ntot
-        Nlayer = Ntot//2
-        G = np.asarray(G)
-        P = np.asarray(P)
-        if G.shape != (Ntot, Ntot):
-            raise ValueError(f"G must have shape {(Ntot, Ntot)}, "
-                             f"got {G.shape}")
-        elif P.shape != (Nlayer, Nlayer):
-            raise ValueError(f"P must have shape {(Nlayer, Nlayer)}, "
-                             f"got {P.shape}")
+        Nlayer = Ntot // 2
 
-        Ilayer = np.eye(Nlayer, dtype=P.dtype) # Identity matrix over a layer subspace
+        G = np.asarray(G, dtype=np.complex128)
+        P = np.asarray(P, dtype=np.complex128)
 
-        Gtt = G[0:Nlayer, 0:Nlayer]
+        Il = np.eye(Nlayer, dtype=np.complex128)
+
+        Gtt = G[:Nlayer, :Nlayer]
         Gbb = G[Nlayer:, Nlayer:]
-        Gbt = G[Nlayer:, 0:Nlayer]
+        Gbt = G[Nlayer:, :Nlayer]
 
-        # Build H blocks
         if particle:
-            # occupied: H = [[-P, I-P], [I-P, P]]
-            H11 = -P
-            H21 = Ilayer - P
-            H22 = P
+            H11, H21, H22 = -P, (Il - P), P
         else:
-            # Unoccupied: H = [[P, I-P], [I-P, -P]]
-            H11 = P
-            H21 = Ilayer - P
-            H22 = -P
+            H11, H21, H22 =  P, (Il - P), -P
 
-        # Build inverse
-        K = np.block([[H11, -Ilayer],[-Ilayer, Gtt]])
-        L = np.block_diag(H21, Gbt)
-        invK_Ldag = np.linalg.solve(K, L.conj().T) # solve for inv(K) @ L^\dagger        
+        K = np.block([[H11,  -Il],
+                      [-Il,   Gtt]])
+        L = self._block_diag2(H21, Gbt)
 
-        # update G
-        M = np.block_diag(H22, Gbb)
-        G_prime = M - L @ invK_Ldag
+        invK_Ldag = self._solve_regularized(K, L.conj().T, eps=1e-9)
+
+        M = self._block_diag2(H22, Gbb)
+        Gp = M - L @ invK_Ldag
 
         if symmetrize:
-            G_prime = 0.5 * (G_prime + G_prime.conj().T)
+            Gp = 0.5 * (Gp + Gp.conj().T)
+        return Gp
 
-        return G_prime
-    
     def fSWAP(self, chi_top, chi_bottom):
-        '''
-            Construct an fSWAP unitary to swap local modes in the top and bottom layers
-        '''
+        """
+        Exact subspace swap of the top Wannier mode chi_top with the bottom local mode chi_bottom.
+        U is unitary, Hermitian, and an involution: U^2 = I.
+        """
+        Ntot = self.Ntot
+        Nlayer = Ntot // 2
 
-        Htt = chi_top[:, None].conj() * chi_top[None, :] 
-        Htb = chi_top[:, None].conj() * chi_bottom[None, :]
-        Hbb = chi_bottom[:, None].conj() * chi_bottom[None, :] 
+        ct = np.asarray(chi_top, dtype=np.complex128).reshape(-1)
+        cb = np.asarray(chi_bottom, dtype=np.complex128).reshape(-1)
+        ct /= (np.linalg.norm(ct) + 1e-15)
+        cb /= (np.linalg.norm(cb) + 1e-15)
 
-        H = -(np.pi/2)*np.block([[Htt, -Htb],[-Htb.conj().T, Hbb]])
+        psi_t = np.zeros(Ntot, dtype=np.complex128); psi_t[:Nlayer]  = ct
+        psi_b = np.zeros(Ntot, dtype=np.complex128); psi_b[Nlayer:]  = cb
 
-        D, V = np.linalg.eigh(H)
-        return V @ np.diag(np.exp(1j*D)) @ V.conj().T
-    
+        # Gram-Schmidt one step for safety
+        psi_t /= (np.linalg.norm(psi_t) + 1e-15)
+        psi_b -= (psi_t.conj() @ psi_b) * psi_t
+        psi_b /= (np.linalg.norm(psi_b) + 1e-15)
+
+        Pt = np.outer(psi_t, psi_t.conj())
+        Pb = np.outer(psi_b, psi_b.conj())
+        Xtb = np.outer(psi_t, psi_b.conj())
+        Xbt = np.outer(psi_b, psi_t.conj())
+        U = (np.eye(Ntot, dtype=np.complex128) - Pt - Pb) + (Xtb + Xbt)
+        return U
+
+    # ---------------------- Local feedback / post-selection ----------------------
+
     def top_layer_meas_feedback(self, G, Rx, Ry):
-        '''
-            Run measurement-feedback for a single choice of (Rx, Ry)
-        '''
-        Ntot = self.Ntot
+        """
+        Measurement-feedback at a given center (Rx,Ry).
+        """
+        G = np.asarray(G, dtype=np.complex128)
+        Nlayer = self.Ntot // 2
+        Il = np.eye(Nlayer, dtype=np.complex128)
+        Gtt_2pt = 0.5 * (G[:Nlayer, :Nlayer] + Il)
+
+        P_Ap = self.P_Ap[:, :, Rx, Ry]; P_Bp = self.P_Bp[:, :, Rx, Ry]
+        P_Am = self.P_Am[:, :, Rx, Ry]; P_Bm = self.P_Bm[:, :, Rx, Ry]
+
+        chi_Ap = self.WF_Ap[:, Rx, Ry]; chi_Bp = self.WF_Bp[:, Rx, Ry]
+        chi_Am = self.WF_Am[:, Rx, Ry]; chi_Bm = self.WF_Bm[:, Rx, Ry]
+
         Nx = self.Nx
-        Nlayer = Ntot//2
-        Ilayer = np.eye(Nlayer)
-        Gtt_2pt = (G[0:Nlayer, 0:Nlayer]+Ilayer)/2 # return two-point <c^\dagger_i c_j> for top layer
-        
+        eA_b = np.eye(Nlayer, dtype=np.complex128)[0 + 2*Rx + 2*Nx*Ry]
+        eB_b = np.eye(Nlayer, dtype=np.complex128)[1 + 2*Rx + 2*Nx*Ry]
 
-        P_A_plus = self.P_Ap[:,Rx,Ry]
-        P_B_plus = self.P_Bp[:,Rx,Ry]
-        P_A_minus = self.P_Am[:,Rx,Ry]
-        P_B_minus = self.P_Bm[:,Rx,Ry]
+        def do_fswap(Gmat, chi_top, chi_bot):
+            U = self.fSWAP(chi_top, chi_bot)
+            return U.conj().T @ Gmat @ U
 
-        Chi_A_plus_top = self.WF_Ap[:,Rx,Ry]
-        Chi_B_plus_top = self.WF_Bp[:,Rx,Ry]
-        Chi_A_minus_top = self.WF_Am[:,Rx,Ry]
-        Chi_B_minus_top = self.WF_Bm[:,Rx,Ry]
-
-        Chi_A_bottom = np.eye(Nlayer)[0 + 2*Rx + 2*Nx*Ry] # 1-hot vector for orbital A in bottom layer unit cell (Rx, Ry)
-        Chi_B_bottom = np.eye(Nlayer)[1 + 2*Rx + 2*Nx*Ry]
-
-        # 1) check if upper band mode A is unoccupied
-        Born_A_plus = np.trace(Gtt_2pt @ P_A_plus)
-        p = np.random.rand()
-        if p < Born_A_plus:
-            G = self.measure_top_layer(G, P_A_plus, particle = False) # upper band mode unoccupied
+        # Upper band A: want UNOCCUPIED
+        p_occ = float(np.real(np.trace(Gtt_2pt @ P_Ap))); p_occ = np.clip(p_occ, 0.0, 1.0)
+        if np.random.rand() < p_occ:
+            G = self.measure_top_layer(G, P_Ap, particle=True)
+            G = do_fswap(G, chi_Ap, eA_b)  # swap OUT
         else:
-            G = self.measure_top_layer(G, P_A_plus, particle = True) # upper band mode occupied, SWAP out charge
-            fSWAP = self.fSWAP(Chi_A_plus_top,Chi_A_bottom)
-            G = fSWAP @ G @ fSWAP
+            G = self.measure_top_layer(G, P_Ap, particle=False)
 
-        # 2) check if upper band mode B is unoccupied
-        Born_B_plus = np.trace(Gtt_2pt @ P_B_plus)
-        p = np.random.rand()
-        if p < Born_B_plus:
-            G = self.measure_top_layer(G, P_B_plus, particle = False) # upper band mode unoccupied
+        # Upper band B: want UNOCCUPIED
+        p_occ = float(np.real(np.trace(Gtt_2pt @ P_Bp))); p_occ = np.clip(p_occ, 0.0, 1.0)
+        if np.random.rand() < p_occ:
+            G = self.measure_top_layer(G, P_Bp, particle=True)
+            G = do_fswap(G, chi_Bp, eB_b)
         else:
-            G = self.measure_top_layer(G, P_B_plus, particle = True) # upper band mode occupied, SWAP out charge
-            fSWAP = self.fSWAP(Chi_B_plus_top, Chi_B_bottom)
-            G = fSWAP @ G @ fSWAP
-        
-        # 3) check if lower band mode A is occupied
-        Born_A_minus = np.trace(Gtt_2pt @ P_A_minus)
-        p = np.random.rand()
-        if p > Born_A_minus:
-            G = self.measure_top_layer(G, P_A_minus, particle = True) # lower band mode occupied
-        else:
-            G = self.measure_top_layer(G, P_A_minus, particle = False) # lower band mode unoccupied, SWAP in Charge
-            fSWAP = self.fSWAP(Chi_A_minus_top, Chi_A_bottom)
-            G = fSWAP @ G @ fSWAP
+            G = self.measure_top_layer(G, P_Bp, particle=False)
 
-        # 4) check if lower band mode B is occupied
-        Born_B_minus = np.trace(Gtt_2pt @ P_B_minus)
-        p = np.random.rand()
-        if p > Born_B_minus:
-            G = self.measure_top_layer(G, P_B_minus, particle = False) # lower band mode occupied
+        # Lower band A: want OCCUPIED
+        p_occ = float(np.real(np.trace(Gtt_2pt @ P_Am))); p_occ = np.clip(p_occ, 0.0, 1.0)
+        if np.random.rand() < p_occ:
+            G = self.measure_top_layer(G, P_Am, particle=True)
         else:
-            G = self.measure_top_layer(G, P_B_minus, particle = True) # lower band mode unoccupied, SWAP in Charge
-            fSWAP = self.fSWAP(Chi_B_minus_top, Chi_B_bottom)
-            G = fSWAP @ G @ fSWAP
+            G = self.measure_top_layer(G, P_Am, particle=False)
+            G = do_fswap(G, chi_Am, eA_b)  # swap IN
+
+        # Lower band B: want OCCUPIED
+        p_occ = float(np.real(np.trace(Gtt_2pt @ P_Bm))); p_occ = np.clip(p_occ, 0.0, 1.0)
+        if np.random.rand() < p_occ:
+            G = self.measure_top_layer(G, P_Bm, particle=True)
+        else:
+            G = self.measure_top_layer(G, P_Bm, particle=False)
+            G = do_fswap(G, chi_Bm, eB_b)
 
         return G
-    
+
+    def post_selection_top_layer(self, G, Rx, Ry):
+        """
+        Directly impose the four outcomes (no feedback unitary).
+        """
+        P_Ap = self.P_Ap[:, :, Rx, Ry]
+        P_Bp = self.P_Bp[:, :, Rx, Ry]
+        P_Am = self.P_Am[:, :, Rx, Ry]
+        P_Bm = self.P_Bm[:, :, Rx, Ry]
+
+        G = self.measure_top_layer(G, P_Ap, particle=False)  # Ap unocc
+        G = self.measure_top_layer(G, P_Bp, particle=False)  # Bp unocc
+        G = self.measure_top_layer(G, P_Am, particle=True)   # Am occ
+        G = self.measure_top_layer(G, P_Bm, particle=True)   # Bm occ
+        return G
+
     def measure_all_bottom_modes(self, G):
-        '''
-            Measure all local mode occupancies in bottom layer
-        '''
-
+        """
+        Measure all local mode occupancies in bottom layer (one pass, correct Bernoulli).
+        """
+        G = np.asarray(G, dtype=np.complex128)
         Ntot = self.Ntot
-        Nlayer = Ntot//2
-        Ilayer = np.eye(Nlayer)
+        Nlayer = Ntot // 2
+        Il = np.eye(Nlayer, dtype=np.complex128)
 
+        # iterate all bottom single-site projectors in canonical basis
         for idx in range(Nlayer):
-            chi_bott = Ilayer[idx]
-            P_bott = chi_bott[:,None]*chi_bott[None,:]
-            Gbb_2pt = (G[Nlayer:, Nlayer:]+Ilayer)/2 # return two-point <c^\dagger_i c_j> for bott layer
-            Born_bott = np.trace(Gbb_2pt @ P_bott)
-            p = np.random.rand()
-            if p > Born_bott: 
-                G = self.measure_bottom_layer(G, P_bott, particle = True) # bottom mode occupied
-            else:
-                G = self.measure_bottom_layer(G, P_bott, particle = False) # bottom mode unoccupied
-        
+            Gbb_2pt = 0.5 * (G[Nlayer:, Nlayer:] + Il)  # refresh per step
+            chi = Il[idx]
+            P = np.outer(chi, chi.conj())
+            p_occ = float(np.real(np.trace(Gbb_2pt @ P)))
+            p_occ = np.clip(p_occ, 0.0, 1.0)
+            G = self.measure_bottom_layer(G, P, particle=(np.random.rand() < p_occ), symmetrize=True)
+
         return G
-    
+
     def randomize_bottom_layer(self, G):
-        '''
-            Randomize bottom layer with a random global unitary acting only on bottom layer modes
-        '''
+        """
+        Apply a random unitary on the bottom layer only.
+        """
+        G = np.asarray(G, dtype=np.complex128)
         Ntot = self.Ntot
-        Nlayer = Ntot//2
-        Ilayer = np.eye(Nlayer)
+        Nlayer = Ntot // 2
+        Il = np.eye(Nlayer, dtype=np.complex128)
 
         U_bott = self.random_unitary(Nlayer)
-        U_tot = np.block_diag(Ilayer, U_bott)
+        U_tot = self._block_diag2(Il, U_bott)
+        return U_tot.conj().T @ G @ U_tot
 
-        G = U_tot.conj().T @ G @ U_tot
+    # ------------------------------ Circuit driver ------------------------------
 
-        return G
-    
-    
-    def run_adaptive_circuit(self, cycles=5, G_history=True, tol=1e-8, progress=True):
+    def run_adaptive_circuit(self, G_history=True, cycles=5, tol=1e-8, progress=True, postselect=False):
         """
-        Run the adaptive circuit for `cycles` sweeps over the lattice.
-        - Shows nested tqdm bars (outer=cycles, inner=Nx*Ny) with ETA.
-        - Postfix displays current (cycle, Rx, Ry), global iter, and G^2==I flag.
-        - Records G history (optional) and per-iteration G^2 flags in self.g2_flags.
-
-        Parameters
-        ----------
-        cycles : int
-            Number of full lattice sweeps.
-        G_history : bool
-            If True, appends G after each cycle to self.G_list.
-        tol : float
-            Tolerance for checking G^2 ≈ I (np.allclose with atol=tol).
-        progress : bool
-            If True, show tqdm progress bars.
+        Run the adaptive circuit for `cycles` sweeps of the lattice.
+        Shows elapsed and total ETA (end-to-end) in the outer tqdm bar.
         """
+        self.G = np.array(self.G0, copy=True)
         if G_history:
             self.G_list = []
         self.g2_flags = []
 
-        self.G = self.G0
-        Nx, Ny = int(self.Nx), int(self.Ny)
-        D = int(self.Ntot)
-        I = np.eye(D, dtype=complex)
+        self.cycles = cycles
 
-        global_iter = 0
+        Nx, Ny = self.Nx, self.Ny
+        D = self.Ntot
+        I = np.eye(D, dtype=np.complex128)
 
-        outer_iter = range(cycles)
+        total_steps = int(cycles) * Nx * Ny
+        steps_done = 0
+        t0 = time.perf_counter()
+
+        outer_iter = range(int(cycles))
         if progress:
-            outer_iter = tqdm(outer_iter, desc="Cycles", total=cycles, leave=True)
+            outer_iter = tqdm(outer_iter, total=int(cycles), leave=True, desc="Cycles")
 
         for c in outer_iter:
             inner_iter = range(Nx)
             if progress:
-                inner_iter = tqdm(inner_iter, desc=f"Sweep {c+1}/{cycles}", total=Nx, leave=False)
+                inner_iter = tqdm(inner_iter, total=Nx, leave=False, desc=f"Sweep {c+1}/{cycles}")
 
             for Rx in inner_iter:
-                # optional: time per-row if you want your own timer (tqdm already shows ETA)
-                row_start = time.time()
-
                 for Ry in range(Ny):
-                    # Core steps
-                    self.G = self.top_layer_meas_feedback(self.G, Rx, Ry)
-                    self.G = self.randomize_bottom_layer(self.G)
-                    self.G = self.measure_all_bottom_modes(self.G)
+                    if not postselect:
+                        self.G = self.top_layer_meas_feedback(self.G, Rx, Ry)
+                        self.G = self.randomize_bottom_layer(self.G)
+                        self.G = self.measure_all_bottom_modes(self.G)
+                    else:
+                        self.G = self.post_selection_top_layer(self.G, Rx, Ry)
 
                     # G^2 ≈ I check
-                    g2_ok = int(np.allclose(self.G @ self.G, I, atol=tol))
-                    self.g2_flags.append(g2_ok)
+                    ok = int(np.allclose(self.G @ self.G, I, atol=tol))
+                    self.g2_flags.append(ok)
 
-                    global_iter += 1
+                    # progress accounting
+                    steps_done += 1
                     if progress:
-                        # Update postfix with current position and G^2 flag
-                        tqdm.tqdm.write if False else None  # (placeholder to avoid lint warnings)
-                        inner_post = {
-                            "cycle": f"{c+1}/{cycles}",
-                            "pos": f"({Rx},{Ry})",
-                            "iter": global_iter,
-                            "G2==I": g2_ok
-                        }
-                        # Show on the *outer* bar too for visibility
-                        if isinstance(outer_iter, tqdm):
-                            outer_iter.set_postfix(inner_post, refresh=False)
-
-                # (optional) per-row timing in postfix
-                if progress and isinstance(inner_iter, tqdm):
-                    elapsed = time.time() - row_start
-                    inner_iter.set_postfix({"row_sec": f"{elapsed:.2f}"}, refresh=False)
+                        elapsed = time.perf_counter() - t0
+                        frac = steps_done / max(1, total_steps)
+                        eta_total = (elapsed / frac) - elapsed if frac > 0 else 0.0
+                        # Update only outer bar to avoid flicker
+                        outer_iter.set_postfix({
+                            "elapsed": _format_interval(elapsed),
+                            "eta_total": _format_interval(eta_total),
+                            "G2==I": ok
+                        }, refresh=False)
 
             if G_history:
                 self.G_list.append(self.G.copy())
 
-    
+    # ---------------------------- Chern observables ----------------------------
+
     def real_space_chern_number(self, G=None):
         """
-        Compute the real-space Chern number using the projector built from the two-point function G-.
-
-        This implements the same formula as `chern_from_projector`, but takes the
-        input as a general operator G and forms P = G.conj() before the block traces.
-
-        Parameters
-        ----------
-        G : ndarray, shape (4*Nx*Ny, 4*Nx*Ny)
-            Real-space operator. The projector used here is P = G.conj().
-        A_mask, B_mask, C_mask : (Nx,Ny) boolean masks, optional
-            If None, use the instance's stored tri-partition masks.
-
-        Returns
-        -------
-        complex
-            12π i [ Tr(P_CA P_AB P_BC) - Tr(P_AC P_CB P_BA) ].
+        Real-space Chern number from top-layer projector P = G_2pt^*:
+        12π i [ Tr(P_CA P_AB P_BC) − Tr(P_AC P_CB P_BA) ]  (return real part).
         """
-        Nx, Ny = int(self.Nx), int(self.Ny)
-        Ntot = 2*Nx*Ny*2
-        Nlayer = Ntot//2
+        Nx, Ny = self.Nx, self.Ny
+        Nlayer = 2 * Nx * Ny
 
-        # --- Build tri-partition masks A, B, C inside a circle of radius R ---
+        # Tri-partition masks inside a disk
         R = 0.4 * min(Nx, Ny)
         xref, yref = Nx // 2, Ny // 2
         inside = np.zeros((Nx, Ny), dtype=bool)
@@ -583,82 +508,47 @@ class classA_U1FGTN:
             x1 = min(Nx - 1, xref + max_dx)
             if x0 > x1:
                 continue
-
             inside[x0:x1+1, y] = True
             dxs = np.arange(x0, x1+1) - xref
             dys = np.full_like(dxs, dy)
             theta = np.mod(np.arctan2(dys, dxs), 2*np.pi)
+            A_mask[x0:x1+1, y] = (theta >= 0)  & (theta < a2)
+            B_mask[x0:x1+1, y] = (theta >= a2) & (theta < a4)
+            C_mask[x0:x1+1, y] = (theta >= a4) & (theta < 2*np.pi)
 
-            A_mask[x0:x1+1, y] = (theta >= 0)   & (theta < a2)
-            B_mask[x0:x1+1, y] = (theta >= a2)  & (theta < a4)
-            C_mask[x0:x1+1, y] = (theta >= a4)  & (theta < 2*np.pi)
-        
-        if G is None:
-            G = self.G
-        
-        Ilayer = np.eye(Nlayer)
-        G_2pt = (1/2)*(Ilayer + G[0:Nlayer,0:Nlayer])
+        Guse = self.G if G is None else np.asarray(G, dtype=np.complex128)
+        Gtt = Guse[:Nlayer, :Nlayer]
+        P = (0.5 * (np.eye(Nlayer, dtype=np.complex128) + Gtt)).conj()
 
-
-        P = G_2pt.conj()
-
-        def sector_indices_from_mask(mask):
-            """
-            Flatten (μ, x, y) with i = μ + 2*x + 2*Nx*y (μ=0,1).
-            Returns indices for both orbitals at each (x,y) where mask[x,y] is True.
-            """
-            mask = np.asarray(mask, dtype=bool)
+        def idx_from_mask(mask):
             xs, ys = np.nonzero(mask)
             idx0 = 0 + 2*xs + 2*Nx*ys
             idx1 = 1 + 2*xs + 2*Nx*ys
             return np.sort(np.concatenate([idx0, idx1]))
-        
-        # Sector indices include both orbitals for each selected site
-        iA = sector_indices_from_mask(A_mask)
-        iB = sector_indices_from_mask(B_mask)
-        iC = sector_indices_from_mask(C_mask)
 
-        P_CA = P[np.ix_(iC, iA)]
-        P_AB = P[np.ix_(iA, iB)]
-        P_BC = P[np.ix_(iB, iC)]
+        iA = idx_from_mask(A_mask)
+        iB = idx_from_mask(B_mask)
+        iC = idx_from_mask(C_mask)
 
-        P_AC = P[np.ix_(iA, iC)]
-        P_CB = P[np.ix_(iC, iB)]
-        P_BA = P[np.ix_(iB, iA)]
+        P_CA = P[np.ix_(iC, iA)]; P_AB = P[np.ix_(iA, iB)]; P_BC = P[np.ix_(iB, iC)]
+        P_AC = P[np.ix_(iA, iC)]; P_CB = P[np.ix_(iC, iB)]; P_BA = P[np.ix_(iB, iA)]
 
         t1 = np.trace(P_CA @ P_AB @ P_BC)
         t2 = np.trace(P_AC @ P_CB @ P_BA)
-
         Y = 12 * np.pi * 1j * (t1 - t2)
         return np.real_if_close(Y, tol=1e-6)
-    
 
     def local_chern_marker_flat(self, G=None, mask_outside=False, inside_mask=None):
         """
         Local Chern marker from a FLAT top-layer covariance using the reshaped kernel.
-
-        Accepts:
-          - G is None          -> uses current full self.G, top-layer block is taken
-          - G shape (4N,4N)    -> uses its top-layer block
-          - G shape (2N,2N)    -> treated as the flat top-layer block directly
-
-        Steps:
-          1) Two-point: G2 = (G_flat + I)/2
-          2) Reshape G2 -> (2, Nx, Ny, 2, Nx, Ny) with order='F', then permute to (Nx,Ny,2,Nx,Ny,2)
-          3) Projector: P = G2.conj()
-          4) M = (2π i) [ P X P Y P − P Y P X P ], with X,Y non-modular (1..Nx, 1..Ny) on RIGHT indices
-          5) C(x,y) = sum_μ diag(M) at (x,y,μ)
-          6) Return tanh(Re C(x,y))
         """
-    
-        Nx, Ny = int(self.Nx), int(self.Ny)
+        Nx, Ny = self.Nx, self.Ny
         Nlayer = 2 * Nx * Ny
 
-        # --- pick flat top-layer block ---
         if G is None:
-            Gflat = np.asarray(self.G)[:Nlayer, :Nlayer]
+            Gflat = np.asarray(self.G, dtype=np.complex128)[:Nlayer, :Nlayer]
         else:
-            G = np.asarray(G)
+            G = np.asarray(G, dtype=np.complex128)
             if G.shape == (self.Ntot, self.Ntot):
                 Gflat = G[:Nlayer, :Nlayer]
             elif G.shape == (Nlayer, Nlayer):
@@ -666,95 +556,108 @@ class classA_U1FGTN:
             else:
                 raise ValueError(f"G must be ({self.Ntot},{self.Ntot}) or ({Nlayer},{Nlayer}), got {G.shape}")
 
-        # --- two-point & reshape to kernel (Nx,Ny,2, Nx,Ny,2) ---
-        I = np.eye(Nlayer, dtype=complex)
-        G2_flat = 0.5 * (Gflat + I)
+        G2 = 0.5 * (Gflat + np.eye(Nlayer, dtype=np.complex128))
+        G6 = G2.reshape(2, Nx, Ny, 2, Nx, Ny, order='F')
+        G6 = np.transpose(G6, (1, 2, 0, 4, 5, 3))  # (Nx,Ny,2, Nx,Ny,2)
 
-        # i = μ + 2*x + 2*Nx*y  (μ fastest, then x, then y) -> use Fortran order
-        G2_6 = G2_flat.reshape(2, Nx, Ny, 2, Nx, Ny, order='F')
-        # put as (x,y,μ | x',y',ν)
-        G2_6 = np.transpose(G2_6, (1, 2, 0, 4, 5, 3))  # (Nx,Ny,2, Nx,Ny,2)
+        P = G6.conj()
 
-        # projector kernel
-        P = G2_6.conj()
-
-        # --- right multiplications by non-modular X,Y (1..Nx, 1..Ny) ---
         X = np.arange(1, Nx + 1, dtype=float)
         Y = np.arange(1, Ny + 1, dtype=float)
-        Xright = X[None, None, None, :, None, None]   # broadcast on right x'
-        Yright = Y[None, None, None, None, :, None]   # broadcast on right y'
+        Xr = X[None, None, None, :, None, None]
+        Yr = Y[None, None, None, None, :, None]
 
-        def right_X(A): return A * Xright
-        def right_Y(A): return A * Yright
-
-        # contraction over right indices (x',y',ν): (i,j,s,l,m,n) × (l,m,n,o,p,r) -> (i,j,s,o,p,r)
+        def right_X(A): return A * Xr
+        def right_Y(A): return A * Yr
         mm = lambda A, B: np.einsum('ijslmn,lmnopr->ijsopr', A, B, optimize=True)
 
-        # BR kernel: M = (2π i) (P X P Y P − P Y P X P)
-        T = right_X(P); T = mm(T, P); T = right_Y(T); T = mm(T, P)  # P X P Y P
-        U = right_Y(P); U = mm(U, P); U = right_X(U); U = mm(U, P)  # P Y P X P
-        M = (2.0 * np.pi * 1j) * (T - U)                            # (Nx,Ny,2, Nx,Ny,2)
+        T = mm(right_Y(mm(right_X(P), P)), P)  # P X P Y P
+        U = mm(right_X(mm(right_Y(P), P)), P)  # P Y P X P
+        M = (2.0 * np.pi * 1j) * (T - U)
 
-        # --- take diagonal (x,y,μ; x,y,μ) and sum over μ ---
         ix = np.arange(Nx)[:, None, None]
         iy = np.arange(Ny)[None, :, None]
         ispin = np.arange(2)[None, None, :]
         diag_vals = M[ix, iy, ispin, ix, iy, ispin]  # (Nx,Ny,2)
-        C = diag_vals.sum(axis=2)                    # (Nx,Ny)
+        C = np.sum(diag_vals, axis=2)
 
-        # stabilize & optional mask
         C = np.tanh(np.real_if_close(C, tol=1e-9))
         if mask_outside and inside_mask is not None:
             C = np.where(inside_mask, C, 0.0)
         return C
+
+    # ------------------------- Visualization helpers -------------------------
+    def plot_real_space_chern_history(self, filename=None):
+        """
+        Plot the real-space Chern number across the *existing* history self.G_list.
+
+        Requirements
+        ------------
+        - Uniform system only: raises if self.DW is True.
+        - self.G_list must exist and be non-empty (i.e., run with G_history=True beforehand).
+
+        Returns
+        -------
+        fig, ax, cherns
+          fig/ax : Matplotlib figure/axes
+          cherns : np.ndarray of real parts of the Chern number per history frame
+        """
+
+        # Guardrails
+        if getattr(self, "DW", True):
+            raise ValueError("plot_real_space_chern_history: only supported for uniform systems (self.DW == False).")
+        if not hasattr(self, "G_list") or not isinstance(self.G_list, list) or len(self.G_list) == 0:
+            raise RuntimeError("No history found. Run the circuit with G_history=True to populate self.G_list.")
+
+        # Compute Chern per stored snapshot
+        cherns = np.empty(len(self.G_list), dtype=float)
+        for k, Gk in enumerate(self.G_list):
+            cherns[k] = np.real(self.real_space_chern_number(Gk))
+
+        # Plot
+        fig, ax = plt.subplots(figsize=(6.2, 3.8))
+        x = np.arange(1, len(cherns) + 1)
+        ax.plot(x, cherns, marker="o", lw=1.25)
+        ax.set_xlabel("Cycles")
+        ax.set_ylabel("Real-space Chern Number")
+        #ax.set_title(f"Chern vs history — N={self.Nx}×{self.Ny} (uniform)")
+        ax.grid(True, alpha=0.3)
+        fig.tight_layout()
+
+        # Save if requested
+        if filename is not None:
+            outdir = self._ensure_outdir(os.path.dirname(filename) or "figs/chern_history")
+            base = os.path.basename(filename)
+            fullpath = os.path.join(outdir, base)
+            fig.savefig(fullpath, bbox_inches="tight")
+
+        return fig, ax, cherns
     
     def chern_marker_dynamics(self, outbasename=None, vmin=-1.0, vmax=1.0, cmap='RdBu_r'):
         """
-        Animate the local Chern marker C(r) over time using the cached history self.G_list
-        (if present); otherwise, show a single frame from the current self.G.
-    
-        - Saves a GIF at 1 fps and a static final frame (PDF).
-        - Returns paths plus the final arrays.
-    
-        Returns
-        -------
-        gif_path : str
-            Path to the saved GIF (may be single-frame if no history).
-        final_path : str
-            Path to the saved static final frame (PDF).
-        C_last : ndarray, shape (Nx, Ny)
-            Local Chern marker of the final frame.
-        G_last : ndarray
-            The final covariance used for the last frame.
+        Animate local Chern marker over the cached history self.G_list (or current self.G).
         """
-        Nx, Ny = int(self.Nx), int(self.Ny)
-    
-        # Output paths
+        Nx, Ny = self.Nx, self.Ny
         outdir = self._ensure_outdir('figs/chern_marker')
         if outbasename is None:
-            outbasename = f"chern_marker_dynamics_N{Nx}"
+            outbasename = f"chern_marker_dynamics_N={Nx}_cycles={self.cycles}_DWis{self.DW}"
         gif_path   = os.path.join(outdir, outbasename + ".gif")
         final_path = os.path.join(outdir, outbasename + "_final.pdf")
-    
-        # Pick history (prefer recorded list; else single frame from current state)
+
         if hasattr(self, "G_list") and isinstance(self.G_list, list) and len(self.G_list) > 0:
             history = self.G_list
-            G_last  = history[-1]
         else:
             if not hasattr(self, "G"):
-                raise RuntimeError("No state available: run the circuit to populate self.G or self.G_list.")
+                raise RuntimeError("No state available: run the circuit first.")
             history = [self.G]
-            G_last  = self.G
-    
-        # --- Figure setup ---
+
         fig = plt.figure(figsize=(3.2, 3.8))
         ax  = fig.add_axes([0.12, 0.10, 0.78, 0.78])
         im  = ax.imshow(np.zeros((Nx, Ny)), cmap=cmap, vmin=vmin, vmax=vmax,
                         origin='upper', aspect='equal')
-    
-        # Styling
-        for spine in ax.spines.values():
-            spine.set_linewidth(1.5); spine.set_color('black')
+
+        for sp in ax.spines.values():
+            sp.set_linewidth(1.5); sp.set_color('black')
         ax.set_xlabel("y"); ax.set_ylabel("x")
         ax.set_xticks(np.arange(0, Ny, max(1, Ny//10)))
         ax.set_yticks(np.arange(0, Nx, max(1, Nx//10)))
@@ -762,35 +665,27 @@ class classA_U1FGTN:
         ax.set_xticks(np.arange(-0.5, Ny, 1), minor=True)
         ax.set_yticks(np.arange(-0.5, Nx, 1), minor=True)
         ax.grid(which='minor', color='k', linewidth=0.2, alpha=0.25)
-    
+
         cax = fig.add_axes([0.32, 0.90, 0.36, 0.06])
         fig.colorbar(im, cax=cax, orientation='horizontal', ticks=[-1, 0, 1])
         fig.text(0.70, 0.91, r"$\tanh\mathcal{C}(\mathbf{r})$", fontsize=12)
-    
-        # First frame
-        C0 = self.local_chern_marker_flat(history[0])
-        im.set_data(C0)
-    
-        # --- Write GIF at 1 fps ---
+
+        C = None
         writer = animation.PillowWriter(fps=1)
         with writer.saving(fig, gif_path, dpi=120):
-            for G_frame in tqdm(history, desc="chern_marker_frames", unit="frame"):
-                C = self.local_chern_marker_flat(G_frame)
+            for Gf in tqdm(history, desc="chern_marker_frames", unit="frame"):
+                C = self.local_chern_marker_flat(Gf)
                 im.set_data(C)
                 writer.grab_frame()
         plt.close(fig)
-    
-        # Final arrays
-        C_last = np.round(C, 2)  # last computed in loop
-        G_last = history[-1]
-    
-        # Save static final frame
+
+        C_last = np.round(C, 2)
         fig2 = plt.figure(figsize=(3.2, 3.8))
         ax2  = fig2.add_axes([0.12, 0.10, 0.78, 0.78])
         im2  = ax2.imshow(C_last, cmap=cmap, vmin=vmin, vmax=vmax,
                           origin='upper', aspect='equal')
-        for spine in ax2.spines.values():
-            spine.set_linewidth(1.5); spine.set_color('black')
+        for sp in ax2.spines.values():
+            sp.set_linewidth(1.5); sp.set_color('black')
         ax2.set_xlabel("y"); ax2.set_ylabel("x")
         ax2.set_xticks(np.arange(0, Ny, max(1, Ny//10)))
         ax2.set_yticks(np.arange(0, Nx, max(1, Nx//10)))
@@ -798,112 +693,79 @@ class classA_U1FGTN:
         ax2.set_xticks(np.arange(-0.5, Ny, 1), minor=True)
         ax2.set_yticks(np.arange(-0.5, Nx, 1), minor=True)
         ax2.grid(which='minor', color='k', linewidth=0.2, alpha=0.25)
-    
+
         cax2 = fig2.add_axes([0.32, 0.90, 0.36, 0.06])
         fig2.colorbar(im2, cax=cax2, orientation='horizontal', ticks=[-1, 0, 1])
         fig2.text(0.70, 0.91, r"$\tanh\mathcal{C}(\mathbf{r})$", fontsize=12)
-    
+
         fig2.savefig(final_path, bbox_inches='tight')
         plt.show()
         plt.close(fig2)
-    
-        return gif_path, final_path, C_last, G_last
+
+        return gif_path, final_path, C_last, history[-1]
+
+    # ---------------------- Optional: correlation profiles ----------------------
 
     def plot_corr_y_profiles(self, G=None, x_positions=None, ry_max=None, filename=None,
                              samples=1, trajectory_resolved=False, trajectory_averaged=False):
         """
         Plot squared two-point correlation vs y-separation at selected x columns.
-
-        Averaging modes:
-          - trajectory_resolved=True, trajectory_averaged=False:
-              run 'samples' independent circuits; for each, compute C(x0, ry),
-              then average C over samples → label: \bar{C}_G(x_0, r_y)
-          - trajectory_averaged=True, trajectory_resolved=False:
-              run 'samples' independent circuits; average the resulting top-layer G,
-              then compute C once from the averaged G → label: C_{\bar{G}}(x_0, r_y)
-          - neither True:
-              run one circuit (if G is None) and compute C(x0, ry) → label: C_G(x_0, r_y)
-
-        If both flags are True, raises ValueError.
-
-        If G is provided, it is used directly (no circuit run). G may be (4N,4N), (2N,2N),
-        or already a kernel (Nx,Ny,2,Nx,Ny,2). Only the top-layer block is used if needed.
         """
-
         if trajectory_resolved and trajectory_averaged:
-            raise ValueError("Choose only one averaging mode: set either "
-                             "`trajectory_resolved=True` or `trajectory_averaged=True` (not both).")
+            raise ValueError("Choose only one averaging mode.")
 
-        Nx, Ny = int(self.Nx), int(self.Ny)
-        Ntot = int(self.Ntot)
+        Nx, Ny = self.Nx, self.Ny
+        Ntot = self.Ntot
         Nlayer = Ntot // 2
         samples = int(max(1, samples))
 
-        # ---------- helpers ----------
         def _coerce_to_two_point_kernel_top(G_in):
-            """
-            Accepts G_in as (4N,4N), (2N,2N), or (Nx,Ny,2,Nx,Ny,2) and returns
-            the 6-index top-layer two-point kernel: (Nx,Ny,2,Nx,Ny,2).
-            Uses i = μ + 2*x + 2*Nx*y (Fortran reshape).
-            """
-            Gin = np.asarray(G_in)
+            Gin = np.asarray(G_in, dtype=np.complex128)
             if Gin.ndim == 6:
-                # Assume already two-point kernel (Nx,Ny,2,Nx,Ny,2)
                 if Gin.shape[:2] != (Nx, Ny) or Gin.shape[2] != 2 or Gin.shape[3:5] != (Nx, Ny) or Gin.shape[5] != 2:
                     raise ValueError("6-index G has incompatible shape.")
                 return Gin
             elif Gin.ndim == 2:
                 if Gin.shape == (Ntot, Ntot):
-                    # take top-layer block first
                     Gtt = Gin[:Nlayer, :Nlayer]
                 elif Gin.shape == (Nlayer, Nlayer):
                     Gtt = Gin
                 else:
                     raise ValueError(f"G has incompatible shape {Gin.shape}.")
-                I = np.eye(Nlayer, dtype=complex)
-                G2 = 0.5 * (Gtt + I)  # two-point on top layer
+                G2 = 0.5 * (Gtt + np.eye(Nlayer, dtype=np.complex128))
                 G6 = G2.reshape(2, Nx, Ny, 2, Nx, Ny, order='F')
-                G6 = np.transpose(G6, (1, 2, 0, 4, 5, 3))  # (Nx,Ny,2,Nx,Ny,2)
-                return G6
+                return np.transpose(G6, (1, 2, 0, 4, 5, 3))
             else:
                 raise ValueError("G must be (4N,4N), (2N,2N), or (Nx,Ny,2,Nx,Ny,2).")
 
         def _C_xslice_from_kernel(Gker, x0, ry_vals):
-            """
-            Vectorized C(x0; ry) from kernel (Nx,Ny,2,Nx,Ny,2) for all ry in ry_vals.
-            C = (1/(2 Ny)) sum_{y,μ,ν} |G[(x0,y,μ),(x0,y+ry,ν)]|^2
-            """
             x0 = int(x0) % Nx
             ry_arr = np.atleast_1d(ry_vals).astype(int)
             Ny_loc = Gker.shape[1]
-
-            # Gx: (Ny, 2, Ny, 2)
-            Gx = Gker[x0, :, :, x0, :, :]
-            Y = np.arange(Ny_loc, dtype=np.intp)[:, None]     # (Ny,1)
-            Yp = (Y + ry_arr[None, :]) % Ny_loc               # (Ny,R)
-
-            # Reorder -> (Ny*Ny, 2, 2), gather blocks by flat (y, yp)
+            Gx = Gker[x0, :, :, x0, :, :]                # (Ny,2,Ny,2)
+            Y = np.arange(Ny_loc, dtype=np.intp)[:, None]
+            Yp = (Y + ry_arr[None, :]) % Ny_loc
             Gx_re = np.transpose(Gx, (0, 2, 1, 3)).reshape(Ny_loc*Ny_loc, 2, 2)
-            flat_idx = (Y * Ny_loc + Yp).reshape(-1)          # (Ny*R,)
-            blocks = Gx_re[flat_idx].reshape(Ny_loc, ry_arr.size, 2, 2)   # (Ny,R,2,2)
+            flat_idx = (Y * Ny_loc + Yp).reshape(-1)
+            blocks = Gx_re[flat_idx].reshape(Ny_loc, ry_arr.size, 2, 2)
+            return np.sum(np.abs(blocks)**2, axis=(0, 2, 3)) / (2.0 * Ny_loc)
 
-            C = np.sum(np.abs(blocks)**2, axis=(0, 2, 3)) / (2.0 * Ny_loc)  # (R,)
-            return C
+        # default y-separations
+        if ry_max is None:
+            ry_max = Ny // 2
+        ry_vals = np.arange(0, int(ry_max) + 1, dtype=int)
 
-        # ---------- choose x-positions (smart default from domain walls) ----------
+        # choose x-positions
         def _smart_x_positions_from_alpha(alpha2d):
             a = np.asarray(alpha2d)
             if a.shape != (Nx, Ny):
-                # fallback: evenly spaced
                 xs = np.unique(np.clip(np.array([Nx//6, Nx//2, 5*Nx//6]), 0, Nx-1))
                 return [(int(x), f"x0={int(x)}") for x in xs]
-
-            col_vals = a[:, 0]  # uniform in y by construction
+            col_vals = a[:, 0]
             topo_mask = np.isclose(col_vals, 1.0, atol=1e-12)
             if not np.any(topo_mask) or np.all(topo_mask):
                 xs = np.unique(np.clip(np.array([Nx//6, Nx//2, 5*Nx//6]), 0, Nx-1))
                 return [(int(x), f"x0={int(x)}") for x in xs]
-
             topo_idx = np.where(topo_mask)[0]
             diffs = (np.diff(np.r_[topo_idx, topo_idx[0] + Nx]) == 1)
             breaks = np.where(~diffs)[0]
@@ -912,7 +774,6 @@ class classA_U1FGTN:
                 return [(int(x), f"x0={int(x)}") for x in xs]
             start_pos = (breaks[0] + 1) % topo_idx.size
             ordered = np.r_[topo_idx[start_pos:], topo_idx[:start_pos]]
-            # longest contiguous run (we built exactly one)
             run = [ordered[0]]
             for k in range(1, ordered.size):
                 if (ordered[k] - ordered[k-1]) % Nx == 1:
@@ -920,7 +781,6 @@ class classA_U1FGTN:
                 else:
                     break
             run = np.array(run, dtype=int)
-
             x0 = run[0]
             x1 = (run[-1] + 1) % Nx
             topo_center = run[len(run)//2]
@@ -928,7 +788,6 @@ class classA_U1FGTN:
             triv_right_center = ((x1 + Nx) // 2) % Nx
             x_wall_L = (x0 - 1) % Nx
             x_wall_R = x1 % Nx
-
             picks = [
                 (int(x_wall_L),       "wall L"),
                 (int(x_wall_R),       "wall R"),
@@ -940,22 +799,11 @@ class classA_U1FGTN:
             for x, lab in picks:
                 x = int(x % Nx)
                 if x not in seen:
-                    uniq.append((x, lab))
-                    seen.add(x)
+                    uniq.append((x, lab)); seen.add(x)
             return uniq
 
-        # default y-separations
-        if ry_max is None:
-            ry_max = Ny // 2
-        ry_vals = np.arange(0, int(ry_max) + 1, dtype=int)
-
-        # normalize x_positions
         if x_positions is None:
-            if hasattr(self, "alpha"):
-                norm_positions = _smart_x_positions_from_alpha(self.alpha)
-            else:
-                xs = np.arange(0, Nx, max(1, Nx // 8))
-                norm_positions = [(int(x), f"x0={int(x)}") for x in xs]
+            norm_positions = _smart_x_positions_from_alpha(getattr(self, "alpha", np.ones((Nx, Ny))))
         else:
             norm_positions = []
             try:
@@ -965,20 +813,14 @@ class classA_U1FGTN:
                 for x0 in np.atleast_1d(x_positions):
                     norm_positions.append((int(x0) % Nx, f"x0={int(x0)%Nx}"))
 
-        # ---------- decide what to compute ----------
         if G is not None:
-            # use provided G as-is; no evolution
             Gker = _coerce_to_two_point_kernel_top(G)
             mode_label = r"$C_G(x_0,r_y)$"
-            C_dict = {}
-            for x0, _ in norm_positions:
-                C_dict[x0] = _C_xslice_from_kernel(Gker, x0, ry_vals)
+            C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals) for x0, _ in norm_positions}
         else:
-            # need to evolve
             if trajectory_resolved:
-                # average C across samples: \bar{C}_G
                 C_accum = {x0: np.zeros_like(ry_vals, dtype=float) for x0, _ in norm_positions}
-                for s in range(samples):
+                for _ in range(samples):
                     self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=False)
                     Gker = _coerce_to_two_point_kernel_top(self.G)
                     for x0, _ in norm_positions:
@@ -986,9 +828,8 @@ class classA_U1FGTN:
                 C_dict = {x0: C_accum[x0] / samples for x0, _ in norm_positions}
                 mode_label = r"$\overline{C}_G(x_0,r_y)$"
             elif trajectory_averaged:
-                # average G across samples, then compute C once: C_{\bar{G}}
-                Gsum = np.zeros((Nlayer, Nlayer), dtype=complex)
-                for s in range(samples):
+                Gsum = np.zeros((Nlayer, Nlayer), dtype=np.complex128)
+                for _ in range(samples):
                     self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=False)
                     Gsum += np.asarray(self.G)[:Nlayer, :Nlayer]
                 Gavg = Gsum / samples
@@ -996,46 +837,30 @@ class classA_U1FGTN:
                 C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals).real for x0, _ in norm_positions}
                 mode_label = r"$C_{\overline{G}}(x_0,r_y)$"
             else:
-                # single trajectory: C_G
                 self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=False)
                 Gker = _coerce_to_two_point_kernel_top(self.G)
                 C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals).real for x0, _ in norm_positions}
                 mode_label = r"$C_G(x_0,r_y)$"
 
-        # ---------- plot ----------
         outdir = self._ensure_outdir('figs/corr_y_profiles')
         fig, ax = plt.subplots(figsize=(7, 4.5))
-
         for x0, lbl in norm_positions:
             C_vec = C_dict[x0]
             line, = ax.plot(ry_vals, C_vec, marker='o', ms=3, lw=1, label=lbl)
-            # inline label near right edge
             finite = np.isfinite(C_vec)
             y_right = C_vec[finite][-1] if np.any(finite) else C_vec[-1]
             x_right = ry_vals[-1] * 1.02 if ry_vals[-1] > 0 else ry_vals[-1] + 0.5
             ax.annotate(lbl, xy=(ry_vals[-1], y_right), xytext=(x_right, y_right),
                         textcoords='data', ha='left', va='center', fontsize=9,
                         color=line.get_color())
-
         ax.set_xlabel(r"$r_y$")
         ax.set_ylabel(mode_label)
         ax.set_title(f"Squared correlator vs $r_y$ at selected $x_0$ (N={Nx})")
-        ax.set_yscale('log')
-        ax.set_xscale('log')
+        ax.set_yscale('log'); ax.set_xscale('log')
         ax.grid(True, alpha=0.3)
-        ax.legend(
-            loc='lower left',
-            bbox_to_anchor=(0.02, 0.02),
-            ncol=3,
-            fontsize=8,
-            frameon=True,
-            framealpha=0.85,
-            borderpad=0.4,
-            handlelength=1.5,
-            handletextpad=0.6,
-            columnspacing=0.9,
-            labelspacing=0.3
-        )
+        ax.legend(loc='lower left', bbox_to_anchor=(0.02, 0.02), ncol=3, fontsize=8,
+                  frameon=True, framealpha=0.85, borderpad=0.4, handlelength=1.5,
+                  handletextpad=0.6, columnspacing=0.9, labelspacing=0.3)
         fig.tight_layout()
 
         if filename is None:
@@ -1050,3 +875,53 @@ class classA_U1FGTN:
         fig.savefig(fullpath, bbox_inches='tight')
         plt.close(fig)
         return fullpath
+
+    # ------------------------------ Exact CI state ------------------------------
+
+    def G_CI(self, alpha=1.0, k_is_centered=False, norm='backward'):
+        """
+        Build the complex covariance G = 2 P_-^* - I for the uniform CI lower band (top layer).
+        Flattening index: i = μ + 2*x + 2*Nx*y (μ fastest; Fortran order).
+        """
+        Nx, Ny = self.Nx, self.Ny
+
+        kx = 2*np.pi * np.fft.fftfreq(Nx, d=1.0)
+        ky = 2*np.pi * np.fft.fftfreq(Ny, d=1.0)
+        KX, KY = np.meshgrid(kx, ky, indexing='ij')
+
+        nx = np.sin(KX)
+        ny = np.sin(KY)
+        nz = float(alpha) - np.cos(KX) - np.cos(KY)
+
+        n_mag = np.sqrt(nx**2 + ny**2 + nz**2)
+        n_mag = np.where(n_mag == 0, 1e-15, n_mag)
+
+        def _k_to_r_rel(nk, k_centered=False, norm='backward'):
+            arr = np.fft.ifftshift(nk) if k_centered else nk
+            nR = np.fft.ifft2(arr, norm=norm)
+            nR = np.real_if_close(nR, tol=1e3)
+            x = np.arange(Nx); y = np.arange(Ny)
+            dX = (x[:, None, None, None] - x[None, None, :, None]) % Nx
+            dY = (y[None, :, None, None] - y[None, None, None, :]) % Ny
+            return nR[dX, dY]
+
+        nx_real = _k_to_r_rel(nx / n_mag, k_centered=k_is_centered, norm=norm)
+        ny_real = _k_to_r_rel(ny / n_mag, k_centered=k_is_centered, norm=norm)
+        nz_real = _k_to_r_rel(nz / n_mag, k_centered=k_is_centered, norm=norm)
+
+        sx = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+        sy = 1j * np.array([[0, -1], [1, 0]], dtype=np.complex128)
+        sz = np.array([[1, 0], [0, -1]], dtype=np.complex128)
+
+        h_real = (nx_real[..., None, None] * sx +
+                  ny_real[..., None, None] * sy +
+                  nz_real[..., None, None] * sz)
+        h_real = np.moveaxis(h_real, 4, 2)  # (Nx,Ny,2, Nx,Ny,2)
+
+        dims = (Nx, Ny, 2)
+        I6 = np.eye(np.prod(dims), dtype=np.complex128).reshape(*dims, *dims, order='F')
+        Pminus = 0.5 * (I6 - h_real)
+
+        P6 = np.transpose(Pminus, (2, 0, 1, 5, 3, 4))  # (2,Nx,Ny, 2,Nx,Ny)
+        Pminus_flat = P6.reshape(2*Nx*Ny, 2*Nx*Ny, order='F')
+        return 2 * Pminus_flat.conj() - np.eye(2*Nx*Ny, dtype=np.complex128)
