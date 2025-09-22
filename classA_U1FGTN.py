@@ -27,6 +27,8 @@ class classA_U1FGTN:
         self.Nx, self.Ny = int(Nx), int(Ny)
         self.DW = bool(DW)
         self.Ntot = 4 * self.Nx * self.Ny     # 2 orbitals × Nx × Ny × 2 layers
+        self.nshell = nshell
+
         if cycles is None:
             self.cycles = 5
         else:
@@ -299,9 +301,9 @@ class classA_U1FGTN:
         psi_b = np.zeros(Ntot, dtype=np.complex128); psi_b[Nlayer:]  = cb
 
         # Gram-Schmidt one step for safety
-        psi_t /= (np.linalg.norm(psi_t) + 1e-15)
-        psi_b -= (psi_t.conj() @ psi_b) * psi_t
-        psi_b /= (np.linalg.norm(psi_b) + 1e-15)
+        #psi_t /= (np.linalg.norm(psi_t) + 1e-15)
+        #psi_b -= (psi_t.conj() @ psi_b) * psi_t
+        #psi_b /= (np.linalg.norm(psi_b) + 1e-15)
 
         Pt = np.outer(psi_t, psi_t.conj())
         Pb = np.outer(psi_b, psi_b.conj())
@@ -387,7 +389,10 @@ class classA_U1FGTN:
     def measure_all_bottom_modes(self, G):
         """
         Measure all local mode occupancies in bottom layer (one pass, correct Bernoulli).
+        Prints elapsed time when finished.
         """
+        start = time.time()
+
         G = np.asarray(G, dtype=np.complex128)
         Ntot = self.Ntot
         Nlayer = Ntot // 2
@@ -400,7 +405,12 @@ class classA_U1FGTN:
             P = np.outer(chi, chi.conj())
             p_occ = float(np.real(np.trace(Gbb_2pt @ P)))
             p_occ = np.clip(p_occ, 0.0, 1.0)
-            G = self.measure_bottom_layer(G, P, particle=(np.random.rand() < p_occ), symmetrize=True)
+            G = self.measure_bottom_layer(
+                G, P, particle=(np.random.rand() < p_occ), symmetrize=True
+            )
+
+        elapsed = time.time() - start
+        print(f"All bottom layer modes measured | Time elapsed: {elapsed:.3f} s")
 
         return G
 
@@ -419,61 +429,116 @@ class classA_U1FGTN:
 
     # ------------------------------ Circuit driver ------------------------------
 
-    def run_adaptive_circuit(self, G_history=True, cycles=5, tol=1e-8, progress=True, postselect=False):
+    def run_adaptive_circuit(self, G_history=True, cycles=5, tol=1e-8,
+                             progress=True, postselect=False):
         """
         Run the adaptive circuit for `cycles` sweeps of the lattice.
-        Shows elapsed and total ETA (end-to-end) in the outer tqdm bar.
+        Shows elapsed and total ETA (end-to-end) on all tqdm bars.
+        Only the outer bar tracks G2==I.
         """
+        from tqdm import tqdm
+    
+        def fmt(t):
+            # use tqdm's own formatter for consistency
+            return tqdm.format_interval(max(0.0, float(t)))
+    
+        # fresh state
         self.G = np.array(self.G0, copy=True)
         if G_history:
             self.G_list = []
         self.g2_flags = []
-
-        self.cycles = cycles
-
-        Nx, Ny = self.Nx, self.Ny
-        D = self.Ntot
+        self.cycles = int(cycles)
+    
+        Nx, Ny = int(self.Nx), int(self.Ny)
+        D = int(self.Ntot)
         I = np.eye(D, dtype=np.complex128)
-
-        total_steps = int(cycles) * Nx * Ny
+    
+        total_steps = self.cycles * Nx * Ny
         steps_done = 0
-        t0 = time.perf_counter()
-
-        outer_iter = range(int(cycles))
+        t_total0 = time.perf_counter()
+    
+        # OUTER: cycles
+        outer_iter = range(self.cycles)
         if progress:
-            outer_iter = tqdm(outer_iter, total=int(cycles), leave=True, desc="Cycles")
-
+            outer_iter = tqdm(outer_iter, total=self.cycles, leave=True, desc="Cycles")
+    
         for c in outer_iter:
-            inner_iter = range(Nx)
+            # per-cycle timer
+            t_cycle0 = time.perf_counter()
+    
+            # MIDDLE: rows (Rx) in this cycle
+            row_iter = range(Nx)
             if progress:
-                inner_iter = tqdm(inner_iter, total=Nx, leave=False, desc=f"Sweep {c+1}/{cycles}")
-
-            for Rx in inner_iter:
-                for Ry in range(Ny):
+                row_iter = tqdm(row_iter, total=Nx, leave=False, desc=f"Cycle {c+1}/{self.cycles}")
+    
+            for Rx in row_iter:
+                # per-row timer
+                t_row0 = time.perf_counter()
+    
+                # INNER: columns (Ry) in this row
+                col_iter = range(Ny)
+                if progress:
+                    col_iter = tqdm(col_iter, total=Ny, leave=False, desc=f"  row {Rx+1}/{Nx}")
+    
+                cols_done = 0
+                for Ry in col_iter:
                     if not postselect:
                         self.G = self.top_layer_meas_feedback(self.G, Rx, Ry)
-                        self.G = self.randomize_bottom_layer(self.G)
-                        self.G = self.measure_all_bottom_modes(self.G)
                     else:
                         self.G = self.post_selection_top_layer(self.G, Rx, Ry)
-
-                    # G^2 ≈ I check
+    
+                    # G^2 ≈ I check (record per step; shown only on outer bar)
                     ok = int(np.allclose(self.G @ self.G, I, atol=tol))
                     self.g2_flags.append(ok)
-
+    
                     # progress accounting
                     steps_done += 1
+    
                     if progress:
-                        elapsed = time.perf_counter() - t0
-                        frac = steps_done / max(1, total_steps)
-                        eta_total = (elapsed / frac) - elapsed if frac > 0 else 0.0
-                        # Update only outer bar to avoid flicker
-                        outer_iter.set_postfix({
-                            "elapsed": _format_interval(elapsed),
-                            "eta_total": _format_interval(eta_total),
-                            "G2==I": ok
-                        }, refresh=False)
-
+                        # --- inner bar (per-row) elapsed & ETA total for this bar ---
+                        cols_done += 1
+                        elapsed_row = time.perf_counter() - t_row0
+                        frac_row = cols_done / Ny
+                        eta_row_total = (elapsed_row / frac_row - elapsed_row) if frac_row > 0 else 0.0
+                        try:
+                            col_iter.set_postfix(
+                                {"elapsed": fmt(elapsed_row), "eta_total": fmt(eta_row_total)},
+                                refresh=False
+                            )
+                        except Exception:
+                            pass
+                        
+                        # --- outer bar (total) elapsed & ETA total + G2 flag ---
+                        elapsed_total = time.perf_counter() - t_total0
+                        frac_total = steps_done / max(1, total_steps)
+                        eta_total_total = (elapsed_total / frac_total - elapsed_total) if frac_total > 0 else 0.0
+                        try:
+                            outer_iter.set_postfix(
+                                {"elapsed": fmt(elapsed_total), "eta_total": fmt(eta_total_total), "G2==I": ok},
+                                refresh=False
+                            )
+                        except Exception:
+                            pass
+                        
+                # after finishing this row, update the middle bar's times once
+                if progress:
+                    rows_done = Rx + 1
+                    elapsed_cycle = time.perf_counter() - t_cycle0
+                    frac_cycle = rows_done / Nx
+                    eta_cycle_total = (elapsed_cycle / frac_cycle - elapsed_cycle) if frac_cycle > 0 else 0.0
+                    try:
+                        row_iter.set_postfix(
+                            {"elapsed": fmt(elapsed_cycle), "eta_total": fmt(eta_cycle_total)},
+                            refresh=False
+                        )
+                    except Exception:
+                        pass
+                    
+            # end of cycle: bottom-layer randomize + measure (once per cycle)
+            if not postselect:
+                self.G = self.randomize_bottom_layer(self.G)
+                self.G = self.measure_all_bottom_modes(self.G)
+    
             if G_history:
                 self.G_list.append(self.G.copy())
 
@@ -640,7 +705,7 @@ class classA_U1FGTN:
         Nx, Ny = self.Nx, self.Ny
         outdir = self._ensure_outdir('figs/chern_marker')
         if outbasename is None:
-            outbasename = f"chern_marker_dynamics_N={Nx}_cycles={self.cycles}_DWis{self.DW}"
+            outbasename = f"chern_marker_dynamics_N={Nx}_nshell={self.nshell}_cycles={self.cycles}_DWis{self.DW}"
         gif_path   = os.path.join(outdir, outbasename + ".gif")
         final_path = os.path.join(outdir, outbasename + "_final.pdf")
 
