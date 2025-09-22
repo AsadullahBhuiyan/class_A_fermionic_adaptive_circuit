@@ -6,12 +6,13 @@ from matplotlib import pyplot as plt
 from classA_U1FGTN import classA_U1FGTN
 from IPython.display import Image, display
 import os
+import time
 
 # Local chern marker
 
 # Small-ish grid and a few cycles so it runs quickly in a notebook.
 Nx, Ny   = 21, 21
-cycles   = 6         # increase if you want a longer animation
+cycles   = 10         # increase if you want a longer animation
 
 # Build the model
 m = classA_U1FGTN(Nx, Ny, DW=True, nshell=5)
@@ -25,6 +26,8 @@ gif_path, final_path, C_last, G_last = m.chern_marker_dynamics()
 print("Saved files:")
 print("  GIF :", gif_path)
 print("  PDF :", final_path)
+elapsed = time.time() - m.time_init
+print(f"Total time elapsed: {elapsed:.3f} s")
 
 # Show the GIF inline
 if os.path.exists(gif_path):

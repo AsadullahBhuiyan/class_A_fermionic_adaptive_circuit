@@ -7,15 +7,6 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 
 
-def _format_interval(seconds: float) -> str:
-    # Pretty hh:mm:ss like tqdm.format_interval, but local to avoid import details
-    seconds = max(0.0, float(seconds))
-    m, s = divmod(int(seconds), 60)
-    h, m = divmod(m, 60)
-    if h:
-        return f"{h:d}:{m:02d}:{s:02d}"
-    return f"{m:02d}:{s:02d}"
-
 
 class classA_U1FGTN:
     def __init__(self, Nx, Ny, DW=True, cycles=None, nshell=None, filling_frac=1/2, G0=None):
@@ -24,6 +15,7 @@ class classA_U1FGTN:
            with prescribed filling fraction.
         2) Build overcomplete Wannier spinors for a Chern insulator model.
         """
+        self.time_init = time.time()
         self.Nx, self.Ny = int(Nx), int(Ny)
         self.DW = bool(DW)
         self.Ntot = 4 * self.Nx * self.Ny     # 2 orbitals × Nx × Ny × 2 layers
@@ -768,15 +760,27 @@ class classA_U1FGTN:
 
         return gif_path, final_path, C_last, history[-1]
 
-    # ---------------------- Optional: correlation profiles ----------------------
+    # ---------------------- correlation profiles ----------------------
 
     def plot_corr_y_profiles(self, G=None, x_positions=None, ry_max=None, filename=None,
-                             samples=1, trajectory_resolved=False, trajectory_averaged=False):
+                             samples=1, trajectory_resolved=True, trajectory_averaged=True):
         """
         Plot squared two-point correlation vs y-separation at selected x columns.
+
+        Modes
+        -----
+        - If G is provided: compute C_G once and plot a single panel.
+        - If both trajectory_resolved and trajectory_averaged are True (default):
+            run `samples` trajectories and produce two subplots:
+              left:  \overline{C}_G (sample-avg of correlators)
+              right: C_{\overline{G}} (correlator of sample-avg state)
+        - If only one of the two flags is True: run that mode and plot a single panel.
+
+        Returns
+        -------
+        fullpath : str
+            Path to saved figure.
         """
-        if trajectory_resolved and trajectory_averaged:
-            raise ValueError("Choose only one averaging mode.")
 
         Nx, Ny = self.Nx, self.Ny
         Ntot = self.Ntot
@@ -877,36 +881,120 @@ class classA_U1FGTN:
                 for x0 in np.atleast_1d(x_positions):
                     norm_positions.append((int(x0) % Nx, f"x0={int(x0)%Nx}"))
 
+        outdir = self._ensure_outdir('figs/corr_y_profiles')
+
+        # ----------------- CASE 1: a specific G is provided -----------------
         if G is not None:
             Gker = _coerce_to_two_point_kernel_top(G)
-            mode_label = r"$C_G(x_0,r_y)$"
             C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals) for x0, _ in norm_positions}
-        else:
-            if trajectory_resolved:
-                C_accum = {x0: np.zeros_like(ry_vals, dtype=float) for x0, _ in norm_positions}
-                for _ in range(samples):
-                    self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=False)
-                    Gker = _coerce_to_two_point_kernel_top(self.G)
-                    for x0, _ in norm_positions:
-                        C_accum[x0] += _C_xslice_from_kernel(Gker, x0, ry_vals).real
-                C_dict = {x0: C_accum[x0] / samples for x0, _ in norm_positions}
-                mode_label = r"$\overline{C}_G(x_0,r_y)$"
-            elif trajectory_averaged:
-                Gsum = np.zeros((Nlayer, Nlayer), dtype=np.complex128)
-                for _ in range(samples):
-                    self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=False)
-                    Gsum += np.asarray(self.G)[:Nlayer, :Nlayer]
-                Gavg = Gsum / samples
-                Gker = _coerce_to_two_point_kernel_top(Gavg)
-                C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals).real for x0, _ in norm_positions}
-                mode_label = r"$C_{\overline{G}}(x_0,r_y)$"
-            else:
-                self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=False)
-                Gker = _coerce_to_two_point_kernel_top(self.G)
-                C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals).real for x0, _ in norm_positions}
-                mode_label = r"$C_G(x_0,r_y)$"
+            mode_label = r"$C_G(x_0,r_y)$"
+            fig, ax = plt.subplots(figsize=(7, 4.5))
+            for x0, lbl in norm_positions:
+                C_vec = C_dict[x0]
+                line, = ax.plot(ry_vals, C_vec, marker='o', ms=3, lw=1, label=lbl)
+                finite = np.isfinite(C_vec)
+                y_right = C_vec[finite][-1] if np.any(finite) else C_vec[-1]
+                x_right = ry_vals[-1] * 1.02 if ry_vals[-1] > 0 else ry_vals[-1] + 0.5
+                ax.annotate(lbl, xy=(ry_vals[-1], y_right), xytext=(x_right, y_right),
+                            textcoords='data', ha='left', va='center', fontsize=9,
+                            color=line.get_color())
+            ax.set_xlabel(r"$r_y$")
+            ax.set_ylabel(mode_label)
+            ax.set_title(f"Squared correlator vs $r_y$ at selected $x_0$ (N={Nx})")
+            ax.set_yscale('log'); ax.set_xscale('log')
+            ax.grid(True, alpha=0.3); ax.legend(loc='best', fontsize=8)
+            fig.tight_layout()
+            if filename is None:
+                xdesc = "-".join(f"{x}" for x, _ in norm_positions)
+                filename = f"corr2_y_profiles_N{Nx}_xs_{xdesc}_single.pdf"
+            fullpath = os.path.join(outdir, filename)
+            plt.show()
+            fig.savefig(fullpath, bbox_inches='tight')
+            plt.close(fig)
+            return fullpath
 
-        outdir = self._ensure_outdir('figs/corr_y_profiles')
+        # ----------------- CASE 2: need to run trajectories -----------------
+        # Run once per sample, reusing both outputs efficiently.
+        need_resolved = bool(trajectory_resolved)
+        need_averaged = bool(trajectory_averaged)
+
+        if need_resolved and need_averaged:
+            # Compute both, two subplots
+            C_accum = {x0: np.zeros_like(ry_vals, dtype=float) for x0, _ in norm_positions}
+            Gsum = np.zeros((Nlayer, Nlayer), dtype=np.complex128)
+
+            for _ in range(samples):
+                self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=False)
+                Gtt = np.asarray(self.G)[:Nlayer, :Nlayer]
+                Gsum += Gtt
+                Gker = _coerce_to_two_point_kernel_top(Gtt)
+                for x0, _ in norm_positions:
+                    C_accum[x0] += _C_xslice_from_kernel(Gker, x0, ry_vals).real
+
+            C_resolved = {x0: C_accum[x0] / samples for x0, _ in norm_positions}
+            Gavg = Gsum / samples
+            Gker_avg = _coerce_to_two_point_kernel_top(Gavg)
+            C_avg = {x0: _C_xslice_from_kernel(Gker_avg, x0, ry_vals).real for x0, _ in norm_positions}
+
+            fig, axes = plt.subplots(1, 2, figsize=(12.5, 4.5), sharey=True)
+            panels = [
+                (axes[0], C_resolved, r"$\overline{C}_G(x_0,r_y)$"),
+                (axes[1], C_avg,      r"$C_{\overline{G}}(x_0,r_y)$"),
+            ]
+            for ax, C_dict, title in panels:
+                for x0, lbl in norm_positions:
+                    C_vec = C_dict[x0]
+                    line, = ax.plot(ry_vals, C_vec, marker='o', ms=3, lw=1, label=lbl)
+                    finite = np.isfinite(C_vec)
+                    y_right = C_vec[finite][-1] if np.any(finite) else C_vec[-1]
+                    x_right = ry_vals[-1] * 1.02 if ry_vals[-1] > 0 else ry_vals[-1] + 0.5
+                    ax.annotate(lbl, xy=(ry_vals[-1], y_right), xytext=(x_right, y_right),
+                                textcoords='data', ha='left', va='center', fontsize=9,
+                                color=line.get_color())
+                ax.set_xlabel(r"$r_y$")
+                ax.set_ylabel(title)
+                ax.set_xscale('log'); ax.set_yscale('log')
+                ax.grid(True, alpha=0.3)
+                ax.legend(loc='best', fontsize=8)
+            fig.suptitle(f"Correlation profiles (N={Nx}, samples={samples})")
+            fig.tight_layout(rect=[0, 0, 1, 0.95])
+
+            if filename is None:
+                xdesc = "-".join(f"{x}" for x, _ in norm_positions)
+                filename = f"corr2_y_profiles_N{Nx}_xs_{xdesc}_both_S{samples}.pdf"
+            fullpath = os.path.join(outdir, filename)
+            plt.show()
+            fig.savefig(fullpath, bbox_inches='tight')
+            plt.close(fig)
+            return fullpath
+
+        # ----------------- CASE 3: resolved-only / averaged-only -----------------
+        if need_resolved:
+            C_accum = {x0: np.zeros_like(ry_vals, dtype=float) for x0, _ in norm_positions}
+            for _ in range(samples):
+                self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=False)
+                Gker = _coerce_to_two_point_kernel_top(np.asarray(self.G)[:Nlayer, :Nlayer])
+                for x0, _ in norm_positions:
+                    C_accum[x0] += _C_xslice_from_kernel(Gker, x0, ry_vals).real
+            C_dict = {x0: C_accum[x0] / samples for x0, _ in norm_positions}
+            mode_label = r"$\overline{C}_G(x_0,r_y)$"
+        elif need_averaged:
+            Gsum = np.zeros((Nlayer, Nlayer), dtype=np.complex128)
+            for _ in range(samples):
+                self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=False)
+                Gsum += np.asarray(self.G)[:Nlayer, :Nlayer]
+            Gavg = Gsum / samples
+            Gker = _coerce_to_two_point_kernel_top(Gavg)
+            C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals).real for x0, _ in norm_positions}
+            mode_label = r"$C_{\overline{G}}(x_0,r_y)$"
+        else:
+            # single trajectory
+            self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=False)
+            Gker = _coerce_to_two_point_kernel_top(self.G)
+            C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals).real for x0, _ in norm_positions}
+            mode_label = r"$C_G(x_0,r_y)$"
+
+        # ---- single-panel plot for Case 3 ----
         fig, ax = plt.subplots(figsize=(7, 4.5))
         for x0, lbl in norm_positions:
             C_vec = C_dict[x0]
@@ -922,15 +1010,13 @@ class classA_U1FGTN:
         ax.set_title(f"Squared correlator vs $r_y$ at selected $x_0$ (N={Nx})")
         ax.set_yscale('log'); ax.set_xscale('log')
         ax.grid(True, alpha=0.3)
-        ax.legend(loc='lower left', bbox_to_anchor=(0.02, 0.02), ncol=3, fontsize=8,
-                  frameon=True, framealpha=0.85, borderpad=0.4, handlelength=1.5,
-                  handletextpad=0.6, columnspacing=0.9, labelspacing=0.3)
+        ax.legend(loc='best', fontsize=8)
         fig.tight_layout()
 
         if filename is None:
             xdesc = "-".join(f"{x}" for x, _ in norm_positions)
-            tag = ("trajRES" if trajectory_resolved else
-                   "trajAVG" if trajectory_averaged else
+            tag = ("trajRES" if need_resolved else
+                   "trajAVG" if need_averaged else
                    "single")
             filename = f"corr2_y_profiles_N{Nx}_xs_{xdesc}_{tag}_S{samples}.pdf"
 
