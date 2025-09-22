@@ -436,64 +436,63 @@ class classA_U1FGTN:
         Shows elapsed and total ETA (end-to-end) on all tqdm bars.
         Only the outer bar tracks G2==I.
         """
-        from tqdm import tqdm
-    
+            
         def fmt(t):
             # use tqdm's own formatter for consistency
             return tqdm.format_interval(max(0.0, float(t)))
-    
+
         # fresh state
         self.G = np.array(self.G0, copy=True)
         if G_history:
             self.G_list = []
         self.g2_flags = []
         self.cycles = int(cycles)
-    
+
         Nx, Ny = int(self.Nx), int(self.Ny)
         D = int(self.Ntot)
         I = np.eye(D, dtype=np.complex128)
-    
+
         total_steps = self.cycles * Nx * Ny
         steps_done = 0
         t_total0 = time.perf_counter()
-    
+
         # OUTER: cycles
         outer_iter = range(self.cycles)
         if progress:
             outer_iter = tqdm(outer_iter, total=self.cycles, leave=True, desc="Cycles")
-    
+
         for c in outer_iter:
             # per-cycle timer
             t_cycle0 = time.perf_counter()
-    
+
             # MIDDLE: rows (Rx) in this cycle
             row_iter = range(Nx)
             if progress:
                 row_iter = tqdm(row_iter, total=Nx, leave=False, desc=f"Cycle {c+1}/{self.cycles}")
-    
+
             for Rx in row_iter:
                 # per-row timer
                 t_row0 = time.perf_counter()
-    
+
                 # INNER: columns (Ry) in this row
                 col_iter = range(Ny)
                 if progress:
                     col_iter = tqdm(col_iter, total=Ny, leave=False, desc=f"  row {Rx+1}/{Nx}")
-    
+
                 cols_done = 0
                 for Ry in col_iter:
                     if not postselect:
                         self.G = self.top_layer_meas_feedback(self.G, Rx, Ry)
                     else:
                         self.G = self.post_selection_top_layer(self.G, Rx, Ry)
-    
+
                     # G^2 ≈ I check (record per step; shown only on outer bar)
                     ok = int(np.allclose(self.G @ self.G, I, atol=tol))
                     self.g2_flags.append(ok)
-    
+
                     # progress accounting
                     steps_done += 1
-    
+
                     if progress:
                         # --- inner bar (per-row) elapsed & ETA total for this bar ---
                         cols_done += 1
@@ -507,7 +506,7 @@ class classA_U1FGTN:
                             )
                         except Exception:
                             pass
-                        
+
                         # --- outer bar (total) elapsed & ETA total + G2 flag ---
                         elapsed_total = time.perf_counter() - t_total0
                         frac_total = steps_done / max(1, total_steps)
@@ -519,7 +518,7 @@ class classA_U1FGTN:
                             )
                         except Exception:
                             pass
-                        
+
                 # after finishing this row, update the middle bar's times once
                 if progress:
                     rows_done = Rx + 1
@@ -533,12 +532,12 @@ class classA_U1FGTN:
                         )
                     except Exception:
                         pass
-                    
+
             # end of cycle: bottom-layer randomize + measure (once per cycle)
             if not postselect:
                 self.G = self.randomize_bottom_layer(self.G)
                 self.G = self.measure_all_bottom_modes(self.G)
-    
+
             if G_history:
                 self.G_list.append(self.G.copy())
 
