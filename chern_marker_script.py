@@ -8,6 +8,18 @@ from IPython.display import Image, display
 import os
 import time
 
+def format_interval(seconds):
+    """Convert seconds to H:MM:SS (or D:HH:MM:SS if >1 day)."""
+    seconds = int(round(seconds))
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+
+    if days > 0:
+        return f"{days}d {hours:02}:{minutes:02}:{seconds:02}"
+    else:
+        return f"{hours:02}:{minutes:02}:{seconds:02}"
+
 # Local chern marker
 
 # Small-ish grid and a few cycles so it runs quickly in a notebook.
@@ -27,7 +39,7 @@ print("Saved files:")
 print("  GIF :", gif_path)
 print("  PDF :", final_path)
 elapsed = time.time() - m.time_init
-print(f"Total time elapsed: {elapsed:.3f} s")
+print(f"Total time elapsed: {format_interval(elapsed)} s")
 
 # Show the GIF inline
 if os.path.exists(gif_path):
