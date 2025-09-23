@@ -5,11 +5,14 @@ import os
 import matplotlib.animation as animation
 from matplotlib import pyplot as plt
 from tqdm import tqdm
+from joblib import Parallel, delayed
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import matplotlib as mpl
 
 
 
 class classA_U1FGTN:
-    def __init__(self, Nx, Ny, DW=True, cycles=None, samples = None, nshell=None, filling_frac=1/2, G0=None):
+    def __init__(self, Nx, Ny, DW=True, cycles=None, samples=None, nshell=None, filling_frac=1/2, G0=None):
         """
         1) Initialize random complex covariance over top and bottom layers
            with prescribed filling fraction.
@@ -21,16 +24,8 @@ class classA_U1FGTN:
         self.Ntot = 4 * self.Nx * self.Ny     # 2 orbitals × Nx × Ny × 2 layers
         self.nshell = nshell
 
-        if cycles is None:
-            self.cycles = 5
-        else:
-            self.cycles = cycles
-        
-        if samples is None:
-            self.samples = 5
-        else:
-            self.samples = samples
-
+        self.cycles = 5 if cycles is None else int(cycles)
+        self.samples = 5 if samples is None else int(samples)
 
         if G0 is None:
             G = self.random_complex_fermion_covariance(N=self.Ntot, filling_frac=filling_frac)
@@ -52,7 +47,6 @@ class classA_U1FGTN:
         days, seconds = divmod(seconds, 86400)
         hours, seconds = divmod(seconds, 3600)
         minutes, seconds = divmod(seconds, 60)
-
         if days > 0:
             return f"{days}d {hours:02}:{minutes:02}:{seconds:02}"
         else:
@@ -64,7 +58,8 @@ class classA_U1FGTN:
 
     def random_unitary(self, N, rng=None):
         """
-        Generate a random unitary U = V exp(i diag(w)) V^†, with H=H^† from a complex Gaussian.
+        Generate a random unitary U = V exp(i diag(w)) V^† by diagonalizing a random
+        Hermitian matrix H. rng: numpy Generator (optional).
         """
         rng = np.random.default_rng() if rng is None else rng
         M = rng.standard_normal((N, N)) + 1j * rng.standard_normal((N, N))
@@ -311,11 +306,6 @@ class classA_U1FGTN:
         psi_t = np.zeros(Ntot, dtype=np.complex128); psi_t[:Nlayer]  = ct
         psi_b = np.zeros(Ntot, dtype=np.complex128); psi_b[Nlayer:]  = cb
 
-        # Gram-Schmidt one step for safety
-        #psi_t /= (np.linalg.norm(psi_t) + 1e-15)
-        #psi_b -= (psi_t.conj() @ psi_b) * psi_t
-        #psi_b /= (np.linalg.norm(psi_b) + 1e-15)
-
         Pt = np.outer(psi_t, psi_t.conj())
         Pb = np.outer(psi_b, psi_b.conj())
         Xtb = np.outer(psi_t, psi_b.conj())
@@ -400,7 +390,7 @@ class classA_U1FGTN:
     def measure_all_bottom_modes(self, G):
         """
         Measure all local mode occupancies in bottom layer (one pass, correct Bernoulli).
-        Prints elapsed time when finished.
+        Prints elapsed time when finished (unless suppressed).
         """
         start = time.time()
 
@@ -421,7 +411,9 @@ class classA_U1FGTN:
             )
 
         self.bottom_layer_mode_meas_time = time.time() - start
-        print(f"\nAll bottom layer modes measured | Time elapsed: {self.bottom_layer_mode_meas_time:.3f} s")
+        if not getattr(self, "_suppress_bottom_measure_prints", False):
+            print()
+            print(f"\nAll bottom layer modes measured | Time elapsed: {self.bottom_layer_mode_meas_time:.3f} s", flush=True)
 
         return G
 
@@ -440,19 +432,27 @@ class classA_U1FGTN:
 
     # ------------------------------ Circuit driver ------------------------------
 
-    def run_adaptive_circuit(self, G_history=True, cycles=5, tol=1e-8,
-                             progress=True, postselect=False):
+    def run_adaptive_circuit(
+        self,
+        G_history=True,
+        cycles=5,
+        tol=1e-8,
+        progress=True,
+        postselect=False,
+        *,
+        print_eta=True,
+        print_eta_rate=3.0,   # seconds between ETA prints (throttled)
+    ):
         """
         Run the adaptive circuit for `cycles` sweeps of the lattice.
-        Shows elapsed and total ETA (end-to-end) on all tqdm bars.
-        Only the outer bar tracks G2==I.
-        """
-            
-        def fmt(t):
-            # use tqdm's own formatter for consistency
-            return tqdm.format_interval(max(0.0, float(t)))
 
-        # fresh state
+        - Shows tqdm bars if `progress=True`.
+        - Prints a simple, single-line ETA (total & left), throttled by `print_eta_rate`
+          seconds, that is parallel-aware if a caller (e.g., corr_y_profiles_v2)
+          temporarily sets `self._eta_parallel_factor = n_jobs`.
+        """
+
+        # fresh state & counters
         self.G = np.array(self.G0, copy=True)
         if G_history:
             self.G_list = []
@@ -464,8 +464,16 @@ class classA_U1FGTN:
         I = np.eye(D, dtype=np.complex128)
 
         total_steps = self.cycles * Nx * Ny
-        steps_done = 0
-        t_total0 = time.perf_counter()
+        steps_done  = 0
+        t_total0    = time.perf_counter()  # for tqdm elapsed/eta
+
+        # smoothing for EMA per-step baseline; last ETA print walltime
+        self._eta_step_baseline = getattr(self, "_eta_step_baseline", None)
+        self._eta_last_print    = getattr(self, "_eta_last_print", 0.0)
+        self._eta_printed_once  = False
+
+        def fmt(t):
+            return tqdm.format_interval(max(0.0, float(t)))
 
         # OUTER: cycles
         outer_iter = range(self.cycles)
@@ -473,68 +481,99 @@ class classA_U1FGTN:
             outer_iter = tqdm(outer_iter, total=self.cycles, leave=True, desc="Cycles")
 
         for c in outer_iter:
-            # per-cycle timer
             t_cycle0 = time.perf_counter()
 
-            # MIDDLE: rows (Rx) in this cycle
+            # MIDDLE: rows (Rx)
             row_iter = range(Nx)
             if progress:
-                row_iter = tqdm(row_iter, total=Nx, leave=False, desc=f"Rx Loop")
+                row_iter = tqdm(row_iter, total=Nx, leave=False, desc="Rx Loop")
 
             for Rx in row_iter:
-                # per-row timer
                 t_row0 = time.perf_counter()
 
-                # INNER: columns (Ry) in this row
+                # INNER: columns (Ry)
                 col_iter = range(Ny)
                 if progress:
-                    col_iter = tqdm(col_iter, total=Ny, leave=False, desc=f"Ry Loop: ")
+                    col_iter = tqdm(col_iter, total=Ny, leave=False, desc="Ry Loop:")
 
                 cols_done = 0
                 for Ry in col_iter:
-                    t0 = time.time()
+                    # --- step timer start (for EMA baseline) ---
+                    t_step0 = time.perf_counter()
+
                     if not postselect:
                         self.G = self.top_layer_meas_feedback(self.G, Rx, Ry)
                     else:
                         self.G = self.post_selection_top_layer(self.G, Rx, Ry)
 
-                    # G^2 ≈ I check (record per step; shown only on outer bar)
+                    # G^2 ≈ I check
                     ok = int(np.allclose(self.G @ self.G, I, atol=tol))
                     self.g2_flags.append(ok)
 
                     # progress accounting
                     steps_done += 1
 
+                    # -------- ETA (EMA per-step, parallel-aware) --------
+                    # measure one step duration for EMA baseline
+                    dt_step = time.perf_counter() - t_step0
+
+                    # Initialize or smooth the per-step baseline (EMA)
+                    if self._eta_step_baseline is None:
+                        self._eta_step_baseline = dt_step
+                    else:
+                        self._eta_step_baseline = 0.9 * self._eta_step_baseline + 0.1 * dt_step
+
+                    # Total steps & progress (for a single trajectory)
+                    steps_total = int(self.cycles) * self.Nx * self.Ny
+
+                    # Base (single-trajectory) ETA numbers
+                    eta_total_single = self._eta_step_baseline * steps_total
+                    eta_left_single  = self._eta_step_baseline * max(0, steps_total - steps_done)
+
+                    # Parallel scaling if corr_y_profiles_v2 is calling us
+                    parallel_factor = max(1, int(getattr(self, "_eta_parallel_factor", 1)))
+                    eta_total_wall = eta_total_single / parallel_factor
+                    eta_left_wall  = eta_left_single  / parallel_factor
+
+                    # Throttled, single-line print
+                    if print_eta:
+                        now = time.time()
+                        if (now - float(self._eta_last_print)) >= float(print_eta_rate):
+                            print(
+                                f"\rLoop ETA total: {self.format_interval(eta_total_wall)} | "
+                                f"Loop ETA left: {self.format_interval(eta_left_wall)}",
+                                end="",
+                                flush=True,
+                            )
+                            self._eta_last_print = now
+                            self._eta_printed_once = True
+
+                    # ---- tqdm cosmetics (keep your bars) ----
                     if progress:
-                        # --- inner bar (per-row) elapsed & ETA total for this bar ---
                         cols_done += 1
                         elapsed_row = time.perf_counter() - t_row0
                         frac_row = cols_done / Ny
                         eta_row_total = (elapsed_row / frac_row - elapsed_row) if frac_row > 0 else 0.0
                         try:
                             col_iter.set_postfix(
-                                {"elapsed": fmt(elapsed_row), "eta_total": fmt(eta_row_total)},
+                                {"elapsed": fmt(elapsed_row),
+                                 "eta_total": fmt(eta_row_total)},
                                 refresh=False
                             )
                         except Exception:
                             pass
 
-                        # --- outer bar (total) elapsed & ETA total + G2 flag ---
                         elapsed_total = time.perf_counter() - t_total0
                         frac_total = steps_done / max(1, total_steps)
                         eta_total_total = (elapsed_total / frac_total - elapsed_total) if frac_total > 0 else 0.0
                         try:
                             outer_iter.set_postfix_str(
-                                f"elapsed={fmt(elapsed_total)} | eta_total={fmt(eta_total_total)}\nG2==I: {ok}",
+                                f"elapsed={fmt(elapsed_total)} | "
+                                f"eta_total={fmt(eta_total_total)}\nG2==I: {ok}",
                                 refresh=False
                             )
                         except Exception:
                             pass
-                        self.elementary_delta_t = time.time() - t0
-
-                        if self.corr_y_profiles_call is True:
-                            self.y_corr_profiles_time = self.samples * self.cycles * (self.Nx * self.Ny * self.elementary_delta_t + self.bottom_layer_mode_meas_time)
-                            print(f"Total ETA = {self.format_interval(self.y_corr_profiles_time)} (H:MM:SS)")
 
                 # after finishing this row, update the middle bar's times once
                 if progress:
@@ -544,7 +583,8 @@ class classA_U1FGTN:
                     eta_cycle_total = (elapsed_cycle / frac_cycle - elapsed_cycle) if frac_cycle > 0 else 0.0
                     try:
                         row_iter.set_postfix(
-                            {"elapsed": fmt(elapsed_cycle), "eta_total": fmt(eta_cycle_total)},
+                            {"elapsed": fmt(elapsed_cycle),
+                             "eta_total": fmt(eta_cycle_total)},
                             refresh=False
                         )
                     except Exception:
@@ -557,6 +597,10 @@ class classA_U1FGTN:
 
             if G_history:
                 self.G_list.append(self.G.copy())
+
+        # finish the inline ETA line with a newline only if we actually printed ETA
+        if print_eta and getattr(self, "_eta_printed_once", False):
+            print()
 
     # ---------------------------- Chern observables ----------------------------
 
@@ -666,11 +710,9 @@ class classA_U1FGTN:
         if mask_outside and inside_mask is not None:
             C = np.where(inside_mask, C, 0.0)
         return C
-    
-
-
 
     # ------------------------- Visualization helpers -------------------------
+
     def plot_real_space_chern_history(self, filename=None):
         """
         Plot the real-space Chern number across the *existing* history self.G_list.
@@ -704,7 +746,6 @@ class classA_U1FGTN:
         ax.plot(x, cherns, marker="o", lw=1.25)
         ax.set_xlabel("Cycles")
         ax.set_ylabel("Real-space Chern Number")
-        #ax.set_title(f"Chern vs history — N={self.Nx}×{self.Ny} (uniform)")
         ax.grid(True, alpha=0.3)
         fig.tight_layout()
 
@@ -716,7 +757,7 @@ class classA_U1FGTN:
             fig.savefig(fullpath, bbox_inches="tight")
 
         return fig, ax, cherns
-    
+
     def chern_marker_dynamics(self, outbasename=None, vmin=-1.0, vmax=1.0, cmap='RdBu_r'):
         """
         Animate local Chern marker over the cached history self.G_list (or current self.G).
@@ -770,9 +811,8 @@ class classA_U1FGTN:
         )
 
         # Optional fixed-position textbox for DW locations (if available)
-        dw_text = None
         if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
-            dw_text = fig.text(
+            fig.text(
                 0.26, 0.86, f"DW x₀ = {self.DW_loc[0]}, {self.DW_loc[1]}",
                 fontsize=10, ha='right', va='center',
                 bbox=dict(facecolor='white', edgecolor='black', alpha=0.85, boxstyle='round,pad=0.25')
@@ -829,47 +869,92 @@ class classA_U1FGTN:
 
         return gif_path, final_path, C_last, history[-1]
 
-    def plot_corr_y_profiles(
-    self,
-    G=None,
-    x_positions=None,
-    ry_max=None,
-    filename=None,
-    samples=None,
-    trajectory_resolved=True,
-    trajectory_averaged=True,
-    save_data=True):
-        
+    # ---------------------- Parallel-safe spawner for v2 ----------------------
+
+    def _spawn_for_parallel(self):
+        """Make a worker copy with shared read-only big arrays to avoid races."""
+        child = object.__new__(self.__class__)
+        # copy scalars
+        child.Nx, child.Ny = self.Nx, self.Ny
+        child.Ntot = self.Ntot
+        child.nshell = self.nshell
+        child.DW = self.DW
+        child.cycles = self.cycles
+        child.samples = self.samples
+        child.time_init = self.time_init
+        # share read-only big arrays (must not be mutated in workers!)
+        child.Pminus = self.Pminus
+        child.Pplus  = self.Pplus
+        child.WF_Ap, child.WF_Bp, child.WF_Am, child.WF_Bm = self.WF_Ap, self.WF_Bp, self.WF_Am, self.WF_Bm
+        child.P_Ap, child.P_Bp, child.P_Am, child.P_Bm = self.P_Ap, self.P_Bp, self.P_Am, self.P_Bm
+        child.alpha = self.alpha
+        child.DW_loc = getattr(self, "DW_loc", None)
+        # stateful things initialized per worker
+        child.G0 = np.array(self.G0, copy=True)
+        child.G = None
+        child.G_list = []
+        child.g2_flags = []
+        # ETA/prints off in workers
+        child._eta_step_baseline = None
+        child._suppress_bottom_measure_prints = True
+        return child
+
+    # ---------------------- Parallelized corr y-profiles (v2) ----------------------
+
+    def plot_corr_y_profiles_v2(self, samples=None, n_jobs=None, save_data=True, filename=None, ry_max=None, backend="loky"):
         """
-        Plot |G|^2 vs y-separation at selected x columns.
+        Parallelized y-profile computation that ALWAYS produces both:
+          - \\overline{C}_G   (sample-average of C per trajectory)
+          - C_{\\overline{G}} (C of the sample-averaged G)
+        And plots a 3x2 panel: (top) the two y-profiles, (mid) eigenvalue spectra,
+        (bottom) local Chern marker images.
 
-        If BOTH trajectory_resolved and trajectory_averaged are True:
-          - Runs `samples` trajectories.
-          - Top row:  \overline{C}_G  (sample-avg of C)  and  C_{\overline{G}} (C of sample-avg G).
-          - Middle:   eig-spectra of final sampled top-layer G  and  of \overline{G}.
-          - Bottom:   local Chern marker for final sampled G  and  for \overline{G}.
-          - Adds a textbox "DWs at x₀ = a, b" at the top-left of both top-row axes (uses self.DW_loc).
-          - Optionally saves data for \overline{C}_G and C_{\overline{G}}.
-
-        Otherwise behaves like the simpler single-panel versions.
+        Parallelism: joblib with backend selectable ('loky' preferred).
+        Each worker runs on a light cloned instance created by _spawn_for_parallel().
         """
         Nx, Ny = self.Nx, self.Ny
         Ntot   = self.Ntot
         Nlayer = Ntot // 2
-        self.corr_y_profiles_call = True
 
         if samples is None:
-            samples = self.samples
-        else:
-            samples = 2  # keep existing behavior
+            samples = int(getattr(self, "samples", 4))
+        samples = int(max(1, samples))
 
-        # ---------- helpers (local, no extra imports) ----------
+        if n_jobs is None:
+            n_jobs = min(samples, os.cpu_count() or 1)
+        n_jobs = max(1, int(n_jobs))
+
+        # pick 9 x0 positions from DW_loc (your spec)
+        def _pick_x_positions():
+            if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
+                xL, xR = int(self.DW_loc[0]) % Nx, int(self.DW_loc[1]) % Nx
+                xs = [
+                    (xL // 2) % Nx,                   # middle of left trivial
+                    (xL - 1) % Nx, xL % Nx, (xL + 1) % Nx,
+                    ((xL + xR) // 2) % Nx,            # middle of non-trivial
+                    (xR - 1) % Nx, xR % Nx, (xR + 1) % Nx,
+                    (xR + (Nx // 2)) % Nx,            # middle of right trivial (simple symmetric)
+                ]
+                seen, uniq = set(), []
+                for x in xs:
+                    if x not in seen:
+                        uniq.append(int(x)); seen.add(int(x))
+                return [(x, f"{x}") for x in uniq]
+            else:
+                xs = np.linspace(0, Nx-1, 9, dtype=int)
+                return [(int(x), f"{int(x)}") for x in xs]
+
+        x_positions = _pick_x_positions()
+
+        # y-separations
+        if ry_max is None:
+            ry_max = Ny // 2
+        ry_vals = np.arange(0, int(ry_max) + 1, dtype=int)
+
+        # helpers
         def _coerce_to_two_point_kernel_top(G_in):
-            """Return (Nx,Ny,2,Nx,Ny,2) kernel from (4N,4N) or (2N,2N) or already-kernel."""
             Gin = np.asarray(G_in, dtype=np.complex128)
             if Gin.ndim == 6:
-                if Gin.shape[:2] != (Nx, Ny) or Gin.shape[2] != 2 or Gin.shape[3:5] != (Nx, Ny) or Gin.shape[5] != 2:
-                    raise ValueError("6-index G has incompatible shape.")
                 return Gin
             elif Gin.ndim == 2:
                 if Gin.shape == (Ntot, Ntot):
@@ -885,19 +970,15 @@ class classA_U1FGTN:
                 raise ValueError("G must be (4N,4N), (2N,2N), or (Nx,Ny,2,Nx,Ny,2).")
 
         def _C_xslice_from_kernel(Gker, x0, ry_vals):
-            """C(x0; ry) = (1/(2 Ny)) sum_{y,μ,ν} |G[(x0,y,μ),(x0,y+ry,ν)]|^2."""
             x0 = int(x0) % Nx
             ry_arr = np.atleast_1d(ry_vals).astype(int)
             Ny_loc = Gker.shape[1]
-
             Gx = Gker[x0, :, :, x0, :, :]                # (Ny,2,Ny,2)
             Y  = np.arange(Ny_loc, dtype=np.intp)[:, None]
             Yp = (Y + ry_arr[None, :]) % Ny_loc
-
             Gx_re   = np.transpose(Gx, (0, 2, 1, 3)).reshape(Ny_loc*Ny_loc, 2, 2)
             flat_ix = (Y * Ny_loc + Yp).reshape(-1)
             blocks  = Gx_re[flat_ix].reshape(Ny_loc, ry_arr.size, 2, 2)
-
             return np.sum(np.abs(blocks)**2, axis=(0, 2, 3)) / (2.0 * Ny_loc)
 
         def _eigvals_sorted(A):
@@ -908,243 +989,172 @@ class classA_U1FGTN:
             return np.sort(np.real_if_close(w))
 
         def _chern_from_Gtop(G_top):
-            """Local Chern marker image from a (2N,2N) top-layer block."""
             return self.local_chern_marker_flat(G_top)
 
-        def _simple_x_positions():
-            # Requires self.DW_loc = [xL, xR] defined by construct_OW_projectors.
-            if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
-                xL, xR = int(self.DW_loc[0]) % Nx, int(self.DW_loc[1]) % Nx
-                xs = [
-                    (xL // 2) % Nx,                # middle of left trivial
-                    (xL - 1) % Nx, xL % Nx, (xL + 1) % Nx,  # around left DW
-                    ((xL + xR) // 2) % Nx,         # middle of non-trivial region
-                    (xR - 1) % Nx, xR % Nx, (xR + 1) % Nx,  # around right DW
-                    ((xR + Nx) + (Nx - 1)) // 2 % Nx,       # middle of right trivial (approx)
-                ]
-                uniq, seen = [], set()
-                for x in xs:
-                    if x not in seen:
-                        uniq.append(int(x)); seen.add(int(x))
-                k = 10 - len(uniq)
-                if k > 0:
-                    extras = np.linspace(0, Nx-1, num=10, dtype=int)
-                    for x in extras:
-                        if x not in seen:
-                            uniq.append(int(x)); seen.add(int(x))
-                            if len(uniq) == 10:
-                                break
-                return [(int(x), f"{int(x)}") for x in uniq[:10]]
-            else:
-                xs = np.linspace(0, Nx-1, num=10, dtype=int)
-                xs = list(dict.fromkeys(map(int, xs)))
-                return [(x, f"{x}") for x in xs[:10]]
+        # accumulators
+        C_accum = {x0: np.zeros_like(ry_vals, dtype=float) for x0, _ in x_positions}
+        Gsum    = np.zeros((Nlayer, Nlayer), dtype=np.complex128)
+        last_Gtt = None
 
-        def _plot_single_panel(C_dict, ry_vals, norm_positions, mode_label, outdir, filename):
-            fig, ax = plt.subplots(figsize=(7, 4.5))
-            for x0, lbl in norm_positions:
-                C_vec = C_dict[x0]
+        # scale ETA inside RAC and silence bottom-layer prints in workers
+        self._eta_parallel_factor = n_jobs
+        old_suppress = getattr(self, "_suppress_bottom_measure_prints", False)
+        self._suppress_bottom_measure_prints = True
+
+        # seeds
+        if backend == "loky":
+            ss = np.random.SeedSequence()
+            seed_ints = ss.generate_state(samples, dtype=np.uint32).tolist()
+        else:
+            # threading: avoid touching global RNG state with per-thread seeding
+            seed_ints = [None] * samples
+            print("[corr_y_profiles_v2] Warning: threading backend shares NumPy RNG; results will be non-reproducible per-thread.")
+
+        # worker functions
+        def _task_loky(seed):
+            child = self._spawn_for_parallel()
+            np.random.seed(int(seed) & 0xFFFFFFFF)  # safe per-process seeding
+            child.run_adaptive_circuit(cycles=child.cycles, G_history=False, progress=False)
+            Gtt  = np.asarray(child.G)[:Nlayer, :Nlayer]
+            Gker = _coerce_to_two_point_kernel_top(Gtt)
+            C_this = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals).real for x0, _ in x_positions}
+            return Gtt, C_this
+
+        def _task_thread(_seed_unused):
+            # clone object to avoid shared mutable state (still shares big read-only arrays)
+            child = self._spawn_for_parallel()
+            # do NOT np.random.seed here (threads share global RNG)
+            child.run_adaptive_circuit(cycles=child.cycles, G_history=False, progress=False)
+            Gtt  = np.asarray(child.G)[:Nlayer, :Nlayer]
+            Gker = _coerce_to_two_point_kernel_top(Gtt)
+            C_this = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals).real for x0, _ in x_positions}
+            return Gtt, C_this
+
+        # pick worker based on backend
+        worker_fn = _task_loky if backend == "loky" else _task_thread
+
+        # run parallel
+        results = Parallel(n_jobs=n_jobs, backend=backend)(
+            delayed(worker_fn)(s) for s in seed_ints
+        )
+
+        # restore flags
+        self._suppress_bottom_measure_prints = old_suppress
+        if hasattr(self, "_eta_parallel_factor"):
+            del self._eta_parallel_factor
+
+        # accumulate results
+        for Gtt, C_this in results:
+            last_Gtt = Gtt
+            Gsum += Gtt
+            for x0, _ in x_positions:
+                C_accum[x0] += C_this[x0]
+
+        # build datasets
+        C_resolved = {x0: C_accum[x0] / samples for x0, _ in x_positions}     # \overline{C}_G
+        Gavg = Gsum / samples
+        Gker_avg = _coerce_to_two_point_kernel_top(Gavg)
+        C_avg = {x0: _C_xslice_from_kernel(Gker_avg, x0, ry_vals).real for x0, _ in x_positions}  # C_{\overline{G}}
+
+        # spectra & Chern
+        evals_last = _eigvals_sorted(last_Gtt)
+        evals_avg  = _eigvals_sorted(Gavg)
+        Chern_last = _chern_from_Gtop(last_Gtt)
+        Chern_avg  = _chern_from_Gtop(Gavg)
+
+        # ---------------- plotting: 3 x 2 ----------------
+        outdir = self._ensure_outdir('figs/corr_y_profiles')
+        if filename is None:
+            xdesc = "-".join(f"{x}" for x, _ in x_positions)
+            filename = f"corr2_y_profiles_v2_N{Nx}_xs_{xdesc}_S{samples}_J{n_jobs}.pdf"
+        fullpath = os.path.join(outdir, filename)
+
+        # Make sure TeX is off; we’ll use mathtext only
+        mpl.rcParams['text.usetex'] = False
+
+        # Use constrained layout (more robust than tight_layout with mathtext)
+        fig = plt.figure(figsize=(12.5, 12.0), constrained_layout=True)
+        gs  = fig.add_gridspec(nrows=3, ncols=2,
+                               height_ratios=[1.0, 1.0, 1.04],  # tiny extra height for colorbar row
+                               width_ratios=[1.0, 1.0])
+
+        axC1 = fig.add_subplot(gs[0, 0])
+        axC2 = fig.add_subplot(gs[0, 1])
+        axE1 = fig.add_subplot(gs[1, 0], sharex=None)
+        axE2 = fig.add_subplot(gs[1, 1], sharex=None)
+        axM1 = fig.add_subplot(gs[2, 0])
+        axM2 = fig.add_subplot(gs[2, 1])
+
+        # Top row: y-profiles
+        for ax, Cdict, ylab in (
+            (axC1, C_resolved, r"$\overline{C}_G(x_0,r_y)$"),
+            (axC2, C_avg,      r"$C_{\overline{G}}(x_0,r_y)$"),
+        ):
+            for x0, lbl in x_positions:
+                C_vec = Cdict[x0]
                 line, = ax.plot(ry_vals, C_vec, marker='o', ms=3, lw=1, label=lbl)
                 finite = np.isfinite(C_vec)
                 y_right = C_vec[finite][-1] if np.any(finite) else C_vec[-1]
                 x_right = ry_vals[-1] * 1.02 if ry_vals[-1] > 0 else ry_vals[-1] + 0.5
                 ax.annotate(lbl, xy=(ry_vals[-1], y_right), xytext=(x_right, y_right),
-                            textcoords='data', ha='left', va='center', fontsize=9,
+                            textcoords='data', ha='left', va='center', fontsize=8,
                             color=line.get_color())
             ax.set_xlabel(r"$r_y$")
-            ax.set_ylabel(mode_label)
-            ax.set_title(f"Squared correlator vs $r_y$ at selected $x_0$ (N={Nx})")
-            ax.set_yscale('log'); ax.set_xscale('log')
+            ax.set_ylabel(ylab)
+            ax.set_xscale('log'); ax.set_yscale('log')
             ax.grid(True, alpha=0.3)
-            ax.legend(loc='best', fontsize=8)
-            fig.tight_layout()
+            ax.legend(loc='best', fontsize=7)
+            if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
+                ax.text(0.02, 0.96, f"DWs at x₀ = {int(self.DW_loc[0])}, {int(self.DW_loc[1])}",
+                        transform=ax.transAxes, ha='left', va='top', fontsize=9,
+                        bbox=dict(boxstyle="round,pad=0.2", fc="w", ec="k", alpha=0.6))
+        
+        # sync y-axis limits       
+        ymin = min(axC1.get_ylim()[0], axC2.get_ylim()[0])
+        ymax = max(axC1.get_ylim()[1], axC2.get_ylim()[1])
+        axC1.set_ylim(ymin, ymax)
+        axC2.set_ylim(ymin, ymax)
 
-            fullpath = os.path.join(outdir, filename)
-            plt.show()
-            fig.savefig(fullpath, bbox_inches='tight')
-            plt.close(fig)
-            return fullpath
+        # Middle row: eigenvalue spectra
+        axE1.plot(np.arange(len(evals_last)), np.sort(evals_last), '.', ms=3)
+        axE1.set_title(r"eigvals($G_{\mathrm{final}}$)")
+        axE1.set_xlabel("index"); axE1.set_ylabel("eigenvalue"); axE1.grid(True, alpha=0.3)
 
-        def _plot_both_panels_and_extras(C_resolved, C_avg, ry_vals, norm_positions,
-                                         evals_last, evals_avg, Chern_last, Chern_avg,
-                                         outdir, filename):
-            fig, axes = plt.subplots(3, 2, figsize=(12.5, 12.0))
-            (axC1, axC2), (axE1, axE2), (axM1, axM2) = axes
+        axE2.plot(np.arange(len(evals_avg)),  np.sort(evals_avg),  '.', ms=3)
+        axE2.set_title(r"eigvals($\overline{G}$)")
+        axE2.set_xlabel("index"); axE2.set_ylabel("eigenvalue"); axE2.grid(True, alpha=0.3)
 
-            # correlation profiles (top row)
-            for ax, Cdict, title in ((axC1, C_resolved, r"$\overline{C}_G(x_0,r_y)$"),
-                                     (axC2, C_avg,      r"$C_{\overline{G}}(x_0,r_y)$")):
-                for x0, lbl in norm_positions:
-                    C_vec = Cdict[x0]
-                    line, = ax.plot(ry_vals, C_vec, marker='o', ms=3, lw=1, label=lbl)
-                    finite = np.isfinite(C_vec)
-                    y_right = C_vec[finite][-1] if np.any(finite) else C_vec[-1]
-                    x_right = ry_vals[-1] * 1.02 if ry_vals[-1] > 0 else ry_vals[-1] + 0.5
-                    ax.annotate(lbl, xy=(ry_vals[-1], y_right), xytext=(x_right, y_right),
-                                textcoords='data', ha='left', va='center', fontsize=8,
-                                color=line.get_color())
-                ax.set_xlabel(r"$r_y$")
-                ax.set_ylabel(title)
-                ax.set_xscale('log'); ax.set_yscale('log')
-                ax.grid(True, alpha=0.3)
-                ax.legend(loc='best', fontsize=7)
-                if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
-                    txt = f"DWs at x₀ = {int(self.DW_loc[0])}, {int(self.DW_loc[1])}"
-                    ax.text(0.02, 0.96, txt, transform=ax.transAxes,
-                            ha='left', va='top', fontsize=9,
-                            bbox=dict(boxstyle="round,pad=0.2", fc="w", ec="k", alpha=0.6))
+        # Bottom row: Chern maps — keep the same column widths by anchoring colorbars to each axis
+        im1 = axM1.imshow(Chern_last, cmap='RdBu_r', vmin=-1.0, vmax=1.0, origin='upper', aspect='equal')
+        axM1.set_title(r"$\tanh\mathcal{C}(\mathbf{r})$ for final $G$")
+        axM1.set_xlabel("y"); axM1.set_ylabel("x"); axM1.grid(False)
+        fig.colorbar(im1, ax=axM1, fraction=0.046, pad=0.04, anchor=(0.5, 0.0))
 
-            # spectra (middle row)
-            axE1.plot(np.arange(len(evals_last)), np.sort(evals_last), '.', ms=3)
-            axE1.set_title(r"eigvals(G) — final sample")
-            axE1.set_xlabel("index"); axE1.set_ylabel("eigenvalue"); axE1.grid(True, alpha=0.3)
+        im2 = axM2.imshow(Chern_avg,  cmap='RdBu_r', vmin=-1.0, vmax=1.0, origin='upper', aspect='equal')
+        axM2.set_title(r"$\tanh\mathcal{C}(\mathbf{r})$ for $\overline{G}$")
+        axM2.set_xlabel("y"); axM2.set_ylabel("x"); axM2.grid(False)
+        fig.colorbar(im2, ax=axM2, fraction=0.046, pad=0.04, anchor=(0.5, 0.0))
 
-            axE2.plot(np.arange(len(evals_avg)), np.sort(evals_avg), '.', ms=3)
-            axE2.set_title(r"eigvals(\overline{G})")
-            axE2.set_xlabel("index"); axE2.set_ylabel("eigenvalue"); axE2.grid(True, alpha=0.3)
+        # Title & save — no tight_layout call
+        fig.suptitle(f"Correlation profiles & spectra (N={Nx}, samples={samples}, n_jobs={n_jobs})")
+        plt.show()
+        fig.savefig(fullpath, bbox_inches='tight')
+        plt.close(fig)
 
-            # local Chern markers (bottom row)
-            im1 = axM1.imshow(Chern_last, cmap='RdBu_r', vmin=-1.0, vmax=1.0, origin='upper', aspect='equal')
-            axM1.set_title(r"tanh $\mathcal{C}(\mathbf{r})$ for final $G$")
-            axM1.set_xlabel("y"); axM1.set_ylabel("x"); axM1.grid(False)
-            fig.colorbar(im1, ax=axM1, fraction=0.046, pad=0.04)
-
-            im2 = axM2.imshow(Chern_avg, cmap='RdBu_r', vmin=-1.0, vmax=1.0, origin='upper', aspect='equal')
-            axM2.set_title(r"tanh $\mathcal{C}(\mathbf{r})$ for $\overline{G}$")
-            axM2.set_xlabel("y"); axM2.set_ylabel("x"); axM2.grid(False)
-            fig.colorbar(im2, ax=axM2, fraction=0.046, pad=0.04)
-
-            fig.suptitle(f"Correlation profiles & spectra (N={Nx}, samples={samples})")
-            fig.tight_layout(rect=[0, 0, 1, 0.96])
-
-            fullpath = os.path.join(outdir, filename)
-            plt.show()
-            fig.savefig(fullpath, bbox_inches='tight')
-            plt.close(fig)
-            return fullpath
-
-        # ---------- y-separations ----------
-        if ry_max is None:
-            ry_max = Ny // 2
-        ry_vals = np.arange(0, int(ry_max) + 1, dtype=int)
-
-        # ---------- choose x-positions ----------
-        if x_positions is None:
-            norm_positions = _simple_x_positions()
-        else:
-            norm_positions = []
-            try:
-                for x0, label in x_positions:
-                    norm_positions.append((int(x0) % Nx, str(label)))
-            except Exception:
-                for x0 in np.atleast_1d(x_positions):
-                    norm_positions.append((int(x0) % Nx, f"{int(x0)%Nx}"))
-
-        outdir = self._ensure_outdir('figs/corr_y_profiles')
-
-        # ---------- CASE 0: G supplied -> single panel ----------
-        if G is not None and not (trajectory_resolved and trajectory_averaged):
-            Gker = _coerce_to_two_point_kernel_top(G)
-            C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals) for x0, _ in norm_positions}
-            mode_label = r"$C_G(x_0,r_y)$"
-
-            if filename is None:
-                xdesc = "-".join(f"{x}" for x, _ in norm_positions)
-                filename = f"corr2_y_profiles_N{Nx}_xs_{xdesc}_single.pdf"
-            return _plot_single_panel(C_dict, ry_vals, norm_positions, mode_label, outdir, filename)
-
-        # ---------- CASE 1: both resolved & averaged -> 3x2 panel ----------
-        if trajectory_resolved and trajectory_averaged:
-            C_accum = {x0: np.zeros_like(ry_vals, dtype=float) for x0, _ in norm_positions}
-            Gsum    = np.zeros((Nlayer, Nlayer), dtype=np.complex128)
-            last_Gtt = None
-
-            # progress bar over samples
-            for _ in tqdm(range(samples), desc="Samples: ", leave=True):
-                self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=True)
-                Gtt = np.asarray(self.G)[:Nlayer, :Nlayer]
-                last_Gtt = Gtt
-                Gsum += Gtt
-
-                Gker = _coerce_to_two_point_kernel_top(Gtt)
-                for x0, _lab in norm_positions:
-                    C_accum[x0] += _C_xslice_from_kernel(Gker, x0, ry_vals).real
-
-            C_resolved = {x0: C_accum[x0] / samples for x0, _ in norm_positions}
-            Gavg = Gsum / samples
-            Gker_avg = _coerce_to_two_point_kernel_top(Gavg)
-            C_avg = {x0: _C_xslice_from_kernel(Gker_avg, x0, ry_vals).real for x0, _ in norm_positions}
-
-            evals_last = _eigvals_sorted(last_Gtt)
-            evals_avg  = _eigvals_sorted(Gavg)
-            Chern_last = _chern_from_Gtop(last_Gtt)
-            Chern_avg  = _chern_from_Gtop(Gavg)
-
-            if filename is None:
-                xdesc = "-".join(f"{x}" for x, _ in norm_positions)
-                filename = f"corr2_y_profiles_N{Nx}_xs_{xdesc}_both_S{samples}.pdf"
-            fullpath = _plot_both_panels_and_extras(
-                C_resolved, C_avg, ry_vals, norm_positions,
-                evals_last, evals_avg, Chern_last, Chern_avg,
-                outdir, filename
+        # save datasets
+        if save_data:
+            xs_list = [x for x, _ in x_positions]
+            C_res_mat = np.vstack([C_resolved[x] for x in xs_list])
+            C_avg_mat = np.vstack([C_avg[x]       for x in xs_list])
+            np.savez(
+                os.path.join(outdir, f"corr2_y_profiles_v2_data_N{Nx}_S{samples}_J{n_jobs}_{backend}.npz"),
+                ry_vals=ry_vals,
+                x_positions=np.array(xs_list, dtype=int),
+                Cbar_of_G=C_res_mat,   # \overline{C}_G
+                C_of_Gbar=C_avg_mat    # C_{\overline{G}}
             )
 
-            if save_data:
-                xs_list = [x for x, _ in norm_positions]
-                C_res_mat = np.vstack([C_resolved[x] for x in xs_list])
-                C_avg_mat = np.vstack([C_avg[x]       for x in xs_list])
-                np.savez(
-                    os.path.join(outdir, f"corr2_y_profiles_data_N{Nx}_S{samples}.npz"),
-                    ry_vals=ry_vals,
-                    x_positions=np.array(xs_list, dtype=int),
-                    Cbar_of_G=C_res_mat,   # \overline{C}_G
-                    C_of_Gbar=C_avg_mat    # C_{\overline{G}}
-                )
-            return fullpath
-
-        # ---------- CASE 2: resolved-only / averaged-only / single ----------
-        if trajectory_resolved:
-            C_accum = {x0: np.zeros_like(ry_vals, dtype=float) for x0, _ in norm_positions}
-            for _ in tqdm(range(samples), desc="Samples: ", leave=True):
-                self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=True)
-                Gker = _coerce_to_two_point_kernel_top(np.asarray(self.G)[:Nlayer, :Nlayer])
-                for x0, _lab in norm_positions:
-                    C_accum[x0] += _C_xslice_from_kernel(Gker, x0, ry_vals).real
-            C_dict = {x0: C_accum[x0] / samples for x0, _ in norm_positions}
-            mode_label = r"$\overline{C}_G(x_0,r_y)$"
-        elif trajectory_averaged:
-            Gsum = np.zeros((Nlayer, Nlayer), dtype=np.complex128)
-            for _ in tqdm(range(samples), desc="Samples: ", leave=True):
-                self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=True)
-                Gsum += np.asarray(self.G)[:Nlayer, :Nlayer]
-            Gavg = Gsum / samples
-            Gker = _coerce_to_two_point_kernel_top(Gavg)
-            C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals).real for x0, _ in norm_positions}
-            mode_label = r"$C_{\overline{G}}(x_0,r_y)$"
-            if save_data:
-                xs_list = [x for x, _ in norm_positions]
-                C_mat = np.vstack([C_dict[x] for x in xs_list])
-                np.savez(
-                    os.path.join(outdir, f"corr2_y_profiles_CofGbar_N{Nx}_S{samples}.npz"),
-                    ry_vals=ry_vals,
-                    x_positions=np.array(xs_list, dtype=int),
-                    C_of_Gbar=C_mat
-                )
-        else:
-            # single trajectory
-            self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=True)
-            Gker = _coerce_to_two_point_kernel_top(self.G)
-            C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals).real for x0, _ in norm_positions}
-            mode_label = r"$C_G(x_0,r_y)$"
-
-        if filename is None:
-            xdesc = "-".join(f"{x}" for x, _ in norm_positions)
-            tag = ("trajRES" if trajectory_resolved else
-                   "trajAVG" if trajectory_averaged else
-                   "single")
-            filename = f"corr2_y_profiles_N{Nx}_xs_{xdesc}_{tag}_S{samples}.pdf"
-
-        return _plot_single_panel(C_dict, ry_vals, norm_positions, mode_label, outdir, filename)
+        return fullpath
 
     # ------------------------------ Exact CI state ------------------------------
 

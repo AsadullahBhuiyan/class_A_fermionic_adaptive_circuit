@@ -23,7 +23,7 @@ def format_interval(seconds):
 # Local chern marker
 
 # Small-ish grid and a few cycles so it runs quickly in a notebook.
-Nx, Ny   = 21, 21
+Nx, Ny   = 30, 30
 cycles   = 10         # increase if you want a longer animation
 
 # Build the model
