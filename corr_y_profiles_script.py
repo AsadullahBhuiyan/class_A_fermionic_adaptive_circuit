@@ -20,7 +20,7 @@ def format_interval(seconds):
 # ----------------------------
 
 # Small-ish grid so it runs in a notebook reasonably fast; bump cycles/samples as needed.
-Nx, Ny   = 21, 21
+Nx, Ny   = 30, 30
 cycles   = 10          # circuit sweeps used by helper inside plotter (m.cycles)
 samples  = 10          # number of samples when doing resolved/averaged
 ry_max   = None       # defaults to Ny//2 if None
@@ -38,8 +38,7 @@ trajectory_averaged = True
 t0 = time.time()
 
 # Build the model
-m = classA_U1FGTN(Nx, Ny, DW=DW, nshell=nshell)
-m.cycles = cycles  # make sure helpers pick up your desired cycle count
+m = classA_U1FGTN(Nx, Ny, cycles = cycles, samples = samples, DW=DW, nshell=nshell)
 
 # Let the method pick smart x-positions from alpha; you can also pass a list like [(x0,"label"), ...]
 x_positions = range(8)
@@ -50,7 +49,6 @@ pdf_path = m.plot_corr_y_profiles(
     x_positions=x_positions,
     ry_max=ry_max,
     filename=None,               # let it auto-name the PDF
-    samples=samples,
     trajectory_resolved=trajectory_resolved,
     trajectory_averaged=trajectory_averaged
 )

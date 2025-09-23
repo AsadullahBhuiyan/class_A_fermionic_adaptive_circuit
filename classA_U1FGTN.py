@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 
 class classA_U1FGTN:
-    def __init__(self, Nx, Ny, DW=True, cycles=None, nshell=None, filling_frac=1/2, G0=None):
+    def __init__(self, Nx, Ny, DW=True, cycles=None, samples = None, nshell=None, filling_frac=1/2, G0=None):
         """
         1) Initialize random complex covariance over top and bottom layers
            with prescribed filling fraction.
@@ -25,6 +25,12 @@ class classA_U1FGTN:
             self.cycles = 5
         else:
             self.cycles = cycles
+        
+        if samples is None:
+            self.samples = 5
+        else:
+            self.samples = samples
+
 
         if G0 is None:
             G = self.random_complex_fermion_covariance(N=self.Ntot, filling_frac=filling_frac)
@@ -39,6 +45,18 @@ class classA_U1FGTN:
         print("------------------------- classA_U1FGTN Initialized -------------------------")
 
     # ------------------------------ Utilities ------------------------------
+
+    def format_interval(self, seconds):
+        """Convert seconds to H:MM:SS (or D:HH:MM:SS if >1 day)."""
+        seconds = int(round(seconds))
+        days, seconds = divmod(seconds, 86400)
+        hours, seconds = divmod(seconds, 3600)
+        minutes, seconds = divmod(seconds, 60)
+
+        if days > 0:
+            return f"{days}d {hours:02}:{minutes:02}:{seconds:02}"
+        else:
+            return f"{hours:02}:{minutes:02}:{seconds:02}"
 
     def _ensure_outdir(self, path):
         os.makedirs(path, exist_ok=True)
@@ -402,8 +420,8 @@ class classA_U1FGTN:
                 G, P, particle=(np.random.rand() < p_occ), symmetrize=True
             )
 
-        elapsed = time.time() - start
-        print(f"\nAll bottom layer modes measured | Time elapsed: {elapsed:.3f} s")
+        self.bottom_layer_mode_meas_time = time.time() - start
+        print(f"\nAll bottom layer modes measured | Time elapsed: {self.bottom_layer_mode_meas_time:.3f} s")
 
         return G
 
@@ -461,7 +479,7 @@ class classA_U1FGTN:
             # MIDDLE: rows (Rx) in this cycle
             row_iter = range(Nx)
             if progress:
-                row_iter = tqdm(row_iter, total=Nx, leave=False, desc=f"Cycle {c+1}/{self.cycles}")
+                row_iter = tqdm(row_iter, total=Nx, leave=False, desc=f"Rx Loop")
 
             for Rx in row_iter:
                 # per-row timer
@@ -470,10 +488,11 @@ class classA_U1FGTN:
                 # INNER: columns (Ry) in this row
                 col_iter = range(Ny)
                 if progress:
-                    col_iter = tqdm(col_iter, total=Ny, leave=False, desc=f"  row {Rx+1}/{Nx}")
+                    col_iter = tqdm(col_iter, total=Ny, leave=False, desc=f"Ry Loop: ")
 
                 cols_done = 0
                 for Ry in col_iter:
+                    t0 = time.time()
                     if not postselect:
                         self.G = self.top_layer_meas_feedback(self.G, Rx, Ry)
                     else:
@@ -511,6 +530,11 @@ class classA_U1FGTN:
                             )
                         except Exception:
                             pass
+                        self.elementary_delta_t = time.time() - t0
+
+                        if self.corr_y_profiles_call is True:
+                            self.y_corr_profiles_time = self.samples * self.cycles * (self.Nx * self.Ny * self.elementary_delta_t + self.bottom_layer_mode_meas_time)
+                            print(f"Total ETA = {self.format_interval(self.y_corr_profiles_time)} (H:MM:SS)")
 
                 # after finishing this row, update the middle bar's times once
                 if progress:
@@ -806,16 +830,16 @@ class classA_U1FGTN:
         return gif_path, final_path, C_last, history[-1]
 
     def plot_corr_y_profiles(
-        self,
-        G=None,
-        x_positions=None,
-        ry_max=None,
-        filename=None,
-        samples=1,
-        trajectory_resolved=True,
-        trajectory_averaged=True,
-        save_data=True,
-    ):
+    self,
+    G=None,
+    x_positions=None,
+    ry_max=None,
+    filename=None,
+    samples=None,
+    trajectory_resolved=True,
+    trajectory_averaged=True,
+    save_data=True):
+        
         """
         Plot |G|^2 vs y-separation at selected x columns.
 
@@ -824,18 +848,22 @@ class classA_U1FGTN:
           - Top row:  \overline{C}_G  (sample-avg of C)  and  C_{\overline{G}} (C of sample-avg G).
           - Middle:   eig-spectra of final sampled top-layer G  and  of \overline{G}.
           - Bottom:   local Chern marker for final sampled G  and  for \overline{G}.
-          - Adds a textbox "DWs at x0 = a, b" at the top-left of both top-row axes (uses self.DW_loc).
+          - Adds a textbox "DWs at x₀ = a, b" at the top-left of both top-row axes (uses self.DW_loc).
           - Optionally saves data for \overline{C}_G and C_{\overline{G}}.
 
         Otherwise behaves like the simpler single-panel versions.
         """
-
         Nx, Ny = self.Nx, self.Ny
         Ntot   = self.Ntot
         Nlayer = Ntot // 2
-        samples = int(max(1, samples))
+        self.corr_y_profiles_call = True
 
-        # ---------- helpers ----------
+        if samples is None:
+            samples = self.samples
+        else:
+            samples = 2  # keep existing behavior
+
+        # ---------- helpers (local, no extra imports) ----------
         def _coerce_to_two_point_kernel_top(G_in):
             """Return (Nx,Ny,2,Nx,Ny,2) kernel from (4N,4N) or (2N,2N) or already-kernel."""
             Gin = np.asarray(G_in, dtype=np.complex128)
@@ -876,7 +904,6 @@ class classA_U1FGTN:
             try:
                 w = np.linalg.eigvalsh(A)
             except np.linalg.LinAlgError:
-                # tiny regularization if needed
                 w = np.linalg.eigvalsh(0.5*(A + A.conj().T))
             return np.sort(np.real_if_close(w))
 
@@ -884,31 +911,21 @@ class classA_U1FGTN:
             """Local Chern marker image from a (2N,2N) top-layer block."""
             return self.local_chern_marker_flat(G_top)
 
-        # ---------- y-separations ----------
-        if ry_max is None:
-            ry_max = Ny // 2
-        ry_vals = np.arange(0, int(ry_max) + 1, dtype=int)
-
-        # ---------- choose x-positions ----------
         def _simple_x_positions():
             # Requires self.DW_loc = [xL, xR] defined by construct_OW_projectors.
             if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
                 xL, xR = int(self.DW_loc[0]) % Nx, int(self.DW_loc[1]) % Nx
-                # build the 9 anchors exactly as requested
                 xs = [
-                    (xL // 2) % Nx,             # middle of left trivial
+                    (xL // 2) % Nx,                # middle of left trivial
                     (xL - 1) % Nx, xL % Nx, (xL + 1) % Nx,  # around left DW
-                    ((xL + xR) // 2) % Nx,      # middle of non-trivial region
+                    ((xL + xR) // 2) % Nx,         # middle of non-trivial region
                     (xR - 1) % Nx, xR % Nx, (xR + 1) % Nx,  # around right DW
-                    ((xR + Nx) + (Nx - 1)) // 2 % Nx,  # middle of right trivial (roughly)
+                    ((xR + Nx) + (Nx - 1)) // 2 % Nx,       # middle of right trivial (approx)
                 ]
-                # ensure uniqueness & order, then pad to 10 unique points if needed
-                uniq = []
-                seen = set()
+                uniq, seen = [], set()
                 for x in xs:
                     if x not in seen:
                         uniq.append(int(x)); seen.add(int(x))
-                # pad to 10 with evenly spaced extras if necessary
                 k = 10 - len(uniq)
                 if k > 0:
                     extras = np.linspace(0, Nx-1, num=10, dtype=int)
@@ -919,11 +936,99 @@ class classA_U1FGTN:
                                 break
                 return [(int(x), f"{int(x)}") for x in uniq[:10]]
             else:
-                # fallback: 10 evenly spaced columns
                 xs = np.linspace(0, Nx-1, num=10, dtype=int)
-                xs = list(dict.fromkeys(map(int, xs)))  # unique, ordered
+                xs = list(dict.fromkeys(map(int, xs)))
                 return [(x, f"{x}") for x in xs[:10]]
 
+        def _plot_single_panel(C_dict, ry_vals, norm_positions, mode_label, outdir, filename):
+            fig, ax = plt.subplots(figsize=(7, 4.5))
+            for x0, lbl in norm_positions:
+                C_vec = C_dict[x0]
+                line, = ax.plot(ry_vals, C_vec, marker='o', ms=3, lw=1, label=lbl)
+                finite = np.isfinite(C_vec)
+                y_right = C_vec[finite][-1] if np.any(finite) else C_vec[-1]
+                x_right = ry_vals[-1] * 1.02 if ry_vals[-1] > 0 else ry_vals[-1] + 0.5
+                ax.annotate(lbl, xy=(ry_vals[-1], y_right), xytext=(x_right, y_right),
+                            textcoords='data', ha='left', va='center', fontsize=9,
+                            color=line.get_color())
+            ax.set_xlabel(r"$r_y$")
+            ax.set_ylabel(mode_label)
+            ax.set_title(f"Squared correlator vs $r_y$ at selected $x_0$ (N={Nx})")
+            ax.set_yscale('log'); ax.set_xscale('log')
+            ax.grid(True, alpha=0.3)
+            ax.legend(loc='best', fontsize=8)
+            fig.tight_layout()
+
+            fullpath = os.path.join(outdir, filename)
+            plt.show()
+            fig.savefig(fullpath, bbox_inches='tight')
+            plt.close(fig)
+            return fullpath
+
+        def _plot_both_panels_and_extras(C_resolved, C_avg, ry_vals, norm_positions,
+                                         evals_last, evals_avg, Chern_last, Chern_avg,
+                                         outdir, filename):
+            fig, axes = plt.subplots(3, 2, figsize=(12.5, 12.0))
+            (axC1, axC2), (axE1, axE2), (axM1, axM2) = axes
+
+            # correlation profiles (top row)
+            for ax, Cdict, title in ((axC1, C_resolved, r"$\overline{C}_G(x_0,r_y)$"),
+                                     (axC2, C_avg,      r"$C_{\overline{G}}(x_0,r_y)$")):
+                for x0, lbl in norm_positions:
+                    C_vec = Cdict[x0]
+                    line, = ax.plot(ry_vals, C_vec, marker='o', ms=3, lw=1, label=lbl)
+                    finite = np.isfinite(C_vec)
+                    y_right = C_vec[finite][-1] if np.any(finite) else C_vec[-1]
+                    x_right = ry_vals[-1] * 1.02 if ry_vals[-1] > 0 else ry_vals[-1] + 0.5
+                    ax.annotate(lbl, xy=(ry_vals[-1], y_right), xytext=(x_right, y_right),
+                                textcoords='data', ha='left', va='center', fontsize=8,
+                                color=line.get_color())
+                ax.set_xlabel(r"$r_y$")
+                ax.set_ylabel(title)
+                ax.set_xscale('log'); ax.set_yscale('log')
+                ax.grid(True, alpha=0.3)
+                ax.legend(loc='best', fontsize=7)
+                if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
+                    txt = f"DWs at x₀ = {int(self.DW_loc[0])}, {int(self.DW_loc[1])}"
+                    ax.text(0.02, 0.96, txt, transform=ax.transAxes,
+                            ha='left', va='top', fontsize=9,
+                            bbox=dict(boxstyle="round,pad=0.2", fc="w", ec="k", alpha=0.6))
+
+            # spectra (middle row)
+            axE1.plot(np.arange(len(evals_last)), np.sort(evals_last), '.', ms=3)
+            axE1.set_title(r"eigvals(G) — final sample")
+            axE1.set_xlabel("index"); axE1.set_ylabel("eigenvalue"); axE1.grid(True, alpha=0.3)
+
+            axE2.plot(np.arange(len(evals_avg)), np.sort(evals_avg), '.', ms=3)
+            axE2.set_title(r"eigvals(\overline{G})")
+            axE2.set_xlabel("index"); axE2.set_ylabel("eigenvalue"); axE2.grid(True, alpha=0.3)
+
+            # local Chern markers (bottom row)
+            im1 = axM1.imshow(Chern_last, cmap='RdBu_r', vmin=-1.0, vmax=1.0, origin='upper', aspect='equal')
+            axM1.set_title(r"tanh $\mathcal{C}(\mathbf{r})$ for final $G$")
+            axM1.set_xlabel("y"); axM1.set_ylabel("x"); axM1.grid(False)
+            fig.colorbar(im1, ax=axM1, fraction=0.046, pad=0.04)
+
+            im2 = axM2.imshow(Chern_avg, cmap='RdBu_r', vmin=-1.0, vmax=1.0, origin='upper', aspect='equal')
+            axM2.set_title(r"tanh $\mathcal{C}(\mathbf{r})$ for $\overline{G}$")
+            axM2.set_xlabel("y"); axM2.set_ylabel("x"); axM2.grid(False)
+            fig.colorbar(im2, ax=axM2, fraction=0.046, pad=0.04)
+
+            fig.suptitle(f"Correlation profiles & spectra (N={Nx}, samples={samples})")
+            fig.tight_layout(rect=[0, 0, 1, 0.96])
+
+            fullpath = os.path.join(outdir, filename)
+            plt.show()
+            fig.savefig(fullpath, bbox_inches='tight')
+            plt.close(fig)
+            return fullpath
+
+        # ---------- y-separations ----------
+        if ry_max is None:
+            ry_max = Ny // 2
+        ry_vals = np.arange(0, int(ry_max) + 1, dtype=int)
+
+        # ---------- choose x-positions ----------
         if x_positions is None:
             norm_positions = _simple_x_positions()
         else:
@@ -943,33 +1048,10 @@ class classA_U1FGTN:
             C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals) for x0, _ in norm_positions}
             mode_label = r"$C_G(x_0,r_y)$"
 
-            fig, ax = plt.subplots(figsize=(7, 4.5))
-            for x0, lbl in norm_positions:
-                C_vec = C_dict[x0]
-                line, = ax.plot(ry_vals, C_vec, marker='o', ms=3, lw=1, label=lbl)
-                finite = np.isfinite(C_vec)
-                y_right = C_vec[finite][-1] if np.any(finite) else C_vec[-1]
-                x_right = ry_vals[-1] * 1.02 if ry_vals[-1] > 0 else ry_vals[-1] + 0.5
-                ax.annotate(lbl, xy=(ry_vals[-1], y_right), xytext=(x_right, y_right),
-                            textcoords='data', ha='left', va='center', fontsize=9,
-                            color=line.get_color())
-            ax.set_xlabel(r"$r_y$")
-            ax.set_ylabel(mode_label)
-            ax.set_title(f"Squared correlator vs $r_y$ at selected $x_0$ (N={Nx})")
-            ax.set_yscale('log'); ax.set_xscale('log')
-            ax.grid(True, alpha=0.3)
-            ax.legend(loc='best', fontsize=8)
-            fig.tight_layout()
-
             if filename is None:
                 xdesc = "-".join(f"{x}" for x, _ in norm_positions)
                 filename = f"corr2_y_profiles_N{Nx}_xs_{xdesc}_single.pdf"
-
-            fullpath = os.path.join(outdir, filename)
-            plt.show()
-            fig.savefig(fullpath, bbox_inches='tight')
-            plt.close(fig)
-            return fullpath
+            return _plot_single_panel(C_dict, ry_vals, norm_positions, mode_label, outdir, filename)
 
         # ---------- CASE 1: both resolved & averaged -> 3x2 panel ----------
         if trajectory_resolved and trajectory_averaged:
@@ -977,95 +1059,37 @@ class classA_U1FGTN:
             Gsum    = np.zeros((Nlayer, Nlayer), dtype=np.complex128)
             last_Gtt = None
 
-            for _ in range(samples):
-                # run one trajectory
+            # progress bar over samples
+            for _ in tqdm(range(samples), desc="Samples: ", leave=True):
                 self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=True)
                 Gtt = np.asarray(self.G)[:Nlayer, :Nlayer]
                 last_Gtt = Gtt
                 Gsum += Gtt
 
-                # update resolved-avg accumulator
                 Gker = _coerce_to_two_point_kernel_top(Gtt)
                 for x0, _lab in norm_positions:
                     C_accum[x0] += _C_xslice_from_kernel(Gker, x0, ry_vals).real
 
-            # build both datasets
             C_resolved = {x0: C_accum[x0] / samples for x0, _ in norm_positions}
             Gavg = Gsum / samples
             Gker_avg = _coerce_to_two_point_kernel_top(Gavg)
             C_avg = {x0: _C_xslice_from_kernel(Gker_avg, x0, ry_vals).real for x0, _ in norm_positions}
 
-            # spectra (use top-layer blocks)
             evals_last = _eigvals_sorted(last_Gtt)
             evals_avg  = _eigvals_sorted(Gavg)
-
-            # chern markers (top-layer blocks suffice)
             Chern_last = _chern_from_Gtop(last_Gtt)
             Chern_avg  = _chern_from_Gtop(Gavg)
-
-            # ---- plotting: 3 rows x 2 cols ----
-            fig, axes = plt.subplots(3, 2, figsize=(12.5, 12.0))
-            (axC1, axC2), (axE1, axE2), (axM1, axM2) = axes
-
-            # top row: correlation profiles, with DW textbox
-            for ax, Cdict, title in ((axC1, C_resolved, r"$\overline{C}_G(x_0,r_y)$"),
-                                     (axC2, C_avg,      r"$C_{\overline{G}}(x_0,r_y)$")):
-                for x0, lbl in norm_positions:
-                    C_vec = Cdict[x0]
-                    line, = ax.plot(ry_vals, C_vec, marker='o', ms=3, lw=1, label=lbl)
-                    finite = np.isfinite(C_vec)
-                    y_right = C_vec[finite][-1] if np.any(finite) else C_vec[-1]
-                    x_right = ry_vals[-1] * 1.02 if ry_vals[-1] > 0 else ry_vals[-1] + 0.5
-                    ax.annotate(lbl, xy=(ry_vals[-1], y_right), xytext=(x_right, y_right),
-                                textcoords='data', ha='left', va='center', fontsize=8,
-                                color=line.get_color())
-                ax.set_xlabel(r"$r_y$")
-                ax.set_ylabel(title)
-                ax.set_xscale('log'); ax.set_yscale('log')
-                ax.grid(True, alpha=0.3)
-                ax.legend(loc='best', fontsize=7)
-
-                # DW textbox (if available)
-                if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
-                    txt = f"DWs at x₀ = {int(self.DW_loc[0])}, {int(self.DW_loc[1])}"
-                    ax.text(0.02, 0.96, txt, transform=ax.transAxes,
-                            ha='left', va='top', fontsize=9,
-                            bbox=dict(boxstyle="round,pad=0.2", fc="w", ec="k", alpha=0.6))
-
-            # middle row: spectra
-            axE1.plot(np.arange(len(evals_last)), np.sort(evals_last), '.', ms=3)
-            axE1.set_title(r"eigvals(G) — final sample")
-            axE1.set_xlabel("index"); axE1.set_ylabel("eigenvalue"); axE1.grid(True, alpha=0.3)
-
-            axE2.plot(np.arange(len(evals_avg)), np.sort(evals_avg), '.', ms=3)
-            axE2.set_title(r"eigvals(\overline{G})");  axE2.set_xlabel("index"); axE2.set_ylabel("eigenvalue")
-            axE2.grid(True, alpha=0.3)
-
-            # bottom row: local Chern markers
-            im1 = axM1.imshow(Chern_last, cmap='RdBu_r', vmin=-1.0, vmax=1.0, origin='upper', aspect='equal')
-            axM1.set_title(r"tanh $\mathcal{C}(\mathbf{r})$ for final $G$")
-            axM1.set_xlabel("y"); axM1.set_ylabel("x"); axM1.grid(False)
-            fig.colorbar(im1, ax=axM1, fraction=0.046, pad=0.04)
-
-            im2 = axM2.imshow(Chern_avg, cmap='RdBu_r', vmin=-1.0, vmax=1.0, origin='upper', aspect='equal')
-            axM2.set_title(r"tanh $\mathcal{C}(\mathbf{r})$ for $\overline{G}$")
-            axM2.set_xlabel("y"); axM2.set_ylabel("x"); axM2.grid(False)
-            fig.colorbar(im2, ax=axM2, fraction=0.046, pad=0.04)
-
-            fig.suptitle(f"Correlation profiles & spectra (N={Nx}, samples={samples})")
-            fig.tight_layout(rect=[0, 0, 1, 0.96])
 
             if filename is None:
                 xdesc = "-".join(f"{x}" for x, _ in norm_positions)
                 filename = f"corr2_y_profiles_N{Nx}_xs_{xdesc}_both_S{samples}.pdf"
-            fullpath = os.path.join(outdir, filename)
-            plt.show()
-            fig.savefig(fullpath, bbox_inches='tight')
-            plt.close(fig)
+            fullpath = _plot_both_panels_and_extras(
+                C_resolved, C_avg, ry_vals, norm_positions,
+                evals_last, evals_avg, Chern_last, Chern_avg,
+                outdir, filename
+            )
 
-            # optional: save raw data (compact)
             if save_data:
-                # pack into arrays [n_xpos, n_ry]
                 xs_list = [x for x, _ in norm_positions]
                 C_res_mat = np.vstack([C_resolved[x] for x in xs_list])
                 C_avg_mat = np.vstack([C_avg[x]       for x in xs_list])
@@ -1076,13 +1100,12 @@ class classA_U1FGTN:
                     Cbar_of_G=C_res_mat,   # \overline{C}_G
                     C_of_Gbar=C_avg_mat    # C_{\overline{G}}
                 )
-
             return fullpath
 
         # ---------- CASE 2: resolved-only / averaged-only / single ----------
         if trajectory_resolved:
             C_accum = {x0: np.zeros_like(ry_vals, dtype=float) for x0, _ in norm_positions}
-            for _ in range(samples):
+            for _ in tqdm(range(samples), desc="Samples: ", leave=True):
                 self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=True)
                 Gker = _coerce_to_two_point_kernel_top(np.asarray(self.G)[:Nlayer, :Nlayer])
                 for x0, _lab in norm_positions:
@@ -1091,7 +1114,7 @@ class classA_U1FGTN:
             mode_label = r"$\overline{C}_G(x_0,r_y)$"
         elif trajectory_averaged:
             Gsum = np.zeros((Nlayer, Nlayer), dtype=np.complex128)
-            for _ in range(samples):
+            for _ in tqdm(range(samples), desc="Samples: ", leave=True):
                 self.run_adaptive_circuit(cycles=self.cycles, G_history=False, progress=True)
                 Gsum += np.asarray(self.G)[:Nlayer, :Nlayer]
             Gavg = Gsum / samples
@@ -1114,25 +1137,6 @@ class classA_U1FGTN:
             C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals).real for x0, _ in norm_positions}
             mode_label = r"$C_G(x_0,r_y)$"
 
-        # ---- single-panel plot for CASE 2 ----
-        fig, ax = plt.subplots(figsize=(7, 4.5))
-        for x0, lbl in norm_positions:
-            C_vec = C_dict[x0]
-            line, = ax.plot(ry_vals, C_vec, marker='o', ms=3, lw=1, label=lbl)
-            finite = np.isfinite(C_vec)
-            y_right = C_vec[finite][-1] if np.any(finite) else C_vec[-1]
-            x_right = ry_vals[-1] * 1.02 if ry_vals[-1] > 0 else ry_vals[-1] + 0.5
-            ax.annotate(lbl, xy=(ry_vals[-1], y_right), xytext=(x_right, y_right),
-                        textcoords='data', ha='left', va='center', fontsize=9,
-                        color=line.get_color())
-        ax.set_xlabel(r"$r_y$")
-        ax.set_ylabel(mode_label)
-        ax.set_title(f"Squared correlator vs $r_y$ at selected $x_0$ (N={Nx})")
-        ax.set_yscale('log'); ax.set_xscale('log')
-        ax.grid(True, alpha=0.3)
-        ax.legend(loc='best', fontsize=8)
-        fig.tight_layout()
-
         if filename is None:
             xdesc = "-".join(f"{x}" for x, _ in norm_positions)
             tag = ("trajRES" if trajectory_resolved else
@@ -1140,12 +1144,8 @@ class classA_U1FGTN:
                    "single")
             filename = f"corr2_y_profiles_N{Nx}_xs_{xdesc}_{tag}_S{samples}.pdf"
 
-        fullpath = os.path.join(outdir, filename)
-        plt.show()
-        fig.savefig(fullpath, bbox_inches='tight')
-        plt.close(fig)
-        return fullpath
-    
+        return _plot_single_panel(C_dict, ry_vals, norm_positions, mode_label, outdir, filename)
+
     # ------------------------------ Exact CI state ------------------------------
 
     def G_CI(self, alpha=1.0, k_is_centered=False, norm='backward'):
