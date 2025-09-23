@@ -294,26 +294,34 @@ class classA_U1FGTN:
         """
         Exact subspace swap of the top Wannier mode chi_top with the bottom local mode chi_bottom.
         U is unitary, Hermitian, and an involution: U^2 = I.
+        Safe for read-only/memmapped inputs by copying before normalization.
         """
         Ntot = self.Ntot
         Nlayer = Ntot // 2
-
-        ct = np.asarray(chi_top, dtype=np.complex128).reshape(-1)
-        cb = np.asarray(chi_bottom, dtype=np.complex128).reshape(-1)
-        ct /= (np.linalg.norm(ct) + 1e-15)
-        cb /= (np.linalg.norm(cb) + 1e-15)
-
+    
+        # Make explicit writable copies (avoid in-place on read-only views)
+        ct = np.asarray(chi_top,    dtype=np.complex128).reshape(-1).copy()
+        cb = np.asarray(chi_bottom, dtype=np.complex128).reshape(-1).copy()
+    
+        # Normalize without in-place division
+        nct = np.linalg.norm(ct) + 1e-15
+        ncb = np.linalg.norm(cb) + 1e-15
+        ct = ct / nct
+        cb = cb / ncb
+    
+        # Embed into full top/bottom layer vectors
         psi_t = np.zeros(Ntot, dtype=np.complex128); psi_t[:Nlayer]  = ct
         psi_b = np.zeros(Ntot, dtype=np.complex128); psi_b[Nlayer:]  = cb
-
-        Pt = np.outer(psi_t, psi_t.conj())
-        Pb = np.outer(psi_b, psi_b.conj())
+    
+        # Projectors and swap unitary
+        Pt  = np.outer(psi_t, psi_t.conj())
+        Pb  = np.outer(psi_b, psi_b.conj())
         Xtb = np.outer(psi_t, psi_b.conj())
         Xbt = np.outer(psi_b, psi_t.conj())
-        U = (np.eye(Ntot, dtype=np.complex128) - Pt - Pb) + (Xtb + Xbt)
+        U   = (np.eye(Ntot, dtype=np.complex128) - Pt - Pb) + (Xtb + Xbt)
         return U
-
-    # ---------------------- Local feedback / post-selection ----------------------
+    
+        # ---------------------- Local feedback / post-selection ----------------------
 
     def top_layer_meas_feedback(self, G, Rx, Ry):
         """
@@ -433,44 +441,55 @@ class classA_U1FGTN:
     # ------------------------------ Circuit driver ------------------------------
 
     def run_adaptive_circuit(
-        self,
-        G_history=True,
-        cycles=5,
-        tol=1e-8,
-        progress=True,
-        postselect=False,
-        *,
-        print_eta=True,
-        print_eta_rate=3.0,   # seconds between ETA prints (throttled)
-    ):
+    self,
+    G_history=True,
+    tol=1e-8,
+    progress=True,
+    postselect=False,
+    print_eta_rate=3.0,
+):
         """
-        Run the adaptive circuit for `cycles` sweeps of the lattice.
-
-        - Shows tqdm bars if `progress=True`.
-        - Prints a simple, single-line ETA (total & left), throttled by `print_eta_rate`
-          seconds, that is parallel-aware if a caller (e.g., corr_y_profiles_v2)
-          temporarily sets `self._eta_parallel_factor = n_jobs`.
+        Adaptive circuit with ETA that explicitly models:
+          - per-site work via EMA (_ema_site)
+          - once-per-cycle bottom-layer measurement via EMA (_ema_bottom)
+        ETA left = [sites_left * _ema_site + bottom_ops_left * _ema_bottom] / effective_parallel
+        Print throttled by `print_eta_rate` seconds.
         """
 
-        # fresh state & counters
+        # fresh state
         self.G = np.array(self.G0, copy=True)
         if G_history:
             self.G_list = []
         self.g2_flags = []
-        self.cycles = int(cycles)
 
         Nx, Ny = int(self.Nx), int(self.Ny)
         D = int(self.Ntot)
         I = np.eye(D, dtype=np.complex128)
 
-        total_steps = self.cycles * Nx * Ny
-        steps_done  = 0
-        t_total0    = time.perf_counter()  # for tqdm elapsed/eta
+        total_sites = self.cycles * Nx * Ny
+        sites_done = 0
 
-        # smoothing for EMA per-step baseline; last ETA print walltime
-        self._eta_step_baseline = getattr(self, "_eta_step_baseline", None)
-        self._eta_last_print    = getattr(self, "_eta_last_print", 0.0)
-        self._eta_printed_once  = False
+        # EMAs (persist across calls if present, else bootstrap at first measurements)
+        self._ema_site = float(getattr(self, "_ema_site", 0.0))
+        self._ema_bottom = float(getattr(self, "_ema_bottom", 0.0))
+        alpha_site = 0.15
+        alpha_bottom = 0.25
+
+        # backend-aware parallel factor (set by corr_y_profiles_v2)
+        raw_parallel = int(getattr(self, "_eta_parallel_factor", 1))
+        backend = str(getattr(self, "backend", "")).lower()
+        if backend == "loky":
+            eff = 0.90
+        elif backend == "threading":
+            eff = 0.50  # threads often underutilize on NumPy-heavy code
+        else:
+            eff = 0.80
+        effective_parallel = max(1, int(max(1, raw_parallel) * eff))
+
+        # tqdm/print timers
+        t_total0 = time.perf_counter()
+        last_eta_print = 0.0
+        print_eta_rate = 10.0 if print_eta_rate is None else float(print_eta_rate)
 
         def fmt(t):
             return tqdm.format_interval(max(0.0, float(t)))
@@ -482,8 +501,10 @@ class classA_U1FGTN:
 
         for c in outer_iter:
             t_cycle0 = time.perf_counter()
+            # bottom measurement for this cycle is still pending (if not postselect)
+            in_cycle_bottom_pending = (not postselect)
 
-            # MIDDLE: rows (Rx)
+            # MIDDLE: rows
             row_iter = range(Nx)
             if progress:
                 row_iter = tqdm(row_iter, total=Nx, leave=False, desc="Rx Loop")
@@ -491,116 +512,109 @@ class classA_U1FGTN:
             for Rx in row_iter:
                 t_row0 = time.perf_counter()
 
-                # INNER: columns (Ry)
+                # INNER: columns
                 col_iter = range(Ny)
                 if progress:
                     col_iter = tqdm(col_iter, total=Ny, leave=False, desc="Ry Loop:")
 
-                cols_done = 0
                 for Ry in col_iter:
-                    # --- step timer start (for EMA baseline) ---
                     t_step0 = time.perf_counter()
 
+                    # step
                     if not postselect:
                         self.G = self.top_layer_meas_feedback(self.G, Rx, Ry)
                     else:
                         self.G = self.post_selection_top_layer(self.G, Rx, Ry)
 
-                    # G^2 ≈ I check
+                    # G^2≈I
                     ok = int(np.allclose(self.G @ self.G, I, atol=tol))
                     self.g2_flags.append(ok)
 
-                    # progress accounting
-                    steps_done += 1
+                    # counters
+                    sites_done += 1
 
-                    # -------- ETA (EMA per-step, parallel-aware) --------
-                    # measure one step duration for EMA baseline
-                    dt_step = time.perf_counter() - t_step0
-
-                    # Initialize or smooth the per-step baseline (EMA)
-                    if self._eta_step_baseline is None:
-                        self._eta_step_baseline = dt_step
+                    # update EMA for per-site
+                    dt_site = time.perf_counter() - t_step0
+                    if self._ema_site == 0.0:
+                        self._ema_site = dt_site
                     else:
-                        self._eta_step_baseline = 0.9 * self._eta_step_baseline + 0.1 * dt_step
+                        self._ema_site = (1.0 - alpha_site) * self._ema_site + alpha_site * dt_site
 
-                    # Total steps & progress (for a single trajectory)
-                    steps_total = int(self.cycles) * self.Nx * self.Ny
-
-                    # Base (single-trajectory) ETA numbers
-                    eta_total_single = self._eta_step_baseline * steps_total
-                    eta_left_single  = self._eta_step_baseline * max(0, steps_total - steps_done)
-
-                    # Parallel scaling if corr_y_profiles_v2 is calling us
-                    parallel_factor = max(1, int(getattr(self, "_eta_parallel_factor", 1)))
-                    eta_total_wall = eta_total_single / parallel_factor
-                    eta_left_wall  = eta_left_single  / parallel_factor
-
-                    # Throttled, single-line print
-                    if print_eta:
-                        now = time.time()
-                        if (now - float(self._eta_last_print)) >= float(print_eta_rate):
-                            print(
-                                f"\rLoop ETA total: {self.format_interval(eta_total_wall)} | "
-                                f"Loop ETA left: {self.format_interval(eta_left_wall)}",
-                                end="",
-                                flush=True,
-                            )
-                            self._eta_last_print = now
-                            self._eta_printed_once = True
-
-                    # ---- tqdm cosmetics (keep your bars) ----
+                    # tqdm cosmetics
                     if progress:
-                        cols_done += 1
+                        # inner (row)
                         elapsed_row = time.perf_counter() - t_row0
-                        frac_row = cols_done / Ny
+                        frac_row = (Ry + 1) / Ny
                         eta_row_total = (elapsed_row / frac_row - elapsed_row) if frac_row > 0 else 0.0
                         try:
                             col_iter.set_postfix(
-                                {"elapsed": fmt(elapsed_row),
-                                 "eta_total": fmt(eta_row_total)},
-                                refresh=False
+                                {"elapsed": fmt(elapsed_row), "eta_total": fmt(eta_row_total)},
+                                refresh=False,
                             )
                         except Exception:
                             pass
-
+                        # outer (total)
                         elapsed_total = time.perf_counter() - t_total0
-                        frac_total = steps_done / max(1, total_steps)
+                        frac_total = sites_done / max(1, total_sites)
                         eta_total_total = (elapsed_total / frac_total - elapsed_total) if frac_total > 0 else 0.0
                         try:
                             outer_iter.set_postfix_str(
-                                f"elapsed={fmt(elapsed_total)} | "
-                                f"eta_total={fmt(eta_total_total)}\nG2==I: {ok}",
-                                refresh=False
+                                f"elapsed={fmt(elapsed_total)} | eta_total={fmt(eta_total_total)}\nG2==I: {ok}",
+                                refresh=False,
                             )
                         except Exception:
                             pass
 
-                # after finishing this row, update the middle bar's times once
-                if progress:
-                    rows_done = Rx + 1
-                    elapsed_cycle = time.perf_counter() - t_cycle0
-                    frac_cycle = rows_done / Nx
-                    eta_cycle_total = (elapsed_cycle / frac_cycle - elapsed_cycle) if frac_cycle > 0 else 0.0
-                    try:
-                        row_iter.set_postfix(
-                            {"elapsed": fmt(elapsed_cycle),
-                             "eta_total": fmt(eta_cycle_total)},
-                            refresh=False
+                    # ---- throttled single-line ETA print (project remaining) ----
+                    now = time.time()
+                    if now - last_eta_print >= print_eta_rate:
+                        # sites left (this cycle remainder + remaining full cycles)
+                        sites_done_in_cycle = Rx * Ny + (Ry + 1)
+                        sites_left_in_cycle = Nx * Ny - sites_done_in_cycle
+                        cycles_left_after = self.cycles - (c + 1)
+                        sites_left_total = sites_left_in_cycle + cycles_left_after * Nx * Ny
+
+                        # bottom-layer measurements left:
+                        # one for current cycle if still pending, plus one per remaining full cycle
+                        bottom_ops_left = (1 if in_cycle_bottom_pending else 0) + max(0, cycles_left_after)
+
+                        eta_left_wall = (
+                            sites_left_total * self._ema_site + bottom_ops_left * self._ema_bottom
+                        ) / max(1, effective_parallel)
+
+                        # total ETA (from start) ~ cycles * (Nx*Ny*ema_site + ema_bottom) / parallel
+                        work_per_cycle = Nx * Ny * self._ema_site + self._ema_bottom
+                        eta_total_wall = (self.cycles * work_per_cycle) / max(1, effective_parallel)
+
+                        print(
+                            f"\rETA total: {self.format_interval(eta_total_wall)} | "
+                            f"ETA left: {self.format_interval(eta_left_wall)}",
+                            end="",
+                            flush=True,
                         )
-                    except Exception:
-                        pass
+                        last_eta_print = now
 
             # end of cycle: bottom-layer randomize + measure (once per cycle)
             if not postselect:
                 self.G = self.randomize_bottom_layer(self.G)
-                self.G = self.measure_all_bottom_modes(self.G)
+
+                t_bottom0 = time.perf_counter()
+                self.G = self.measure_all_bottom_modes(self.G)  # sets self.bottom_layer_mode_meas_time
+                dt_bottom = time.perf_counter() - t_bottom0
+                # prefer the routine’s own timer if it exists
+                dt_meas = float(getattr(self, "bottom_layer_mode_meas_time", dt_bottom))
+                if self._ema_bottom == 0.0:
+                    self._ema_bottom = dt_meas
+                else:
+                    self._ema_bottom = (1.0 - alpha_bottom) * self._ema_bottom + alpha_bottom * dt_meas
+
+                in_cycle_bottom_pending = False  # done for this cycle
 
             if G_history:
                 self.G_list.append(self.G.copy())
 
-        # finish the inline ETA line with a newline only if we actually printed ETA
-        if print_eta and getattr(self, "_eta_printed_once", False):
-            print()
+        # finish the inline ETA line with a newline
+        print()
 
     # ---------------------------- Chern observables ----------------------------
 
@@ -924,6 +938,9 @@ class classA_U1FGTN:
             n_jobs = min(samples, os.cpu_count() or 1)
         n_jobs = max(1, int(n_jobs))
 
+        self.backend = backend        # "loky" or "threading"
+        self._eta_parallel_factor = n_jobs
+
         # pick 9 x0 positions from DW_loc (your spec)
         def _pick_x_positions():
             if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
@@ -1092,7 +1109,7 @@ class classA_U1FGTN:
         ):
             for x0, lbl in x_positions:
                 C_vec = Cdict[x0]
-                line, = ax.plot(ry_vals, C_vec, marker='o', ms=3, lw=1, label=lbl)
+                line, = ax.plot(ry_vals, C_vec, marker='o', ms=3, lw=1, label=fr"$x_0 = {lbl}$")
                 finite = np.isfinite(C_vec)
                 y_right = C_vec[finite][-1] if np.any(finite) else C_vec[-1]
                 x_right = ry_vals[-1] * 1.02 if ry_vals[-1] > 0 else ry_vals[-1] + 0.5
@@ -1105,7 +1122,7 @@ class classA_U1FGTN:
             ax.grid(True, alpha=0.3)
             ax.legend(loc='best', fontsize=7)
             if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
-                ax.text(0.02, 0.96, f"DWs at x₀ = {int(self.DW_loc[0])}, {int(self.DW_loc[1])}",
+                ax.text(0.02, 0.96, fr"DWs at $x_0 = {int(self.DW_loc[0])}, \ {int(self.DW_loc[1])}$",
                         transform=ax.transAxes, ha='left', va='top', fontsize=9,
                         bbox=dict(boxstyle="round,pad=0.2", fc="w", ec="k", alpha=0.6))
         

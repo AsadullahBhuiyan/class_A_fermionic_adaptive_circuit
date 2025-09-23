@@ -20,7 +20,7 @@ def format_interval(seconds):
 # ----------------------------
 
 # Small-ish grid so it runs in a notebook reasonably fast; bump cycles/samples as needed.
-Nx, Ny   = 12, 12
+Nx, Ny   = 30, 30
 cycles   = 10          # circuit sweeps used by helper inside plotter (m.cycles)
 samples  = 10          # number of samples when doing resolved/averaged
 ry_max   = None       # defaults to Ny//2 if None
@@ -44,7 +44,7 @@ m = classA_U1FGTN(Nx, Ny, cycles = cycles, samples = samples, DW=DW, nshell=nshe
 #x_positions = range(8)
 #time.sleep(10)
 # Run the plotter (this will run the circuit internally if needed)
-pdf_path = m.plot_corr_y_profiles_v2(backend="threading")              # let it auto-name the PDF
+pdf_path = m.plot_corr_y_profiles_v2(backend="loky")              # let it auto-name the PDF
 
 
 elapsed = time.time() - t0
