@@ -403,7 +403,7 @@ class classA_U1FGTN:
             )
 
         elapsed = time.time() - start
-        print(f"All bottom layer modes measured | Time elapsed: {elapsed:.3f} s")
+        print(f"\nAll bottom layer modes measured | Time elapsed: {elapsed:.3f} s")
 
         return G
 
@@ -505,8 +505,8 @@ class classA_U1FGTN:
                         frac_total = steps_done / max(1, total_steps)
                         eta_total_total = (elapsed_total / frac_total - elapsed_total) if frac_total > 0 else 0.0
                         try:
-                            outer_iter.set_postfix(
-                                {"elapsed": fmt(elapsed_total), "eta_total": fmt(eta_total_total), "G2==I": ok},
+                            outer_iter.set_postfix_str(
+                                f"elapsed={fmt(elapsed_total)} | eta_total={fmt(eta_total_total)}\nG2==I: {ok}",
                                 refresh=False
                             )
                         except Exception:
@@ -642,8 +642,169 @@ class classA_U1FGTN:
         if mask_outside and inside_mask is not None:
             C = np.where(inside_mask, C, 0.0)
         return C
+    
+
+
 
     # ------------------------- Visualization helpers -------------------------
+    def plot_real_space_chern_history(self, filename=None):
+        """
+        Plot the real-space Chern number across the *existing* history self.G_list.
+
+        Requirements
+        ------------
+        - Uniform system only: raises if self.DW is True.
+        - self.G_list must exist and be non-empty (i.e., run with G_history=True beforehand).
+
+        Returns
+        -------
+        fig, ax, cherns
+          fig/ax : Matplotlib figure/axes
+          cherns : np.ndarray of real parts of the Chern number per history frame
+        """
+
+        # Guardrails
+        if getattr(self, "DW", True):
+            raise ValueError("plot_real_space_chern_history: only supported for uniform systems (self.DW == False).")
+        if not hasattr(self, "G_list") or not isinstance(self.G_list, list) or len(self.G_list) == 0:
+            raise RuntimeError("No history found. Run the circuit with G_history=True to populate self.G_list.")
+
+        # Compute Chern per stored snapshot
+        cherns = np.empty(len(self.G_list), dtype=float)
+        for k, Gk in enumerate(self.G_list):
+            cherns[k] = np.real(self.real_space_chern_number(Gk))
+
+        # Plot
+        fig, ax = plt.subplots(figsize=(6.2, 3.8))
+        x = np.arange(1, len(cherns) + 1)
+        ax.plot(x, cherns, marker="o", lw=1.25)
+        ax.set_xlabel("Cycles")
+        ax.set_ylabel("Real-space Chern Number")
+        #ax.set_title(f"Chern vs history — N={self.Nx}×{self.Ny} (uniform)")
+        ax.grid(True, alpha=0.3)
+        fig.tight_layout()
+
+        # Save if requested
+        if filename is not None:
+            outdir = self._ensure_outdir(os.path.dirname(filename) or "figs/chern_history")
+            base = os.path.basename(filename)
+            fullpath = os.path.join(outdir, base)
+            fig.savefig(fullpath, bbox_inches="tight")
+
+        return fig, ax, cherns
+    
+    def chern_marker_dynamics(self, outbasename=None, vmin=-1.0, vmax=1.0, cmap='RdBu_r'):
+        """
+        Animate local Chern marker over the cached history self.G_list (or current self.G).
+        Shows fixed-position textboxes for:
+          - cycle index t (starting from 1),
+          - domain-wall locations (if self.DW_loc exists).
+        """
+        Nx, Ny = self.Nx, self.Ny
+        outdir = self._ensure_outdir('figs/chern_marker')
+        if outbasename is None:
+            nshell_str = getattr(self, "nshell", None)
+            nshell_str = "None" if nshell_str is None else str(nshell_str)
+            outbasename = f"chern_marker_dynamics_N={Nx}_nshell={nshell_str}_cycles={getattr(self,'cycles','NA')}_DWis{getattr(self,'DW','NA')}"
+        gif_path   = os.path.join(outdir, outbasename + ".gif")
+        final_path = os.path.join(outdir, outbasename + "_final.pdf")
+
+        # Choose history
+        if hasattr(self, "G_list") and isinstance(self.G_list, list) and len(self.G_list) > 0:
+            history = self.G_list
+        else:
+            if not hasattr(self, "G"):
+                raise RuntimeError("No state available: run the circuit first.")
+            history = [self.G]
+
+        # --- Figure for animation ---
+        fig = plt.figure(figsize=(3.2, 3.8))
+        ax  = fig.add_axes([0.12, 0.10, 0.78, 0.78])
+        im  = ax.imshow(np.zeros((Nx, Ny)), cmap=cmap, vmin=vmin, vmax=vmax,
+                        origin='upper', aspect='equal')
+
+        for sp in ax.spines.values():
+            sp.set_linewidth(1.5); sp.set_color('black')
+        ax.set_xlabel("y"); ax.set_ylabel("x")
+        ax.set_xticks(np.arange(0, Ny, max(1, Ny//10)))
+        ax.set_yticks(np.arange(0, Nx, max(1, Nx//10)))
+        ax.tick_params(axis='both', labelsize=8)
+        ax.set_xticks(np.arange(-0.5, Ny, 1), minor=True)
+        ax.set_yticks(np.arange(-0.5, Nx, 1), minor=True)
+        ax.grid(which='minor', color='k', linewidth=0.2, alpha=0.25)
+
+        # Colorbar
+        cax = fig.add_axes([0.32, 0.90, 0.36, 0.06])
+        fig.colorbar(im, cax=cax, orientation='horizontal', ticks=[-1, 0, 1])
+        fig.text(0.70, 0.91, r"$\tanh\mathcal{C}(\mathbf{r})$", fontsize=12)
+
+        # Fixed-position textbox for cycle index, placed to the LEFT of the colorbar
+        tbox = fig.text(
+            0.26, 0.91, "t = 1",
+            fontsize=11, ha='right', va='center',
+            bbox=dict(facecolor='white', edgecolor='black', alpha=0.85, boxstyle='round,pad=0.25')
+        )
+
+        # Optional fixed-position textbox for DW locations (if available)
+        dw_text = None
+        if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
+            dw_text = fig.text(
+                0.26, 0.86, f"DW x₀ = {self.DW_loc[0]}, {self.DW_loc[1]}",
+                fontsize=10, ha='right', va='center',
+                bbox=dict(facecolor='white', edgecolor='black', alpha=0.85, boxstyle='round,pad=0.25')
+            )
+
+        # Animate
+        C = None
+        writer = animation.PillowWriter(fps=1)
+        with writer.saving(fig, gif_path, dpi=120):
+            for t, Gf in enumerate(tqdm(history, desc="chern_marker_frames", unit="frame"), start=1):
+                C = self.local_chern_marker_flat(Gf)
+                im.set_data(C)
+                tbox.set_text(f"t = {t}")   # update cycle index
+                writer.grab_frame()
+        plt.close(fig)
+
+        # --- Final static frame with the same textboxes (t = total frames) ---
+        C_last = np.round(C, 2)
+        fig2 = plt.figure(figsize=(3.2, 3.8))
+        ax2  = fig2.add_axes([0.12, 0.10, 0.78, 0.78])
+        im2  = ax2.imshow(C_last, cmap=cmap, vmin=vmin, vmax=vmax,
+                          origin='upper', aspect='equal')
+        for sp in ax2.spines.values():
+            sp.set_linewidth(1.5); sp.set_color('black')
+        ax2.set_xlabel("y"); ax2.set_ylabel("x")
+        ax2.set_xticks(np.arange(0, Ny, max(1, Ny//10)))
+        ax2.set_yticks(np.arange(0, Nx, max(1, Nx//10)))
+        ax2.tick_params(axis='both', labelsize=8)
+        ax2.set_xticks(np.arange(-0.5, Ny, 1), minor=True)
+        ax2.set_yticks(np.arange(-0.5, Nx, 1), minor=True)
+        ax2.grid(which='minor', color='k', linewidth=0.2, alpha=0.25)
+
+        cax2 = fig2.add_axes([0.32, 0.90, 0.36, 0.06])
+        fig2.colorbar(im2, cax=cax2, orientation='horizontal', ticks=[-1, 0, 1])
+        fig2.text(0.70, 0.91, r"$\tanh\mathcal{C}(\mathbf{r})$", fontsize=12)
+
+        # Same textbox positions & styles
+        fig2.text(
+            0.26, 0.91, f"t = {len(history)}",
+            fontsize=11, ha='right', va='center',
+            bbox=dict(facecolor='white', edgecolor='black', alpha=0.85, boxstyle='round,pad=0.25')
+        )
+        if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
+            fig2.text(
+                0.26, 0.86,
+                rf"$\text{{DW at }} x_0 = {self.DW_loc[0]},\;{self.DW_loc[1]}$",
+                fontsize=10, ha='right', va='center',
+                bbox=dict(facecolor='white', edgecolor='black', alpha=0.85, boxstyle='round,pad=0.25')
+            )
+
+        fig2.savefig(final_path, bbox_inches='tight')
+        plt.show()
+        plt.close(fig2)
+
+        return gif_path, final_path, C_last, history[-1]
+
     def plot_corr_y_profiles(
         self,
         G=None,
@@ -873,11 +1034,11 @@ class classA_U1FGTN:
 
             # middle row: spectra
             axE1.plot(np.arange(len(evals_last)), np.sort(evals_last), '.', ms=3)
-            axE1.set_title("eigvals(G_top) — final sample")
+            axE1.set_title(r"eigvals(G) — final sample")
             axE1.set_xlabel("index"); axE1.set_ylabel("eigenvalue"); axE1.grid(True, alpha=0.3)
 
             axE2.plot(np.arange(len(evals_avg)), np.sort(evals_avg), '.', ms=3)
-            axE2.set_title("eigvals( Ḡ_top )");  axE2.set_xlabel("index"); axE2.set_ylabel("eigenvalue")
+            axE2.set_title(r"eigvals(\overline{G})");  axE2.set_xlabel("index"); axE2.set_ylabel("eigenvalue")
             axE2.grid(True, alpha=0.3)
 
             # bottom row: local Chern markers
@@ -952,7 +1113,7 @@ class classA_U1FGTN:
             Gker = _coerce_to_two_point_kernel_top(self.G)
             C_dict = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals).real for x0, _ in norm_positions}
             mode_label = r"$C_G(x_0,r_y)$"
-    
+
         # ---- single-panel plot for CASE 2 ----
         fig, ax = plt.subplots(figsize=(7, 4.5))
         for x0, lbl in norm_positions:
@@ -971,14 +1132,14 @@ class classA_U1FGTN:
         ax.grid(True, alpha=0.3)
         ax.legend(loc='best', fontsize=8)
         fig.tight_layout()
-    
+
         if filename is None:
             xdesc = "-".join(f"{x}" for x, _ in norm_positions)
             tag = ("trajRES" if trajectory_resolved else
                    "trajAVG" if trajectory_averaged else
                    "single")
             filename = f"corr2_y_profiles_N{Nx}_xs_{xdesc}_{tag}_S{samples}.pdf"
-    
+
         fullpath = os.path.join(outdir, filename)
         plt.show()
         fig.savefig(fullpath, bbox_inches='tight')
