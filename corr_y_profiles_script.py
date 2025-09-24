@@ -20,7 +20,7 @@ def format_interval(seconds):
 # ----------------------------
 
 # Small-ish grid so it runs in a notebook reasonably fast; bump cycles/samples as needed.
-Nx, Ny   = 30, 30
+Nx, Ny   = 24, 24
 cycles   = 10          # circuit sweeps used by helper inside plotter (m.cycles)
 samples  = 10          # number of samples when doing resolved/averaged
 ry_max   = None       # defaults to Ny//2 if None

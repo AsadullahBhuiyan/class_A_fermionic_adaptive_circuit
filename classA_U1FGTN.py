@@ -13,28 +13,42 @@ import matplotlib as mpl
 
 class classA_U1FGTN:
     def __init__(self, Nx, Ny, DW=True, cycles=None, samples=None, nshell=None, filling_frac=1/2, G0=None):
-        """
-        1) Initialize random complex covariance over top and bottom layers
-           with prescribed filling fraction.
-        2) Build overcomplete Wannier spinors for a Chern insulator model.
-        """
         self.time_init = time.time()
         self.Nx, self.Ny = int(Nx), int(Ny)
         self.DW = bool(DW)
         self.Ntot = 4 * self.Nx * self.Ny     # 2 orbitals × Nx × Ny × 2 layers
         self.nshell = nshell
 
-        self.cycles = 5 if cycles is None else int(cycles)
+        self.cycles  = 5 if cycles  is None else int(cycles)
         self.samples = 5 if samples is None else int(samples)
 
         if G0 is None:
-            G = self.random_complex_fermion_covariance(N=self.Ntot, filling_frac=filling_frac)
-            # initialize bottom layer as a product state (stochastic measurement)
-            self.G0 = self.measure_all_bottom_modes(G)
+            # ---- New initialization (no bottom-layer measurement) ----
+            # Build a diagonal ±1 spectrum at the desired filling for the full system,
+            # then apply a random unitary ONLY on the top layer.
+            Ntot   = self.Ntot
+            Nlayer = Ntot // 2
+
+            # diagonal ±1 spectrum with filling fraction over total system
+            Nfill = int(round(filling_frac * Ntot))
+            Nfill = max(0, min(Ntot, Nfill))
+            diag = np.concatenate([np.ones(Nfill, dtype=np.complex128),
+                                   -np.ones(Ntot - Nfill, dtype=np.complex128)])
+            # shuffle to avoid block structure
+            rng = np.random.default_rng()
+            rng.shuffle(diag)
+            D = np.diag(diag)
+
+            # random unitary on top layer only
+            U_top  = self.random_unitary(Nlayer)
+            I_bot  = np.eye(Nlayer, dtype=np.complex128)
+            U_tot  = self._block_diag2(U_top, I_bot)
+
+            self.G0 = U_tot.conj().T @ D @ U_tot
         else:
             self.G0 = np.asarray(G0, dtype=np.complex128)
 
-        # Build OW data
+        # Build OW data (no stored P_* stacks here)
         self.construct_OW_projectors(nshell=nshell, DW=self.DW)
 
         print("------------------------- classA_U1FGTN Initialized -------------------------")
@@ -211,14 +225,12 @@ class classA_U1FGTN:
         self.WF_Am = flatten_centers(W_Am)
         self.WF_Bm = flatten_centers(W_Bm)
 
-        # Projectors per center: χ χ†
-        def projectors(WF):   # WF: (D, Rx, Ry)
-            return np.einsum('dxy,exy->dexy', WF, WF.conj(), optimize=True)
-
-        self.P_Ap = projectors(self.WF_Ap)
-        self.P_Bp = projectors(self.WF_Bp)
-        self.P_Am = projectors(self.WF_Am)
-        self.P_Bm = projectors(self.WF_Bm)
+    def _proj_from_WF(self, WF, Rx, Ry):
+        """Build rank-1 projector χχ† on-the-fly from a stored Wannier spinor WF[:, Rx, Ry]."""
+        chi = np.asarray(WF[:, Rx, Ry], dtype=np.complex128)
+        # make writable (avoid read-only view issues under loky/shared arrays)
+        chi = np.array(chi, copy=True)
+        return np.outer(chi, chi.conj())
 
     # --------------------------- Measurement updates ---------------------------
 
@@ -291,34 +303,26 @@ class classA_U1FGTN:
         return Gp
 
     def fSWAP(self, chi_top, chi_bottom):
-        """
-        Exact subspace swap of the top Wannier mode chi_top with the bottom local mode chi_bottom.
-        U is unitary, Hermitian, and an involution: U^2 = I.
-        Safe for read-only/memmapped inputs by copying before normalization.
-        """
         Ntot = self.Ntot
         Nlayer = Ntot // 2
-    
-        # Make explicit writable copies (avoid in-place on read-only views)
-        ct = np.asarray(chi_top,    dtype=np.complex128).reshape(-1).copy()
-        cb = np.asarray(chi_bottom, dtype=np.complex128).reshape(-1).copy()
-    
-        # Normalize without in-place division
-        nct = np.linalg.norm(ct) + 1e-15
-        ncb = np.linalg.norm(cb) + 1e-15
-        ct = ct / nct
-        cb = cb / ncb
-    
-        # Embed into full top/bottom layer vectors
+
+        ct = np.array(chi_top,   dtype=np.complex128, copy=True).reshape(-1)
+        cb = np.array(chi_bottom, dtype=np.complex128, copy=True).reshape(-1)
+
+        nt = np.linalg.norm(ct) + 1e-15
+        nb = np.linalg.norm(cb) + 1e-15
+
+        ct = ct/nt
+        cb = cb/nb
+
         psi_t = np.zeros(Ntot, dtype=np.complex128); psi_t[:Nlayer]  = ct
         psi_b = np.zeros(Ntot, dtype=np.complex128); psi_b[Nlayer:]  = cb
-    
-        # Projectors and swap unitary
-        Pt  = np.outer(psi_t, psi_t.conj())
-        Pb  = np.outer(psi_b, psi_b.conj())
+
+        Pt = np.outer(psi_t, psi_t.conj())
+        Pb = np.outer(psi_b, psi_b.conj())
         Xtb = np.outer(psi_t, psi_b.conj())
         Xbt = np.outer(psi_b, psi_t.conj())
-        U   = (np.eye(Ntot, dtype=np.complex128) - Pt - Pb) + (Xtb + Xbt)
+        U = (np.eye(Ntot, dtype=np.complex128) - Pt - Pb) + (Xtb + Xbt)
         return U
     
         # ---------------------- Local feedback / post-selection ----------------------
@@ -332,11 +336,17 @@ class classA_U1FGTN:
         Il = np.eye(Nlayer, dtype=np.complex128)
         Gtt_2pt = 0.5 * (G[:Nlayer, :Nlayer] + Il)
 
-        P_Ap = self.P_Ap[:, :, Rx, Ry]; P_Bp = self.P_Bp[:, :, Rx, Ry]
-        P_Am = self.P_Am[:, :, Rx, Ry]; P_Bm = self.P_Bm[:, :, Rx, Ry]
+        # On-the-fly projectors at (Rx, Ry)
+        P_Ap = self._proj_from_WF(self.WF_Ap, Rx, Ry)
+        P_Bp = self._proj_from_WF(self.WF_Bp, Rx, Ry)
+        P_Am = self._proj_from_WF(self.WF_Am, Rx, Ry)
+        P_Bm = self._proj_from_WF(self.WF_Bm, Rx, Ry)
 
-        chi_Ap = self.WF_Ap[:, Rx, Ry]; chi_Bp = self.WF_Bp[:, Rx, Ry]
-        chi_Am = self.WF_Am[:, Rx, Ry]; chi_Bm = self.WF_Bm[:, Rx, Ry]
+        # Chi spinors (for fSWAP) — make writable copies
+        chi_Ap = np.array(self.WF_Ap[:, Rx, Ry], dtype=np.complex128, copy=True)
+        chi_Bp = np.array(self.WF_Bp[:, Rx, Ry], dtype=np.complex128, copy=True)
+        chi_Am = np.array(self.WF_Am[:, Rx, Ry], dtype=np.complex128, copy=True)
+        chi_Bm = np.array(self.WF_Bm[:, Rx, Ry], dtype=np.complex128, copy=True)
 
         Nx = self.Nx
         eA_b = np.eye(Nlayer, dtype=np.complex128)[0 + 2*Rx + 2*Nx*Ry]
@@ -384,10 +394,11 @@ class classA_U1FGTN:
         """
         Directly impose the four outcomes (no feedback unitary).
         """
-        P_Ap = self.P_Ap[:, :, Rx, Ry]
-        P_Bp = self.P_Bp[:, :, Rx, Ry]
-        P_Am = self.P_Am[:, :, Rx, Ry]
-        P_Bm = self.P_Bm[:, :, Rx, Ry]
+        # On-the-fly projectors
+        P_Ap = self._proj_from_WF(self.WF_Ap, Rx, Ry)
+        P_Bp = self._proj_from_WF(self.WF_Bp, Rx, Ry)
+        P_Am = self._proj_from_WF(self.WF_Am, Rx, Ry)
+        P_Bm = self._proj_from_WF(self.WF_Bm, Rx, Ry)
 
         G = self.measure_top_layer(G, P_Ap, particle=False)  # Ap unocc
         G = self.measure_top_layer(G, P_Bp, particle=False)  # Bp unocc
@@ -445,6 +456,7 @@ class classA_U1FGTN:
     G_history=True,
     tol=1e-8,
     progress=True,
+    cycles = None,
     postselect=False,
     print_eta_rate=3.0,
 ):
@@ -468,6 +480,9 @@ class classA_U1FGTN:
 
         total_sites = self.cycles * Nx * Ny
         sites_done = 0
+
+        if cycles is None:
+            cycles = self.cycles
 
         # EMAs (persist across calls if present, else bootstrap at first measurements)
         self._ema_site = float(getattr(self, "_ema_site", 0.0))
@@ -886,31 +901,46 @@ class classA_U1FGTN:
     # ---------------------- Parallel-safe spawner for v2 ----------------------
 
     def _spawn_for_parallel(self):
-        """Make a worker copy with shared read-only big arrays to avoid races."""
+        """Create a lightweight worker instance for process-based parallelism.
+        Shares large read-only arrays by reference; initializes per-worker state.
+        """
         child = object.__new__(self.__class__)
-        # copy scalars
-        child.Nx, child.Ny = self.Nx, self.Ny
+    
+        # ---- copy simple scalars / metadata ----
+        child.Nx = self.Nx
+        child.Ny = self.Ny
         child.Ntot = self.Ntot
         child.nshell = self.nshell
         child.DW = self.DW
         child.cycles = self.cycles
         child.samples = self.samples
         child.time_init = self.time_init
-        # share read-only big arrays (must not be mutated in workers!)
+        child.DW_loc = getattr(self, "DW_loc", None)
+    
+        # ---- share big, read-only arrays (do NOT mutate these in workers) ----
+        # NOTE: we intentionally DO NOT copy; workers should treat these as read-only.
         child.Pminus = self.Pminus
         child.Pplus  = self.Pplus
-        child.WF_Ap, child.WF_Bp, child.WF_Am, child.WF_Bm = self.WF_Ap, self.WF_Bp, self.WF_Am, self.WF_Bm
-        child.P_Ap, child.P_Bp, child.P_Am, child.P_Bm = self.P_Ap, self.P_Bp, self.P_Am, self.P_Bm
-        child.alpha = self.alpha
-        child.DW_loc = getattr(self, "DW_loc", None)
-        # stateful things initialized per worker
+        child.WF_Ap  = self.WF_Ap
+        child.WF_Bp  = self.WF_Bp
+        child.WF_Am  = self.WF_Am
+        child.WF_Bm  = self.WF_Bm
+        child.alpha  = self.alpha
+    
+        # ---- per-worker mutable state ----
+        # fresh starting state for each worker (top-layer randomized in your __init__)
         child.G0 = np.array(self.G0, copy=True)
         child.G = None
         child.G_list = []
         child.g2_flags = []
-        # ETA/prints off in workers
+    
+        # ---- suppress noisy worker output / ETA ----
         child._eta_step_baseline = None
         child._suppress_bottom_measure_prints = True
+    
+        # Any attributes used by RAC's ETA logic should default to benign values
+        child._eta_parallel_factor = 1
+    
         return child
 
     # ---------------------- Parallelized corr y-profiles (v2) ----------------------
