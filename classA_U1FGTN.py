@@ -21,6 +21,7 @@ class classA_U1FGTN:
 
         self.cycles  = 5 if cycles  is None else int(cycles)
         self.samples = 5 if samples is None else int(samples)
+        self.filling_frac = filling_frac
 
         if G0 is None:
             # ---- New initialization (no bottom-layer measurement) ----
@@ -449,21 +450,23 @@ class classA_U1FGTN:
         U_tot = self._block_diag2(Il, U_bott)
         return U_tot.conj().T @ G @ U_tot
 
+
     # ------------------------------ Circuit driver ------------------------------
 
     def run_adaptive_circuit(
-    self,
-    G_history=True,
-    tol=1e-8,
-    progress=True,
-    cycles = None,
-    postselect=False,
-    print_eta_rate=3.0,
-):
+        self,
+        G_history=True,
+        tol=1e-8,
+        progress=True,
+        cycles=None,
+        postselect=False,
+        print_eta_rate=3.0,
+    ):
         """
         Adaptive circuit with ETA that explicitly models:
           - per-site work via EMA (_ema_site)
           - once-per-cycle bottom-layer measurement via EMA (_ema_bottom)
+
         ETA left = [sites_left * _ema_site + bottom_ops_left * _ema_bottom] / effective_parallel
         Print throttled by `print_eta_rate` seconds.
         """
@@ -478,30 +481,38 @@ class classA_U1FGTN:
         D = int(self.Ntot)
         I = np.eye(D, dtype=np.complex128)
 
+        if cycles is None:
+            cycles = self.cycles
+        else:
+            self.cycles = int(cycles)
+
         total_sites = self.cycles * Nx * Ny
         sites_done = 0
 
-        if cycles is None:
-            cycles = self.cycles
-
-        # EMAs (persist across calls if present, else bootstrap at first measurements)
+        # EMA baselines
         self._ema_site = float(getattr(self, "_ema_site", 0.0))
         self._ema_bottom = float(getattr(self, "_ema_bottom", 0.0))
         alpha_site = 0.15
         alpha_bottom = 0.25
 
-        # backend-aware parallel factor (set by corr_y_profiles_v2)
+        # detect if this run is for a parallel observable
+        parallel_mode = (
+            (getattr(self, "corr_y_profiles_v2_call", False) or getattr(self, "entanglement_contour_call", False))
+            and int(getattr(self, "_eta_parallel_factor", 1)) > 1
+        )
+
+        # backend-aware parallel factor (only matters if parallel_mode=True)
         raw_parallel = int(getattr(self, "_eta_parallel_factor", 1))
         backend = str(getattr(self, "backend", "")).lower()
         if backend == "loky":
             eff = 0.90
         elif backend == "threading":
-            eff = 0.50  # threads often underutilize on NumPy-heavy code
+            eff = 0.50
         else:
             eff = 0.80
         effective_parallel = max(1, int(max(1, raw_parallel) * eff))
 
-        # tqdm/print timers
+        # timers
         t_total0 = time.perf_counter()
         last_eta_print = 0.0
         print_eta_rate = 10.0 if print_eta_rate is None else float(print_eta_rate)
@@ -516,7 +527,6 @@ class classA_U1FGTN:
 
         for c in outer_iter:
             t_cycle0 = time.perf_counter()
-            # bottom measurement for this cycle is still pending (if not postselect)
             in_cycle_bottom_pending = (not postselect)
 
             # MIDDLE: rows
@@ -535,20 +545,20 @@ class classA_U1FGTN:
                 for Ry in col_iter:
                     t_step0 = time.perf_counter()
 
-                    # step
+                    # one measurement-feedback step
                     if not postselect:
                         self.G = self.top_layer_meas_feedback(self.G, Rx, Ry)
                     else:
                         self.G = self.post_selection_top_layer(self.G, Rx, Ry)
 
-                    # G^2≈I
+                    # G^2≈I check
                     ok = int(np.allclose(self.G @ self.G, I, atol=tol))
                     self.g2_flags.append(ok)
 
                     # counters
                     sites_done += 1
 
-                    # update EMA for per-site
+                    # EMA update for per-site
                     dt_site = time.perf_counter() - t_step0
                     if self._ema_site == 0.0:
                         self._ema_site = dt_site
@@ -557,7 +567,7 @@ class classA_U1FGTN:
 
                     # tqdm cosmetics
                     if progress:
-                        # inner (row)
+                        # row bar
                         elapsed_row = time.perf_counter() - t_row0
                         frac_row = (Ry + 1) / Ny
                         eta_row_total = (elapsed_row / frac_row - elapsed_row) if frac_row > 0 else 0.0
@@ -568,7 +578,7 @@ class classA_U1FGTN:
                             )
                         except Exception:
                             pass
-                        # outer (total)
+                        # outer bar
                         elapsed_total = time.perf_counter() - t_total0
                         frac_total = sites_done / max(1, total_sites)
                         eta_total_total = (elapsed_total / frac_total - elapsed_total) if frac_total > 0 else 0.0
@@ -580,30 +590,26 @@ class classA_U1FGTN:
                         except Exception:
                             pass
 
-                    # ---- throttled single-line ETA print (project remaining) ----
+                    # ---- throttled single-line ETA print ----
                     now = time.time()
                     if now - last_eta_print >= print_eta_rate:
-                        # sites left (this cycle remainder + remaining full cycles)
                         sites_done_in_cycle = Rx * Ny + (Ry + 1)
                         sites_left_in_cycle = Nx * Ny - sites_done_in_cycle
                         cycles_left_after = self.cycles - (c + 1)
                         sites_left_total = sites_left_in_cycle + cycles_left_after * Nx * Ny
 
-                        # bottom-layer measurements left:
-                        # one for current cycle if still pending, plus one per remaining full cycle
                         bottom_ops_left = (1 if in_cycle_bottom_pending else 0) + max(0, cycles_left_after)
 
-                        eta_left_wall = (
-                            sites_left_total * self._ema_site + bottom_ops_left * self._ema_bottom
-                        ) / max(1, effective_parallel)
+                        work_left = sites_left_total * self._ema_site + bottom_ops_left * self._ema_bottom
+                        work_total = self.cycles * (Nx * Ny * self._ema_site + self._ema_bottom)
 
-                        # total ETA (from start) ~ cycles * (Nx*Ny*ema_site + ema_bottom) / parallel
-                        work_per_cycle = Nx * Ny * self._ema_site + self._ema_bottom
-                        eta_total_wall = (self.cycles * work_per_cycle) / max(1, effective_parallel)
+                        if parallel_mode:
+                            work_left /= max(1, effective_parallel)
+                            work_total /= max(1, effective_parallel)
 
                         print(
-                            f"\rETA total: {self.format_interval(eta_total_wall)} | "
-                            f"ETA left: {self.format_interval(eta_left_wall)}",
+                            f"\rETA total: {self.format_interval(work_total)} | "
+                            f"ETA left: {self.format_interval(work_left)}",
                             end="",
                             flush=True,
                         )
@@ -614,16 +620,15 @@ class classA_U1FGTN:
                 self.G = self.randomize_bottom_layer(self.G)
 
                 t_bottom0 = time.perf_counter()
-                self.G = self.measure_all_bottom_modes(self.G)  # sets self.bottom_layer_mode_meas_time
+                self.G = self.measure_all_bottom_modes(self.G)
                 dt_bottom = time.perf_counter() - t_bottom0
-                # prefer the routine’s own timer if it exists
                 dt_meas = float(getattr(self, "bottom_layer_mode_meas_time", dt_bottom))
                 if self._ema_bottom == 0.0:
                     self._ema_bottom = dt_meas
                 else:
                     self._ema_bottom = (1.0 - alpha_bottom) * self._ema_bottom + alpha_bottom * dt_meas
 
-                in_cycle_bottom_pending = False  # done for this cycle
+                in_cycle_bottom_pending = False
 
             if G_history:
                 self.G_list.append(self.G.copy())
@@ -1199,6 +1204,368 @@ class classA_U1FGTN:
                 x_positions=np.array(xs_list, dtype=int),
                 Cbar_of_G=C_res_mat,   # \overline{C}_G
                 C_of_Gbar=C_avg_mat    # C_{\overline{G}}
+            )
+
+        return fullpath
+    
+    # ------------------ Entanglement Contour Block ------------------
+
+    def _reset_G0_for_entanglement_contour(self):
+        """
+        Build an initial G0 where the top layer is maximally mixed (zero block),
+        and the bottom layer is diagonal +/-1 to meet filling_frac.
+        Returns the new (4N,4N) G0; does NOT mutate self.G0.
+        """
+        Ntot   = self.Ntot
+        Nlayer = Ntot // 2
+    
+        # bottom fill +/-1 by filling_frac
+        Nelec = int(round(getattr(self, "filling_frac", 0.5) * Nlayer))
+        occ   = np.array([1] * Nelec + [-1] * (Nlayer - Nelec), dtype=np.float64)
+        np.random.shuffle(occ)
+        Gbb = np.diag(occ).astype(np.complex128)
+    
+        # top maximally mixed => zero block
+        Gtt = np.zeros((Nlayer, Nlayer), dtype=np.complex128)
+    
+        # block diag [[Gtt,0],[0,Gbb]]
+        return self._block_diag2(Gtt, Gbb)
+       
+
+    def entanglement_contour(self, Gtt):
+        """
+        Compute site-resolved entanglement contour s(r) for top layer covariance Gtt.
+        Returns array of shape (Nx, Ny).
+        """
+        Nx, Ny = self.Nx, self.Ny
+        Nlayer = Gtt.shape[0]
+
+        I  = np.eye(Nlayer, dtype=np.complex128)
+        G2 = 0.5 * (I + np.asarray(Gtt, dtype=np.complex128))
+
+        # spectral functional calculus
+        evals, vecs = np.linalg.eigh(G2)
+        evals = np.clip(np.real_if_close(evals), 1e-12, 1 - 1e-12)
+        f_eigs = -(evals * np.log(evals) + (1.0 - evals) * np.log(1.0 - evals))  # shape (Nlayer,)
+
+        # F = V diag(f_eigs) V† ; we only need diag(F)
+        # diag(F) = sum_k f_eigs[k] * |vecs[i,k]|^2
+        diagF = np.einsum("ik,k,ik->i", vecs, f_eigs, vecs.conj(), optimize=True).real
+
+        # reshape i = μ + 2*x + 2*Nx*y (μ fastest)
+        diagF = diagF.reshape(2, Nx, Ny, order="F")   # (μ, x, y)
+        s = diagF.sum(axis=0)                         # sum over μ -> (Nx,Ny)
+        return s
+
+    def entanglement_contour_dynamics(self, samples=None, n_jobs=None,
+                                      save_data=True, filename_prefix=None,
+                                      backend="loky"):
+        """
+        Compute entanglement contour dynamics over cycles with parallelized samples.
+        Produces:
+          - GIFs of s(r,t) for traj-resolved and sample-averaged cases,
+          - Final cycle heatmaps (PNG),
+          - Saves data (npz) if requested.
+        """
+
+        Nx, Ny = self.Nx, self.Ny
+        Nlayer = self.Ntot // 2
+
+        # choose worker count
+        if samples is None:
+            samples = int(getattr(self, "samples", 4))
+        samples = max(1, int(samples))
+
+        if n_jobs is None:
+            n_jobs = min(samples, os.cpu_count() or 1)
+        n_jobs = max(1, int(n_jobs))
+
+        # prepare seeds
+        ss = np.random.SeedSequence()
+        seed_ints = ss.generate_state(samples, dtype=np.uint32).tolist()
+
+        # local ETA flags per worker
+        def _worker(seed_u32):
+            # each worker keeps its own ETA settings (RAC reads these)
+            seed = int(seed_u32) & 0xFFFFFFFF
+            np.random.seed(seed)
+
+            # local G0 with maximally mixed top / random-diag bottom
+            G0_local = self._reset_G0_for_entanglement_contour()
+
+            # tell RAC how to scale ETA for parallel wall-time
+            old_parallel = getattr(self, "_eta_parallel_factor", None)
+            old_backend  = getattr(self, "backend", None)
+            old_flag     = getattr(self, "entanglement_contour_call", False)
+            self._eta_parallel_factor = n_jobs
+            self.backend = backend
+            self.entanglement_contour_call = True
+
+            # run
+            try:
+                # set starting state safely
+                self.G0 = G0_local
+                self.run_adaptive_circuit(cycles=self.cycles, G_history=True,
+                                          progress=False, print_eta_rate=10.0)
+            finally:
+                # restore flags (G0 is worker-local in loky, but restore anyway)
+                if old_parallel is None:
+                    if hasattr(self, "_eta_parallel_factor"):
+                        del self._eta_parallel_factor
+                else:
+                    self._eta_parallel_factor = old_parallel
+                if old_backend is None:
+                    if hasattr(self, "backend"):
+                        del self.backend
+                else:
+                    self.backend = old_backend
+                self.entanglement_contour_call = old_flag
+
+            # build maps over time for this trajectory
+            traj_maps = []
+            for Gf in self.G_list:
+                Gtt = np.asarray(Gf)[:Nlayer, :Nlayer]
+                traj_maps.append(self.entanglement_contour(Gtt))
+            return traj_maps  # list over t, each (Nx,Ny)
+
+        # warn if threading (shared RNG & shared self)
+        if backend == "threading":
+            print("[entanglement_contour_dynamics] Warning: threading shares RNG & object state. "
+                  "Use 'loky' for isolation & reproducibility.")
+
+        results = Parallel(n_jobs=n_jobs, backend=backend)(
+            delayed(_worker)(s) for s in seed_ints
+        )
+        # results: list of length `samples`; each is list over t of (Nx,Ny)
+
+        # time length
+        T = len(results[0])
+
+        # sample-avg trajectory maps: list over t of (Nx,Ny)
+        avg_maps = [np.mean([results[s][t] for s in range(samples)], axis=0) for t in range(T)]
+
+        outdir = self._ensure_outdir("figs/entanglement_contour_dynamics")
+        if filename_prefix is None:
+            filename_prefix = f"entanglement_dyn_N{Nx}_S{samples}_J{n_jobs}_{backend}"
+
+        # --- Final heatmaps (traj example vs avg) ---
+        fig = plt.figure(constrained_layout=True, figsize=(10, 4))
+        axs = fig.subplots(1, 2, squeeze=True)
+        im1 = axs[0].imshow(results[0][-1], cmap="Blues", origin="upper", aspect="equal")
+        axs[0].set_title("Final $s_{G_2}$ (traj)")
+        im2 = axs[1].imshow(avg_maps[-1], cmap="Blues", origin="upper", aspect="equal")
+        axs[1].set_title(r"Final $s_{\overline{G_2}}$")
+        for ax in axs:
+            ax.set_xlabel("y"); ax.set_ylabel("x")
+        fig.colorbar(im1, ax=axs[0], fraction=0.046, pad=0.04)
+        fig.colorbar(im2, ax=axs[1], fraction=0.046, pad=0.04)
+        fig.savefig(os.path.join(outdir, f"{filename_prefix}_final.png"), dpi=150)
+        plt.close(fig)
+
+        # --- GIFs ---
+        def _make_gif(maps, fname, title):
+            fig = plt.figure(constrained_layout=True, figsize=(5, 4))
+            ax = fig.add_subplot(111)
+            vmax = np.max(maps)
+            im = ax.imshow(maps[0], cmap="Blues", origin="upper", aspect="equal", vmin=0, vmax=vmax)
+            ax.set_title(title); ax.set_xlabel("y"); ax.set_ylabel("x")
+
+            def update(i):
+                im.set_data(maps[i]); ax.set_title(f"{title}, cycle {i+1}")
+                return [im]
+
+            ani = animation.FuncAnimation(fig, update, frames=len(maps), interval=400, blit=True)
+            ani.save(os.path.join(outdir, fname), writer="pillow", dpi=120)
+            plt.close(fig)
+
+        _make_gif(results[0], f"{filename_prefix}_traj.gif", r"traj $s_{G_2}(r,t)$")
+        _make_gif(avg_maps,  f"{filename_prefix}_avg.gif",  r"avg $s_{\overline{G_2}}(r,t)$")
+
+        # --- save data ---
+        if save_data:
+            # store as lists of arrays; no object dtype for single file
+            np.savez(
+                os.path.join(outdir, f"{filename_prefix}_data.npz"),
+                traj_maps=np.array([np.stack(maps, axis=0) for maps in results], dtype=np.float64),  # (S,T,Nx,Ny)
+                avg_maps=np.stack(avg_maps, axis=0)  # (T,Nx,Ny)
+            )
+
+        return outdir
+
+    def entanglement_contour_yprofiles(self, samples=None, n_jobs=None,
+                                       save_data=True, filename=None,
+                                       backend="loky"):
+        """
+        Parallelized entanglement contour computation.
+
+        Produces:
+          - Top-left:  traj-resolved mean over y, at smart x0, vs cycle (averaged over samples)
+          - Top-right: mean over y of the sample-averaged contour, at smart x0, vs cycle
+          - Bottom:    final cycle maps (one traj and the sample-avg)
+        Saves arrays when requested.
+        """
+
+        Nx, Ny = self.Nx, self.Ny
+        Nlayer = self.Ntot // 2
+
+        # choose worker count
+        if samples is None:
+            samples = int(getattr(self, "samples", 4))
+        samples = max(1, int(samples))
+
+        if n_jobs is None:
+            n_jobs = min(samples, os.cpu_count() or 1)
+        n_jobs = max(1, int(n_jobs))
+
+        # smart x-positions
+        def _pick_x_positions():
+            if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
+                xL, xR = int(self.DW_loc[0]) % Nx, int(self.DW_loc[1]) % Nx
+                xs = [
+                    (xL // 2) % Nx,
+                    (xL - 1) % Nx, xL % Nx, (xL + 1) % Nx,
+                    ((xL + xR) // 2) % Nx,
+                    (xR - 1) % Nx, xR % Nx, (xR + 1) % Nx,
+                    (xR + (Nx // 2)) % Nx,
+                ]
+                seen, uniq = set(), []
+                for x in xs:
+                    if x not in seen:
+                        uniq.append(int(x)); seen.add(int(x))
+                return [(x, f"{x}") for x in uniq]
+            else:
+                xs = np.linspace(0, Nx-1, 9, dtype=int)
+                return [(int(x), f"{int(x)}") for x in xs]
+        x_positions = _pick_x_positions()
+        xs_only = [x for x, _ in x_positions]
+
+        # worker (same parallel-safety pattern as dynamics)
+        def _worker(seed_u32):
+            seed = int(seed_u32) & 0xFFFFFFFF
+            np.random.seed(seed)
+            G0_local = self._reset_G0_for_entanglement_contour()
+
+            old_parallel = getattr(self, "_eta_parallel_factor", None)
+            old_backend  = getattr(self, "backend", None)
+            old_flag     = getattr(self, "entanglement_contour_call", False)
+            self._eta_parallel_factor = n_jobs
+            self.backend = backend
+            self.entanglement_contour_call = True
+
+            try:
+                self.G0 = G0_local
+                self.run_adaptive_circuit(cycles=self.cycles, G_history=True,
+                                          progress=False, print_eta_rate=10.0)
+            finally:
+                if old_parallel is None:
+                    if hasattr(self, "_eta_parallel_factor"):
+                        del self._eta_parallel_factor
+                else:
+                    self._eta_parallel_factor = old_parallel
+                if old_backend is None:
+                    if hasattr(self, "backend"):
+                        del self.backend
+                else:
+                    self.backend = old_backend
+                self.entanglement_contour_call = old_flag
+
+            # compute s(r,t) and y-summed profiles s_x(t) = sum_y s(x,y,t)
+            maps = []
+            profs = []  # list over t of dict {x0: sum_y s(x0,:)}
+            for Gf in self.G_list:
+                Gtt  = np.asarray(Gf)[:Nlayer, :Nlayer]
+                smap = self.entanglement_contour(Gtt)  # (Nx,Ny)
+                maps.append(smap)
+                profs.append({x0: float(np.sum(smap[x0, :])) for x0 in xs_only})
+            return maps, profs
+
+        # warn if threading
+        if backend == "threading":
+            print("[entanglement_contour_yprofiles] Warning: threading shares RNG & object state. "
+                  "Use 'loky' for isolation & reproducibility.")
+
+        ss = np.random.SeedSequence()
+        seed_ints = ss.generate_state(samples, dtype=np.uint32).tolist()
+
+        results = Parallel(n_jobs=n_jobs, backend=backend)(
+            delayed(_worker)(s) for s in seed_ints
+        )
+        # results: list of (maps, profs)
+        # maps:  list over t of (Nx,Ny)
+        # profs: list over t of dict {x0: value}
+
+        T = len(results[0][0])
+
+        # sample-avg over maps per t
+        avg_maps = [np.mean([results[s][0][t] for s in range(samples)], axis=0) for t in range(T)]
+
+        # traj-resolved mean profiles per x0, averaged over samples at each t
+        traj_profiles_mean = {x0: np.array([np.mean([results[s][1][t][x0] for s in range(samples)])
+                                            for t in range(T)], dtype=float)
+                              for x0 in xs_only}
+
+        # profiles from sample-avg maps: s̄(x0,t) = sum_y avg_maps[t][x0,:]
+        avg_profiles = {x0: np.array([float(np.sum(avg_maps[t][x0, :])) for t in range(T)], dtype=float)
+                        for x0 in xs_only}
+
+        # --- plotting ---
+        outdir = self._ensure_outdir("figs/entanglement_contour")
+        if filename is None:
+            xdesc = "-".join(f"{x}" for x in xs_only)
+            filename = f"entanglement_yprofiles_N{Nx}_xs_{xdesc}_S{samples}_J{n_jobs}_{backend}.pdf"
+        fullpath = os.path.join(outdir, filename)
+
+        fig = plt.figure(constrained_layout=True, figsize=(12.0, 8.5))
+        (axP1, axP2), (axM1, axM2) = fig.subplots(2, 2, squeeze=True)
+
+        t_vals = np.arange(1, T + 1)
+
+        # Top-left: traj-resolved (mean over samples per t)
+        for x0, lbl in x_positions:
+            axP1.plot(t_vals, traj_profiles_mean[x0], label=lbl)
+        axP1.set_xlabel("cycle t"); axP1.set_ylabel(r"$\sum_y s(x_0,y)$")
+        axP1.set_title(r"$\overline{s_{G_2}}$ (traj-resolved mean)")
+        axP1.grid(True, alpha=0.3); axP1.legend(fontsize=7)
+        if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)):
+            axP1.text(0.02, 0.96, f"DWs at x₀={int(self.DW_loc[0])}, {int(self.DW_loc[1])}",
+                      transform=axP1.transAxes, ha='left', va='top',
+                      fontsize=9, bbox=dict(boxstyle="round,pad=0.2", fc="w", ec="k", alpha=0.6))
+
+        # Top-right: from sample-averaged maps
+        for x0, lbl in x_positions:
+            axP2.plot(t_vals, avg_profiles[x0], label=lbl)
+        axP2.set_xlabel("cycle t"); axP2.set_ylabel(r"$\sum_y s(x_0,y)$")
+        axP2.set_title(r"$s_{\overline{G_2}}$")
+        axP2.grid(True, alpha=0.3); axP2.legend(fontsize=7)
+        if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)):
+            axP2.text(0.02, 0.96, f"DWs at x₀={int(self.DW_loc[0])}, {int(self.DW_loc[1])}",
+                      transform=axP2.transAxes, ha='left', va='top',
+                      fontsize=9, bbox=dict(boxstyle="round,pad=0.2", fc="w", ec="k", alpha=0.6))
+
+        # Bottom: final maps (traj example vs avg)
+        im1 = axM1.imshow(results[0][0][-1], cmap="Blues", origin="upper", aspect="equal")
+        axM1.set_title("Final $s_{G_2}$ (traj)")
+        im2 = axM2.imshow(avg_maps[-1],     cmap="Blues", origin="upper", aspect="equal")
+        axM2.set_title(r"Final $s_{\overline{G_2}}$")
+        for ax in (axM1, axM2):
+            ax.set_xlabel("y"); ax.set_ylabel("x")
+        fig.colorbar(im1, ax=axM1, fraction=0.046, pad=0.04)
+        fig.colorbar(im2, ax=axM2, fraction=0.046, pad=0.04)
+
+        fig.suptitle(f"Entanglement contour (N={Nx}, samples={samples}, n_jobs={n_jobs}, backend={backend})")
+        fig.savefig(fullpath, bbox_inches="tight", dpi=140)
+        plt.close(fig)
+
+        # --- save data ---
+        if save_data:
+            np.savez(
+                os.path.join(outdir, f"entanglement_yprofiles_data_N{Nx}_S{samples}_J{n_jobs}_{backend}.npz"),
+                t_vals=t_vals,
+                x_positions=np.array(xs_only, dtype=int),
+                traj_profiles_mean=np.vstack([traj_profiles_mean[x] for x in xs_only]),  # (num_x, T)
+                avg_profiles=np.vstack([avg_profiles[x] for x in xs_only]),              # (num_x, T)
+                final_traj_map=results[0][0][-1],
+                final_avg_map=avg_maps[-1]
             )
 
         return fullpath
