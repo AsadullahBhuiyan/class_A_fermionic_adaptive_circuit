@@ -8,7 +8,9 @@ from tqdm import tqdm
 from joblib import Parallel, delayed
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import matplotlib as mpl
-
+from contextlib import nullcontext
+from tqdm import tqdm
+from tqdm_joblib import tqdm_joblib 
 
 
 class classA_U1FGTN:
@@ -55,7 +57,13 @@ class classA_U1FGTN:
         print("------------------------- classA_U1FGTN Initialized -------------------------")
 
     # ------------------------------ Utilities ------------------------------
-
+    def _joblib_tqdm_ctx(self, total, desc):
+        """
+        Single outer tqdm bar for joblib.Parallel.
+        Use as: with self._joblib_tqdm_ctx(samples, "samples"): Parallel(...).
+        """
+        return tqdm_joblib(tqdm(total=total, desc=desc, unit="task")) if total and total > 1 else nullcontext()
+    
     def format_interval(self, seconds):
         """Convert seconds to H:MM:SS (or D:HH:MM:SS if >1 day)."""
         seconds = int(round(seconds))
@@ -503,8 +511,7 @@ class classA_U1FGTN:
         use_bar = bool(progress and not in_parallel)
         pbar = None
         if use_bar:
-            from tqdm.auto import tqdm as _tqdm
-            pbar = _tqdm(total=total_sites, desc="RAC (sites)", unit="site", leave=True)
+            pbar = tqdm(total=total_sites, desc="RAC (sites)", unit="site", leave=True)
 
         # OUTER: cycles
         for _c in range(self.cycles):
@@ -561,7 +568,7 @@ class classA_U1FGTN:
                 }, refresh=False)
 
         if pbar is not None:
-            pbar.closse()
+            pbar.close()
 
     # ---------------------------- Chern observables ----------------------------
 
@@ -993,7 +1000,7 @@ class classA_U1FGTN:
         def _task_loky(seed):
             child = self._spawn_for_parallel()
             np.random.seed(int(seed) & 0xFFFFFFFF)  # safe per-process seeding
-            child.run_adaptive_circuit(cycles=child.cycles, G_history=False, progress=False)
+            child.run_adaptive_circuit(cycles=child.cycles, G_history=False, progress=True)
             Gtt  = np.asarray(child.G)[:Nlayer, :Nlayer]
             Gker = _coerce_to_two_point_kernel_top(Gtt)
             C_this = {x0: _C_xslice_from_kernel(Gker, x0, ry_vals).real for x0, _ in x_positions}
@@ -1012,10 +1019,16 @@ class classA_U1FGTN:
         # pick worker based on backend
         worker_fn = _task_loky if backend == "loky" else _task_thread
 
-        # run parallel
-        results = Parallel(n_jobs=n_jobs, backend=backend)(
-            delayed(worker_fn)(s) for s in seed_ints
-        )
+        # mark callsite so RAC can suppress bars if someone forgets progress=False (optional)
+        old_flag = getattr(self, "corr_y_profiles_v2_call", False)
+        self.corr_y_profiles_v2_call = True
+        try:
+            with self._joblib_tqdm_ctx(samples, "samples"):
+                results = Parallel(n_jobs=n_jobs, backend=backend)(
+                    delayed(worker_fn)(s) for s in seed_ints
+                )
+        finally:
+            self.corr_y_profiles_v2_call = old_flag
 
         # restore flags
         self._suppress_bottom_measure_prints = old_suppress
@@ -1184,338 +1197,19 @@ class classA_U1FGTN:
         s = diagF.sum(axis=0)                         # sum over μ -> (Nx,Ny)
         return s
 
-    def entanglement_contour_dynamics(self, samples=None, n_jobs=None,
-                                      save_data=True, filename_prefix=None,
-                                      backend="loky"):
-        """
-        Compute entanglement contour dynamics over cycles with parallelized samples.
-        Produces:
-          - GIFs of s(r,t) for traj-resolved and sample-averaged cases,
-          - Final cycle heatmaps (PNG),
-          - Saves data (npz) if requested.
-        """
-
-        Nx, Ny = self.Nx, self.Ny
-        Nlayer = self.Ntot // 2
-
-        # choose worker count
-        if samples is None:
-            samples = int(getattr(self, "samples", 4))
-        samples = max(1, int(samples))
-
-        if n_jobs is None:
-            n_jobs = min(samples, os.cpu_count() or 1)
-        n_jobs = max(1, int(n_jobs))
-
-        # prepare seeds
-        ss = np.random.SeedSequence()
-        seed_ints = ss.generate_state(samples, dtype=np.uint32).tolist()
-
-        # local ETA flags per worker
-        def _worker(seed_u32):
-            # each worker keeps its own ETA settings (RAC reads these)
-            seed = int(seed_u32) & 0xFFFFFFFF
-            np.random.seed(seed)
-
-            # local G0 with maximally mixed top / random-diag bottom
-            G0_local = self._reset_G0_for_entanglement_contour()
-
-            # tell RAC how to scale ETA for parallel wall-time
-            old_parallel = getattr(self, "_eta_parallel_factor", None)
-            old_backend  = getattr(self, "backend", None)
-            old_flag     = getattr(self, "entanglement_contour_call", False)
-            self._eta_parallel_factor = n_jobs
-            self.backend = backend
-            self.entanglement_contour_call = True
-
-            # run
-            try:
-                # set starting state safely
-                self.G0 = G0_local
-                self.run_adaptive_circuit(cycles=self.cycles, G_history=True,
-                                          progress=False)
-            finally:
-                # restore flags (G0 is worker-local in loky, but restore anyway)
-                if old_parallel is None:
-                    if hasattr(self, "_eta_parallel_factor"):
-                        del self._eta_parallel_factor
-                else:
-                    self._eta_parallel_factor = old_parallel
-                if old_backend is None:
-                    if hasattr(self, "backend"):
-                        del self.backend
-                else:
-                    self.backend = old_backend
-                self.entanglement_contour_call = old_flag
-
-            # build maps over time for this trajectory
-            traj_maps = []
-            for Gf in self.G_list:
-                Gtt = np.asarray(Gf)[:Nlayer, :Nlayer]
-                traj_maps.append(self.entanglement_contour(Gtt))
-            return traj_maps  # list over t, each (Nx,Ny)
-
-        # warn if threading (shared RNG & shared self)
-        if backend == "threading":
-            print("[entanglement_contour_dynamics] Warning: threading shares RNG & object state. "
-                  "Use 'loky' for isolation & reproducibility.")
-
-        results = Parallel(n_jobs=n_jobs, backend=backend)(
-            delayed(_worker)(s) for s in seed_ints
-        )
-        # results: list of length `samples`; each is list over t of (Nx,Ny)
-
-        # time length
-        T = len(results[0])
-
-        # sample-avg trajectory maps: list over t of (Nx,Ny)
-        avg_maps = [np.mean([results[s][t] for s in range(samples)], axis=0) for t in range(T)]
-
-        outdir = self._ensure_outdir("figs/entanglement_contour_dynamics")
-        if filename_prefix is None:
-            filename_prefix = f"entanglement_dyn_N{Nx}_S{samples}_J{n_jobs}_{backend}"
-
-        # --- Final heatmaps (traj example vs avg) ---
-        fig = plt.figure(constrained_layout=True, figsize=(10, 4))
-        axs = fig.subplots(1, 2, squeeze=True)
-        im1 = axs[0].imshow(results[0][-1], cmap="Blues", origin="upper", aspect="equal")
-        axs[0].set_title("Final $s_{G_2}$ (traj)")
-        im2 = axs[1].imshow(avg_maps[-1], cmap="Blues", origin="upper", aspect="equal")
-        axs[1].set_title(r"Final $s_{\overline{G_2}}$")
-        for ax in axs:
-            ax.set_xlabel("y"); ax.set_ylabel("x")
-        fig.colorbar(im1, ax=axs[0], fraction=0.046, pad=0.04)
-        fig.colorbar(im2, ax=axs[1], fraction=0.046, pad=0.04)
-        fig.savefig(os.path.join(outdir, f"{filename_prefix}_final.png"), dpi=150)
-        plt.close(fig)
-
-        # --- GIFs ---
-        def _make_gif(maps, fname, title):
-            fig = plt.figure(constrained_layout=True, figsize=(5, 4))
-            ax = fig.add_subplot(111)
-            vmax = np.max(maps)
-            im = ax.imshow(maps[0], cmap="Blues", origin="upper", aspect="equal", vmin=0, vmax=vmax)
-            ax.set_title(title); ax.set_xlabel("y"); ax.set_ylabel("x")
-
-            def update(i):
-                im.set_data(maps[i]); ax.set_title(f"{title}, cycle {i+1}")
-                return [im]
-
-            ani = animation.FuncAnimation(fig, update, frames=len(maps), interval=400, blit=True)
-            ani.save(os.path.join(outdir, fname), writer="pillow", dpi=120)
-            plt.close(fig)
-
-        _make_gif(results[0], f"{filename_prefix}_traj.gif", r"traj $s_{G_2}(r,t)$")
-        _make_gif(avg_maps,  f"{filename_prefix}_avg.gif",  r"avg $s_{\overline{G_2}}(r,t)$")
-
-        # --- save data ---
-        if save_data:
-            # store as lists of arrays; no object dtype for single file
-            np.savez(
-                os.path.join(outdir, f"{filename_prefix}_data.npz"),
-                traj_maps=np.array([np.stack(maps, axis=0) for maps in results], dtype=np.float64),  # (S,T,Nx,Ny)
-                avg_maps=np.stack(avg_maps, axis=0)  # (T,Nx,Ny)
-            )
-
-        return outdir
-
-    def entanglement_contour_yprofiles(self, samples=None, n_jobs=None,
-                                       save_data=True, filename=None,
-                                       backend="loky"):
-        """
-        Parallelized entanglement contour computation.
-
-        Produces:
-          - Top-left:  traj-resolved mean over y, at smart x0, vs cycle (averaged over samples)
-          - Top-right: mean over y of the sample-averaged contour, at smart x0, vs cycle
-          - Bottom:    final cycle maps (one traj and the sample-avg)
-        Saves arrays when requested.
-        """
-
-        Nx, Ny = self.Nx, self.Ny
-        Nlayer = self.Ntot // 2
-
-        # choose worker count
-        if samples is None:
-            samples = int(getattr(self, "samples", 4))
-        samples = max(1, int(samples))
-
-        if n_jobs is None:
-            n_jobs = min(samples, os.cpu_count() or 1)
-        n_jobs = max(1, int(n_jobs))
-
-        # smart x-positions
-        def _pick_x_positions():
-            if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
-                xL, xR = int(self.DW_loc[0]) % Nx, int(self.DW_loc[1]) % Nx
-                xs = [
-                    (xL // 2) % Nx,
-                    (xL - 1) % Nx, xL % Nx, (xL + 1) % Nx,
-                    ((xL + xR) // 2) % Nx,
-                    (xR - 1) % Nx, xR % Nx, (xR + 1) % Nx,
-                    (xR + (Nx // 2)) % Nx,
-                ]
-                seen, uniq = set(), []
-                for x in xs:
-                    if x not in seen:
-                        uniq.append(int(x)); seen.add(int(x))
-                return [(x, f"{x}") for x in uniq]
-            else:
-                xs = np.linspace(0, Nx-1, 9, dtype=int)
-                return [(int(x), f"{int(x)}") for x in xs]
-        x_positions = _pick_x_positions()
-        xs_only = [x for x, _ in x_positions]
-
-        # worker (same parallel-safety pattern as dynamics)
-        def _worker(seed_u32):
-            seed = int(seed_u32) & 0xFFFFFFFF
-            np.random.seed(seed)
-            G0_local = self._reset_G0_for_entanglement_contour()
-
-            old_parallel = getattr(self, "_eta_parallel_factor", None)
-            old_backend  = getattr(self, "backend", None)
-            old_flag     = getattr(self, "entanglement_contour_call", False)
-            self._eta_parallel_factor = n_jobs
-            self.backend = backend
-            self.entanglement_contour_call = True
-
-            try:
-                self.G0 = G0_local
-                self.run_adaptive_circuit(cycles=self.cycles, G_history=True,
-                                          progress=False)
-            finally:
-                if old_parallel is None:
-                    if hasattr(self, "_eta_parallel_factor"):
-                        del self._eta_parallel_factor
-                else:
-                    self._eta_parallel_factor = old_parallel
-                if old_backend is None:
-                    if hasattr(self, "backend"):
-                        del self.backend
-                else:
-                    self.backend = old_backend
-                self.entanglement_contour_call = old_flag
-
-            # compute s(r,t) and y-summed profiles s_x(t) = sum_y s(x,y,t)
-            maps = []
-            profs = []  # list over t of dict {x0: sum_y s(x0,:)}
-            for Gf in self.G_list:
-                Gtt  = np.asarray(Gf)[:Nlayer, :Nlayer]
-                smap = self.entanglement_contour(Gtt)  # (Nx,Ny)
-                maps.append(smap)
-                profs.append({x0: float(np.sum(smap[x0, :])) for x0 in xs_only})
-            return maps, profs
-
-        # warn if threading
-        if backend == "threading":
-            print("[entanglement_contour_yprofiles] Warning: threading shares RNG & object state. "
-                  "Use 'loky' for isolation & reproducibility.")
-
-        ss = np.random.SeedSequence()
-        seed_ints = ss.generate_state(samples, dtype=np.uint32).tolist()
-
-        results = Parallel(n_jobs=n_jobs, backend=backend)(
-            delayed(_worker)(s) for s in seed_ints
-        )
-        # results: list of (maps, profs)
-        # maps:  list over t of (Nx,Ny)
-        # profs: list over t of dict {x0: value}
-
-        T = len(results[0][0])
-
-        # sample-avg over maps per t
-        avg_maps = [np.mean([results[s][0][t] for s in range(samples)], axis=0) for t in range(T)]
-
-        # traj-resolved mean profiles per x0, averaged over samples at each t
-        traj_profiles_mean = {x0: np.array([np.mean([results[s][1][t][x0] for s in range(samples)])
-                                            for t in range(T)], dtype=float)
-                              for x0 in xs_only}
-
-        # profiles from sample-avg maps: s̄(x0,t) = sum_y avg_maps[t][x0,:]
-        avg_profiles = {x0: np.array([float(np.sum(avg_maps[t][x0, :])) for t in range(T)], dtype=float)
-                        for x0 in xs_only}
-
-        # --- plotting ---
-        outdir = self._ensure_outdir("figs/entanglement_contour")
-        if filename is None:
-            xdesc = "-".join(f"{x}" for x in xs_only)
-            filename = f"entanglement_yprofiles_N{Nx}_xs_{xdesc}_S{samples}_J{n_jobs}_{backend}.pdf"
-        fullpath = os.path.join(outdir, filename)
-
-        fig = plt.figure(constrained_layout=True, figsize=(12.0, 8.5))
-        (axP1, axP2), (axM1, axM2) = fig.subplots(2, 2, squeeze=True)
-
-        t_vals = np.arange(1, T + 1)
-
-        # Top-left: traj-resolved (mean over samples per t)
-        for x0, lbl in x_positions:
-            axP1.plot(t_vals, traj_profiles_mean[x0], label=lbl)
-        axP1.set_xlabel("cycle t")
-        axP1.set_ylabel(r"$\sum_y s(x_0,y)$")
-        axP1.set_title(r"$\overline{s_{G_2}}$ (traj-resolved mean)")
-        axP1.grid(True, alpha=0.3)
-        axP1.legend(fontsize=7)
-        axP1.set_xscale("linear")   # linear x-axis
-        axP1.set_yscale("log")      # logarithmic y-axis
-        if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)):
-            axP1.text(0.02, 0.96, f"DWs at x₀={int(self.DW_loc[0])}, {int(self.DW_loc[1])}",
-                      transform=axP1.transAxes, ha='left', va='top',
-                      fontsize=9, bbox=dict(boxstyle="round,pad=0.2", fc="w", ec="k", alpha=0.6))
-
-        # Top-right: from sample-averaged maps
-        for x0, lbl in x_positions:
-            axP2.plot(t_vals, avg_profiles[x0], label=lbl)
-        axP2.set_xlabel("cycle t")
-        axP2.set_ylabel(r"$\sum_y s(x_0,y)$")
-        axP2.set_title(r"$s_{\overline{G_2}}$")
-        axP2.grid(True, alpha=0.3)
-        axP2.legend(fontsize=7)
-        axP2.set_xscale("linear")   # linear x-axis
-        axP2.set_yscale("log")      # logarithmic y-axis
-        if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)):
-            axP2.text(0.02, 0.96, f"DWs at x₀={int(self.DW_loc[0])}, {int(self.DW_loc[1])}",
-                      transform=axP2.transAxes, ha='left', va='top',
-                      fontsize=9, bbox=dict(boxstyle="round,pad=0.2", fc="w", ec="k", alpha=0.6))
-
-        # Bottom: final maps (traj example vs avg)
-        im1 = axM1.imshow(results[0][0][-1], cmap="Blues", origin="upper", aspect="equal")
-        axM1.set_title("Final $s_{G_2}$ (traj)")
-        im2 = axM2.imshow(avg_maps[-1], cmap="Blues", origin="upper", aspect="equal")
-        axM2.set_title(r"Final $s_{\overline{G_2}}$")
-        for ax in (axM1, axM2):
-            ax.set_xlabel("y")
-            ax.set_ylabel("x")
-        fig.colorbar(im1, ax=axM1, fraction=0.046, pad=0.04)
-        fig.colorbar(im2, ax=axM2, fraction=0.046, pad=0.04)
-
-        fig.suptitle(f"Entanglement contour (N={Nx}, samples={samples}, n_jobs={n_jobs}, backend={backend})")
-        fig.savefig(fullpath, bbox_inches="tight", dpi=140)
-        plt.close(fig)
-
-        # --- save data ---
-        if save_data:
-            np.savez(
-                os.path.join(outdir, f"entanglement_yprofiles_data_N{Nx}_S{samples}_J{n_jobs}_{backend}.npz"),
-                t_vals=t_vals,
-                x_positions=np.array(xs_only, dtype=int),
-                traj_profiles_mean=np.vstack([traj_profiles_mean[x] for x in xs_only]),  # (num_x, T)
-                avg_profiles=np.vstack([avg_profiles[x] for x in xs_only]),              # (num_x, T)
-                final_traj_map=results[0][0][-1],
-                final_avg_map=avg_maps[-1]
-            )
-
-        return fullpath
     def entanglement_contour_suite(self, samples=None, n_jobs=None, backend="loky",
-                               save_data=True, filename_profiles=None, filename_prefix_dyn=None):
+                                   save_data=True, filename_profiles=None, filename_prefix_dyn=None):
         """
-        One-pass entanglement-contour analysis:
-          • Runs samples in parallel (outer loop), collecting s(r,t) for each trajectory.
-          • Produces a 2x2 figure with:
-              (top-left)  traj-resolved mean over y at smart x0 vs cycle
-              (top-right) mean over y of the sample-averaged contour at smart x0 vs cycle
-              (bottom)    final-cycle maps (one traj and sample-avg)
-          • Produces dynamics GIFs (traj example & sample-average) and a final PNG.
-          • Saves all arrays if requested.
+        One-pass entanglement-contour analysis (correct trajectory averaging):
+          • Runs samples in parallel (outer loop), collecting Gtt(t) for each trajectory.
+          • Computes:
+              (top-left)  traj-resolved mean over y at smart x0 vs cycle, using s(G^{(s)}(t))
+              (top-right) mean over y of the contour from the cycle-averaged   Ḡ(t), i.e., s(Ḡ(t))
+              (middle row) eigenvalue spectra of final-step G (traj) and Ḡ (traj-avg)
+              (bottom)    final-cycle maps: s(G^{(traj)}) and s(Ḡ)
+          • Produces dynamics GIFs for s(G^{(traj)}(t)) and s(Ḡ(t)) with colorbars.
+          • Saves arrays if requested.
+          • Note: initial top layer is maximally mixed (Gtt = 0).
 
         Returns dict with paths:
           {
@@ -1589,7 +1283,7 @@ class classA_U1FGTN:
 
             try:
                 self.G0 = G0_local
-                # keep history for dynamics & profiles
+                # keep history for dynamics & profiles; disable inner bars
                 self.run_adaptive_circuit(cycles=self.cycles, G_history=True,
                                           progress=False)
             finally:
@@ -1605,92 +1299,145 @@ class classA_U1FGTN:
                     self.backend = old_backend
                 self.entanglement_contour_call = old_flag
 
-            # build s(r,t) and y-summed profiles
-            maps = []   # list over t of (Nx,Ny)
-            profs = []  # list over t of dict {x0: sum_y s(x0,:)}
+            # return Gtt history for this trajectory
+            Gtt_hist = []
             for Gf in self.G_list:
-                Gtt  = np.asarray(Gf)[:Nlayer, :Nlayer]
-                smap = self.entanglement_contour(Gtt)
-                maps.append(smap)
-                profs.append({x0: float(np.sum(smap[x0, :])) for x0 in xs_only})
-            return maps, profs
+                Gtt_hist.append(np.asarray(Gf)[:Nlayer, :Nlayer])   # (Nlayer, Nlayer)
+            return Gtt_hist
 
-        # ---------------- parallel run (single pass) ----------------
-        results = Parallel(n_jobs=n_jobs, backend=backend)(
-            delayed(_worker)(s) for s in seed_ints
-        )
-        # results: list of (maps, profs)
-        # maps:  list over t of (Nx,Ny)
-        # profs: list over t of dict {x0: value}
+        with self._joblib_tqdm_ctx(samples, "samples"):
+            results = Parallel(n_jobs=n_jobs, backend=backend)(
+                delayed(_worker)(s) for s in seed_ints
+            )
+        # results: list over samples; each item is a list over t of Gtt (Nlayer x Nlayer)
 
-        T = len(results[0][0])  # number of cycle snapshots
+        T = len(results[0])  # number of cycle snapshots
 
-        # sample-avg maps per t
-        avg_maps = [np.mean([results[s][0][t] for s in range(samples)], axis=0) for t in range(T)]
-
-        # traj-resolved mean profiles per x0 (mean across samples at each t)
+        # --------- Build traj-resolved mean profiles from per-trajectory Gtt ---------
+        # \overline{s_G}(x0,t) = (1/S) * sum_s sum_y s( Gtt^{(s)}(t) )[x0, y]
         traj_profiles_mean = {
-            x0: np.array([np.mean([results[s][1][t][x0] for s in range(samples)]) for t in range(T)], dtype=float)
+            x0: np.array([
+                np.mean([
+                    float(np.sum(self.entanglement_contour(results[s][t])[x0, :]))
+                    for s in range(samples)
+                ])
+                for t in range(T)
+            ], dtype=float)
             for x0 in xs_only
         }
 
-        # profiles from sample-avg maps: s̄(x0,t) = sum_y avg_maps[t][x0,:]
+        # --------- Build trajectory-averaged G per cycle, then s(\overline{G}(t)) -----
+        Gavg_hist = [
+            np.mean([results[s][t] for s in range(samples)], axis=0)   # (Nlayer, Nlayer)
+            for t in range(T)
+        ]
+        avg_maps = [self.entanglement_contour(Gavg_hist[t]) for t in range(T)]  # (Nx, Ny)
+
+        # profiles from s(\overline{G}(t))
         avg_profiles = {
             x0: np.array([float(np.sum(avg_maps[t][x0, :])) for t in range(T)], dtype=float)
             for x0 in xs_only
         }
 
-        # ---------------- plotting: profiles + final maps ----------------
+        # ---------------- plotting: profiles + spectra + final maps ----------------
         outdir_prof = self._ensure_outdir("figs/entanglement_contour")
         if filename_profiles is None:
             xdesc = "-".join(f"{x}" for x in xs_only)
             filename_profiles = f"entanglement_suite_yprofiles_N{Nx}_xs_{xdesc}_S{samples}_J{n_jobs}_{backend}.pdf"
         profiles_pdf = os.path.join(outdir_prof, filename_profiles)
 
-        fig = plt.figure(constrained_layout=True, figsize=(12.0, 8.5))
-        (axP1, axP2), (axM1, axM2) = fig.subplots(2, 2, squeeze=True)
+        # 3 rows x 2 cols: (time-profiles) / (spectra) / (final maps)
+        fig = plt.figure(constrained_layout=True, figsize=(12.5, 12.0))
+        gs  = fig.add_gridspec(nrows=3, ncols=2, height_ratios=[1.1, 1.0, 1.2])
+
+        # Row 1: time-profiles
+        axP1 = fig.add_subplot(gs[0, 0])
+        axP2 = fig.add_subplot(gs[0, 1])
 
         t_vals = np.arange(1, T + 1)
 
-        # Top-left: traj-resolved (mean over samples per t)
+        # Left: traj-resolved mean using s(G^{(s)}(t))
         for x0, lbl in x_positions:
-            axP1.plot(t_vals, traj_profiles_mean[x0], label=lbl)
+            axP1.plot(t_vals, traj_profiles_mean[x0], label=lbl, marker='o', ms=3)
         axP1.set_xlabel("cycle t")
         axP1.set_ylabel(r"$\sum_y s(x_0,y)$")
-        axP1.set_title(r"$\overline{s_{G_2}}$ (traj-resolved mean)")
-        axP1.set_yscale("log")             # linear x, log y
+        axP1.set_title(r"$\overline{s_{G}}$ (traj-resolved mean)")
+        axP1.set_yscale("log")
         axP1.grid(True, alpha=0.3)
-        axP1.legend(fontsize=7)
+        axP1.legend(fontsize=7, ncol=2)
         if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)):
             axP1.text(0.02, 0.96, f"DWs at x₀={int(self.DW_loc[0])}, {int(self.DW_loc[1])}",
                       transform=axP1.transAxes, ha='left', va='top',
                       fontsize=9, bbox=dict(boxstyle="round,pad=0.2", fc="w", ec="k", alpha=0.6))
 
-        # Top-right: from sample-averaged maps
+        # Right: s(\overline{G}(t))
         for x0, lbl in x_positions:
-            axP2.plot(t_vals, avg_profiles[x0], label=lbl)
+            axP2.plot(t_vals, avg_profiles[x0], label=lbl, marker='o', ms=3)
         axP2.set_xlabel("cycle t")
         axP2.set_ylabel(r"$\sum_y s(x_0,y)$")
-        axP2.set_title(r"$s_{\overline{G_2}}$")
-        axP2.set_yscale("log")             # linear x, log y
+        axP2.set_title(r"$s_{\overline{G}}$")
+        axP2.set_yscale("log")
         axP2.grid(True, alpha=0.3)
-        axP2.legend(fontsize=7)
+        axP2.legend(fontsize=7, ncol=2)
         if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)):
             axP2.text(0.02, 0.96, f"DWs at x₀={int(self.DW_loc[0])}, {int(self.DW_loc[1])}",
                       transform=axP2.transAxes, ha='left', va='top',
                       fontsize=9, bbox=dict(boxstyle="round,pad=0.2", fc="w", ec="k", alpha=0.6))
 
-        # Bottom: final maps (traj example vs avg)
-        im1 = axM1.imshow(results[0][0][-1], cmap="Blues", origin="upper", aspect="equal")
-        axM1.set_title("Final $s_{G_2}$ (traj)")
-        im2 = axM2.imshow(avg_maps[-1],     cmap="Blues", origin="upper", aspect="equal")
-        axM2.set_title(r"Final $s_{\overline{G_2}}$")
+        # --- (2) Sync y-limits across the two time-profile plots ---
+        # (works fine with log scale provided data > 0)
+        y1 = axP1.get_ylim(); y2 = axP2.get_ylim()
+        ymin = min(y1[0], y2[0]); ymax = max(y1[1], y2[1])
+        axP1.set_ylim(ymin, ymax); axP2.set_ylim(ymin, ymax)
+
+        # Row 2: eigenvalue spectra at final cycle
+        axS1 = fig.add_subplot(gs[1, 0])
+        axS2 = fig.add_subplot(gs[1, 1])
+
+        def _eigvals_sorted(A):
+            try:
+                w = np.linalg.eigvalsh(A)
+            except np.linalg.LinAlgError:
+                w = np.linalg.eigvalsh(0.5 * (A + A.conj().T))
+            return np.sort(np.real_if_close(w))
+
+        # Final-step G of a single trajectory and of the averaged G
+        G_final_traj = results[0][-1]
+        G_final_avg  = Gavg_hist[-1]
+
+        ev_traj = _eigvals_sorted(G_final_traj)
+        ev_avg  = _eigvals_sorted(G_final_avg)
+
+        axS1.plot(np.arange(len(ev_traj)), ev_traj, '.', ms=3)
+        axS1.set_title(r"eigvals($G_{\mathrm{final}}$) (traj)")
+        axS1.set_xlabel("index"); axS1.set_ylabel("eigenvalue"); axS1.grid(True, alpha=0.3)
+
+        axS2.plot(np.arange(len(ev_avg)), ev_avg, '.', ms=3)
+        axS2.set_title(r"eigvals($\overline{G}_{\mathrm{final}}$)")
+        axS2.set_xlabel("index"); axS2.set_ylabel("eigenvalue"); axS2.grid(True, alpha=0.3)
+
+        # Row 3: final maps (heatmaps)
+        axM1 = fig.add_subplot(gs[2, 0])
+        axM2 = fig.add_subplot(gs[2, 1])
+
+        final_traj_map = self.entanglement_contour(G_final_traj)  # s(G^{(traj 0)}_final)
+        final_avg_map  = self.entanglement_contour(G_final_avg)   # s(\overline{G}_final)
+
+        im1 = axM1.imshow(final_traj_map, cmap="Blues", origin="upper", aspect="equal")
+        axM1.set_title("Final $s_G$ (traj)")
+        im2 = axM2.imshow(final_avg_map,  cmap="Blues", origin="upper", aspect="equal")
+        axM2.set_title(r"Final $s_{\overline{G}}$")
         for ax in (axM1, axM2):
             ax.set_xlabel("y"); ax.set_ylabel("x")
         fig.colorbar(im1, ax=axM1, fraction=0.046, pad=0.04)
         fig.colorbar(im2, ax=axM2, fraction=0.046, pad=0.04)
 
-        fig.suptitle(f"Entanglement contour (N={Nx}, samples={samples}, n_jobs={n_jobs}, backend={backend})")
+        # --- (4) Supertitle mentions maximally mixed initial state ---
+        fig.suptitle(
+            f"Entanglement contour (N={Nx}, samples={samples}, n_jobs={n_jobs}, backend={backend})\n"
+            r"Initial top layer: maximally mixed ($G_{tt}=0$)",
+            y=1.02
+        )
         fig.savefig(profiles_pdf, bbox_inches="tight", dpi=140)
         plt.close(fig)
 
@@ -1699,31 +1446,39 @@ class classA_U1FGTN:
         if filename_prefix_dyn is None:
             filename_prefix_dyn = f"entanglement_dyn_N{Nx}_S{samples}_J{n_jobs}_{backend}"
 
+        # Build per-frame maps from a single trajectory (e.g., s=0) and from s(\overline{G}(t))
+        traj_maps_for_gif = [self.entanglement_contour(results[0][t]) for t in range(T)]
+        # avg_maps already computed as s(\overline{G}(t))
+
         # Final heatmaps (PNG)
         dyn_final_png = os.path.join(outdir_dyn, f"{filename_prefix_dyn}_final.png")
         fig = plt.figure(constrained_layout=True, figsize=(10, 4))
         axs = fig.subplots(1, 2, squeeze=True)
-        im1 = axs[0].imshow(results[0][0][-1], cmap="Blues", origin="upper", aspect="equal")
-        axs[0].set_title("Final $s_{G_2}$ (traj)")
-        im2 = axs[1].imshow(avg_maps[-1], cmap="Blues", origin="upper", aspect="equal")
-        axs[1].set_title(r"Final $s_{\overline{G_2}}$")
+        imf1 = axs[0].imshow(final_traj_map, cmap="Blues", origin="upper", aspect="equal")
+        axs[0].set_title("Final $s_G$ (traj)")
+        imf2 = axs[1].imshow(final_avg_map,  cmap="Blues", origin="upper", aspect="equal")
+        axs[1].set_title(r"Final $s_{\overline{G}}$")
         for ax in axs:
             ax.set_xlabel("y"); ax.set_ylabel("x")
-        fig.colorbar(im1, ax=axs[0], fraction=0.046, pad=0.04)
-        fig.colorbar(im2, ax=axs[1], fraction=0.046, pad=0.04)
-        fig.savefig(dyn_final_png, dpi=150)
+        fig.colorbar(imf1, ax=axs[0], fraction=0.046, pad=0.04)
+        fig.colorbar(imf2, ax=axs[1], fraction=0.046, pad=0.04)
+        fig.suptitle(r"Dynamics final frames — initial top layer maximally mixed ($G_{tt}=0$)", y=1.02)
+        fig.savefig(dyn_final_png, dpi=150, bbox_inches="tight")
         plt.close(fig)
 
-        # GIF helper
+        # GIF helper (with colorbar)
         def _make_gif(maps, fname, title):
-            fig = plt.figure(constrained_layout=True, figsize=(5, 4))
+            fig = plt.figure(constrained_layout=True, figsize=(5.6, 4.6))
             ax = fig.add_subplot(111)
             vmax = np.max(maps)
             im = ax.imshow(maps[0], cmap="Blues", origin="upper", aspect="equal", vmin=0, vmax=vmax)
-            ax.set_title(title); ax.set_xlabel("y"); ax.set_ylabel("x")
+            cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)  # (1) add colorbar
+            ax.set_title(title)
+            ax.set_xlabel("y"); ax.set_ylabel("x")
 
             def update(i):
-                im.set_data(maps[i]); ax.set_title(f"{title}, cycle {i+1}")
+                im.set_data(maps[i])
+                ax.set_title(f"{title}, cycle {i+1}")
                 return [im]
 
             ani = animation.FuncAnimation(fig, update, frames=len(maps), interval=400, blit=True)
@@ -1732,8 +1487,8 @@ class classA_U1FGTN:
 
         dyn_gif_traj = f"{filename_prefix_dyn}_traj.gif"
         dyn_gif_avg  = f"{filename_prefix_dyn}_avg.gif"
-        _make_gif(results[0][0], dyn_gif_traj, r"traj $s_{G_2}}(r,t)$")
-        _make_gif(avg_maps,      dyn_gif_avg,  r"avg $s_{\overline{G_2}}(r,t)$")
+        _make_gif(traj_maps_for_gif, dyn_gif_traj, r"$s_G(r,t)$ (traj-resolved)")
+        _make_gif(avg_maps,          dyn_gif_avg,  r"$s_{\overline{G}}(r,t)$ (traj-averaged)")
         dyn_gif_traj = os.path.join(outdir_dyn, dyn_gif_traj)
         dyn_gif_avg  = os.path.join(outdir_dyn,  dyn_gif_avg)
 
@@ -1750,15 +1505,26 @@ class classA_U1FGTN:
                 x_positions=np.array(xs_only, dtype=int),
                 traj_profiles_mean=np.vstack([traj_profiles_mean[x] for x in xs_only]),  # (num_x, T)
                 avg_profiles=np.vstack([avg_profiles[x] for x in xs_only]),              # (num_x, T)
-                final_traj_map=results[0][0][-1],
-                final_avg_map=avg_maps[-1],
+                final_traj_map=final_traj_map,
+                final_avg_map=final_avg_map,
+                ev_traj=ev_traj,
+                ev_avg=ev_avg,
             )
+
+            # Build full traj maps tensor: (S, T, Nx, Ny) from s(G^{(s)}(t))
+            traj_maps_all = np.array(
+                [np.stack([self.entanglement_contour(results[s][t]) for t in range(T)], axis=0)
+                 for s in range(samples)],
+                dtype=np.float64
+            )  # shape: (S, T, Nx, Ny)
 
             data_dyn_npz = os.path.join(outdir_dyn, f"{filename_prefix_dyn}_data.npz")
             np.savez(
                 data_dyn_npz,
-                traj_maps=np.array([np.stack(maps, axis=0) for maps in (r[0] for r in results)], dtype=np.float64),
-                avg_maps=np.stack(avg_maps, axis=0),
+                traj_maps=traj_maps_all,                    # s(G^{(s)}(t))
+                avg_maps=np.stack(avg_maps, axis=0),        # s(\overline{G}(t))
+                ev_traj=ev_traj,
+                ev_avg=ev_avg,
             )
 
         return {
