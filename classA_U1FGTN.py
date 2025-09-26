@@ -21,7 +21,6 @@ class classA_U1FGTN:
                  init_kind="default",            # "default" or "maxmix_top"
                  backend="loky",                 # for generation, if needed
                  n_jobs=None,                    # for generation, if needed
-                 seed_tag=None,                  # optional cache tag
                  prompt_on_miss=True):           # prompt before generating if cache miss
     
         self.time_init = time.time()
@@ -64,7 +63,6 @@ class classA_U1FGTN:
             samples=self.samples,
             cycles=self.cycles,
             nshell=self.nshell,
-            seed_tag=seed_tag,
             init_kind=init_kind
         )
     
@@ -119,39 +117,35 @@ class classA_U1FGTN:
                 samples=self.samples,
                 cycles=self.cycles,
                 nshell=self.nshell,
-                seed_tag=seed_tag,
                 init_kind=init_kind
             )
     
         print("------------------------- classA_U1FGTN Initialized -------------------------")
 
-    # ------------ Centralized cache helpers (FULL G) ------------
+    # ------------ Centralized cache helpers (FULL + convenience TOP) ------------
+
     def _cache_dir_Ghist(self):
         return self._ensure_outdir("cache/G_history")
 
-    def _cache_key(self, samples=None, cycles=None, nshell=None, seed_tag=None, init_kind="default"):
+    def _cache_key(self, samples=None, cycles=None, nshell=None, init_kind="default"):
+        """
+        No seed info. Keep DW in the key so different physics don't collide.
+        """
         Nx, Ny = self.Nx, self.Ny
-        C  = int(self.cycles if cycles  is None else cycles)
+        C  = int(self.cycles  if cycles  is None else cycles)
         S  = int(self.samples if samples is None else samples)
-        if nshell is None:
-            nsh = "None"
-        else:
-            nsh = str(int(nshell))
-        if seed_tag is None:
-            seed = "any"
-        else:
-            seed = str(seed_tag)
-        kind = str(init_kind)  # "default" or "maxmix_top"
+        nsh = "None" if nshell is None else str(int(nshell))
+        kind = str(init_kind)  # "default" | "maxmix_top"
         DW_tag = f"DW{int(bool(self.DW))}"
-        return f"N{Nx}x{Ny}_C{C}_S{S}_nsh{nsh}_{DW_tag}_seed-{seed}_init-{kind}"
+        return f"N{Nx}x{Ny}_C{C}_S{S}_nsh{nsh}_{DW_tag}_init-{kind}"
 
     def _cache_path_Ghist(self, **kw):
         return os.path.join(self._cache_dir_Ghist(), self._cache_key(**kw) + ".npz")
 
     def load_G_history_samples(self, **kw):
         """
-        Try to load list[S][T] of FULL G (4N x 4N). If only an old top-only file exists,
-        load that and mark self._loaded_top_only=True.
+        Try to load list[S][T] of FULL G (4N x 4N).
+        If only a legacy top-only file exists, load that and mark self._loaded_top_only=True.
         Returns None if not found.
         """
         path = self._cache_path_Ghist(**kw)
@@ -163,28 +157,18 @@ class classA_U1FGTN:
         top_key  = "G_history_top_objs"
 
         if full_key in data.files:
-            arr = data[full_key]  # (S,T) object array, each (Ntot,Ntot)
+            arr = data[full_key]            # (S,T) object array, each (Ntot,Ntot)
             S, T = arr.shape
-            out = []
-            for s in range(S):
-                traj = []
-                for t in range(T):
-                    traj.append(arr[s, t])
-                out.append(traj)
+            out = [[arr[s, t] for t in range(T)] for s in range(S)]
             self.G_history_samples = out
             self._loaded_top_only = False
             return out
 
         if top_key in data.files:
             # Backward-compatibility: top-only histories exist
-            arr = data[top_key]  # (S,T) object array, (Nlayer,Nlayer)
+            arr = data[top_key]             # (S,T) object array, each (Nlayer,Nlayer)
             S, T = arr.shape
-            out = []
-            for s in range(S):
-                traj = []
-                for t in range(T):
-                    traj.append(arr[s, t])  # store as-is; callers must slice-aware
-                out.append(traj)
+            out = [[arr[s, t] for t in range(T)] for s in range(S)]
             self.G_history_samples = out
             self._loaded_top_only = True
             return out
@@ -194,14 +178,17 @@ class classA_U1FGTN:
     def save_G_history_samples(self, histories, **kw):
         """
         Save list[S][T] of FULL G (4N x 4N).
-        histories: list over samples; each sample is list over cycles of (Ntot,Ntot) arrays.
+        Also writes a convenience top-layer copy for fast/legacy reads.
         """
         S = len(histories)
         if S == 0:
             raise ValueError("save_G_history_samples: empty histories list.")
         T = len(histories[0])
-        obj = np.empty((S, T), dtype=object)
-        Ntot = self.Ntot
+        Ntot   = int(self.Ntot)
+        Nlayer = Ntot // 2
+
+        full_obj = np.empty((S, T), dtype=object)
+        top_obj  = np.empty((S, T), dtype=object)
 
         for s in range(S):
             if len(histories[s]) != T:
@@ -209,8 +196,9 @@ class classA_U1FGTN:
             for t in range(T):
                 G = np.asarray(histories[s][t], dtype=np.complex128)
                 if G.shape != (Ntot, Ntot):
-                    raise ValueError("save_G_history_samples expects FULL G of shape (4N,4N).")
-                obj[s, t] = G
+                    raise ValueError(f"save_G_history_samples expects FULL G of shape ({Ntot},{Ntot}).")
+                full_obj[s, t] = G
+                top_obj[s, t]  = G[:Nlayer, :Nlayer]
 
         path = self._cache_path_Ghist(**kw)
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -218,7 +206,7 @@ class classA_U1FGTN:
         meta = {
             "Nx": int(self.Nx),
             "Ny": int(self.Ny),
-            "Ntot": int(self.Ntot),
+            "Ntot": Ntot,
             "cycles": int(self.cycles),
             "samples": int(S),
             "nshell": ("None" if self.nshell is None else int(self.nshell)),
@@ -226,154 +214,105 @@ class classA_U1FGTN:
             "DW_loc": getattr(self, "DW_loc", None),
             "filling_frac": float(getattr(self, "filling_frac", 0.5)),
             "init_kind": str(kw.get("init_kind", "default")),
-            "seed_tag": ("any" if kw.get("seed_tag", None) is None else kw["seed_tag"]),
         }
 
         np.savez_compressed(
             path,
-            G_history_full_objs=obj,
+            G_history_full_objs=full_obj,
+            G_history_top_objs=top_obj,              # convenience/legacy
             meta_json=np.array([str(meta)], dtype=object)
         )
 
-        self.G_history_samples = [[obj[s, t] for t in range(T)] for s in range(S)]
+        # keep in-memory mirror (use FULL so downstream can slice as needed)
+        self.G_history_samples = [[full_obj[s, t] for t in range(T)] for s in range(S)]
         self._loaded_top_only = False
         return path
-
-    def ensure_G_history_samples(self, samples=None, cycles=None, n_jobs=None,
-                                backend="loky", seed_tag=None, init_kind="default"):
-        """
-        Load cache or, after prompt, generate, save, and return list[S][T] (FULL G).
-        'init_kind':
-        - 'default'     : use current self.G0
-        - 'maxmix_top'  : use self._reset_G0_for_entanglement_contour() per trajectory
-        """
-        S = int(self.samples if samples is None else samples)
-        C = int(self.cycles  if cycles  is None else cycles)
-
-        # Try cache
-        hit = self.load_G_history_samples(samples=S, cycles=C,
-                                        nshell=self.nshell, seed_tag=seed_tag,
-                                        init_kind=init_kind)
-        if hit is not None:
-            return hit
-
-        print("G_history_samples for current parameter set is unavailable, press any key to generate the data")
-        try:
-            _ = input()
-        except Exception:
-            pass
-
-        if n_jobs is None:
-            if S <= 1:
-                n_jobs = 1
-            else:
-                n_jobs = min(S, os.cpu_count() or 1)
-
-        # Need OW to generate
-        self.construct_OW_projectors(nshell=self.nshell, DW=self.DW)
-
-        ss = np.random.SeedSequence()
-        seeds = ss.generate_state(S, dtype=np.uint32).tolist()
-
-        def _make_G0():
-            if init_kind == "maxmix_top":
-                return self._reset_G0_for_entanglement_contour()
-            else:
-                return np.array(self.G0, copy=True)
-
-        def _worker(seed_u32):
-            seed = int(seed_u32) & 0xFFFFFFFF
-            np.random.seed(seed)
-            child = self._spawn_for_parallel()
-            child.G0 = _make_G0()
-            child.run_adaptive_circuit(
-                cycles=C, G_history=True, progress=False,
-                parallelize_samples=False, store="none", init_mode="default"
-            )
-            # child.G_list contains FULL G snapshots
-            return [g.copy() for g in child.G_list]
-
-        with self._joblib_tqdm_ctx(S, "samples"):
-            histories = Parallel(n_jobs=n_jobs, backend=backend)(
-                delayed(_worker)(s) for s in seeds
-            )
-
-        self.cycles = C
-        self.samples = S
-
-        self.save_G_history_samples(histories, samples=S, cycles=C,
-                                    nshell=self.nshell, seed_tag=seed_tag,
-                                    init_kind=init_kind)
-        return self.G_history_samples
     
-    
+    # ------------ History accessors (lean) ------------
+
     def _top_layer_from_full(self, Gfull):
+        """Slice the top layer from a full 4N×4N covariance."""
         Nlayer = self.Ntot // 2
         return np.asarray(Gfull, dtype=np.complex128)[:Nlayer, :Nlayer]
 
     def get_full_histories(self):
         """
-        Return list[S][T] where each entry is FULL G (4N x 4N).
-        Assumes __init__ already loaded/generated. Does not generate.
+        Return list[S][T] of FULL G (4N×4N), as loaded by load_G_history_samples().
+        Does not generate. Raises if nothing is loaded or if only a legacy top-only cache is present.
         """
         if self.G_history_samples is None:
-            raise RuntimeError("Histories not loaded. __init__ should have loaded or generated them.")
-        return self.G_history_samples
+            raise RuntimeError("Histories not loaded yet.")
+        if getattr(self, "_loaded_top_only", False):
+            raise RuntimeError("Only a legacy top-only cache is loaded; full histories are unavailable.")
+        # hand out copies to avoid accidental mutation of the in-memory cache
+        return [[np.array(Gfull, copy=True) for Gfull in traj] for traj in self.G_history_samples]
 
     def get_top_histories(self):
         """
-        Return list[S][T] of top-layer G_tt. Works both for full and legacy top-only caches.
+        Return list[S][T] of top-layer G_tt.
+        Works for both full caches (preferred) and legacy top-only files.
         """
         if self.G_history_samples is None:
-            raise RuntimeError("Histories not loaded. __init__ should have loaded or generated them.")
+            raise RuntimeError("Histories not loaded yet.")
 
         S = len(self.G_history_samples)
         if S == 0:
             return []
 
-        top_hist = []
-        if self._loaded_top_only:
-            for s in range(S):
-                traj = [np.asarray(Gt, dtype=np.complex128) for Gt in self.G_history_samples[s]]
-                top_hist.append(traj)
-            return top_hist
+        if getattr(self, "_loaded_top_only", False):
+            # Already top-only: coerce dtype and copy for safety
+            return [[np.array(Gt, dtype=np.complex128, copy=True) for Gt in traj]
+                    for traj in self.G_history_samples]
 
-        for s in range(S):
-            traj = []
-            for t in range(len(self.G_history_samples[s])):
-                traj.append(self._top_layer_from_full(self.G_history_samples[s][t]))
-            top_hist.append(traj)
-        return top_hist
+        # Full in memory -> slice top layer
+        out = []
+        for traj in self.G_history_samples:
+            out.append([self._top_layer_from_full(Gfull) for Gfull in traj])
+        return out
 
     def get_history_bundle(self):
         """
-        Convenience: returns dict with stacked arrays for TOP layer.
-        Builds from whatever is loaded in memory (full or top-only).
+        Convenience: stacks TOP-layer histories into arrays:
+        - "G_hist"     : (S, T, Nlayer, Nlayer)
+        - "G_hist_avg" : (T, Nlayer, Nlayer)
+        - "samples"    : S
+        - "T"          : T
         """
         top_histories = self.get_top_histories()
         S = len(top_histories)
         if S == 0:
-            return {"G_hist": np.empty((0, 0, 0, 0)), "G_hist_avg": np.empty((0, 0, 0))}
+            return {"G_hist": np.empty((0, 0, 0, 0)),
+                    "G_hist_avg": np.empty((0, 0, 0)),
+                    "samples": 0, "T": 0}
+
         T = len(top_histories[0])
         Nlayer = self.Ntot // 2
         G_hist = np.empty((S, T, Nlayer, Nlayer), dtype=np.complex128)
         for s in range(S):
             for t in range(T):
                 G_hist[s, t] = np.asarray(top_histories[s][t], dtype=np.complex128)
-        G_hist_avg = np.mean(G_hist, axis=0)
-        return {"G_hist": G_hist, "G_hist_avg": G_hist_avg, "samples": S, "T": T}
+        return {
+            "G_hist": G_hist,
+            "G_hist_avg": np.mean(G_hist, axis=0),
+            "samples": S,
+            "T": T,
+        }
 
     def current_final_G(self, sample_index=0, averaged=False):
         """
-        Returns TOP-layer final G by default consumers use.
+        Return final-step TOP-layer G.
+        - averaged=False: G_tt from sample_index
+        - averaged=True : average over samples of final G_tt
         """
-        top_histories = self.get_top_histories()
+        tops = self.get_top_histories()
+        if len(tops) == 0:
+            raise RuntimeError("No histories loaded.")
         if averaged:
-            arr = [np.asarray(top_histories[s][-1], dtype=np.complex128) for s in range(len(top_histories))]
+            arr = [np.asarray(tops[s][-1], dtype=np.complex128) for s in range(len(tops))]
             return np.mean(arr, axis=0)
-        s = int(np.clip(sample_index, 0, len(top_histories)-1))
-        return np.asarray(top_histories[s][-1], dtype=np.complex128)
-    
+        s = int(np.clip(sample_index, 0, len(tops) - 1))
+        return np.asarray(tops[s][-1], dtype=np.complex128)
+
     # ------------------------------ Utilities ------------------------------
     def _joblib_tqdm_ctx(self, total, desc):
         """
@@ -397,196 +336,6 @@ class classA_U1FGTN:
         os.makedirs(path, exist_ok=True)
         return path
     
-    # ------------ Centralized cache helpers ------------
-    def _cache_dir_Ghist(self):
-        return self._ensure_outdir("cache/G_history")
-
-    def _cache_key(self, samples=None, cycles=None, nshell=None, seed_tag=None, init_kind="default"):
-        Nx, Ny = self.Nx, self.Ny
-        C  = int(self.cycles if cycles  is None else cycles)
-        S  = int(self.samples if samples is None else samples)
-        nsh = "None" if nshell is None else str(int(nshell))
-        seed = "any" if seed_tag is None else str(seed_tag)
-        kind = str(init_kind)  # "default" or "maxmix_top"
-        return f"N{Nx}x{Ny}_C{C}_S{S}_nsh{nsh}_seed-{seed}_init-{kind}"
-
-    def _cache_path_Ghist(self, **kw):
-        return os.path.join(self._cache_dir_Ghist(), self._cache_key(**kw) + ".npz")
-
-    def load_G_history_samples(self, **kw):
-        """Return list[S][T] of top-layer G_{tt} if found; else None."""
-        path = self._cache_path_Ghist(**kw)
-        if os.path.isfile(path):
-            data = np.load(path, allow_pickle=True)
-            arr = data["G_history_top_objs"]  # (S,T) object array with (Nlayer,Nlayer) each
-            S, T = arr.shape
-            out = [[arr[s, t] for t in range(T)] for s in range(S)]
-            self.G_history_samples = out
-            return out
-        return None
-
-    def save_G_history_samples(self, histories, **kw):
-        """histories: list[S][T] of (Nlayer,Nlayer) complex arrays (top layer only)."""
-        S = len(histories)
-        T = len(histories[0]) if S > 0 else 0
-        obj = np.empty((S, T), dtype=object)
-        Nlayer = self.Ntot // 2
-        for s in range(S):
-            for t in range(T):
-                G = np.asarray(histories[s][t])
-                obj[s, t] = G[:Nlayer, :Nlayer] if G.shape[0] == self.Ntot else G
-        path = self._cache_path_Ghist(**kw)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        np.savez_compressed(
-            path,
-            G_history_top_objs=obj,
-            Nx=int(self.Nx), Ny=int(self.Ny),
-            cycles=int(self.cycles),
-            samples=int(S),
-            nshell=("None" if self.nshell is None else int(self.nshell)),
-            init_kind=str(kw.get("init_kind", "default")),
-            seed_tag=("any" if kw.get("seed_tag", None) is None else kw["seed_tag"]),
-        )
-        self.G_history_samples = [[obj[s, t] for t in range(T)] for s in range(S)]
-        return path
-
-    def ensure_G_history_samples(self, samples=None, cycles=None, n_jobs=None,
-                                 backend="loky", seed_tag=None, init_kind="default"):
-        """
-        Return list[S][T] histories for current params, loading cache or generating+saving.
-        init_kind:
-          - 'default'   : use current self.G0
-          - 'maxmix_top': use self._reset_G0_for_entanglement_contour() per trajectory
-        """
-        S = int(self.samples if samples is None else samples)
-        C = int(self.cycles  if cycles  is None else cycles)
-
-        # Try cache
-        hit = self.load_G_history_samples(samples=S, cycles=C,
-                                          nshell=self.nshell, seed_tag=seed_tag,
-                                          init_kind=init_kind)
-        if hit is not None:
-            return hit
-
-        # Not found -> prompt user and generate
-        print("G_history_samples for current parameter set is unavailable, press any key to generate the data")
-        try:
-            _ = input()
-        except Exception:
-            pass
-
-        if n_jobs is None:
-            n_jobs = min(S, os.cpu_count() or 1)
-
-        ss = np.random.SeedSequence()
-        seeds = ss.generate_state(S, dtype=np.uint32).tolist()
-
-        def _worker(seed_u32):
-            seed = int(seed_u32) & 0xFFFFFFFF
-            np.random.seed(seed)
-            child = self._spawn_for_parallel()
-            if init_kind == "maxmix_top":
-                child.G0 = self._reset_G0_for_entanglement_contour()
-            # single-trajectory run with history
-            child.run_adaptive_circuit(cycles=C, G_history=True, progress=False)
-            return [g.copy() for g in child.G_list]
-
-        with self._joblib_tqdm_ctx(S, "samples"):
-            histories = Parallel(n_jobs=n_jobs, backend=backend)(
-                delayed(_worker)(s) for s in seeds
-            )
-
-        # Keep class in sync
-        self.cycles = C
-        self.samples = S
-
-        self.save_G_history_samples(histories, samples=S, cycles=C,
-                                    nshell=self.nshell, seed_tag=seed_tag,
-                                    init_kind=init_kind)
-        return self.G_history_samples
-
-    def assert_hist_kind(self, expected_init_kind):
-        """
-        Ensure the cached histories for current (Nx,Ny,cycles,samples,nshell,seed) were
-        generated with the given `expected_init_kind` ("default" or "maxmix_top").
-
-        Raises a RuntimeError with a readable message if:
-        - no cache exists at all for these params, or
-        - a cache exists but for a different init_kind.
-        """
-        # where we expect it
-        expected_path = self._cache_path_Ghist(
-            samples=self.samples,
-            cycles=self.cycles,
-            nshell=self.nshell,
-            seed_tag=None,
-            init_kind=expected_init_kind,
-        )
-
-        if os.path.isfile(expected_path):
-            # quick header sniff for paranoia
-            try:
-                meta = np.load(expected_path, allow_pickle=True)
-                file_kind = str(meta.get("init_kind", expected_init_kind))
-                if file_kind != expected_init_kind:
-                    raise RuntimeError(
-                        f"Cache kind mismatch: expected init_kind='{expected_init_kind}', "
-                        f"but file says '{file_kind}'. Delete the file or regenerate."
-                    )
-            except Exception:
-                pass
-            return  # all good
-
-        # see if the *other* kind exists to give a helpful hint
-        other_kind = "maxmix_top" if expected_init_kind == "default" else "default"
-        other_path = self._cache_path_Ghist(
-            samples=self.samples,
-            cycles=self.cycles,
-            nshell=self.nshell,
-            seed_tag=None,
-            init_kind=other_kind,
-        )
-
-        if os.path.isfile(other_path):
-            raise RuntimeError(
-                f"No cached histories for init_kind='{expected_init_kind}' with these parameters.\n"
-                f"However, a cache exists for init_kind='{other_kind}'.\n"
-                f"Re-run generation with the desired kind (or re-instantiate accordingly)."
-            )
-
-        # nothing exists
-        raise RuntimeError(
-            "No cached histories found for these parameters. "
-            "Generate them first (e.g., at __init__ with preload, or via ensure_G_history_samples)."
-        )
-
-    def random_unitary(self, N, rng=None):
-        """
-        Generate a random unitary U = V exp(i diag(w)) V^† by diagonalizing a random
-        Hermitian matrix H. rng: numpy Generator (optional).
-        """
-        rng = np.random.default_rng() if rng is None else rng
-        M = rng.standard_normal((N, N)) + 1j * rng.standard_normal((N, N))
-        H = 0.5 * (M + M.conj().T)
-        w, V = np.linalg.eigh(H)
-        U = V @ np.diag(np.exp(1j * w)) @ V.conj().T
-        return U
-
-    def random_complex_fermion_covariance(self, N, filling_frac, rng=None):
-        """
-        Build G = U^† D U with D = diag(+1...+1, -1...-1) at the specified filling fraction.
-        """
-        assert N % 2 == 0, "Total dimension N must be even."
-        rng = np.random.default_rng() if rng is None else rng
-
-        Nfill = int(round(filling_frac * N))
-        Nfill = max(0, min(N, Nfill))
-        diag = np.concatenate([np.ones(Nfill), -np.ones(N - Nfill)])
-        D = np.diag(diag).astype(np.complex128)
-
-        U = self.random_unitary(N, rng=rng)
-        return U.conj().T @ D @ U
-
     def _solve_regularized(self, K, B, eps=1e-9):
         """
         Solve K X = B with a small Tikhonov ridge if needed; fall back to pinv.
@@ -611,6 +360,226 @@ class classA_U1FGTN:
         Z2 = np.zeros((m, n), dtype=B.dtype)
         return np.block([[A, Z1],
                          [Z2, B]])
+    
+
+    # ------------ Centralized cache helpers (FULL/TOP) ------------
+    def _cache_dir_Ghist(self):
+        return self._ensure_outdir("cache/G_history")
+
+    def _cache_key(self, *, samples=None, cycles=None, nshell=None, init_kind="default"):
+        Nx, Ny = self.Nx, self.Ny
+        C  = int(self.cycles if cycles  is None else cycles)
+        S  = int(self.samples if samples is None else samples)
+        nsh = "None" if nshell is None else str(int(nshell))
+        kind = str(init_kind)  # "default" or "maxmix_top"
+        DW_tag = f"DW{int(bool(self.DW))}"
+        return f"N{Nx}x{Ny}_C{C}_S{S}_nsh{nsh}_{DW_tag}_init-{kind}"
+
+    def _cache_path_Ghist(self, **kw):
+        return os.path.join(self._cache_dir_Ghist(), self._cache_key(**kw) + ".npz")
+
+    def load_G_history_samples(self, *, samples=None, cycles=None, nshell=None, init_kind="default"):
+        """
+        Try to load list[S][T] of histories.
+        Supports either:
+        - G_history_full_objs: (S,T) object array of (Ntot,Ntot) full G
+        - G_history_top_objs : (S,T) object array of (Nlayer,Nlayer) top-layer G_tt
+        Returns None if not found.
+        """
+        path = self._cache_path_Ghist(samples=samples, cycles=cycles, nshell=nshell, init_kind=init_kind)
+        if not os.path.isfile(path):
+            return None
+
+        data = np.load(path, allow_pickle=True)
+        if "G_history_full_objs" in data.files:
+            arr = data["G_history_full_objs"]  # (S,T) object -> (Ntot,Ntot)
+            S, T = arr.shape
+            out = [[arr[s, t] for t in range(T)] for s in range(S)]
+            self.G_history_samples = out
+            self._loaded_top_only = False
+            return out
+
+        if "G_history_top_objs" in data.files:
+            # legacy top-only cache
+            arr = data["G_history_top_objs"]  # (S,T) object -> (Nlayer,Nlayer)
+            S, T = arr.shape
+            out = [[arr[s, t] for t in range(T)] for s in range(S)]
+            self.G_history_samples = out
+            self._loaded_top_only = True
+            return out
+
+        return None
+
+    def save_G_history_samples(self, histories, *, samples=None, cycles=None, nshell=None, init_kind="default"):
+        """
+        Save histories to a single .npz, storing both FULL and TOP for convenience.
+        'histories' is list[S][T] of (Ntot,Ntot) arrays (FULL G).
+        """
+        S = len(histories)
+        if S == 0:
+            raise ValueError("save_G_history_samples: empty histories list.")
+        T = len(histories[0])
+        Ntot = self.Ntot
+        Nlayer = Ntot // 2
+
+        full_obj = np.empty((S, T), dtype=object)
+        top_obj  = np.empty((S, T), dtype=object)
+
+        for s in range(S):
+            if len(histories[s]) != T:
+                raise ValueError("save_G_history_samples: all trajectories must have the same length T.")
+            for t in range(T):
+                G = np.asarray(histories[s][t], dtype=np.complex128)
+                if G.shape != (Ntot, Ntot):
+                    raise ValueError(f"Expected FULL G of shape {(Ntot, Ntot)}, got {G.shape}.")
+                full_obj[s, t] = G
+                top_obj[s, t]  = G[:Nlayer, :Nlayer]
+
+        path = self._cache_path_Ghist(samples=samples, cycles=cycles, nshell=nshell, init_kind=init_kind)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+
+        # light metadata (no seed)
+        meta = {
+            "Nx": int(self.Nx),
+            "Ny": int(self.Ny),
+            "Ntot": int(self.Ntot),
+            "cycles": int(self.cycles if cycles is None else cycles),
+            "samples": int(S),
+            "nshell": ("None" if nshell is None else int(nshell)),
+            "DW": bool(self.DW),
+            "DW_loc": getattr(self, "DW_loc", None),
+            "filling_frac": float(getattr(self, "filling_frac", 0.5)),
+            "init_kind": str(init_kind),
+        }
+
+        np.savez_compressed(
+            path,
+            G_history_full_objs=full_obj,
+            G_history_top_objs=top_obj,
+            meta_json=np.array([str(meta)], dtype=object),
+        )
+
+        self.G_history_samples = [[full_obj[s, t] for t in range(T)] for s in range(S)]
+        self._loaded_top_only = False
+        return path
+
+    def ensure_G_history_samples(self, *, samples=None, cycles=None, n_jobs=None, backend="loky", init_kind="default"):
+        """
+        Load cache or, if absent, generate histories (FULL G), save, and return list[S][T].
+        """
+        S = int(self.samples if samples is None else samples)
+        C = int(self.cycles  if cycles  is None else cycles)
+
+        hit = self.load_G_history_samples(samples=S, cycles=C, nshell=self.nshell, init_kind=init_kind)
+        if hit is not None:
+            return hit
+
+        print("Cached histories not found. Press ENTER to generate (Ctrl-C to abort).")
+        try:
+            _ = input()
+        except Exception:
+            pass
+
+        if n_jobs is None:
+            n_jobs = 1 if S <= 1 else min(S, os.cpu_count() or 1)
+
+        # Need OW to generate
+        self.construct_OW_projectors(nshell=self.nshell, DW=self.DW)
+
+        ss = np.random.SeedSequence()
+        seeds = ss.generate_state(S, dtype=np.uint32).tolist()
+
+        def _make_G0():
+            return self._reset_G0_for_entanglement_contour() if init_kind == "maxmix_top" else np.array(self.G0, copy=True)
+
+        def _worker(seed_u32):
+            np.random.seed(int(seed_u32) & 0xFFFFFFFF)
+            child = self._spawn_for_parallel()
+            child.G0 = _make_G0()
+            child.run_adaptive_circuit(
+                cycles=C, G_history=True, progress=False,
+                parallelize_samples=False, store="none", init_mode="default"
+            )
+            return [g.copy() for g in child.G_list]  # FULL G per cycle
+
+        with self._joblib_tqdm_ctx(S, "samples"):
+            histories = Parallel(n_jobs=n_jobs, backend=backend)(
+                delayed(_worker)(s) for s in seeds
+            )
+
+        # sync state
+        self.cycles = C
+        self.samples = S
+
+        self.save_G_history_samples(histories, samples=S, cycles=C, nshell=self.nshell, init_kind=init_kind)
+        return self.G_history_samples
+
+    def assert_hist_kind(self, expected_init_kind):
+        """
+        Assert that the on-disk cache for current params was generated with `expected_init_kind`.
+        """
+        path = self._cache_path_Ghist(
+            samples=self.samples,
+            cycles=self.cycles,
+            nshell=self.nshell,
+            init_kind=expected_init_kind,
+        )
+        if os.path.isfile(path):
+            # Optional sniff: confirm stored init_kind
+            try:
+                meta = np.load(path, allow_pickle=True)
+                file_kind = str(meta.get("init_kind", expected_init_kind))
+                if file_kind != expected_init_kind:
+                    raise RuntimeError(
+                        f"Cache kind mismatch: expected init_kind='{expected_init_kind}', "
+                        f"but file says '{file_kind}'. Delete/regenerate."
+                    )
+            except Exception:
+                pass
+            return
+
+        other = "maxmix_top" if expected_init_kind == "default" else "default"
+        alt_path = self._cache_path_Ghist(
+            samples=self.samples, cycles=self.cycles, nshell=self.nshell, init_kind=other
+        )
+        if os.path.isfile(alt_path):
+            raise RuntimeError(
+                f"No cache for init_kind='{expected_init_kind}' but found one for '{other}'. "
+                "Regenerate with the desired kind."
+            )
+        raise RuntimeError("No cached histories found for these parameters.")
+    
+    def get_history_bundle(self):
+        """
+        Build a lightweight bundle from the cache for convenience:
+          {
+            "G_hist": np.array shape (S,T,Nlayer,Nlayer),
+            "G_hist_avg": np.array shape (T,Nlayer,Nlayer),
+            "samples": S,
+            "T": T
+          }
+        """
+        histories = self.ensure_G_history_samples(samples=self.samples, cycles=self.cycles)
+        S, T = len(histories), len(histories[0])
+        Nlayer = self.Ntot // 2
+        G_hist = np.empty((S, T, Nlayer, Nlayer), dtype=np.complex128)
+        for s in range(S):
+            for t in range(T):
+                Gt = np.asarray(histories[s][t])
+                G_hist[s, t] = Gt[:Nlayer, :Nlayer] if Gt.shape[0] == self.Ntot else Gt
+        G_hist_avg = np.mean(G_hist, axis=0)
+        return {"G_hist": G_hist, "G_hist_avg": G_hist_avg, "samples": S, "T": T}
+
+    def current_final_G(self, sample_index=0, averaged=False):
+        histories = self.ensure_G_history_samples(samples=self.samples, cycles=self.cycles)
+        Nlayer = self.Ntot // 2
+        if averaged:
+            Gbar_T = np.mean([np.asarray(histories[s][-1])[:Nlayer, :Nlayer] for s in range(len(histories))], axis=0)
+            return Gbar_T
+        s = int(np.clip(sample_index, 0, len(histories)-1))
+        Gt = np.asarray(histories[s][-1])
+        return Gt[:Nlayer, :Nlayer] if Gt.shape[0] == self.Ntot else Gt
+
 
     # ------------------ Overcomplete Wannier (OW) projectors ------------------
 
@@ -721,6 +690,35 @@ class classA_U1FGTN:
         # make writable (avoid read-only view issues under loky/shared arrays)
         chi = np.array(chi, copy=True)
         return np.outer(chi, chi.conj())
+    
+    #============================== Circuit Operations ====================================
+    
+    def random_unitary(self, N, rng=None):
+        """
+        Generate a random unitary U = V exp(i diag(w)) V^† by diagonalizing a random
+        Hermitian matrix H. rng: numpy Generator (optional).
+        """
+        rng = np.random.default_rng() if rng is None else rng
+        M = rng.standard_normal((N, N)) + 1j * rng.standard_normal((N, N))
+        H = 0.5 * (M + M.conj().T)
+        w, V = np.linalg.eigh(H)
+        U = V @ np.diag(np.exp(1j * w)) @ V.conj().T
+        return U
+
+    def random_complex_fermion_covariance(self, N, filling_frac, rng=None):
+        """
+        Build G = U^† D U with D = diag(+1...+1, -1...-1) at the specified filling fraction.
+        """
+        assert N % 2 == 0, "Total dimension N must be even."
+        rng = np.random.default_rng() if rng is None else rng
+
+        Nfill = int(round(filling_frac * N))
+        Nfill = max(0, min(N, Nfill))
+        diag = np.concatenate([np.ones(Nfill), -np.ones(N - Nfill)])
+        D = np.diag(diag).astype(np.complex128)
+
+        U = self.random_unitary(N, rng=rng)
+        return U.conj().T @ D @ U
 
     # --------------------------- Measurement updates ---------------------------
 
@@ -1101,37 +1099,6 @@ class classA_U1FGTN:
         G_hist_avg = np.mean(G_hist, axis=0)
         return {"G_hist": G_hist, "G_hist_avg": G_hist_avg, "samples": S, "T": G_hist.shape[1]}
     
-
-    def get_history_bundle(self):
-        """
-        Build a lightweight bundle from the cache for convenience:
-          {
-            "G_hist": np.array shape (S,T,Nlayer,Nlayer),
-            "G_hist_avg": np.array shape (T,Nlayer,Nlayer),
-            "samples": S,
-            "T": T
-          }
-        """
-        histories = self.ensure_G_history_samples(samples=self.samples, cycles=self.cycles)
-        S, T = len(histories), len(histories[0])
-        Nlayer = self.Ntot // 2
-        G_hist = np.empty((S, T, Nlayer, Nlayer), dtype=np.complex128)
-        for s in range(S):
-            for t in range(T):
-                Gt = np.asarray(histories[s][t])
-                G_hist[s, t] = Gt[:Nlayer, :Nlayer] if Gt.shape[0] == self.Ntot else Gt
-        G_hist_avg = np.mean(G_hist, axis=0)
-        return {"G_hist": G_hist, "G_hist_avg": G_hist_avg, "samples": S, "T": T}
-
-    def current_final_G(self, sample_index=0, averaged=False):
-        histories = self.ensure_G_history_samples(samples=self.samples, cycles=self.cycles)
-        Nlayer = self.Ntot // 2
-        if averaged:
-            Gbar_T = np.mean([np.asarray(histories[s][-1])[:Nlayer, :Nlayer] for s in range(len(histories))], axis=0)
-            return Gbar_T
-        s = int(np.clip(sample_index, 0, len(histories)-1))
-        Gt = np.asarray(histories[s][-1])
-        return Gt[:Nlayer, :Nlayer] if Gt.shape[0] == self.Ntot else Gt
     
     # ---------------------------- Chern observables ----------------------------
 
@@ -1242,7 +1209,7 @@ class classA_U1FGTN:
             C = np.where(inside_mask, C, 0.0)
         return C
 
-    # ------------------------- Visualization helpers -------------------------
+    # ------------------------- Plotting Methods -------------------------
 
     def plot_real_space_chern_history(self, filename=None, traj_avg=False, samples=None, n_jobs=None, backend="loky"):
         """
