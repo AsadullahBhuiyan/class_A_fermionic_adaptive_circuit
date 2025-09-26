@@ -22,8 +22,8 @@ def format_interval(seconds: float) -> str:
 # ----------------------------
 # Config
 # ----------------------------
-Nx, Ny   = 16, 16
-cycles   = 10
+Nx, Ny   = 21, 21
+cycles   = 20
 samples  = 10
 nshell   = 5
 DW       = True
@@ -35,7 +35,6 @@ t0 = time.time()
 # Build model
 # ----------------------------
 m = classA_U1FGTN(Nx, Ny, cycles=cycles, samples=samples, DW=DW, nshell=nshell)
-
 # ----------------------------
 # Unified entanglement contour suite
 # ----------------------------
