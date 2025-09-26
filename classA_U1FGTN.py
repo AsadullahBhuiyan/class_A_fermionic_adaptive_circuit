@@ -18,23 +18,31 @@ class classA_U1FGTN:
 
     def __init__(self, Nx, Ny, DW=True, cycles=None, samples=None, nshell=None,
                  filling_frac=1/2, G0=None, *,
-                 history_backend="loky", history_store="top"):
+                 init_kind="default",            # "default" or "maxmix_top"
+                 backend="loky",                 # for generation, if needed
+                 n_jobs=None,                    # for generation, if needed
+                 seed_tag=None,                  # optional cache tag
+                 prompt_on_miss=True):           # prompt before generating if cache miss
+    
         self.time_init = time.time()
         self.Nx, self.Ny = int(Nx), int(Ny)
         self.DW = bool(DW)
         self.Ntot = 4 * self.Nx * self.Ny
         self.nshell = nshell
-
+    
         self.cycles  = 5 if cycles  is None else int(cycles)
         self.samples = 5 if samples is None else int(samples)
         self.filling_frac = filling_frac
-
-        # ---------------- initial G0 (same as before) ----------------
+    
+        # ---------------- initial G0 ----------------
         if G0 is None:
             Ntot   = self.Ntot
             Nlayer = Ntot // 2
             Nfill = int(round(filling_frac * Ntot))
-            Nfill = max(0, min(Ntot, Nfill))
+            if Nfill < 0:
+                Nfill = 0
+            if Nfill > Ntot:
+                Nfill = Ntot
             diag = np.concatenate([np.ones(Nfill, dtype=np.complex128),
                                    -np.ones(Ntot - Nfill, dtype=np.complex128)])
             rng = np.random.default_rng()
@@ -46,104 +54,326 @@ class classA_U1FGTN:
             self.G0 = U_tot.conj().T @ D @ U_tot
         else:
             self.G0 = np.asarray(G0, dtype=np.complex128)
-
-        # Build OW data
-        self.construct_OW_projectors(nshell=nshell, DW=self.DW)
-
-        # ---------------- unified: load-or-generate G histories ----------------
-        # This fills: self.G_history_samples = {
-        #   "G_hist": (S,T,dim,dim),
-        #   "G_hist_avg": (T,dim,dim),
-        #   "path": "...npz",
-        #   "meta": {...}
-        # }
-        self._load_or_generate_G_histories(
+    
+        # Histories container (filled by load or generate)
+        self.G_history_samples = None
+        self._loaded_top_only = False  # set True if we loaded an old top-only cache
+    
+        # -------- try to load existing data for current parameters --------
+        hit = self.load_G_history_samples(
             samples=self.samples,
             cycles=self.cycles,
-            backend=history_backend,
-            store=history_store,      # "top" recommended
-            init_mode="default"       # uses current self.G0; set "entanglement" to use maximally-mixed top
+            nshell=self.nshell,
+            seed_tag=seed_tag,
+            init_kind=init_kind
         )
-
+    
+        if hit is None:
+            if prompt_on_miss:
+                print("Cached histories not found for current parameters. Press ENTER to generate, or Ctrl-C to abort.")
+                try:
+                    _ = input()
+                except Exception:
+                    pass
+                
+            # Need OW only if we are going to generate
+            self.construct_OW_projectors(nshell=self.nshell, DW=self.DW)
+    
+            # Generate with full G saved
+            if n_jobs is None:
+                if self.samples <= 1:
+                    n_jobs = 1
+                else:
+                    n_jobs = min(self.samples, os.cpu_count() or 1)
+    
+            # Map init_kind -> run() init_mode
+            if init_kind == "default":
+                init_mode = "default"
+            else:
+                init_mode = "maxmix_top"  # maximally mixed top layer
+    
+            result = self.run_adaptive_circuit(
+                G_history=True,
+                cycles=self.cycles,
+                samples=self.samples,
+                n_jobs=n_jobs,
+                backend=backend,
+                parallelize_samples=True,
+                store="full",         # save full G histories
+                init_mode=init_mode,
+                progress=True
+            )
+            # Convert returned packed history (S,T,dim,dim) to list[S][T] full G
+            S = int(result["G_hist"].shape[0])
+            T = int(result["G_hist"].shape[1])
+            full_hist_list = []
+            for s in range(S):
+                traj = []
+                for t in range(T):
+                    traj.append(np.array(result["G_hist"][s, t], copy=True))
+                full_hist_list.append(traj)
+    
+            # Save to cache (full)
+            self.save_G_history_samples(
+                full_hist_list,
+                samples=self.samples,
+                cycles=self.cycles,
+                nshell=self.nshell,
+                seed_tag=seed_tag,
+                init_kind=init_kind
+            )
+    
         print("------------------------- classA_U1FGTN Initialized -------------------------")
 
-        # ==================== NEW: filename helpers for histories ====================
+    # ------------ Centralized cache helpers (FULL G) ------------
+    def _cache_dir_Ghist(self):
+        return self._ensure_outdir("cache/G_history")
 
-    def _hist_outdir(self):
-        return self._ensure_outdir("figs/G_histories")
-
-    def _hist_basename(self, *, samples, cycles, backend, store, init_mode):
+    def _cache_key(self, samples=None, cycles=None, nshell=None, seed_tag=None, init_kind="default"):
         Nx, Ny = self.Nx, self.Ny
-        nshell = getattr(self, "nshell", None)
-        ns_tag = "None" if nshell is None else str(int(nshell))
-        DW_tag = f"DW{int(bool(getattr(self, 'DW', False)))}"
-        init_tag = {"default": "def", "entanglement": "ent"}.get(str(init_mode), "custom")
-        dim_tag  = ("top" if store == "top" else "full")
-        return (f"Ghist_{dim_tag}_N{Nx}x{Ny}_cycles{int(cycles)}_S{int(samples)}_"
-                f"J{min(samples, os.cpu_count() or 1)}_{backend}_{init_tag}_nshell{ns_tag}_{DW_tag}")
+        C  = int(self.cycles if cycles  is None else cycles)
+        S  = int(self.samples if samples is None else samples)
+        if nshell is None:
+            nsh = "None"
+        else:
+            nsh = str(int(nshell))
+        if seed_tag is None:
+            seed = "any"
+        else:
+            seed = str(seed_tag)
+        kind = str(init_kind)  # "default" or "maxmix_top"
+        DW_tag = f"DW{int(bool(self.DW))}"
+        return f"N{Nx}x{Ny}_C{C}_S{S}_nsh{nsh}_{DW_tag}_seed-{seed}_init-{kind}"
 
-    def _hist_path(self, **kw):
-        return os.path.join(self._hist_outdir(), self._hist_basename(**kw) + ".npz")
-    # =========== NEW: unified load-or-generate histories (called by __init__) ===========
+    def _cache_path_Ghist(self, **kw):
+        return os.path.join(self._cache_dir_Ghist(), self._cache_key(**kw) + ".npz")
 
-    def _load_or_generate_G_histories(self, *, samples, cycles, backend="loky", store="top",
-                                      init_mode="default", postselect=False, progress=True):
+    def load_G_history_samples(self, **kw):
         """
-        Populate self.G_history_samples by loading a cached NPZ if present,
-        otherwise generating it via run_adaptive_circuit(samples=..., G_history=True).
-
-        store: "top" -> save/load top-layer block only (recommended),
-               "full" -> full (4N x 4N) per cycle (large).
-        init_mode: "default" uses self.G0; "entanglement" uses maximally mixed top (see _reset_G0_for_entanglement_contour()).
+        Try to load list[S][T] of FULL G (4N x 4N). If only an old top-only file exists,
+        load that and mark self._loaded_top_only=True.
+        Returns None if not found.
         """
-        # try load
-        path = self._hist_path(samples=samples, cycles=cycles, backend=backend,
-                               store=store, init_mode=init_mode)
-        bundle = None
-        if os.path.isfile(path):
-            try:
-                with np.load(path, allow_pickle=True) as z:
-                    G_hist     = z["G_hist"]
-                    G_hist_avg = z["G_hist_avg"]
-                    meta_json  = z.get("meta_json", np.array(["{}"], dtype=object))[0]
-                    meta = eval(meta_json) if isinstance(meta_json, str) else {}
-                bundle = {"G_hist": G_hist, "G_hist_avg": G_hist_avg, "path": path, "meta": meta}
-            except Exception as e:
-                print(f"[load_or_generate] Failed to load cached histories: {e}. Recomputing...")
+        path = self._cache_path_Ghist(**kw)
+        if not os.path.isfile(path):
+            return None
 
-        if bundle is None:
-            # generate
-            res = self.run_adaptive_circuit(
-                samples=samples,
-                n_jobs=min(samples, os.cpu_count() or 1),
-                backend=backend,
-                G_history=True,
-                cycles=cycles,
-                postselect=postselect,
-                parallelize_samples=True,
-                store=store,
-                init_mode=init_mode,
-                progress=progress
+        data = np.load(path, allow_pickle=True)
+        full_key = "G_history_full_objs"
+        top_key  = "G_history_top_objs"
+
+        if full_key in data.files:
+            arr = data[full_key]  # (S,T) object array, each (Ntot,Ntot)
+            S, T = arr.shape
+            out = []
+            for s in range(S):
+                traj = []
+                for t in range(T):
+                    traj.append(arr[s, t])
+                out.append(traj)
+            self.G_history_samples = out
+            self._loaded_top_only = False
+            return out
+
+        if top_key in data.files:
+            # Backward-compatibility: top-only histories exist
+            arr = data[top_key]  # (S,T) object array, (Nlayer,Nlayer)
+            S, T = arr.shape
+            out = []
+            for s in range(S):
+                traj = []
+                for t in range(T):
+                    traj.append(arr[s, t])  # store as-is; callers must slice-aware
+                out.append(traj)
+            self.G_history_samples = out
+            self._loaded_top_only = True
+            return out
+
+        return None
+
+    def save_G_history_samples(self, histories, **kw):
+        """
+        Save list[S][T] of FULL G (4N x 4N).
+        histories: list over samples; each sample is list over cycles of (Ntot,Ntot) arrays.
+        """
+        S = len(histories)
+        if S == 0:
+            raise ValueError("save_G_history_samples: empty histories list.")
+        T = len(histories[0])
+        obj = np.empty((S, T), dtype=object)
+        Ntot = self.Ntot
+
+        for s in range(S):
+            if len(histories[s]) != T:
+                raise ValueError("save_G_history_samples: all trajectories must have the same T.")
+            for t in range(T):
+                G = np.asarray(histories[s][t], dtype=np.complex128)
+                if G.shape != (Ntot, Ntot):
+                    raise ValueError("save_G_history_samples expects FULL G of shape (4N,4N).")
+                obj[s, t] = G
+
+        path = self._cache_path_Ghist(**kw)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+
+        meta = {
+            "Nx": int(self.Nx),
+            "Ny": int(self.Ny),
+            "Ntot": int(self.Ntot),
+            "cycles": int(self.cycles),
+            "samples": int(S),
+            "nshell": ("None" if self.nshell is None else int(self.nshell)),
+            "DW": bool(self.DW),
+            "DW_loc": getattr(self, "DW_loc", None),
+            "filling_frac": float(getattr(self, "filling_frac", 0.5)),
+            "init_kind": str(kw.get("init_kind", "default")),
+            "seed_tag": ("any" if kw.get("seed_tag", None) is None else kw["seed_tag"]),
+        }
+
+        np.savez_compressed(
+            path,
+            G_history_full_objs=obj,
+            meta_json=np.array([str(meta)], dtype=object)
+        )
+
+        self.G_history_samples = [[obj[s, t] for t in range(T)] for s in range(S)]
+        self._loaded_top_only = False
+        return path
+
+    def ensure_G_history_samples(self, samples=None, cycles=None, n_jobs=None,
+                                backend="loky", seed_tag=None, init_kind="default"):
+        """
+        Load cache or, after prompt, generate, save, and return list[S][T] (FULL G).
+        'init_kind':
+        - 'default'     : use current self.G0
+        - 'maxmix_top'  : use self._reset_G0_for_entanglement_contour() per trajectory
+        """
+        S = int(self.samples if samples is None else samples)
+        C = int(self.cycles  if cycles  is None else cycles)
+
+        # Try cache
+        hit = self.load_G_history_samples(samples=S, cycles=C,
+                                        nshell=self.nshell, seed_tag=seed_tag,
+                                        init_kind=init_kind)
+        if hit is not None:
+            return hit
+
+        print("G_history_samples for current parameter set is unavailable, press any key to generate the data")
+        try:
+            _ = input()
+        except Exception:
+            pass
+
+        if n_jobs is None:
+            if S <= 1:
+                n_jobs = 1
+            else:
+                n_jobs = min(S, os.cpu_count() or 1)
+
+        # Need OW to generate
+        self.construct_OW_projectors(nshell=self.nshell, DW=self.DW)
+
+        ss = np.random.SeedSequence()
+        seeds = ss.generate_state(S, dtype=np.uint32).tolist()
+
+        def _make_G0():
+            if init_kind == "maxmix_top":
+                return self._reset_G0_for_entanglement_contour()
+            else:
+                return np.array(self.G0, copy=True)
+
+        def _worker(seed_u32):
+            seed = int(seed_u32) & 0xFFFFFFFF
+            np.random.seed(seed)
+            child = self._spawn_for_parallel()
+            child.G0 = _make_G0()
+            child.run_adaptive_circuit(
+                cycles=C, G_history=True, progress=False,
+                parallelize_samples=False, store="none", init_mode="default"
             )
-            # save compressed
-            meta = {
-                "Nx": self.Nx, "Ny": self.Ny, "Ntot": self.Ntot,
-                "cycles": cycles, "samples": samples, "backend": backend, "store": store,
-                "init_mode": init_mode, "nshell": getattr(self, "nshell", None),
-                "DW": bool(getattr(self, "DW", False)), "DW_loc": getattr(self, "DW_loc", None),
-                "filling_frac": float(getattr(self, "filling_frac", 0.5)),
-            }
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            np.savez_compressed(
-                path, G_hist=res["G_hist"], G_hist_avg=res["G_hist_avg"],
-                meta_json=np.array([str(meta)], dtype=object)
+            # child.G_list contains FULL G snapshots
+            return [g.copy() for g in child.G_list]
+
+        with self._joblib_tqdm_ctx(S, "samples"):
+            histories = Parallel(n_jobs=n_jobs, backend=backend)(
+                delayed(_worker)(s) for s in seeds
             )
-            bundle = {"G_hist": res["G_hist"], "G_hist_avg": res["G_hist_avg"], "path": path, "meta": meta}
 
-        # publish on the instance
-        self.G_history_samples = bundle
-        return bundle
+        self.cycles = C
+        self.samples = S
 
+        self.save_G_history_samples(histories, samples=S, cycles=C,
+                                    nshell=self.nshell, seed_tag=seed_tag,
+                                    init_kind=init_kind)
+        return self.G_history_samples
+    
+    
+    def _top_layer_from_full(self, Gfull):
+        Nlayer = self.Ntot // 2
+        return np.asarray(Gfull, dtype=np.complex128)[:Nlayer, :Nlayer]
+
+    def get_full_histories(self):
+        """
+        Return list[S][T] where each entry is FULL G (4N x 4N).
+        Assumes __init__ already loaded/generated. Does not generate.
+        """
+        if self.G_history_samples is None:
+            raise RuntimeError("Histories not loaded. __init__ should have loaded or generated them.")
+        return self.G_history_samples
+
+    def get_top_histories(self):
+        """
+        Return list[S][T] of top-layer G_tt. Works both for full and legacy top-only caches.
+        """
+        if self.G_history_samples is None:
+            raise RuntimeError("Histories not loaded. __init__ should have loaded or generated them.")
+
+        S = len(self.G_history_samples)
+        if S == 0:
+            return []
+
+        top_hist = []
+        if self._loaded_top_only:
+            for s in range(S):
+                traj = [np.asarray(Gt, dtype=np.complex128) for Gt in self.G_history_samples[s]]
+                top_hist.append(traj)
+            return top_hist
+
+        for s in range(S):
+            traj = []
+            for t in range(len(self.G_history_samples[s])):
+                traj.append(self._top_layer_from_full(self.G_history_samples[s][t]))
+            top_hist.append(traj)
+        return top_hist
+
+    def get_history_bundle(self):
+        """
+        Convenience: returns dict with stacked arrays for TOP layer.
+        Builds from whatever is loaded in memory (full or top-only).
+        """
+        top_histories = self.get_top_histories()
+        S = len(top_histories)
+        if S == 0:
+            return {"G_hist": np.empty((0, 0, 0, 0)), "G_hist_avg": np.empty((0, 0, 0))}
+        T = len(top_histories[0])
+        Nlayer = self.Ntot // 2
+        G_hist = np.empty((S, T, Nlayer, Nlayer), dtype=np.complex128)
+        for s in range(S):
+            for t in range(T):
+                G_hist[s, t] = np.asarray(top_histories[s][t], dtype=np.complex128)
+        G_hist_avg = np.mean(G_hist, axis=0)
+        return {"G_hist": G_hist, "G_hist_avg": G_hist_avg, "samples": S, "T": T}
+
+    def current_final_G(self, sample_index=0, averaged=False):
+        """
+        Returns TOP-layer final G by default consumers use.
+        """
+        top_histories = self.get_top_histories()
+        if averaged:
+            arr = [np.asarray(top_histories[s][-1], dtype=np.complex128) for s in range(len(top_histories))]
+            return np.mean(arr, axis=0)
+        s = int(np.clip(sample_index, 0, len(top_histories)-1))
+        return np.asarray(top_histories[s][-1], dtype=np.complex128)
+    
     # ------------------------------ Utilities ------------------------------
     def _joblib_tqdm_ctx(self, total, desc):
         """
@@ -166,6 +396,169 @@ class classA_U1FGTN:
     def _ensure_outdir(self, path):
         os.makedirs(path, exist_ok=True)
         return path
+    
+    # ------------ Centralized cache helpers ------------
+    def _cache_dir_Ghist(self):
+        return self._ensure_outdir("cache/G_history")
+
+    def _cache_key(self, samples=None, cycles=None, nshell=None, seed_tag=None, init_kind="default"):
+        Nx, Ny = self.Nx, self.Ny
+        C  = int(self.cycles if cycles  is None else cycles)
+        S  = int(self.samples if samples is None else samples)
+        nsh = "None" if nshell is None else str(int(nshell))
+        seed = "any" if seed_tag is None else str(seed_tag)
+        kind = str(init_kind)  # "default" or "maxmix_top"
+        return f"N{Nx}x{Ny}_C{C}_S{S}_nsh{nsh}_seed-{seed}_init-{kind}"
+
+    def _cache_path_Ghist(self, **kw):
+        return os.path.join(self._cache_dir_Ghist(), self._cache_key(**kw) + ".npz")
+
+    def load_G_history_samples(self, **kw):
+        """Return list[S][T] of top-layer G_{tt} if found; else None."""
+        path = self._cache_path_Ghist(**kw)
+        if os.path.isfile(path):
+            data = np.load(path, allow_pickle=True)
+            arr = data["G_history_top_objs"]  # (S,T) object array with (Nlayer,Nlayer) each
+            S, T = arr.shape
+            out = [[arr[s, t] for t in range(T)] for s in range(S)]
+            self.G_history_samples = out
+            return out
+        return None
+
+    def save_G_history_samples(self, histories, **kw):
+        """histories: list[S][T] of (Nlayer,Nlayer) complex arrays (top layer only)."""
+        S = len(histories)
+        T = len(histories[0]) if S > 0 else 0
+        obj = np.empty((S, T), dtype=object)
+        Nlayer = self.Ntot // 2
+        for s in range(S):
+            for t in range(T):
+                G = np.asarray(histories[s][t])
+                obj[s, t] = G[:Nlayer, :Nlayer] if G.shape[0] == self.Ntot else G
+        path = self._cache_path_Ghist(**kw)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        np.savez_compressed(
+            path,
+            G_history_top_objs=obj,
+            Nx=int(self.Nx), Ny=int(self.Ny),
+            cycles=int(self.cycles),
+            samples=int(S),
+            nshell=("None" if self.nshell is None else int(self.nshell)),
+            init_kind=str(kw.get("init_kind", "default")),
+            seed_tag=("any" if kw.get("seed_tag", None) is None else kw["seed_tag"]),
+        )
+        self.G_history_samples = [[obj[s, t] for t in range(T)] for s in range(S)]
+        return path
+
+    def ensure_G_history_samples(self, samples=None, cycles=None, n_jobs=None,
+                                 backend="loky", seed_tag=None, init_kind="default"):
+        """
+        Return list[S][T] histories for current params, loading cache or generating+saving.
+        init_kind:
+          - 'default'   : use current self.G0
+          - 'maxmix_top': use self._reset_G0_for_entanglement_contour() per trajectory
+        """
+        S = int(self.samples if samples is None else samples)
+        C = int(self.cycles  if cycles  is None else cycles)
+
+        # Try cache
+        hit = self.load_G_history_samples(samples=S, cycles=C,
+                                          nshell=self.nshell, seed_tag=seed_tag,
+                                          init_kind=init_kind)
+        if hit is not None:
+            return hit
+
+        # Not found -> prompt user and generate
+        print("G_history_samples for current parameter set is unavailable, press any key to generate the data")
+        try:
+            _ = input()
+        except Exception:
+            pass
+
+        if n_jobs is None:
+            n_jobs = min(S, os.cpu_count() or 1)
+
+        ss = np.random.SeedSequence()
+        seeds = ss.generate_state(S, dtype=np.uint32).tolist()
+
+        def _worker(seed_u32):
+            seed = int(seed_u32) & 0xFFFFFFFF
+            np.random.seed(seed)
+            child = self._spawn_for_parallel()
+            if init_kind == "maxmix_top":
+                child.G0 = self._reset_G0_for_entanglement_contour()
+            # single-trajectory run with history
+            child.run_adaptive_circuit(cycles=C, G_history=True, progress=False)
+            return [g.copy() for g in child.G_list]
+
+        with self._joblib_tqdm_ctx(S, "samples"):
+            histories = Parallel(n_jobs=n_jobs, backend=backend)(
+                delayed(_worker)(s) for s in seeds
+            )
+
+        # Keep class in sync
+        self.cycles = C
+        self.samples = S
+
+        self.save_G_history_samples(histories, samples=S, cycles=C,
+                                    nshell=self.nshell, seed_tag=seed_tag,
+                                    init_kind=init_kind)
+        return self.G_history_samples
+
+    def assert_hist_kind(self, expected_init_kind):
+        """
+        Ensure the cached histories for current (Nx,Ny,cycles,samples,nshell,seed) were
+        generated with the given `expected_init_kind` ("default" or "maxmix_top").
+
+        Raises a RuntimeError with a readable message if:
+        - no cache exists at all for these params, or
+        - a cache exists but for a different init_kind.
+        """
+        # where we expect it
+        expected_path = self._cache_path_Ghist(
+            samples=self.samples,
+            cycles=self.cycles,
+            nshell=self.nshell,
+            seed_tag=None,
+            init_kind=expected_init_kind,
+        )
+
+        if os.path.isfile(expected_path):
+            # quick header sniff for paranoia
+            try:
+                meta = np.load(expected_path, allow_pickle=True)
+                file_kind = str(meta.get("init_kind", expected_init_kind))
+                if file_kind != expected_init_kind:
+                    raise RuntimeError(
+                        f"Cache kind mismatch: expected init_kind='{expected_init_kind}', "
+                        f"but file says '{file_kind}'. Delete the file or regenerate."
+                    )
+            except Exception:
+                pass
+            return  # all good
+
+        # see if the *other* kind exists to give a helpful hint
+        other_kind = "maxmix_top" if expected_init_kind == "default" else "default"
+        other_path = self._cache_path_Ghist(
+            samples=self.samples,
+            cycles=self.cycles,
+            nshell=self.nshell,
+            seed_tag=None,
+            init_kind=other_kind,
+        )
+
+        if os.path.isfile(other_path):
+            raise RuntimeError(
+                f"No cached histories for init_kind='{expected_init_kind}' with these parameters.\n"
+                f"However, a cache exists for init_kind='{other_kind}'.\n"
+                f"Re-run generation with the desired kind (or re-instantiate accordingly)."
+            )
+
+        # nothing exists
+        raise RuntimeError(
+            "No cached histories found for these parameters. "
+            "Generate them first (e.g., at __init__ with preload, or via ensure_G_history_samples)."
+        )
 
     def random_unitary(self, N, rng=None):
         """
@@ -547,7 +940,7 @@ class classA_U1FGTN:
         return U_tot.conj().T @ G @ U_tot
 
 
-# ==================== EDIT: run_adaptive_circuit with samples loop ====================
+# ==================== run_adaptive_circuit with samples loop ====================
 
     def run_adaptive_circuit(
         self,
@@ -560,26 +953,38 @@ class classA_U1FGTN:
         n_jobs=None,
         backend="loky",
         parallelize_samples=False,
-        store="none",           # "none" (default old behavior), "top", or "full" -> governs what we *return*
-        init_mode="default"     # "default" uses self.G0; "entanglement" uses zero top-layer via helper
+        store="none",           # "none" (no return), "top", or "full"
+        init_mode="default"     # "default" uses self.G0; "maxmix_top" uses zero top-layer via helper
     ):
         """
-        If samples is None or 1 and parallelize_samples=False -> old single-trajectory behavior (mutates self.G, self.G_list).
-        If samples>=1 and parallelize_samples=True         -> parallel over samples, return histories dict:
-            { "G_hist": (S,T,dim,dim), "G_hist_avg": (T,dim,dim), "samples": S, "T": T }
-        'store' controls whether we collect top-layer or full G per cycle in the returned arrays.
+        Runs the adaptive circuit. Internally ALWAYS records full G per cycle when G_history=True.
+        Return packaging is controlled by `store` ("none" | "top" | "full").
+        Parallel mode returns stacked arrays across samples.
+
+        Single-trajectory mode:
+            - Mutates self.G and self.G_list (full G each cycle).
+            - If store == "none": returns None (back-compat).
+            - Else returns {"G_hist": ..., "G_hist_avg": ..., "samples": S, "T": T}
+        Parallel multi-sample mode:
+            - No mutation of parent instance state; returns packaged result.
         """
-        # ------------------ single-trajectory (back-compat) ------------------
+        # ---------------- single-trajectory (back-compat) ----------------
         if not parallelize_samples or (samples is None or int(samples) <= 1):
-            # (original body, condensed — unchanged algorithm)
+            # choose initial G
             if init_mode == "default":
                 self.G = np.array(self.G0, copy=True)
-            elif init_mode == "mm":
-                self._reset_G0_for_entanglement_contour()
+            else:
+                if init_mode == "maxmix_top":
+                    self.G = np.array(self._reset_G0_for_entanglement_contour(), copy=True)
+                else:
+                    raise ValueError("init_mode must be 'default' or 'mm'.")
+
+            # storage
             if G_history:
-                self.G_list = []
+                self.G_list = []  # full G each cycle
             self.g2_flags = []
 
+            # dimensions / loop extents
             Nx, Ny = int(self.Nx), int(self.Ny)
             D = int(self.Ntot)
             I = np.eye(D, dtype=np.complex128)
@@ -590,10 +995,10 @@ class classA_U1FGTN:
                 self.cycles = int(cycles)
 
             total_sites = self.cycles * Nx * Ny
-            in_parallel = False
-            use_bar = bool(progress and not in_parallel)
+            use_bar = bool(progress)
             pbar = tqdm(total=total_sites, desc="RAC (sites)", unit="site", leave=True) if use_bar else None
 
+            # main RAC loop
             for _c in range(self.cycles):
                 for Rx in range(Nx):
                     for Ry in range(Ny):
@@ -609,62 +1014,82 @@ class classA_U1FGTN:
                     self.G = self.measure_all_bottom_modes(self.G)
                 if G_history:
                     self.G_list.append(self.G.copy())
+
             if pbar is not None:
                 pbar.close()
 
-            # return in old style unless asked to package
+            # old behavior: nothing to return unless asked
             if store == "none":
                 return None
 
-            # package single-trajectory history (S=1)
+            # package a single-trajectory history (S=1)
             Ntot = self.Ntot
             Nlayer = Ntot // 2
+            if G_history and len(self.G_list) > 0:
+                per_cycle = self.G_list
+            else:
+                per_cycle = [self.G]  # final snapshot only
+
             if store == "top":
-                hist = [np.asarray(Gk)[:Nlayer, :Nlayer] for Gk in getattr(self, "G_list", [self.G])]
+                hist = [np.asarray(Gk)[:Nlayer, :Nlayer] for Gk in per_cycle]
             elif store == "full":
-                hist = [np.asarray(Gk) for Gk in getattr(self, "G_list", [self.G])]
+                hist = [np.asarray(Gk) for Gk in per_cycle]
             else:
                 raise ValueError("store must be 'none', 'top', or 'full'")
-            G_hist = np.expand_dims(np.stack(hist, axis=0), axis=0)  # (1,T,dim,dim)
-            return {"G_hist": G_hist, "G_hist_avg": np.mean(G_hist, axis=0), "samples": 1, "T": G_hist.shape[1]}
 
-        # ------------------ multi-trajectory parallel run ------------------
+            G_hist = np.expand_dims(np.stack(hist, axis=0), axis=0)  # (1,T,dim,dim)
+            return {
+                "G_hist": G_hist,
+                "G_hist_avg": np.mean(G_hist, axis=0),
+                "samples": 1,
+                "T": G_hist.shape[1],
+            }
+
+        # ---------------- parallel multi-sample mode ----------------
         S = int(samples)
         if n_jobs is None:
             n_jobs = min(S, os.cpu_count() or 1)
-        Ntot = self.Ntot
-        Nlayer = Ntot // 2
+        n_jobs = max(1, int(n_jobs))
 
         if backend not in ("loky", "threading"):
             raise ValueError("backend must be 'loky' or 'threading'.")
 
-        # seed sequence (safe under loky)
+        Ntot = self.Ntot
+        Nlayer = Ntot // 2
+
+        # seeds safe for process-based execution
         ss = np.random.SeedSequence()
         seeds = ss.generate_state(S, dtype=np.uint32).tolist()
 
         def _make_G0():
             if init_mode == "default":
                 return np.array(self.G0, copy=True)
-            elif init_mode == "mm":
+            if init_mode == "maxmix_top":
                 return self._reset_G0_for_entanglement_contour()
+            raise ValueError("init_mode must be 'default' or 'maxmix_top'.")
 
         def _worker(seed_u32):
             np.random.seed(int(seed_u32) & 0xFFFFFFFF)
             child = self._spawn_for_parallel()
             child.G0 = _make_G0()
-            # run single trajectory with history
+
+            # run single trajectory; child will accumulate full G in child.G_list
             child.run_adaptive_circuit(
                 G_history=True, tol=tol, progress=False, cycles=cycles, postselect=postselect,
-                parallelize_samples=False, store="none", init_mode="default"  # child already got correct G0
+                parallelize_samples=False, store="none", init_mode="default"  # child's G0 is already chosen
             )
-            # collect per-cycle
-            if store == "top":
-                hist = [np.asarray(Gk)[:Nlayer, :Nlayer] for Gk in child.G_list]
-            elif store == "full":
-                hist = [np.asarray(Gk) for Gk in child.G_list]
+
+            # collect per-cycle FULL G then downcast if needed
+            full_hist = [np.asarray(Gk) for Gk in child.G_list]
+            if store == "full":
+                return np.stack(full_hist, axis=0)  # (T,Ntot,Ntot)
+            elif store == "top":
+                top_hist = [Gk[:Nlayer, :Nlayer] for Gk in full_hist]
+                return np.stack(top_hist, axis=0)   # (T,Nlayer,Nlayer)
             else:
-                raise ValueError("store must be 'top' or 'full' when parallelizing samples")
-            return np.stack(hist, axis=0)  # (T,dim,dim)
+                # For parallel mode, returning nothing is not supported:
+                # You asked to run multiple samples; choose 'top' or 'full'.
+                raise ValueError("When parallelizing samples, set store='top' or 'full'.")
 
         with self._joblib_tqdm_ctx(S, "samples"):
             G_hist_list = Parallel(n_jobs=n_jobs, backend=backend)(
@@ -676,35 +1101,38 @@ class classA_U1FGTN:
         G_hist_avg = np.mean(G_hist, axis=0)
         return {"G_hist": G_hist, "G_hist_avg": G_hist_avg, "samples": S, "T": G_hist.shape[1]}
     
-    # ==================== NEW: small public helpers for consumers ====================
 
     def get_history_bundle(self):
         """
-        Returns the loaded/constructed history bundle:
-          { "G_hist": (S,T,dim,dim), "G_hist_avg": (T,dim,dim), "path": str, "meta": dict }
-        Ensures it exists by loading or generating with current (samples, cycles).
+        Build a lightweight bundle from the cache for convenience:
+          {
+            "G_hist": np.array shape (S,T,Nlayer,Nlayer),
+            "G_hist_avg": np.array shape (T,Nlayer,Nlayer),
+            "samples": S,
+            "T": T
+          }
         """
-        if not hasattr(self, "G_history_samples") or self.G_history_samples is None:
-            # build with current defaults
-            return self._load_or_generate_G_histories(
-                samples=self.samples, cycles=self.cycles, backend="loky", store="top",
-                init_mode="default", progress=True
-            )
-        return self.G_history_samples
+        histories = self.ensure_G_history_samples(samples=self.samples, cycles=self.cycles)
+        S, T = len(histories), len(histories[0])
+        Nlayer = self.Ntot // 2
+        G_hist = np.empty((S, T, Nlayer, Nlayer), dtype=np.complex128)
+        for s in range(S):
+            for t in range(T):
+                Gt = np.asarray(histories[s][t])
+                G_hist[s, t] = Gt[:Nlayer, :Nlayer] if Gt.shape[0] == self.Ntot else Gt
+        G_hist_avg = np.mean(G_hist, axis=0)
+        return {"G_hist": G_hist, "G_hist_avg": G_hist_avg, "samples": S, "T": T}
 
     def current_final_G(self, sample_index=0, averaged=False):
-        """
-        Convenience:
-          - averaged=False: returns final G (top-layer) of sample_index (default: first)
-          - averaged=True : returns final cycle of the averaged history \bar G(t)
-        """
-        bundle = self.get_history_bundle()
+        histories = self.ensure_G_history_samples(samples=self.samples, cycles=self.cycles)
+        Nlayer = self.Ntot // 2
         if averaged:
-            return bundle["G_hist_avg"][-1]
-        S = bundle["G_hist"].shape[0]
-        s = int(np.clip(sample_index, 0, S-1))
-        return bundle["G_hist"][s, -1]
-
+            Gbar_T = np.mean([np.asarray(histories[s][-1])[:Nlayer, :Nlayer] for s in range(len(histories))], axis=0)
+            return Gbar_T
+        s = int(np.clip(sample_index, 0, len(histories)-1))
+        Gt = np.asarray(histories[s][-1])
+        return Gt[:Nlayer, :Nlayer] if Gt.shape[0] == self.Ntot else Gt
+    
     # ---------------------------- Chern observables ----------------------------
 
     def real_space_chern_number(self, G=None):
@@ -820,53 +1248,35 @@ class classA_U1FGTN:
         """
         Plot the real-space Chern number across time.
 
+        Uses histories already loaded/generated at __init__ time.
+        This method does NOT generate data.
+
         If traj_avg is False (default):
-            - uses a single trajectory (first sample in self.G_history_samples, else self.G_list).
+            - uses a single trajectory (first sample).
         If traj_avg is True:
             - LEFT  subplot: traj-resolved average  \overline{C_G}(t) = (1/S) sum_s C(G^{(s)}(t))
             - RIGHT subplot: traj-averaged curve   C_{Ḡ}(t) = C( (1/S) sum_s G^{(s)}(t) )
 
         Figures are saved if filename is provided.
         """
+        self.assert_hist_kind("default")
 
-        # ---------- helper: ensure histories ----------
-        def _ensure_histories():
-            # Prefer stored multi-sample histories
-            if hasattr(self, "G_history_samples") and isinstance(self.G_history_samples, list) and len(self.G_history_samples) > 0:
-                return self.G_history_samples  # list[S] of list[T] of G (full or top-layer)
-            # Fall back to self.G_list (single trajectory)
-            if hasattr(self, "G_list") and isinstance(self.G_list, list) and len(self.G_list) > 0:
-                return [self.G_list]  # wrap as single-sample
-            # Otherwise, prompt & build one trajectory with history
-            print("G_history_samples for current parameter set is unavailable, press any key to generate the data")
-            try:
-                _ = input()
-            except Exception:
-                pass
-            # Run one trajectory with history
-            self.run_adaptive_circuit(G_history=True, progress=True, cycles=self.cycles)
-            return [self.G_list]
+        # top-layer histories only
+        top_histories = self.get_top_histories()
+        S = len(top_histories)
+        if S == 0:
+            raise RuntimeError("No histories available.")
+        T = len(top_histories[0])
 
         def _top_layer(G):
-            # Accept either (Ntot,Ntot) or (Nlayer,Nlayer)
-            G = np.asarray(G, dtype=np.complex128)
-            if G.ndim == 2:
-                if G.shape[0] == self.Ntot:
-                    return G[:self.Ntot//2, :self.Ntot//2]
-                return G
-            raise ValueError("G must be 2D matrix.")
-
-        histories = _ensure_histories()
-        S = len(histories)
-        T = len(histories[0])
+            return np.asarray(G, dtype=np.complex128)
 
         # Compute Chern as requested
-        x = np.arange(1, T+1)
+        x = np.arange(1, T + 1)
         if not traj_avg:
-            # single-trajectory curve
             cherns = np.empty(T, dtype=float)
             for t in range(T):
-                cherns[t] = np.real(self.real_space_chern_number(histories[0][t]))
+                cherns[t] = float(np.real(self.real_space_chern_number(_top_layer(top_histories[0][t]))))
             fig, ax = plt.subplots(figsize=(6.2, 3.8))
             ax.plot(x, cherns, marker="o", lw=1.25)
             ax.set_xlabel("Cycles")
@@ -879,18 +1289,15 @@ class classA_U1FGTN:
             return fig, ax, cherns
 
         # traj_avg=True -> two subplots
-        # LEFT: avg of C(G_s(t)); RIGHT: C(avg_t G_s(t))
         C_traj_res = np.zeros(T, dtype=float)
         C_traj_avg = np.zeros(T, dtype=float)
+        Nlayer = self.Ntot // 2
         for t in range(T):
-            # accumulate Chern over samples (traj-resolved)
-            Cs = [np.real(self.real_space_chern_number(histories[s][t])) for s in range(S)]
+            Cs = [float(np.real(self.real_space_chern_number(_top_layer(top_histories[s][t])))) for s in range(S)]
             C_traj_res[t] = float(np.mean(Cs))
-            # average G over samples (top layer) then Chern
-            Gbar_t = np.mean([_top_layer(histories[s][t]) for s in range(S)], axis=0)
-            # Build full (4N,4N) carrier with top-layer in place so method can parse
-            Nlayer = self.Ntot // 2
-            G_full = self._block_diag2(Gbar_t, np.eye(Nlayer, dtype=np.complex128))  # bottom dummy (ignored internally)
+
+            Gbar_t = np.mean([_top_layer(top_histories[s][t]) for s in range(S)], axis=0)
+            G_full = self._block_diag2(Gbar_t, np.eye(Nlayer, dtype=np.complex128))
             C_traj_avg[t] = float(np.real(self.real_space_chern_number(G_full)))
 
         fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.0), constrained_layout=True)
@@ -910,7 +1317,7 @@ class classA_U1FGTN:
 
     def chern_marker_dynamics(self, outbasename=None, vmin=-1.0, vmax=1.0, cmap='RdBu_r', traj_avg=False):
         """
-        Animate local Chern marker over cached multi-sample history, if available.
+        Animate local Chern marker over cached multi-sample history (read-only).
 
         traj_avg = False:
             - single panel using first trajectory.
@@ -921,6 +1328,8 @@ class classA_U1FGTN:
 
         Saves one GIF and a final PNG frame (with cycles in the title).
         """
+        self.assert_hist_kind("default")
+
         Nx, Ny = self.Nx, self.Ny
         outdir = self._ensure_outdir('figs/chern_marker')
         if outbasename is None:
@@ -930,38 +1339,22 @@ class classA_U1FGTN:
         gif_path   = os.path.join(outdir, outbasename + ".gif")
         final_path = os.path.join(outdir, outbasename + "_final.png")
 
-        # ---------- ensure histories ----------
-        def _ensure_histories():
-            if hasattr(self, "G_history_samples") and isinstance(self.G_history_samples, list) and len(self.G_history_samples) > 0:
-                return self.G_history_samples
-            if hasattr(self, "G_list") and isinstance(self,).G_list and len(self.G_list) > 0:
-                return [self.G_list]
-            print("G_history_samples for current parameter set is unavailable, press any key to generate the data")
-            try:
-                _ = input()
-            except Exception:
-                pass
-            self.run_adaptive_circuit(G_history=True, progress=True, cycles=self.cycles)
-            return [self.G_list]
+        # read-only top histories
+        top_histories = self.get_top_histories()
+        S = len(top_histories)
+        if S == 0:
+            raise RuntimeError("No histories available.")
+        T = len(top_histories[0])
 
-        histories = _ensure_histories()
-        S = len(histories)
-        T = len(histories[0])
-
-        # helpers
         def _top_layer(G):
-            G = np.asarray(G, dtype=np.complex128)
-            if G.shape[0] == self.Ntot:
-                return G[:self.Ntot//2, :self.Ntot//2]
-            return G
+            return np.asarray(G, dtype=np.complex128)
 
-        # Build per-frame maps depending on traj_avg
         if not traj_avg:
             frames = []
             for t in range(T):
-                Cmap = self.local_chern_marker_flat(histories[0][t])
+                Cmap = self.local_chern_marker_flat(_top_layer(top_histories[0][t]))
                 frames.append(Cmap)
-            # single-panel animation
+
             fig = plt.figure(figsize=(3.6, 4.0))
             ax  = fig.add_subplot(111)
             im  = ax.imshow(frames[0], cmap=cmap, vmin=vmin, vmax=vmax, origin='upper', aspect='equal')
@@ -981,35 +1374,32 @@ class classA_U1FGTN:
             final = frames[-1]
             plt.close(fig)
 
-            # final PNG
             fig2, ax2 = plt.subplots(figsize=(3.6, 4.0))
             im2 = ax2.imshow(final, cmap=cmap, vmin=vmin, vmax=vmax, origin='upper', aspect='equal')
             fig2.colorbar(im2, ax=ax2, fraction=0.046, pad=0.04)
             ax2.set_xlabel("y"); ax2.set_ylabel("x")
             ax2.set_title(f"Local Chern marker — final (cycles={self.cycles})")
             fig2.savefig(final_path, bbox_inches='tight', dpi=140); plt.close(fig2)
-            return gif_path, final_path, final, histories[0][-1]
+            return gif_path, final_path, final, top_histories[0][-1]
 
         # traj_avg=True -> two-panel animation
         frames_L, frames_R = [], []
         Nlayer = self.Ntot // 2
         for t in range(T):
-            # LEFT: average of marker maps over samples
-            maps = [self.local_chern_marker_flat(histories[s][t]) for s in range(S)]
+            maps = [self.local_chern_marker_flat(_top_layer(top_histories[s][t])) for s in range(S)]
             frames_L.append(np.mean(maps, axis=0))
-            # RIGHT: marker of averaged G
-            Gbar_t = np.mean([_top_layer(histories[s][t]) for s in range(S)], axis=0)
-            # Stuff top/bottom to (4N,4N) carrier (bottom won't matter)
+            Gbar_t = np.mean([_top_layer(top_histories[s][t]) for s in range(S)], axis=0)
             G_full = self._block_diag2(Gbar_t, np.eye(Nlayer, dtype=np.complex128))
             frames_R.append(self.local_chern_marker_flat(G_full))
 
-        vmax = max(np.max(np.abs(frames_L)), np.max(np.abs(frames_R)))
-        vmax = max(vmax, 1.0)  # keep symmetric scale at least [-1,1]
+        vmax_auto = max(np.max(np.abs(frames_L)), np.max(np.abs(frames_R)))
+        vmax_auto = max(vmax_auto, 1.0)
+        vmin_use, vmax_use = -vmax_auto, vmax_auto
 
         fig = plt.figure(figsize=(7.6, 4.2))
         axL = fig.add_subplot(1, 2, 1); axR = fig.add_subplot(1, 2, 2)
-        imL = axL.imshow(frames_L[0], cmap=cmap, vmin=-vmax, vmax=vmax, origin='upper', aspect='equal')
-        imR = axR.imshow(frames_R[0], cmap=cmap, vmin=-vmax, vmax=vmax, origin='upper', aspect='equal')
+        imL = axL.imshow(frames_L[0], cmap=cmap, vmin=vmin_use, vmax=vmax_use, origin='upper', aspect='equal')
+        imR = axR.imshow(frames_R[0], cmap=cmap, vmin=vmin_use, vmax=vmax_use, origin='upper', aspect='equal')
         axL.set_title(r"$\overline{\tanh\mathcal{C}}(\mathbf{r},t)$"); axR.set_title(r"$\tanh\mathcal{C}_{\overline{G}}(\mathbf{r},t)$")
         for ax in (axL, axR):
             ax.set_xlabel("y"); ax.set_ylabel("x")
@@ -1027,18 +1417,17 @@ class classA_U1FGTN:
         ani.save(gif_path, writer="pillow", dpi=120)
         plt.close(fig)
 
-        # final PNG
         fig2 = plt.figure(figsize=(7.6, 4.2))
         axL2 = fig2.add_subplot(1, 2, 1); axR2 = fig2.add_subplot(1, 2, 2)
-        imL2 = axL2.imshow(frames_L[-1], cmap=cmap, vmin=-vmax, vmax=vmax, origin='upper', aspect='equal')
-        imR2 = axR2.imshow(frames_R[-1], cmap=cmap, vmin=-vmax, vmax=vmax, origin='upper', aspect='equal')
+        imL2 = axL2.imshow(frames_L[-1], cmap=cmap, vmin=vmin_use, vmax=vmax_use, origin='upper', aspect='equal')
+        imR2 = axR2.imshow(frames_R[-1], cmap=cmap, vmin=vmin_use, vmax=vmax_use, origin='upper', aspect='equal')
         for ax in (axL2, axR2):
             ax.set_xlabel("y"); ax.set_ylabel("x")
         fig2.colorbar(imL2, ax=axL2, fraction=0.046, pad=0.04)
         fig2.colorbar(imR2, ax=axR2, fraction=0.046, pad=0.04)
         fig2.suptitle(f"Local Chern marker — final (cycles={self.cycles}, samples={S})")
         fig2.savefig(final_path, bbox_inches='tight', dpi=140); plt.close(fig2)
-        return gif_path, final_path, (frames_L[-1], frames_R[-1]), (_top_layer(histories[0][-1]),)
+        return gif_path, final_path, (frames_L[-1], frames_R[-1]), (_top_layer(top_histories[0][-1]),)
 
     # ---------------------- Parallel-safe spawner for v2 ----------------------
 
@@ -1089,28 +1478,33 @@ class classA_U1FGTN:
 
     def plot_corr_y_profiles_v2(self, samples=None, n_jobs=None, filename=None, ry_max=None, backend="loky"):
         """
-        Uses saved G_history_samples if present; otherwise prompts and generates them.
+        Read-only: uses already saved histories.
         ALWAYS plots both:
           - \overline{C}_G   (traj-resolved average of profiles)
           - C_{\overline{G}} (profile of the per-cycle averaged G)
-        Also produces a separate 2x2 heatmap figure vs cycle t (rows = two DW x0s; cols = traj-resolved vs traj-averaged).
+        Also produces a separate 2x2 heatmap figure vs cycle t.
         Only figures are saved (no npz).
         """
-
         Nx, Ny = self.Nx, self.Ny
         Ntot   = self.Ntot
         Nlayer = Ntot // 2
         cycles = int(getattr(self, "cycles", 1))
+        
+        self.assert_hist_kind("default")
 
-        # Defaults
-        if samples is None:
-            samples = int(getattr(self, "samples", 4))
-        samples = max(1, int(samples))
-        if n_jobs is None:
-            n_jobs = min(samples, os.cpu_count() or 1)
-        n_jobs = max(1, int(n_jobs))
+        # top histories
+        top_histories = self.get_top_histories()
+        S = len(top_histories)
+        if S == 0:
+            raise RuntimeError("No histories available.")
+        T = len(top_histories[0])
 
-        # pick x positions (same as before)
+        # Defaults for plotting
+        if ry_max is None:
+            ry_max = Ny // 2
+        ry_vals = np.arange(0, int(ry_max) + 1, dtype=int)
+
+        # pick x positions
         def _pick_x_positions():
             if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
                 xL, xR = int(self.DW_loc[0]) % Nx, int(self.DW_loc[1]) % Nx
@@ -1137,21 +1531,16 @@ class classA_U1FGTN:
             raise RuntimeError("plot_corr_y_profiles_v2: DW_loc (two positions) is required for the heatmaps.")
         xDW1, xDW2 = int(self.DW_loc[0]) % Nx, int(self.DW_loc[1]) % Nx
 
-        # y-separations
-        if ry_max is None:
-            ry_max = Ny // 2
-        ry_vals = np.arange(0, int(ry_max) + 1, dtype=int)
-
         # -------------- helpers --------------
         def _coerce_to_two_point_kernel_top(G_in):
             Gin = np.asarray(G_in, dtype=np.complex128)
             if Gin.ndim == 6:
                 return Gin
             elif Gin.ndim == 2:
-                if Gin.shape == (Ntot, Ntot):
-                    Gtt = Gin[:Nlayer, :Nlayer]
-                elif Gin.shape == (Nlayer, Nlayer):
+                if Gin.shape == (Nlayer, Nlayer):
                     Gtt = Gin
+                elif Gin.shape == (Ntot, Ntot):
+                    Gtt = Gin[:Nlayer, :Nlayer]
                 else:
                     raise ValueError(f"G has incompatible shape {Gin.shape}.")
                 G2 = 0.5 * (Gtt + np.eye(Nlayer, dtype=np.complex128))
@@ -1160,9 +1549,9 @@ class classA_U1FGTN:
             else:
                 raise ValueError("G must be (4N,4N), (2N,2N), or (Nx,Ny,2,Nx,Ny,2).")
 
-        def _C_xslice_from_kernel(Gker, x0, ry_vals):
+        def _C_xslice_from_kernel(Gker, x0, ry_vals_arr):
             x0 = int(x0) % Nx
-            ry_arr = np.atleast_1d(ry_vals).astype(int)
+            ry_arr = np.atleast_1d(ry_vals_arr).astype(int)
             Ny_loc = Gker.shape[1]
             Gx = Gker[x0, :, :, x0, :, :]                # (Ny,2,Ny,2)
             Y  = np.arange(Ny_loc, dtype=np.intp)[:, None]
@@ -1175,47 +1564,13 @@ class classA_U1FGTN:
         def _chern_from_Gtop(G_top):
             return self.local_chern_marker_flat(G_top)
 
-        # -------------- ensure histories (multi-sample) --------------
-        def _ensure_histories_multi(S_target):
-            if hasattr(self, "G_history_samples") and isinstance(self.G_history_samples, list) and len(self.G_history_samples) >= 1:
-                return self.G_history_samples
-            print("G_history_samples for current parameter set is unavailable, press any key to generate the data")
-            try:
-                _ = input()
-            except Exception:
-                pass
-
-            # Generate in parallel (S_target samples)
-            ss = np.random.SeedSequence()
-            seeds = ss.generate_state(S_target, dtype=np.uint32).tolist()
-
-            def _worker(seed_u32):
-                seed = int(seed_u32) & 0xFFFFFFFF
-                np.random.seed(seed)
-                child = self._spawn_for_parallel()
-                child.run_adaptive_circuit(cycles=child.cycles, G_history=True, progress=False)
-                return [g.copy() for g in child.G_list]
-
-            with self._joblib_tqdm_ctx(S_target, "samples"):
-                from joblib import Parallel, delayed
-                results = Parallel(n_jobs=min(S_target, os.cpu_count() or 1), backend=backend)(
-                    delayed(_worker)(s) for s in seeds
-                )
-            # Cache to object
-            self.G_history_samples = results
-            return results
-
-        histories = _ensure_histories_multi(samples)
-        S = len(histories)
-        T = len(histories[0])
-
         # Final-step aggregates for x-positions
         C_accum = {x0: np.zeros_like(ry_vals, dtype=float) for x0, _ in x_positions}
         Gsum_fin = np.zeros((Nlayer, Nlayer), dtype=np.complex128)
         last_Gtt = None
 
         for s in range(S):
-            Gtt_final = np.asarray(histories[s][-1])
+            Gtt_final = np.asarray(top_histories[s][-1], dtype=np.complex128)
             last_Gtt = Gtt_final
             Gker_fin = _coerce_to_two_point_kernel_top(Gtt_final)
             for x0, _ in x_positions:
@@ -1261,8 +1616,14 @@ class classA_U1FGTN:
                 C_vec = Cdict[x0]
                 line, = ax.plot(ry_vals, C_vec, marker='o', ms=3, lw=1, label=fr"$x_0 = {lbl}$")
                 finite = np.isfinite(C_vec)
-                y_right = C_vec[finite][-1] if np.any(finite) else C_vec[-1]
-                x_right = ry_vals[-1] * 1.02 if ry_vals[-1] > 0 else ry_vals[-1] + 0.5
+                if np.any(finite):
+                    y_right = C_vec[finite][-1]
+                else:
+                    y_right = C_vec[-1]
+                if ry_vals[-1] > 0:
+                    x_right = ry_vals[-1] * 1.02
+                else:
+                    x_right = ry_vals[-1] + 0.5
                 ax.annotate(lbl, xy=(ry_vals[-1], y_right), xytext=(x_right, y_right),
                             textcoords='data', ha='left', va='center', fontsize=8,
                             color=line.get_color())
@@ -1306,13 +1667,12 @@ class classA_U1FGTN:
         fig.savefig(fullpath, bbox_inches='tight'); plt.close(fig)
 
         # ---------------- 2x2 heatmaps vs cycle t ----------------
-        # Build time-resolved profiles at the two DW x-positions
         def _C_time_traj_resolved(x0):
             out = np.zeros((T, len(ry_vals)), dtype=float)
             for t in range(T):
                 vals = []
                 for s in range(S):
-                    Gker = _coerce_to_two_point_kernel_top(histories[s][t])
+                    Gker = _coerce_to_two_point_kernel_top(top_histories[s][t])
                     vals.append(_C_xslice_from_kernel(Gker, x0, ry_vals).real)
                 out[t, :] = np.mean(vals, axis=0)
             return out
@@ -1320,7 +1680,7 @@ class classA_U1FGTN:
         def _C_time_traj_averaged(x0):
             out = np.zeros((T, len(ry_vals)), dtype=float)
             for t in range(T):
-                Gavg_t = np.mean([np.asarray(histories[s][t])[:Nlayer, :Nlayer] for s in range(S)], axis=0)
+                Gavg_t = np.mean([np.asarray(top_histories[s][t]) for s in range(S)], axis=0)
                 Gker = _coerce_to_two_point_kernel_top(Gavg_t)
                 out[t, :] = _C_xslice_from_kernel(Gker, x0, ry_vals).real
             return out
@@ -1426,31 +1786,30 @@ class classA_U1FGTN:
         return s
 
     def entanglement_contour_suite(self, samples=None, n_jobs=None, backend="loky",
-                                   filename_profiles=None, filename_prefix_dyn=None):
+                                filename_profiles=None, filename_prefix_dyn=None):
         """
-        Entanglement-contour analysis using saved histories if present.
-    
+        Entanglement-contour analysis using saved histories (read-only).
+
         Always shows:
-          Row 1: time-profiles at smart x0 — LEFT = traj-resolved \overline{s_G}(t), RIGHT = s_{Ḡ}(t)
-          Row 2: eigenvalue spectra (final-step) — traj vs Ḡ
-          Row 3: final maps — s(G_final^{(traj)}) vs s(Ḡ_final)
-    
+        Row 1: time-profiles at smart x0 — LEFT = traj-resolved \overline{s_G}(t), RIGHT = s_{Ḡ}(t)
+        Row 2: eigenvalue spectra (final-step) — traj vs Ḡ
+        Row 3: final maps — s(G_final^{(traj)}) vs s(Ḡ_final)
+
         Also produces two GIFs (traj map & traj-avg map) with colorbars.
-        Only figures are saved (no npz). Title notes the top layer is initially maximally mixed.
         """
-    
+        self.assert_hist_kind("maxmix_top")
+
         Nx, Ny = self.Nx, self.Ny
         Nlayer = self.Ntot // 2
         cycles = int(getattr(self, "cycles", 1))
-    
-        # defaults
-        if samples is None:
-            samples = int(getattr(self, "samples", 4))
-        samples = max(1, int(samples))
-        if n_jobs is None:
-            n_jobs = min(samples, os.cpu_count() or 1)
-        n_jobs = max(1, int(n_jobs))
-    
+
+        # top histories
+        top_histories = self.get_top_histories()
+        S = len(top_histories)
+        if S == 0:
+            raise RuntimeError("No histories available.")
+        T = len(top_histories[0])
+
         # smart x-positions
         def _pick_x_positions():
             if hasattr(self, "DW_loc") and isinstance(self.DW_loc, (list, tuple)) and len(self.DW_loc) == 2:
@@ -1472,105 +1831,70 @@ class classA_U1FGTN:
                 return [(int(x), f"{int(x)}") for x in xs]
         x_positions = _pick_x_positions()
         xs_only = [x for x, _ in x_positions]
-    
-        # ---------- ensure histories (prefer saved) ----------
-        def _ensure_histories_ent():
-            if hasattr(self, "G_history_samples") and isinstance(self.G_history_samples, list) and len(self.G_history_samples) > 0:
-                return self.G_history_samples
-            print("G_history_samples for current parameter set is unavailable, press any key to generate the data")
-            try:
-                _ = input()
-            except Exception:
-                pass
-            
-            # Generate with the maximally mixed top-layer G0 for each worker
-            ss = np.random.SeedSequence(); seeds = ss.generate_state(samples, dtype=np.uint32).tolist()
-    
-            def _worker(seed_u32):
-                seed = int(seed_u32) & 0xFFFFFFFF
-                np.random.seed(seed)
-                child = self._spawn_for_parallel()
-                child.G0 = self._reset_G0_for_entanglement_contour()
-                child.run_adaptive_circuit(cycles=child.cycles, G_history=True, progress=False)
-                return [g.copy() for g in child.G_list]
-    
-            with self._joblib_tqdm_ctx(samples, "samples"):
-                from joblib import Parallel, delayed
-                histories = Parallel(n_jobs=min(samples, os.cpu_count() or 1), backend=backend)(
-                    delayed(_worker)(s) for s in seeds
-                )
-            # Cache for future reuse
-            self.G_history_samples = histories
-            return histories
-    
-        histories = _ensure_histories_ent()
-        S = len(histories); T = len(histories[0])
-    
-        # contour helper
+
         def _contour_from_G(Gtt):
-            return self.entanglement_contour(np.asarray(Gtt))
-    
+            return self.entanglement_contour(np.asarray(Gtt, dtype=np.complex128))
+
         # Build time-profiles
         traj_profiles_mean = {
             x0: np.array([
-                np.mean([float(np.sum(_contour_from_G(histories[s][t])[x0, :])) for s in range(S)])
+                np.mean([float(np.sum(_contour_from_G(top_histories[s][t])[x0, :])) for s in range(S)])
                 for t in range(T)
             ], dtype=float)
             for x0 in xs_only
         }
-    
-        Gavg_hist = [np.mean([np.asarray(histories[s][t])[:Nlayer, :Nlayer] for s in range(S)], axis=0) for t in range(T)]
+
+        Gavg_hist = [np.mean([np.asarray(top_histories[s][t], dtype=np.complex128) for s in range(S)], axis=0) for t in range(T)]
         avg_maps  = [_contour_from_G(Gavg_hist[t]) for t in range(T)]
-    
+
         avg_profiles = {
             x0: np.array([float(np.sum(avg_maps[t][x0, :])) for t in range(T)], dtype=float)
             for x0 in xs_only
         }
-    
+
         # spectra + final maps
-        G_final_traj = np.asarray(histories[0][-1])[:Nlayer, :Nlayer]
+        G_final_traj = np.asarray(top_histories[0][-1], dtype=np.complex128)
         G_final_avg  = Gavg_hist[-1]
         ev_traj = np.linalg.eigvalsh(G_final_traj)
         ev_avg  = np.linalg.eigvalsh(G_final_avg)
         final_traj_map = _contour_from_G(G_final_traj)
         final_avg_map  = _contour_from_G(G_final_avg)
-    
+
         # --------------- profiles + spectra + final maps ---------------
         outdir_prof = self._ensure_outdir("figs/entanglement_contour")
         if filename_profiles is None:
             xdesc = "-".join(f"{x}" for x in xs_only)
             filename_profiles = f"entanglement_suite_yprofiles_N{Nx}_xs_{xdesc}_S{S}.pdf"
         profiles_pdf = os.path.join(outdir_prof, filename_profiles)
-    
+
         fig = plt.figure(constrained_layout=True, figsize=(12.5, 12.0))
         gs  = fig.add_gridspec(nrows=3, ncols=2, height_ratios=[1.1, 1.0, 1.2])
-    
+
         axP1 = fig.add_subplot(gs[0, 0]); axP2 = fig.add_subplot(gs[0, 1])
         t_vals = np.arange(1, T + 1)
-    
+
         for x0, lbl in x_positions:
             axP1.plot(t_vals, traj_profiles_mean[x0], label=lbl, marker='o', ms=3)
         axP1.set_xlabel("cycle t"); axP1.set_ylabel(r"$\sum_y s(x_0,y)$")
         axP1.set_title(r"$\overline{s_{G}}$ (traj-resolved mean)")
         axP1.set_yscale("log"); axP1.grid(True, alpha=0.3); axP1.legend(fontsize=7, ncol=2)
-    
+
         for x0, lbl in x_positions:
             axP2.plot(t_vals, avg_profiles[x0], label=lbl, marker='o', ms=3)
         axP2.set_xlabel("cycle t"); axP2.set_ylabel(r"$\sum_y s(x_0,y)$")
         axP2.set_title(r"$s_{\overline{G}}$"); axP2.set_yscale("log"); axP2.grid(True, alpha=0.3); axP2.legend(fontsize=7, ncol=2)
-    
-        # sync y limits
+
         y1 = axP1.get_ylim(); y2 = axP2.get_ylim()
         ymin = min(y1[0], y2[0]); ymax = max(y1[1], y2[1])
         axP1.set_ylim(ymin, ymax); axP2.set_ylim(ymin, ymax)
-    
+
         axS1 = fig.add_subplot(gs[1, 0]); axS2 = fig.add_subplot(gs[1, 1])
         axS1.plot(np.arange(len(ev_traj)), np.sort(ev_traj), '.', ms=3); axS1.grid(True, alpha=0.3)
         axS2.plot(np.arange(len(ev_avg)),  np.sort(ev_avg),  '.', ms=3); axS2.grid(True, alpha=0.3)
         axS1.set_title(r"eigvals($G_{\mathrm{final}}$) (traj)"); axS2.set_title(r"eigvals($\overline{G}_{\mathrm{final}}$)")
         axS1.set_xlabel("index"); axS1.set_ylabel("eigenvalue")
         axS2.set_xlabel("index"); axS2.set_ylabel("eigenvalue")
-    
+
         axM1 = fig.add_subplot(gs[2, 0]); axM2 = fig.add_subplot(gs[2, 1])
         im1 = axM1.imshow(final_traj_map, cmap="Blues", origin="upper", aspect="equal")
         im2 = axM2.imshow(final_avg_map,  cmap="Blues", origin="upper", aspect="equal")
@@ -1579,34 +1903,33 @@ class classA_U1FGTN:
         fig.colorbar(im1, ax=axM1, fraction=0.046, pad=0.04)
         fig.colorbar(im2, ax=axM2, fraction=0.046, pad=0.04)
         axM1.set_title("Final $s_G$ (traj)"); axM2.set_title(r"Final $s_{\overline{G}}$")
-    
+
         fig.suptitle(
             f"Entanglement contour (cycles={cycles}, samples={S}, backend={backend})\n"
             r"Initial top layer: maximally mixed ($G_{tt}=0$)",
             y=1.02
         )
         fig.savefig(profiles_pdf, bbox_inches="tight", dpi=140); plt.close(fig)
-    
-        # --------------- dynamics GIFs (with colorbars) ---------------
+
+        # --------------- dynamics GIFs ---------------
         outdir_dyn = self._ensure_outdir("figs/entanglement_contour_dynamics")
         if filename_prefix_dyn is None:
             filename_prefix_dyn = f"entanglement_dyn_N{Nx}_S{S}_{backend}"
-    
-        traj_maps_for_gif = [self.entanglement_contour(np.asarray(histories[0][t])[:Nlayer, :Nlayer]) for t in range(T)]
-        # avg_maps already computed
-    
+
+        traj_maps_for_gif = [self.entanglement_contour(np.asarray(top_histories[0][t], dtype=np.complex128)) for t in range(T)]
+
         dyn_final_png = os.path.join(outdir_dyn, f"{filename_prefix_dyn}_final.png")
         figF = plt.figure(constrained_layout=True, figsize=(10, 4))
         axsF = figF.subplots(1, 2, squeeze=True)
         imf1 = axsF[0].imshow(traj_maps_for_gif[-1], cmap="Blues", origin="upper", aspect="equal")
-        imf2 = axsF[1].imshow(avg_maps[-1],           cmap="Blues", origin="upper", aspect="equal")
+        imf2 = axsF[1].imshow(traj_maps_for_gif[-1] * 0 + avg_maps[-1], cmap="Blues", origin="upper", aspect="equal")  # reuse avg_maps
         for ax in axsF:
             ax.set_xlabel("y"); ax.set_ylabel("x")
         figF.colorbar(imf1, ax=axsF[0], fraction=0.046, pad=0.04)
         figF.colorbar(imf2, ax=axsF[1], fraction=0.046, pad=0.04)
         figF.suptitle(r"Dynamics final frames — initial top layer maximally mixed ($G_{tt}=0$)", y=1.02)
         figF.savefig(dyn_final_png, dpi=150, bbox_inches="tight"); plt.close(figF)
-    
+
         def _make_gif(maps, fname, title):
             fig = plt.figure(constrained_layout=True, figsize=(5.6, 4.6))
             ax = fig.add_subplot(111)
@@ -1620,12 +1943,12 @@ class classA_U1FGTN:
             ani = animation.FuncAnimation(fig, update, frames=len(maps), interval=400, blit=True)
             ani.save(os.path.join(outdir_dyn, fname), writer="pillow", dpi=120)
             plt.close(fig)
-    
+
         dyn_gif_traj = f"{filename_prefix_dyn}_traj.gif"
         dyn_gif_avg  = f"{filename_prefix_dyn}_avg.gif"
         _make_gif(traj_maps_for_gif, dyn_gif_traj, r"$s_G(r,t)$ (traj-resolved)")
         _make_gif(avg_maps,          dyn_gif_avg,  r"$s_{\overline{G}}(r,t)$ (traj-averaged)")
-    
+
         return {
             "profiles_pdf": profiles_pdf,
             "dyn_dir": outdir_dyn,
