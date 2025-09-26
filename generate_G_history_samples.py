@@ -20,21 +20,21 @@ def format_interval(seconds: float) -> str:
 # ----------------------------
 # Config (edit these)
 # ----------------------------
-Nx, Ny  = 24, 24
-cycles  = 20
-samples = 10
-nshell  = 5                 # None for untruncated
-DW      = True
-backend = "loky"            # "loky" or "threading"
+Nx, Ny   = 21, 21
+cycles   = 20
+samples  = 10
+nshell   = 5                 # None for untruncated
+DW       = True
+backend  = "loky"            # "loky" or "threading"
 filling_frac = 0.5
-seed_tag = None             # optional, becomes part of cache key
 
 # Which caches to build:
-GENERATE_DEFAULT     = True       # uses your random G0 (top not maximally mixed)
-GENERATE_MAXMIX_TOP  = True       # uses G_tt = 0 at t=0 (entanglement suite)
+GENERATE_DEFAULT    = True        # uses model's G0 (normal run)
+GENERATE_MAXMIX_TOP = True        # uses G_tt=0 at t=0 (for entanglement suite)
 
 # Parallelism
 n_jobs = min(samples, os.cpu_count() or 1)
+
 
 # ----------------------------
 # Run
@@ -57,8 +57,7 @@ def run_one(init_kind: str):
         init_kind=init_kind,        # "default" or "maxmix_top"
         backend=backend,
         n_jobs=n_jobs,
-        seed_tag=seed_tag,
-        prompt_on_miss=False,       # don't pause; just generate on miss
+        prompt_on_miss=False,       # don’t pause; just generate on miss
     )
 
     # Touch data to ensure it’s loaded in memory (no generation here).
@@ -67,12 +66,11 @@ def run_one(init_kind: str):
     T = len(full_hist[0]) if S > 0 else 0
     Ntot = m.Ntot
 
-    # Compute the cache path we just produced/used.
+    # Compute/report the cache path used for this parameter set.
     cache_path = m._cache_path_Ghist(
         samples=samples,
         cycles=cycles,
         nshell=nshell,
-        seed_tag=seed_tag,
         init_kind=init_kind,
     )
     exists = os.path.isfile(cache_path)
