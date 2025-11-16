@@ -1,0 +1,14 @@
+# Python crap
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Massive generated data
+cache/
+*.npz
+
+# If you don't need figures versioned:
+figs/
+*.png
+*.gif
+
