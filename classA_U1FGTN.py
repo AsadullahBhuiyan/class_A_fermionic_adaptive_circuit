@@ -4,7 +4,7 @@ import math
 import time
 import matplotlib.animation as animation
 from matplotlib import pyplot as plt
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from joblib import Parallel, delayed, parallel_backend
 from threadpoolctl import threadpool_limits
 import joblib
@@ -45,7 +45,8 @@ class classA_U1FGTN:
         nshell=None,
         filling_frac=1 / 2,
         G0=None,
-        alpha_triv = 3
+        alpha_1 = 3,
+        alpha_2 = 1,
     ):
         '''Initialize lattice dimensions, domain-wall option, and starting covariance.'''
 
@@ -55,9 +56,14 @@ class classA_U1FGTN:
         self.filling_frac = filling_frac
         self.nshell = nshell
         self.DW = bool(DW)
-        self.alpha_triv = alpha_triv
+        self.alpha_1 = alpha_1
+        self.alpha_2 = alpha_2
         if self.DW:
-            self.create_domain_wall(alpha_triv=self.alpha_triv)
+            self.create_domain_wall(alpha_1=self.alpha_1, alpha_2=self.alpha_2)
+        else:
+            # Uniform mass profile when no DW is requested
+            self.alpha_profile = self.alpha_1 * np.ones((self.Nx, self.Ny), dtype=np.complex128)
+            self.alpha = self.alpha_profile
 
         self.G0 = None if G0 is None else np.array(G0, dtype=np.complex128, copy=True)
         self.G = None
@@ -125,6 +131,12 @@ class classA_U1FGTN:
         except np.linalg.LinAlgError:
             return np.linalg.pinv(K_reg) @ B
 
+    def _normalize_dw_exclude(self, val):
+        """
+        Treat dw_exclude=False as None so it is ignored; otherwise return val.
+        """
+        return None if val is False else val
+
     def _block_diag2(self, A, B):
         """
         Minimal block_diag(A,B) without scipy. Returns [[A,0],[0,B]].
@@ -137,21 +149,20 @@ class classA_U1FGTN:
 
     # ------------------ Overcomplete Wannier (OW) projectors ------------------
 
-    def create_domain_wall(self, alpha_triv=None):
+    def create_domain_wall(self, alpha_1, alpha_2):
         '''Construct and store the default domain-wall mass profile for the lattice.'''
         Nx, Ny = self.Nx, self.Ny
-        if alpha_triv is None:
-            alpha = np.full((Nx, Ny), 3, dtype=np.complex128)  # trivial
-        else:
-            alpha = np.full((Nx, Ny), float(alpha_triv), dtype=np.complex128)
+        alpha = np.full((Nx, Ny), float(alpha_1), dtype=np.complex128)
         half = Nx // 2
         w = max(1, int(np.floor(0.2 * Nx)))
         x0 = max(0, half - w)
         x1 = min(Nx, half + w + 1)  # inclusive slab -> slice end-exclusive
-        alpha[x0:x1, :] = 1         # topological region
-        print(f"DWs at x=({int(x0-1)}, {int(x1-1)})")
-        self.DW_loc = [int(x0-1), int(x1-1)]
-        self.alpha = alpha
+        alpha[x0:x1, :] = float(alpha_2)        # topological region
+        print(f"DWs at x=({int(x0)}, {int(x1-1)})")
+        self.DW_loc = [int(x0), int(x1-1)]
+        self.alpha_profile = alpha
+        # Backward-compat alias used by some notebooks/plots
+        self.alpha = self.alpha_profile
 
     def construct_OW_projectors(self, nshell, DW):
         '''Build overcomplete Wannier projectors used for adaptive measurements.'''
@@ -159,9 +170,11 @@ class classA_U1FGTN:
 
         # Mass profile alpha(x) for the Dirac-CI model
         if not DW:
-            self.alpha = np.ones((Nx, Ny), dtype=np.complex128)
+            self.alpha_profile = self.alpha_1*np.ones((Nx, Ny), dtype=np.complex128)
+        # Keep legacy alias in sync
+        self.alpha = self.alpha_profile
         
-        alpha = self.alpha
+        alpha = self.alpha_profile
 
         # k-grid (FFT order)
         kx = 2*np.pi * np.fft.fftfreq(Nx)
@@ -246,6 +259,84 @@ class classA_U1FGTN:
         self.WF_Bp = flatten_centers(W_Bp)
         self.WF_Am = flatten_centers(W_Am)
         self.WF_Bm = flatten_centers(W_Bm)
+
+    def _compute_ow_projectors_for_alpha(self, alpha_value, nshell):
+        """Compute OW projectors for a uniform mass without mutating instance state."""
+        Nx, Ny = self.Nx, self.Ny
+        alpha_profile = float(alpha_value) * np.ones((Nx, Ny), dtype=np.complex128)
+
+        kx = 2 * np.pi * np.fft.fftfreq(Nx)
+        ky = 2 * np.pi * np.fft.fftfreq(Ny)
+        KX, KY = np.meshgrid(kx, ky, indexing="ij")
+
+        nx = np.sin(KX)[:, :, None, None]
+        ny = np.sin(KY)[:, :, None, None]
+        nz = alpha_profile[None, None, :, :] - np.cos(KX)[:, :, None, None] - np.cos(KY)[:, :, None, None]
+        nmag = np.sqrt(nx**2 + ny**2 + nz**2)
+        nmag = np.where(nmag == 0, 1e-15, nmag)
+
+        sx = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+        sy = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+        sz = np.array([[1, 0], [0, -1]], dtype=np.complex128)
+        I2 = np.eye(2, dtype=np.complex128)
+
+        hk = (nx[..., None, None] * sx +
+              ny[..., None, None] * sy +
+              nz[..., None, None] * sz) / nmag[..., None, None]
+
+        Pminus = 0.5 * (I2 - hk)
+        Pplus = 0.5 * (I2 + hk)
+
+        tauA = (1 / np.sqrt(2)) * np.array([[1], [1]], dtype=np.complex128)
+        tauB = (1 / np.sqrt(2)) * np.array([[1], [-1]], dtype=np.complex128)
+
+        Rx_grid = np.arange(Nx)
+        Ry_grid = np.arange(Ny)
+        phase_x = np.exp(1j * KX[..., None, None] * Rx_grid[None, None, :, None])
+        phase_y = np.exp(1j * KY[..., None, None] * Ry_grid[None, None, None, :])
+        phase = phase_x * phase_y
+
+        def k2_to_r2(Ak):
+            return np.fft.fft2(Ak, axes=(0, 1))
+
+        def make_W(Pband, tau, phase):
+            tau_dag = tau[:, 0].conj()
+            psi_k = np.einsum("m,...mn->...n", tau_dag, Pband, optimize=True)
+
+            F0 = phase * psi_k[..., 0]
+            F1 = phase * psi_k[..., 1]
+            W0 = k2_to_r2(F0)
+            W1 = k2_to_r2(F1)
+
+            W = np.moveaxis(np.stack([W0, W1], axis=-1), -1, 2)
+
+            if nshell is not None:
+                x = np.arange(Nx)[:, None, None, None]
+                y = np.arange(Ny)[None, :, None, None]
+                Rx = np.arange(Nx)[None, None, :, None]
+                Ry = np.arange(Ny)[None, None, None, :]
+                dxw = ((x - Rx + Nx // 2) % Nx) - Nx // 2
+                dyw = ((y - Ry + Ny // 2) % Ny) - Ny // 2
+                mask = ((np.abs(dxw) <= nshell) & (np.abs(dyw) <= nshell))[:, :, None, :, :]
+                W = W * mask
+            denom = np.sqrt(np.sum(np.abs(W)**2, axis=(0, 1, 2), keepdims=True)) + 1e-15
+            return W / denom
+
+        W_Ap = make_W(Pplus, tauA, phase)
+        W_Bp = make_W(Pplus, tauB, phase)
+        W_Am = make_W(Pminus, tauA, phase)
+        W_Bm = make_W(Pminus, tauB, phase)
+
+        def flatten_centers(W):
+            W_mu_xy = np.transpose(W, (2, 0, 1, 3, 4))
+            return W_mu_xy.reshape(2 * Nx * Ny, Nx, Ny, order="F")
+
+        return (
+            flatten_centers(W_Ap),
+            flatten_centers(W_Bp),
+            flatten_centers(W_Am),
+            flatten_centers(W_Bm),
+        )
 
     def _proj_from_WF(self, WF, Rx, Ry):
         """Build rank-1 projector χχ† on-the-fly from a stored Wannier spinor WF[:, Rx, Ry]."""
@@ -338,9 +429,9 @@ class classA_U1FGTN:
         Build the real-space Dirac/Chern Hamiltonian with spatially varying mass alpha(x,y).
         """
         if alpha is None:
-            if not hasattr(self, "alpha"):
-                self.create_domain_wall()
-            alpha = self.alpha
+            if not hasattr(self, "alpha_profile"):
+                self.create_domain_wall(alpha_1=self.alpha_1, alpha_2=self.alpha_2)
+            alpha = self.alpha_profile
 
         Nx, Ny = self.Nx, self.Ny
         N = 2 * Nx * Ny
@@ -552,6 +643,35 @@ class classA_U1FGTN:
         if symmetrize:
             Gp = 0.5 * (Gp + Gp.conj().T)
         return Gp
+    
+    def measure_only_top_layer(self, G, P, particle=True, symmetrize=True):
+        '''Apply a charge-conserving measurement update on the top layer without coupling to bottom layer.
+            Expected input size: Nlayer \cross Nlayer
+        '''
+        Ntot = self.Ntot
+        Nlayer = Ntot // 2
+
+        G = np.asarray(G, dtype=np.complex128)
+        P = np.asarray(P, dtype=np.complex128)
+
+        Il = np.eye(Nlayer, dtype=np.complex128)
+
+        Gtt = G[:Nlayer, :Nlayer]
+
+
+        if particle:
+            H11, H21, H22 = -P, (Il - P), P
+        else:
+            H11, H21, H22 =  P, (Il - P), -P
+
+        K = Gtt @ H11 - Il
+        L = Gtt @ H21.conj().T
+        invK_L = self._solve_regularized(K, L, eps = 1e-9)
+        Gp = H22 - H21 @ invK_L
+
+        if symmetrize:
+            Gp = 0.5 * (Gp + Gp.conj().T)
+        return Gp
 
     def fSWAP(self, chi_top, chi_bottom):
         Ntot = self.Ntot
@@ -577,10 +697,58 @@ class classA_U1FGTN:
         return U
     
         # ---------------------- Local feedback / post-selection ----------------------
+    def local_markov_channel(self, G, Rx, Ry, n_a=0.5, p=1):
+        '''
+        Applies exact local channel at (Rx, Ry) to the physical (top) layer within the Markov Approximation
+        '''
 
-    def markov_meas_feedback(self, G, Rx, Ry, n_a=0.5):
-        '''Perform Markovian measurement plus feedback at site (Rx, Ry) on top-layer covariance.'''
         G = np.asarray(G, dtype=np.complex128)
+        Nlayer = self.Ntot // 2
+        if G.shape != (Nlayer, Nlayer):
+            raise ValueError(f"markov_meas_feedback expects top-layer covariance of shape ({Nlayer},{Nlayer}); got {G.shape}")
+
+        Il = np.eye(Nlayer, dtype=np.complex128)
+        G_2pt = 0.5 * (G + Il)
+
+        # On-the-fly projectors at (Rx, Ry)
+        P_Ap = self._proj_from_WF(self.WF_Ap, Rx, Ry)
+        P_Bp = self._proj_from_WF(self.WF_Bp, Rx, Ry)
+        P_Am = self._proj_from_WF(self.WF_Am, Rx, Ry)
+        P_Bm = self._proj_from_WF(self.WF_Bm, Rx, Ry)
+
+        # Chi spinors — make writable copies
+        chi_Ap = np.array(self.WF_Ap[:, Rx, Ry], dtype=np.complex128, copy=True)
+        chi_Bp = np.array(self.WF_Bp[:, Rx, Ry], dtype=np.complex128, copy=True)
+        chi_Am = np.array(self.WF_Am[:, Rx, Ry], dtype=np.complex128, copy=True)
+        chi_Bm = np.array(self.WF_Bm[:, Rx, Ry], dtype=np.complex128, copy=True)
+
+        def L_depletion(G, chi, P, n_a):
+            return -(P @ G + G @ P) + (1 + n_a) * P * (chi.conj().T @ G @ chi)
+        
+        def L_fill(G, chi, P, n_a):
+            return n_a * P - (P @ G + G @ P) + (2-n_a) * P * (chi.conj().T @ G @ chi)
+        
+        # Upper band A: Deplete
+        G_2pt += p * L_depletion(G_2pt, chi_Ap, P_Ap, n_a)
+        # Upper band B: Deplete
+        G_2pt += p * L_depletion(G_2pt, chi_Bp, P_Bp, n_a)
+        # Lower band A: Fill
+        G_2pt += p * L_fill(G_2pt, chi_Am, P_Am, n_a)   
+        # Lower band B: Fill
+        G_2pt += p * L_fill(G_2pt, chi_Bm, P_Bm, n_a)
+
+        return 2 * G_2pt - Il
+    
+    def markov_meas_feedback(self, G, Rx, Ry, n_a=0.5, local_mode=False, p_meas=1.0):
+        '''Perform Markovian measurement plus feedback at site (Rx, Ry) on top-layer covariance.
+        
+        If local_mode is True, bypass the overcomplete Wannier feedback and measure only the
+        canonical μ=1 (expected occupied) and μ=2 (expected unoccupied) orbitals at (Rx,Ry).
+        '''
+        G = np.asarray(G, dtype=np.complex128)
+        p_meas = float(np.clip(p_meas, 0.0, 1.0))
+        if p_meas <= 0.0:
+            return G
         Nlayer = self.Ntot // 2
         if G.shape != (Nlayer, Nlayer):
             raise ValueError(f"markov_meas_feedback expects top-layer covariance of shape ({Nlayer},{Nlayer}); got {G.shape}")
@@ -602,28 +770,6 @@ class classA_U1FGTN:
 
             G_upd = H22 - H21 @ X
 
-            #if not np.all(np.isfinite(G)):
-            #    raise FloatingPointError("Non-finite entries encountered in top-layer covariance before measurement.")
-
-            # Numerical guard: c should be real and positive, but round-off can make it tiny/complex.
-            #c = 1 - np.trace(G @ H11)
-            #c = np.real_if_close(c, tol=1e-12)
-            #c = float(np.real(c))
-            #normG = np.linalg.norm(G)
-            #eps = 1e-8
-            #if not np.isfinite(c) or abs(c) < eps:
-            #    c = np.copysign(eps, c if c != 0.0 else 1.0)
-#
-            #inv_c = 1.0 / c
-            #GH = G @ H11 @ G
-            #numer = GH - c * G
-            #G_upd = H22 - H21 @ (numer * inv_c) @ H21.conj().T
-#
-            #if not np.all(np.isfinite(G_upd)):
-            #    raise FloatingPointError(
-            #        f"Non-finite top-layer update (particle={particle}, c={c:.3e}, ||G||={normG:.3e})"
-            #    )
-
             G_upd = 0.5 * (G_upd + G_upd.conj().T)
             return G_upd
 
@@ -639,53 +785,89 @@ class classA_U1FGTN:
                 raise FloatingPointError(f"Non-finite ancilla swap result (n_a={n_a}, occ={ancilla_cov})")
             return Gnew
 
-        P_Ap = self._proj_from_WF(self.WF_Ap, Rx, Ry)
-        P_Bp = self._proj_from_WF(self.WF_Bp, Rx, Ry)
-        P_Am = self._proj_from_WF(self.WF_Am, Rx, Ry)
-        P_Bm = self._proj_from_WF(self.WF_Bm, Rx, Ry)
-
         def _clamp_prob(val):
             return np.clip(float(np.real(val)), 0.0, 1.0)
 
         Gtt_2pt = 0.5 * (G + Il)
 
+        # Optional local mode: measure the canonical μ=1 (unoccupied) and μ=2 (occupied) orbitals only. 
+        if local_mode:
+            idx_mu1 = 0 + 2 * Rx + 2 * self.Nx * Ry  # μ=1 in 1-based language, or infinite mass upper band
+            idx_mu2 = 1 + 2 * Rx + 2 * self.Nx * Ry  # μ=2 in 1-based language, or infinite mass lower band
+            e_mu1 = Il[idx_mu1]
+            e_mu2 = Il[idx_mu2]
+            P_mu1 = np.outer(e_mu1, e_mu1.conj())
+            P_mu2 = np.outer(e_mu2, e_mu2.conj())
+
+            if p_meas >= 1.0 or np.random.rand() < p_meas:
+                p_occ = _clamp_prob(np.trace(Gtt_2pt @ P_mu1))
+                occ_event = np.random.rand() < p_occ  # expect unoccupied
+                if occ_event:
+                    G = _measure(G, P_mu1, particle=occ_event)
+                    G = _ancilla_swap_top(G, P_mu1, n_a)
+                else: 
+                    G = _measure(G, P_mu1, particle=occ_event)
+                Gtt_2pt = 0.5 * (G + Il)
+
+            if p_meas >= 1.0 or np.random.rand() < p_meas:
+                p_occ = _clamp_prob(np.trace(Gtt_2pt @ P_mu2))
+                occ_event = np.random.rand() < p_occ  # expect occupied
+                if occ_event:
+                    G = _measure(G, P_mu2, particle=occ_event)
+                else: 
+                    G = _measure(G, P_mu2, particle=occ_event)
+                    G = _ancilla_swap_top(G, P_mu2, n_a)
+            return G
+
+        P_Ap = self._proj_from_WF(self.WF_Ap, Rx, Ry)
+        P_Bp = self._proj_from_WF(self.WF_Bp, Rx, Ry)
+        P_Am = self._proj_from_WF(self.WF_Am, Rx, Ry)
+        P_Bm = self._proj_from_WF(self.WF_Bm, Rx, Ry)
+
         # Upper band A: expect UNOCCUPIED
-        p_occ = _clamp_prob(np.trace(Gtt_2pt @ P_Ap))
-        occ_event = np.random.rand() < p_occ
-        G = _measure(G, P_Ap, particle=occ_event)
-        if occ_event: 
-            G = _ancilla_swap_top(G, P_Ap, n_a) # pump out
-        Gtt_2pt = 0.5 * (G + Il)
+        if p_meas >= 1.0 or np.random.rand() < p_meas:
+            p_occ = _clamp_prob(np.trace(Gtt_2pt @ P_Ap))
+            occ_event = np.random.rand() < p_occ
+            G = _measure(G, P_Ap, particle=occ_event)
+            if occ_event: 
+                G = _ancilla_swap_top(G, P_Ap, n_a) # pump out
+            Gtt_2pt = 0.5 * (G + Il)
 
         # Upper band B: expect UNOCCUPIED
-        p_occ = _clamp_prob(np.trace(Gtt_2pt @ P_Bp))
-        occ_event = np.random.rand() < p_occ
-        G = _measure(G, P_Bp, particle=occ_event)
-        if occ_event:
-            G = _ancilla_swap_top(G, P_Bp, n_a) # pump out
-        Gtt_2pt = 0.5 * (G + Il)
+        if p_meas >= 1.0 or np.random.rand() < p_meas:
+            p_occ = _clamp_prob(np.trace(Gtt_2pt @ P_Bp))
+            occ_event = np.random.rand() < p_occ
+            G = _measure(G, P_Bp, particle=occ_event)
+            if occ_event:
+                G = _ancilla_swap_top(G, P_Bp, n_a) # pump out
+            Gtt_2pt = 0.5 * (G + Il)
 
         # Lower band A: expect OCCUPIED
-        p_occ = _clamp_prob(np.trace(Gtt_2pt @ P_Am))
-        occ_event = np.random.rand() < p_occ
-        G = _measure(G, P_Am, particle=occ_event)
-        if not occ_event:
-            G = _ancilla_swap_top(G, P_Am, n_a) # pump in
-        Gtt_2pt = 0.5 * (G + Il)
+        if p_meas >= 1.0 or np.random.rand() < p_meas:
+            p_occ = _clamp_prob(np.trace(Gtt_2pt @ P_Am))
+            occ_event = np.random.rand() < p_occ
+            G = _measure(G, P_Am, particle=occ_event)
+            if not occ_event:
+                G = _ancilla_swap_top(G, P_Am, n_a) # pump in
+            Gtt_2pt = 0.5 * (G + Il)
 
         # Lower band B: expect OCCUPIED
-        p_occ = _clamp_prob(np.trace(Gtt_2pt @ P_Bm))
-        occ_event = np.random.rand() < p_occ
-        G = _measure(G, P_Bm, particle=occ_event)
-        if not occ_event:
-            G = _ancilla_swap_top(G, P_Bm, n_a) # pump in
+        if p_meas >= 1.0 or np.random.rand() < p_meas:
+            p_occ = _clamp_prob(np.trace(Gtt_2pt @ P_Bm))
+            occ_event = np.random.rand() < p_occ
+            G = _measure(G, P_Bm, particle=occ_event)
+            if not occ_event:
+                G = _ancilla_swap_top(G, P_Bm, n_a) # pump in
 
         return G
         
 
-    def top_layer_meas_feedback(self, G, Rx, Ry):
+    def top_layer_meas_feedback(self, G, Rx, Ry, p_meas=1.0):
         '''Perform adaptive measurement plus feedback at site (Rx, Ry).'''
         G = np.asarray(G, dtype=np.complex128)
+        p_meas = float(np.clip(p_meas, 0.0, 1.0))
+        if p_meas <= 0.0:
+            return G
         Nlayer = self.Ntot // 2
         Il = np.eye(Nlayer, dtype=np.complex128)
         Gtt_2pt = 0.5 * (G[:Nlayer, :Nlayer] + Il)
@@ -711,51 +893,62 @@ class classA_U1FGTN:
             return U.conj().T @ Gmat @ U
 
         # Upper band A: want UNOCCUPIED
-        p_occ = float(np.real(np.trace(Gtt_2pt @ P_Ap))); p_occ = np.clip(p_occ, 0.0, 1.0)
-        if np.random.rand() < p_occ:
-            G = self.measure_top_layer(G, P_Ap, particle=True)
-            G = do_fswap(G, chi_Ap, eA_b)  # swap OUT
-        else:
-            G = self.measure_top_layer(G, P_Ap, particle=False)
+        if p_meas >= 1.0 or np.random.rand() < p_meas:
+            p_occ = float(np.real(np.trace(Gtt_2pt @ P_Ap))); p_occ = np.clip(p_occ, 0.0, 1.0)
+            if np.random.rand() < p_occ:
+                G = self.measure_top_layer(G, P_Ap, particle=True)
+                G = do_fswap(G, chi_Ap, eA_b)  # swap OUT
+            else:
+                G = self.measure_top_layer(G, P_Ap, particle=False)
 
         # Upper band B: want UNOCCUPIED
-        p_occ = float(np.real(np.trace(Gtt_2pt @ P_Bp))); p_occ = np.clip(p_occ, 0.0, 1.0)
-        if np.random.rand() < p_occ:
-            G = self.measure_top_layer(G, P_Bp, particle=True)
-            G = do_fswap(G, chi_Bp, eB_b)
-        else:
-            G = self.measure_top_layer(G, P_Bp, particle=False)
+        if p_meas >= 1.0 or np.random.rand() < p_meas:
+            p_occ = float(np.real(np.trace(Gtt_2pt @ P_Bp))); p_occ = np.clip(p_occ, 0.0, 1.0)
+            if np.random.rand() < p_occ:
+                G = self.measure_top_layer(G, P_Bp, particle=True)
+                G = do_fswap(G, chi_Bp, eB_b)
+            else:
+                G = self.measure_top_layer(G, P_Bp, particle=False)
 
         # Lower band A: want OCCUPIED
-        p_occ = float(np.real(np.trace(Gtt_2pt @ P_Am))); p_occ = np.clip(p_occ, 0.0, 1.0)
-        if np.random.rand() < p_occ:
-            G = self.measure_top_layer(G, P_Am, particle=True)
-        else:
-            G = self.measure_top_layer(G, P_Am, particle=False)
-            G = do_fswap(G, chi_Am, eA_b)  # swap IN
+        if p_meas >= 1.0 or np.random.rand() < p_meas:
+            p_occ = float(np.real(np.trace(Gtt_2pt @ P_Am))); p_occ = np.clip(p_occ, 0.0, 1.0)
+            if np.random.rand() < p_occ:
+                G = self.measure_top_layer(G, P_Am, particle=True)
+            else:
+                G = self.measure_top_layer(G, P_Am, particle=False)
+                G = do_fswap(G, chi_Am, eA_b)  # swap IN
 
         # Lower band B: want OCCUPIED
-        p_occ = float(np.real(np.trace(Gtt_2pt @ P_Bm))); p_occ = np.clip(p_occ, 0.0, 1.0)
-        if np.random.rand() < p_occ:
-            G = self.measure_top_layer(G, P_Bm, particle=True)
-        else:
-            G = self.measure_top_layer(G, P_Bm, particle=False)
-            G = do_fswap(G, chi_Bm, eB_b)
+        if p_meas >= 1.0 or np.random.rand() < p_meas:
+            p_occ = float(np.real(np.trace(Gtt_2pt @ P_Bm))); p_occ = np.clip(p_occ, 0.0, 1.0)
+            if np.random.rand() < p_occ:
+                G = self.measure_top_layer(G, P_Bm, particle=True)
+            else:
+                G = self.measure_top_layer(G, P_Bm, particle=False)
+                G = do_fswap(G, chi_Bm, eB_b)
 
         return G
 
-    def post_selection_top_layer(self, G, Rx, Ry):
+    def post_selection_top_layer(self, G, Rx, Ry, p_meas=1.0):
         '''Project the top layer at (Rx, Ry) onto the desired four outcomes.'''
+        p_meas = float(np.clip(p_meas, 0.0, 1.0))
+        if p_meas <= 0.0:
+            return G
         # On-the-fly projectors
         P_Ap = self._proj_from_WF(self.WF_Ap, Rx, Ry)
         P_Bp = self._proj_from_WF(self.WF_Bp, Rx, Ry)
         P_Am = self._proj_from_WF(self.WF_Am, Rx, Ry)
         P_Bm = self._proj_from_WF(self.WF_Bm, Rx, Ry)
 
-        G = self.measure_top_layer(G, P_Ap, particle=False)  # Ap unocc
-        G = self.measure_top_layer(G, P_Bp, particle=False)  # Bp unocc
-        G = self.measure_top_layer(G, P_Am, particle=True)   # Am occ
-        G = self.measure_top_layer(G, P_Bm, particle=True)   # Bm occ
+        if p_meas >= 1.0 or np.random.rand() < p_meas:
+            G = self.measure_top_layer(G, P_Ap, particle=False)  # Ap unocc
+        if p_meas >= 1.0 or np.random.rand() < p_meas:
+            G = self.measure_top_layer(G, P_Bp, particle=False)  # Bp unocc
+        if p_meas >= 1.0 or np.random.rand() < p_meas:
+            G = self.measure_top_layer(G, P_Am, particle=True)   # Am occ
+        if p_meas >= 1.0 or np.random.rand() < p_meas:
+            G = self.measure_top_layer(G, P_Bm, particle=True)   # Bm occ
         return G
 
     def measure_all_bottom_modes(self, G):
@@ -796,8 +989,282 @@ class classA_U1FGTN:
         U_tot = self._block_diag2(Il, U_bott)
         return U_tot.conj().T @ G @ U_tot
 
+    def _sequence_helper(self, sequence, Nx=None, Ny=None, rng=None, dw_exclude=None, top_region_last=False, skip_trivial=False):
+        """
+        Build iterators for site-ordering across measurement-feedback sweeps.
 
-    # ==================== run_adaptive_circuit with samples loop ====================
+        This helper generates the coordinate list for a single circuit cycle, handling 
+        geometric patterns, exclusion zones, and region prioritization.
+
+        Parameters
+        ----------
+        sequence : str
+            The fundamental spatial scanning pattern.
+            
+            Standard Raster Scans:
+            - "snake_y": Scans columns (x) left-to-right, within each column scans y bottom-to-top.
+            - "reverse_snake_y": Reverse of "snake_y".
+            - "snake_x": Scans rows (y) bottom-to-top, within each row scans x left-to-right.
+            - "reverse_snake_x": Reverse of "snake_x".
+            - "random": Randomized permutation of all sites, reshuffled every cycle.
+            - "random_dw_symmetric": For each x column (Rx from 0 to Nx-1), pick a random
+              permutation of y (without replacement), then move to the next x.
+            - "dw_symmetric_random": For each sweep, scan x in slab-first order
+              (x_min..x_max, then the remaining columns in ascending order). For each
+              Rx, choose a fresh random permutation of y.
+
+            Symmetric Scans (Preserve Reflection Symmetry):
+            - "dw_symmetric": Center-Out X-scan. For every y-row, scans from the lattice 
+              center (Nx//2) outwards to the edges. If DW is active, scans slab first,
+              then the trivial regions, each in center-out order.
+            - "dw_symmetric_2": Edge-In X-scan. Scans from x=0 and x=Nx-1 inwards to the center.
+            - "spiral": Fully symmetric Center-Out scan in both X and Y directions. 
+              Starts at (Nx//2, Ny//2) and spirals/explodes outwards.
+
+        dw_exclude : int or None
+            If an integer s >= 0 is provided (and self.DW is active), a symmetric buffer zone 
+            [DW_loc - s, DW_loc + s] is strictly excluded from the coordinate list. 
+            This protects the gapless edge modes from direct projection noise.
+
+        top_region_last : bool
+            If True (and self.DW is active), the coordinate list is reordered into two phases:
+            1. Trivial Regions (Outside the Domain Walls): Measured FIRST.
+            2. Bulk Region (Between the Domain Walls): Measured LAST.
+            
+            The relative order within these phases follows `sequence`. This ordering "pins" 
+            the trivial vacuum boundaries before perturbing the topological bulk.
+
+        skip_trivial : bool
+            If True (and self.DW is active), strictly restricts the measurement scan to the 
+            region between (and including) the domain walls. The trivial vacuum regions 
+            (x < DW_1 and x > DW_2) are skipped entirely.
+
+        Returns
+        -------
+        dict
+            - "iter_fn": Callable returning the full coordinate list for one cycle.
+            - "iter_bulk_fn": Callable returning ONLY the bulk coordinates (used for extra bulk_cycles).
+            - "bulk_len": Integer count of bulk sites.
+        """
+        
+        Nx = self.Nx if Nx is None else int(Nx)
+        Ny = self.Ny if Ny is None else int(Ny)
+        mode = str(sequence).lower()
+        
+        allowed = (
+            "snake_y", "reverse_snake_y", "snake_x", "reverse_snake_x",
+            "random", "dw_symmetric", "dw_symmetric_2", "spiral", "random_dw_symmetric",
+            "dw_symmetric_random",
+        )
+        if mode not in allowed:
+            raise ValueError(f"sequence must be one of: {', '.join(allowed)}.")
+
+        rng = np.random.default_rng() if rng is None else rng
+        # Normalize dw_exclude: treat False as None, keep all other values
+        if isinstance(dw_exclude, bool):
+            dw_exclude = None if dw_exclude is False else int(dw_exclude)
+        
+        # 1. Generate Base Coordinates (The Pattern)
+        coords = []
+        
+        if mode == "snake_y":
+            coords = [(Rx, Ry) for Rx in range(Nx) for Ry in range(Ny)]
+        elif mode == "reverse_snake_y":
+            coords = list(reversed([(Rx, Ry) for Rx in range(Nx) for Ry in range(Ny)]))
+        elif mode == "snake_x":
+            coords = [(Rx, Ry) for Ry in range(Ny) for Rx in range(Nx)]
+        elif mode == "reverse_snake_x":
+            coords = list(reversed([(Rx, Ry) for Ry in range(Ny) for Rx in range(Nx)]))
+        elif mode == "random":
+            coords = [(Rx, Ry) for Rx in range(Nx) for Ry in range(Ny)]
+        
+        elif mode == "random_dw_symmetric":
+            for Rx in range(Nx):
+                y_order = rng.permutation(Ny)
+                for Ry in y_order:
+                    coords.append((Rx, Ry))
+        elif mode == "dw_symmetric_random":
+            if not (hasattr(self, "DW_loc") and len(self.DW_loc) >= 2):
+                raise ValueError("dw_symmetric_random requires DW_loc to define the slab.")
+            dw_sorted = sorted(list(set(self.DW_loc)))
+            x_min, x_max = int(dw_sorted[0]), int(dw_sorted[-1])
+            x_order = list(range(x_min, x_max + 1)) + list(range(0, x_min)) + list(range(x_max + 1, Nx))
+            for Rx in x_order:
+                for Ry in range(Ny):
+                    coords.append((Rx, Ry))
+        elif mode in ("dw_symmetric", "dw_symmetric_2", "spiral"):
+            if mode == "dw_symmetric" and (getattr(self, "DW", False) and hasattr(self, "DW_loc") and len(self.DW_loc) >= 2):
+                dw_sorted = sorted(list(set(self.DW_loc)))
+                x_min, x_max = int(dw_sorted[0]), int(dw_sorted[-1])
+
+                def _center_out_order(xs):
+                    xs_sorted = sorted(xs)
+                    if not xs_sorted:
+                        return []
+                    mid_idx = (len(xs_sorted) - 1) // 2
+                    order = [xs_sorted[mid_idx]]
+                    for k in range(1, len(xs_sorted)):
+                        left_idx = mid_idx - k
+                        right_idx = mid_idx + k
+                        if left_idx >= 0:
+                            order.append(xs_sorted[left_idx])
+                        if right_idx < len(xs_sorted):
+                            order.append(xs_sorted[right_idx])
+                        if len(order) >= len(xs_sorted):
+                            break
+                    return order
+
+                slab_xs = range(x_min, x_max + 1)
+                left_xs = range(0, x_min)
+                right_xs = range(x_max + 1, Nx)
+                x_order = _center_out_order(slab_xs) + _center_out_order(left_xs) + _center_out_order(right_xs)
+                y_order = range(Ny)
+            else:
+                mid_x = Nx // 2
+                if mode == "dw_symmetric_2": # Edge-In
+                    x_order = list(range(0, mid_x + 1)) + list(range(Nx - 1, mid_x, -1))
+                else: # Center-Out
+                    x_order = list(range(mid_x, Nx)) + list(range(mid_x - 1, -1, -1))
+
+                if mode == "spiral": # Center-Out Y
+                    mid_y = Ny // 2
+                    y_order = list(range(mid_y, Ny)) + list(range(mid_y - 1, -1, -1))
+                else:
+                    y_order = range(Ny)
+
+            for Ry in y_order:
+                for Rx in x_order:
+                    coords.append((Rx, Ry))
+
+        # 2. Apply "Skip Trivial" Logic (Restrict to Bulk+Walls)
+        if skip_trivial and getattr(self, "DW", False) and hasattr(self, "DW_loc") and len(self.DW_loc) >= 2:
+            dw_sorted = sorted(list(set(self.DW_loc)))
+            x_min, x_max = dw_sorted[0], dw_sorted[-1]
+            # Keep only sites inside or on the boundary
+            coords = [c for c in coords if x_min <= c[0] <= x_max]
+
+        # 3. Apply Exclusion Logic (Buffer Zone)
+        if dw_exclude is not None and getattr(self, "DW", False) and hasattr(self, "DW_loc"):
+            s = int(dw_exclude)
+            if s < 0: raise ValueError("dw_exclude must be non-negative.")
+            
+            excluded_x = set()
+            cutoff_occured = False
+
+            dw_sorted = sorted(list(set(self.DW_loc)))
+            if len(dw_sorted) >= 2:
+                x0, x1 = dw_sorted[0], dw_sorted[-1]  # assume x1 > x0
+                intervals = [
+                    (x0 - s, x0),     # buffer on the left DW (inclusive)
+                    (x1, x1 + s)      # buffer on the right DW (inclusive)
+                ]
+            else:
+                # Fallback: symmetric buffer around the single DW position
+                x0 = dw_sorted[0]
+                intervals = [(x0 - s, x0 + s)]
+
+            for start, end in intervals:
+                if start < 0:
+                    start = 0; cutoff_occured = True
+                if end >= Nx:
+                    end = Nx - 1; cutoff_occured = True
+                for x_ex in range(start, end + 1):
+                    excluded_x.add(x_ex)
+
+            if cutoff_occured:
+                print(f"[Warning] dw_exclude={s} clipped by lattice boundaries.")
+
+            if excluded_x:
+                excluded_list = sorted(excluded_x)
+                print(f"[info] dw_exclude={s} excludes x-columns {excluded_list}")
+
+            coords = [c for c in coords if c[0] not in excluded_x]
+
+        # 4. Apply Region Reordering (Trivial First, Bulk Last)
+        bulk_only_coords = [] 
+        
+        # Note: If skip_trivial=True, 'trivial_coords' below will naturally be empty or very sparse
+        # because step 2 already filtered them out.
+        if top_region_last and getattr(self, "DW", False) and hasattr(self, "DW_loc") and len(self.DW_loc) >= 2:
+            dw_sorted = sorted(list(set(self.DW_loc)))
+            x_min, x_max = dw_sorted[0], dw_sorted[-1]
+
+            trivial_coords = []
+            bulk_coords = []
+
+            for c in coords:
+                Rx = c[0]
+                # If strictly inside walls -> Bulk
+                if x_min < Rx < x_max:
+                    bulk_coords.append(c)
+                else:
+                    trivial_coords.append(c)
+            
+            coords = trivial_coords + bulk_coords
+            bulk_only_coords = bulk_coords
+
+        # 5. Define Iterators
+        def _shuffle_copy(seq):
+            seq_copy = list(seq)
+            rng.shuffle(seq_copy)
+            return seq_copy
+
+        coords_for_len = coords
+        
+        if mode == "random":
+            if top_region_last and getattr(self, "DW", False) and len(self.DW_loc) >= 2:
+                # Robust split for random shuffle
+                dw_sorted_iter = sorted(list(set(self.DW_loc)))
+                x_min_i, x_max_i = dw_sorted_iter[0], dw_sorted_iter[-1]
+                
+                # Re-derive split from the final filtered coords
+                static_trivial = [c for c in coords if not (x_min_i < c[0] < x_max_i)]
+                static_bulk = [c for c in coords if (x_min_i < c[0] < x_max_i)]
+                
+                def _split_shuffle():
+                    t = list(static_trivial); rng.shuffle(t)
+                    b = list(static_bulk);    rng.shuffle(b)
+                    return t + b
+                
+                iter_fn = _split_shuffle
+                iter_bulk_fn = lambda: _shuffle_copy(static_bulk)
+            else:
+                iter_fn = lambda: _shuffle_copy(coords)
+                iter_bulk_fn = lambda: []
+        elif mode == "dw_symmetric_random":
+            if not (hasattr(self, "DW_loc") and len(self.DW_loc) >= 2):
+                raise ValueError("dw_symmetric_random requires DW_loc to define the slab.")
+            dw_sorted = sorted(list(set(self.DW_loc)))
+            x_min, x_max = int(dw_sorted[0]), int(dw_sorted[-1])
+            x_order = list(range(x_min, x_max + 1)) + list(range(0, x_min)) + list(range(x_max + 1, Nx))
+            allowed_ry_by_x = {}
+            for Rx, Ry in coords_for_len:
+                allowed_ry_by_x.setdefault(Rx, []).append(Ry)
+            x_order_filtered = [Rx for Rx in x_order if Rx in allowed_ry_by_x]
+
+            def _dw_sym_rand_iter():
+                coords_out = []
+                for Rx in x_order_filtered:
+                    y_order = rng.permutation(allowed_ry_by_x[Rx])
+                    for Ry in y_order:
+                        coords_out.append((Rx, Ry))
+                return coords_out
+
+            iter_fn = _dw_sym_rand_iter
+            iter_bulk_fn = lambda: bulk_only_coords
+        else:
+            iter_fn = lambda: coords
+            iter_bulk_fn = lambda: bulk_only_coords
+
+        return {
+            "mode": mode, 
+            "coords_for_len": coords_for_len, 
+            "iter_fn": iter_fn,
+            "iter_bulk_fn": iter_bulk_fn,
+            "bulk_len": len(bulk_only_coords)
+        }
+
+    # ==================== run_adaptive_circuit ====================
 
     def run_adaptive_circuit(
         self,
@@ -810,36 +1277,98 @@ class classA_U1FGTN:
         n_jobs=None,
         backend="loky",
         parallelize_samples=False,
-        store="none",           # "none", "top", "full"
-        init_mode="default",    # "default" or "maxmix"
+        store="none",
+        init_mode="default",
         G_init=None,
         remember_init=True,
         save=True,
         save_suffix=None,
+        sequence="snake_y",
+        dw_exclude=None,
+        top_region_last=False,
+        bulk_cycles=0,
+        p_meas=1.0,
+        skip_trivial=False,      # <--- New Parameter
+        top_triv_back_forth=False,
+        dont_meas_center=False,
     ):
-        """Execute the adaptive circuit with optional history collection."""
+        """
+        Execute the adaptive circuit with optional history collection.
+
+        skip_trivial : bool
+            If True, measurements are restricted to the region between and including 
+            the domain walls (x_min <= x <= x_max).
+
+        top_triv_back_forth : bool
+            If True (DW must be False), alternate cycles between OW measurements inside
+            a central "DW-like" slab and local-mode measurements outside that slab.
+        """
         have_ow = all(hasattr(self, a) for a in ("WF_Ap","WF_Bp","WF_Am","WF_Bm"))
         if not have_ow:
             self.construct_OW_projectors(nshell=self.nshell, DW=self.DW)
 
-        cycles = 5 if cycles is None else int(cycles)
+        # Validate cycles and measurement probability
+        base_cycles = 5 if cycles is None else int(cycles)
+        base_bulk_cycles = int(bulk_cycles)
+        p_meas = float(np.clip(p_meas, 0.0, 1.0))
+        if p_meas <= 0.0:
+            raise ValueError("p_meas must be > 0.")
+        # Effective sweeps scaled by 1/p_meas to preserve expected counts
+        cycles = int(np.round(base_cycles / p_meas))
+        bulk_cycles = int(np.round(base_bulk_cycles / p_meas))
 
-        def _cache_key(*, Nx, Ny, cycles, samples, nshell, DW, init_mode, store_mode):
+        is_dw_active = getattr(self, "DW", False)
+        if top_triv_back_forth:
+            if is_dw_active:
+                raise ValueError("top_triv_back_forth requires DW=False.")
+            if skip_trivial or top_region_last:
+                raise ValueError("top_triv_back_forth is incompatible with skip_trivial/top_region_last.")
+        use_bulk_extra = (top_region_last and is_dw_active and bulk_cycles > 0)
+        dw_exclude_norm = self._normalize_dw_exclude(dw_exclude)
+        exclude_arg = dw_exclude_norm if ((is_dw_active or use_top_triv) and dw_exclude_norm is not None) else None
+
+        seq_info = self._sequence_helper(
+            sequence, 
+            Nx=self.Nx, 
+            Ny=self.Ny, 
+            rng=np.random.default_rng(),
+            dw_exclude=exclude_arg,
+            top_region_last=(top_region_last and is_dw_active),
+            skip_trivial=(skip_trivial and is_dw_active)
+        )
+        sequence_mode = seq_info["mode"]
+
+        def _cache_key(*, Nx, Ny, cycles, samples, nshell, DW, init_mode, store_mode, alpha_1, alpha_2, seq, exclude, bulk_last, b_cycles, pm, st, tbtf):
             nsh = "None" if nshell is None else str(nshell)
+            ex_str = str(exclude) if exclude is not None else "None"
             return (f"N{int(Nx)}x{int(Ny)}"
                     f"_C{int(cycles)}"
                     f"_S{int(samples)}"
                     f"_nsh{nsh}"
                     f"_DW{int(bool(DW))}"
+                    f"_a1{alpha_1}"
+                    f"_a2{alpha_2}"
                     f"_init-{init_mode}"
-                    f"_store-{store_mode}")
+                    f"_store-{store_mode}"
+                    f"_seq-{seq}"
+                    f"_excl{ex_str}"
+                    f"_bl{int(bulk_last)}"
+                    f"_bc{int(b_cycles)}"
+                    f"_pm{pm:.2f}"
+                    f"_st{int(st)}"
+                    f"_tbtf{int(tbtf)}")
 
         def _save_histories(array, samples_count):
             if not (save and store != "none" and array is not None):
                 return None
             outdir = self._ensure_outdir("cache/G_history_samples")
             key = _cache_key(Nx=self.Nx, Ny=self.Ny, cycles=cycles, samples=samples_count,
-                            nshell=self.nshell, DW=self.DW, init_mode=init_mode, store_mode=store)
+                             nshell=self.nshell, DW=self.DW, init_mode=init_mode, store_mode=store,
+                             alpha_1=self.alpha_1, alpha_2=self.alpha_2, seq=sequence_mode, 
+                             exclude=exclude_arg, 
+                             bulk_last=(top_region_last and is_dw_active),
+                             b_cycles=bulk_cycles, pm=p_meas, st=(skip_trivial and is_dw_active),
+                             tbtf=top_triv_back_forth)
             filename = f"{key}.npz"
             if save_suffix:
                 root, ext = os.path.splitext(filename)
@@ -853,14 +1382,13 @@ class classA_U1FGTN:
                 return None
             outdir = os.path.join("cache", "G_history_samples")
             key = _cache_key(
-                Nx=self.Nx,
-                Ny=self.Ny,
-                cycles=cycles,
-                samples=samples_count,
-                nshell=self.nshell,
-                DW=self.DW,
-                init_mode=init_mode,
-                store_mode=store,
+                Nx=self.Nx, Ny=self.Ny, cycles=cycles, samples=samples_count,
+                nshell=self.nshell, DW=self.DW, init_mode=init_mode,
+                store_mode=store, alpha_1=self.alpha_1, alpha_2=self.alpha_2,
+                seq=sequence_mode, exclude=exclude_arg,
+                bulk_last=(top_region_last and is_dw_active),
+                b_cycles=bulk_cycles, pm=p_meas, st=(skip_trivial and is_dw_active),
+                tbtf=top_triv_back_forth
             )
             filename = f"{key}.npz"
             if save_suffix:
@@ -875,7 +1403,6 @@ class classA_U1FGTN:
             print(f"[info] Adaptive circuit will save history to {path}")
             time.sleep(2)
 
-        # --------- choose/validate initial G0 ----------
         validated_G_init = None
         if G_init is not None:
             arr = np.asarray(G_init, dtype=np.complex128)
@@ -892,9 +1419,7 @@ class classA_U1FGTN:
             else:
                 raise ValueError("init_mode must be 'default' or 'maxmix'.")
 
-        # ---------------- single trajectory ----------------
         if not parallelize_samples or (samples is None or int(samples) <= 1):
-            # initial state
             if validated_G_init is not None:
                 self.G = np.array(validated_G_init, copy=True)
                 self.G0 = np.array(self.G, copy=True)
@@ -916,17 +1441,122 @@ class classA_U1FGTN:
             Nx, Ny = int(self.Nx), int(self.Ny)
             D = int(self.Ntot)
             I = np.eye(D, dtype=np.complex128)
-            total_sites = cycles * Nx * Ny
+            
+            coords_for_len = seq_info["coords_for_len"]
+            iter_fn = seq_info["iter_fn"]
+            iter_bulk_fn = seq_info["iter_bulk_fn"]
+
+            def _dw_region_from_trivial(Nx):
+                half = Nx // 2
+                w = max(1, int(np.floor(0.2 * Nx)))
+                x0 = max(0, half - w) - 1
+                x1 = min(Nx, half + w + 1)  # end-exclusive slab
+                return int(x0), int(x1)
+
+            def _excluded_x_for_trivial(x0_wall, x1_wall, s, Nx):
+                if s < 0:
+                    raise ValueError("dw_exclude must be non-negative.")
+                excluded_x = set()
+                cutoff_occured = False
+                intervals = [
+                    (x0_wall - s, x0_wall),     # buffer on the left DW (inclusive)
+                    (x1_wall, x1_wall + s)      # buffer on the right DW (inclusive)
+                ]
+                for start, end in intervals:
+                    if start < 0:
+                        start = 0; cutoff_occured = True
+                    if end >= Nx:
+                        end = Nx - 1; cutoff_occured = True
+                    for x_ex in range(start, end + 1):
+                        excluded_x.add(x_ex)
+                if cutoff_occured:
+                    print(f"[Warning] dw_exclude={s} clipped by lattice boundaries.")
+                if excluded_x:
+                    excluded_list = sorted(excluded_x)
+                    print(f"[info] dw_exclude={s} excludes x-columns {excluded_list}")
+                return excluded_x
+
+            top_triv_x0 = None
+            top_triv_x1 = None
+            trivial_excluded_x = set()
+            if top_triv_back_forth:
+                top_triv_x0, top_triv_x1 = _dw_region_from_trivial(int(self.Nx))
+                self.DW_loc = [int(top_triv_x0), int(top_triv_x1 - 1)]
+                if dw_exclude_norm is not None:
+                    trivial_excluded_x = _excluded_x_for_trivial(
+                        top_triv_x0, top_triv_x1 - 1, int(dw_exclude_norm), int(self.Nx)
+                    )
+
+            if top_triv_back_forth:
+                top_len = len([c for c in coords_for_len if top_triv_x0 <= c[0] < top_triv_x1])
+                trivial_len = len([c for c in coords_for_len if not (top_triv_x0 <= c[0] < top_triv_x1) and c[0] not in trivial_excluded_x])
+                top_cycles = (cycles + 1) // 2
+                trivial_cycles = cycles // 2
+                total_sites = top_cycles * top_len + trivial_cycles * trivial_len
+            else:
+                total_sites = (cycles * len(coords_for_len)) 
+                if use_bulk_extra:
+                    total_sites += (bulk_cycles * seq_info["bulk_len"])
+
             pbar = tqdm(total=total_sites, desc="RAC (sites)", unit="site", leave=True) if progress else None
 
             _emit_save_notice(1)
 
+            def _local_mode_measure(G, Rx, Ry):
+                p_local = float(np.clip(p_meas, 0.0, 1.0))
+                if p_local <= 0.0:
+                    return G
+                Nlayer_local = self.Ntot // 2
+                Il_local = np.eye(Nlayer_local, dtype=np.complex128)
+                Gtt_2pt = 0.5 * (G[:Nlayer_local, :Nlayer_local] + Il_local)
+
+                idx_mu1 = 0 + 2 * Rx + 2 * self.Nx * Ry
+                idx_mu2 = 1 + 2 * Rx + 2 * self.Nx * Ry
+                e_mu1 = Il_local[idx_mu1]
+                e_mu2 = Il_local[idx_mu2]
+                P_mu1 = np.outer(e_mu1, e_mu1.conj())
+                P_mu2 = np.outer(e_mu2, e_mu2.conj())
+
+                def _clamp_prob(val):
+                    return np.clip(float(np.real(val)), 0.0, 1.0)
+
+                if p_local >= 1.0 or np.random.rand() < p_local:
+                    p_occ = _clamp_prob(np.trace(Gtt_2pt @ P_mu1))
+                    occ_event = np.random.rand() < p_occ
+                    G = self.measure_top_layer(G, P_mu1, particle=occ_event)
+                    Gtt_2pt = 0.5 * (G[:Nlayer_local, :Nlayer_local] + Il_local)
+
+                if p_local >= 1.0 or np.random.rand() < p_local:
+                    p_occ = _clamp_prob(np.trace(Gtt_2pt @ P_mu2))
+                    occ_event = np.random.rand() < p_occ
+                    G = self.measure_top_layer(G, P_mu2, particle=occ_event)
+                return G
+
             for _c in range(cycles):
-                for Rx in range(Nx):
-                    for Ry in range(Ny):
-                        self.G = (self.top_layer_meas_feedback(self.G, Rx, Ry)
-                                if not postselect else
-                                self.post_selection_top_layer(self.G, Rx, Ry))
+                iter_coords = iter_fn()
+                if top_triv_back_forth:
+                    if _c % 2 == 0:
+                        iter_coords = [(Rx, Ry) for Rx, Ry in iter_coords if top_triv_x0 <= Rx < top_triv_x1]
+                        for Rx, Ry in iter_coords:
+                            self.G = (self.top_layer_meas_feedback(self.G, Rx, Ry, p_meas=p_meas)
+                                      if not postselect else
+                                      self.post_selection_top_layer(self.G, Rx, Ry, p_meas=p_meas))
+                            self.g2_flags.append(int(np.allclose(self.G @ self.G, I, atol=tol)))
+                            if pbar is not None:
+                                pbar.update(1)
+                    else:
+                        iter_coords = [(Rx, Ry) for Rx, Ry in iter_coords if not (top_triv_x0 <= Rx < top_triv_x1) and Rx not in trivial_excluded_x]
+                        for Rx, Ry in iter_coords:
+                            self.G = _local_mode_measure(self.G, Rx, Ry)
+                            self.g2_flags.append(int(np.allclose(self.G @ self.G, I, atol=tol)))
+                            if pbar is not None:
+                                pbar.update(1)
+                else:
+                    for Rx, Ry in iter_coords:
+                        self.G = (self.top_layer_meas_feedback(self.G, Rx, Ry, p_meas=p_meas)
+                                  if not postselect else
+                                  self.post_selection_top_layer(self.G, Rx, Ry, p_meas=p_meas))
+                        
                         self.g2_flags.append(int(np.allclose(self.G @ self.G, I, atol=tol)))
                         if pbar is not None:
                             pbar.update(1)
@@ -936,10 +1566,25 @@ class classA_U1FGTN:
                 if G_history:
                     self.G_list.append(self.G.copy())
 
+            if use_bulk_extra:
+                for _c in range(bulk_cycles):
+                    bulk_coords = iter_bulk_fn()
+                    for Rx, Ry in bulk_coords:
+                        self.G = (self.top_layer_meas_feedback(self.G, Rx, Ry, p_meas=p_meas)
+                                  if not postselect else
+                                  self.post_selection_top_layer(self.G, Rx, Ry, p_meas=p_meas))
+                        self.g2_flags.append(int(np.allclose(self.G @ self.G, I, atol=tol)))
+                        if pbar is not None:
+                            pbar.update(1)
+                    if not postselect:
+                        self.G = self.randomize_bottom_layer(self.G)
+                        self.G = self.measure_all_bottom_modes(self.G)
+                    if G_history:
+                        self.G_list.append(self.G.copy())
+
             if pbar is not None:
                 pbar.close()
 
-            # return/serialize like before
             if store == "none":
                 return None
             Ntot = self.Ntot
@@ -951,7 +1596,7 @@ class classA_U1FGTN:
                 hist = [np.asarray(Gk) for Gk in per_cycle]
             else:
                 raise ValueError("store must be 'none', 'top', or 'full'")
-            G_hist = np.expand_dims(np.stack(hist, axis=0), axis=0)  # (1,T,dim,dim)
+            G_hist = np.expand_dims(np.stack(hist, axis=0), axis=0)
             if store == "full":
                 self.G_history_samples = G_hist
             saved_path = _save_histories(G_hist, samples_count=1)
@@ -963,16 +1608,11 @@ class classA_U1FGTN:
                 "save_path": saved_path,
             }
 
-        # ---------------- parallel multi-sample ----------------
         samples = 1 if samples is None else int(samples)
-        if samples <= 0:
-            raise ValueError("samples must be a positive integer")
+        if samples <= 0: raise ValueError("samples must be a positive integer")
         S = samples
-
         n_jobs_eff = n_jobs
-
-        if backend not in ("loky", "threading"):
-            raise ValueError("backend must be 'loky' or 'threading'.")
+        if backend not in ("loky", "threading"): raise ValueError("backend error")
 
         Ntot = self.Ntot
         Nlayer = Ntot // 2
@@ -992,45 +1632,54 @@ class classA_U1FGTN:
             raise ValueError("init_mode must be 'default' or 'maxmix'.")
 
         def _worker(seed_u32):
-            # keep BLAS single-threaded inside each worker
             with threadpool_limits(limits=1):
                 np.random.seed(int(seed_u32) & 0xFFFFFFFF)
                 child = self._spawn_for_parallel()
                 child.G0 = _make_G0()
                 child.run_adaptive_circuit(
-                    G_history=True, tol=tol, progress=False, cycles=cycles, postselect=postselect,
+                    G_history=True, tol=tol, progress=False, 
+                    cycles=cycles, 
+                    postselect=postselect,
                     parallelize_samples=False, store="none", init_mode="default",
-                    remember_init=remember_init
+                    remember_init=remember_init, sequence=sequence_mode,
+                    dw_exclude=exclude_arg,
+                    top_region_last=(top_region_last and is_dw_active),
+                    bulk_cycles=bulk_cycles,
+                    p_meas=p_meas,
+                    skip_trivial=(skip_trivial and is_dw_active),
+                    top_triv_back_forth=top_triv_back_forth,
+                    dont_meas_center=dont_meas_center,
+                    top_first_triv_last_edge_more=top_first_triv_last_edge_more,
+                    top_first_triv_last_edge_more_product=top_first_triv_last_edge_more_product,
+                    top_first_triv_last_product=top_first_triv_last_product,
+                    top_last=top_last,
+                    interface_tol=interface_tol,
+                    interface_max_cycles=interface_max_cycles
                 )
                 full_hist = [np.asarray(Gk) for Gk in child.G_list]
                 if store == "full":
-                    return np.stack(full_hist, axis=0)  # (T,Ntot,Ntot)
+                    return np.stack(full_hist, axis=0)
                 elif store == "top":
                     top_hist = [Gk[:Nlayer, :Nlayer] for Gk in full_hist]
-                    return np.stack(top_hist, axis=0)   # (T,Nlayer,Nlayer)
+                    return np.stack(top_hist, axis=0)
                 else:
                     raise ValueError("When parallelizing samples, set store='top' or 'full'.")
 
         with self._joblib_tqdm_ctx(S, "samples"):
             if backend == "loky":
-                # Process backend; also tell joblib to use 1 thread per worker
                 with parallel_backend("loky", n_jobs=n_jobs_eff, inner_max_num_threads=1):
                     with threadpool_limits(limits=1):
                         G_hist_list = Parallel(n_jobs=n_jobs_eff)(
                             delayed(_worker)(seeds[i]) for i in range(S)
                         )
             else:
-                # Threading backend; ensure BLAS stays at 1 thread
                 os.environ.setdefault("OMP_NUM_THREADS", "1")
-                os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
-                os.environ.setdefault("MKL_NUM_THREADS", "1")
-                os.environ.setdefault("NUMEXPR_MAX_THREADS", "1")
                 with threadpool_limits(limits=1):
                     G_hist_list = Parallel(n_jobs=n_jobs_eff, backend="threading")(
                         delayed(_worker)(seeds[i]) for i in range(S)
                     )
 
-        G_hist = np.stack(G_hist_list, axis=0)       # (S,T,dim,dim)
+        G_hist = np.stack(G_hist_list, axis=0)
         G_hist_avg = np.mean(G_hist, axis=0)
         self.G_history_samples = G_hist if store == "full" else None
         saved_path = _save_histories(G_hist, samples_count=G_hist.shape[0])
@@ -1041,6 +1690,7 @@ class classA_U1FGTN:
             "T": G_hist.shape[1],
             "save_path": saved_path,
         }
+
     def run_markov_circuit(
         self,
         G_history=True,
@@ -1052,22 +1702,124 @@ class classA_U1FGTN:
         parallelize_samples=False,
         init_mode="default",
         G_init=None,
-        remember_init=True,
         save_final_G_only=False,
         save=True,
         save_suffix=None,
         n_a=0.5,
+        sequence="snake_y",
+        dw_exclude=None,
+        p_meas=1.0,
+        top_triv_back_forth=False,
+        top_triv_block_cycles=False,
+        top_triv_back_forth_local_mode=False,
     ):
-        """Execute the Markovian adaptive circuit with ancilla feedback."""
+        """
+        Execute the Markovian adaptive circuit.
+        top_triv_back_forth: If True (DW must be True), for each cycle apply OW sweeps
+        in the topological slab first, then OW sweeps in the trivial region.
+        top_triv_block_cycles: If an integer > 0, use that many cycles per region
+        (top then trivial) in top_triv_back_forth. Defaults to 10 when enabled.
+        top_triv_back_forth_local_mode: If True (DW must be True), same as
+        top_triv_back_forth but uses local_mode=True in the trivial region.
+        """
         have_ow = all(hasattr(self, attr) for attr in ("WF_Ap", "WF_Bp", "WF_Am", "WF_Bm"))
         if not have_ow:
             self.construct_OW_projectors(nshell=self.nshell, DW=self.DW)
 
-        cycles = 5 if cycles is None else int(cycles)
+        base_cycles = 5 if cycles is None else int(cycles)
+        p_meas = float(np.clip(p_meas, 0.0, 1.0))
+        if p_meas <= 0.0:
+            raise ValueError("p_meas must be > 0.")
+        cycles = int(np.round(base_cycles / p_meas))
+        # Deprecated modes removed from the public API; keep disabled internally.
+        trivial_product_state_DW = False
+        top_region_last = False
+        bulk_cycles = 0
+        skip_trivial = False
+        infinite_triv_mass = False
+        dont_meas_center = False
+        top_first_triv_last_edge_more = False
+        top_first_triv_last_edge_more_product = False
+        top_first_triv_last_product = False
+        top_last = False
+        interface_tol = 1e-6
+        interface_max_cycles = 50
+        
+        is_dw_active = getattr(self, "DW", False)
+        if dont_meas_center and is_dw_active:
+            raise ValueError("dont_meas_center requires DW=False.")
+        if infinite_triv_mass and (not is_dw_active):
+            raise ValueError("infinite_triv_mass requires DW=True.")
+        if top_last and is_dw_active:
+            raise ValueError("top_last requires DW=False.")
+        if top_first_triv_last_edge_more and (not is_dw_active):
+            raise ValueError("top_first_triv_last_edge_more requires DW=True.")
+        if top_first_triv_last_edge_more_product and (not is_dw_active):
+            raise ValueError("top_first_triv_last_edge_more_product requires DW=True.")
+        if top_first_triv_last_product and (not is_dw_active):
+            raise ValueError("top_first_triv_last_product requires DW=True.")
+        use_top_triv = bool(top_triv_back_forth or top_triv_back_forth_local_mode)
+        if use_top_triv:
+            if not is_dw_active:
+                raise ValueError("top_triv_back_forth requires DW=True.")
+            if trivial_product_state_DW or skip_trivial or top_region_last:
+                raise ValueError("top_triv_back_forth is incompatible with trivial_product_state_DW/skip_trivial/top_region_last.")
+            if top_last:
+                raise ValueError("top_triv_back_forth is incompatible with top_last.")
+            if top_triv_back_forth and top_triv_back_forth_local_mode:
+                raise ValueError("top_triv_back_forth and top_triv_back_forth_local_mode are incompatible.")
+        if top_triv_block_cycles is not False and top_triv_block_cycles is not None:
+            try:
+                top_triv_block_cycles = int(top_triv_block_cycles)
+            except Exception as exc:
+                raise ValueError("top_triv_block_cycles must be an integer > 0.") from exc
+            if top_triv_block_cycles <= 0:
+                raise ValueError("top_triv_block_cycles must be an integer > 0.")
+        else:
+            top_triv_block_cycles = None
+        if top_last:
+            if trivial_product_state_DW or skip_trivial or top_region_last:
+                raise ValueError("top_last is incompatible with trivial_product_state_DW/skip_trivial/top_region_last.")
+        if top_first_triv_last_edge_more:
+            if trivial_product_state_DW or use_top_triv or skip_trivial or top_region_last:
+                raise ValueError("top_first_triv_last_edge_more is incompatible with trivial_product_state_DW/top_triv_back_forth/skip_trivial/top_region_last.")
+            if top_first_triv_last_edge_more_product:
+                raise ValueError("top_first_triv_last_edge_more is incompatible with top_first_triv_last_edge_more_product.")
+            if top_last:
+                raise ValueError("top_first_triv_last_edge_more is incompatible with top_last.")
+        if top_first_triv_last_edge_more_product:
+            if trivial_product_state_DW or use_top_triv or skip_trivial or top_region_last:
+                raise ValueError("top_first_triv_last_edge_more_product is incompatible with trivial_product_state_DW/top_triv_back_forth/skip_trivial/top_region_last.")
+            if top_first_triv_last_product:
+                raise ValueError("top_first_triv_last_edge_more_product is incompatible with top_first_triv_last_product.")
+            if top_last:
+                raise ValueError("top_first_triv_last_edge_more_product is incompatible with top_last.")
+        if top_first_triv_last_product:
+            if trivial_product_state_DW or use_top_triv or skip_trivial or top_region_last:
+                raise ValueError("top_first_triv_last_product is incompatible with trivial_product_state_DW/top_triv_back_forth/skip_trivial/top_region_last.")
+            if top_last:
+                raise ValueError("top_first_triv_last_product is incompatible with top_last.")
+        use_bulk_extra = (top_region_last and is_dw_active and bulk_cycles > 0)
+        use_bulk_extra_effective = use_bulk_extra and (not trivial_product_state_DW) and (not use_top_triv) and (not top_first_triv_last_edge_more) and (not top_first_triv_last_edge_more_product) and (not top_first_triv_last_product) and (not top_last)
+        dw_exclude_norm = self._normalize_dw_exclude(dw_exclude)
+        exclude_arg = dw_exclude_norm if ((is_dw_active or use_top_triv) and dw_exclude_norm is not None) else None
+        
+        seq_info = self._sequence_helper(
+            sequence, 
+            Nx=self.Nx, 
+            Ny=self.Ny, 
+            rng=np.random.default_rng(),
+            dw_exclude=exclude_arg,
+            top_region_last=(top_region_last and is_dw_active),
+            skip_trivial=(skip_trivial and is_dw_active)
+        )
+        sequence_mode = seq_info["mode"]
 
-        def _cache_key(*, Nx, Ny, cycles, samples, nshell, DW, init_mode, n_a):
+        def _cache_key(*, Nx, Ny, cycles, samples, nshell, DW, init_mode, n_a, seq, store_mode, exclude, pm, tbtf, tbtf_lm, tbtf_bc):
             nsh = "None" if nshell is None else str(nshell)
-            return (
+            ex_str = str(exclude) if exclude is not None else "None"
+            bc_str = "None" if tbtf_bc is None else str(int(tbtf_bc))
+            key = (
                 f"N{int(Nx)}x{int(Ny)}"
                 f"_C{int(cycles)}"
                 f"_S{int(samples)}"
@@ -1075,22 +1827,31 @@ class classA_U1FGTN:
                 f"_DW{int(bool(DW))}"
                 f"_init-{init_mode}"
                 f"_n_a{n_a}"
+                f"_seq-{seq}"
+                f"_excl{ex_str}"
+                f"_pm{pm:.2f}"
+                f"_tbtf{int(tbtf)}"
+                f"_tbtflm{int(tbtf_lm)}"
+                f"_tbtfbc{bc_str}"
                 "_markov_circuit"
             )
+            if store_mode == "final":
+                key += "_final"
+            return key
 
         def _save_histories(array, samples_count):
             if not (save and G_history and array is not None):
                 return None
             outdir = self._ensure_outdir("cache/G_history_samples")
             key = _cache_key(
-                Nx=self.Nx,
-                Ny=self.Ny,
-                cycles=cycles,
-                samples=samples_count,
-                nshell=self.nshell,
-                DW=self.DW,
-                init_mode=init_mode,
-                n_a=n_a,
+                Nx=self.Nx, Ny=self.Ny, cycles=cycles, samples=samples_count,
+                nshell=self.nshell, DW=self.DW, init_mode=init_mode,
+                n_a=n_a, seq=sequence_mode, store_mode="history", 
+                exclude=exclude_arg,
+                pm=p_meas,
+                tbtf=top_triv_back_forth,
+                tbtf_lm=top_triv_back_forth_local_mode,
+                tbtf_bc=top_triv_block_cycles,
             )
             filename = f"{key}.npz"
             if save_suffix:
@@ -1100,19 +1861,42 @@ class classA_U1FGTN:
             np.savez_compressed(path, G_hist=np.asarray(array, dtype=np.complex128))
             return path
 
+        def _save_finals(array, samples_count):
+            if not (save and (not G_history) and array is not None):
+                return None
+            outdir = self._ensure_outdir("cache/G_history_samples")
+            key = _cache_key(
+                Nx=self.Nx, Ny=self.Ny, cycles=cycles, samples=samples_count,
+                nshell=self.nshell, DW=self.DW, init_mode=init_mode,
+                n_a=n_a, seq=sequence_mode, store_mode="final", 
+                exclude=exclude_arg,
+                pm=p_meas,
+                tbtf=top_triv_back_forth,
+                tbtf_lm=top_triv_back_forth_local_mode,
+                tbtf_bc=top_triv_block_cycles,
+            )
+            filename = f"{key}.npz"
+            if save_suffix:
+                root, ext = os.path.splitext(filename)
+                filename = f"{root}{save_suffix}{ext}"
+            path = os.path.join(outdir, filename)
+            np.savez_compressed(path, G_final=np.asarray(array, dtype=np.complex128))
+            return path
+
         def _expected_save_path(samples_count):
-            if not (save and G_history):
+            if not save:
                 return None
             outdir = os.path.join("cache", "G_history_samples")
             key = _cache_key(
-                Nx=self.Nx,
-                Ny=self.Ny,
-                cycles=cycles,
-                samples=samples_count,
-                nshell=self.nshell,
-                DW=self.DW,
-                init_mode=init_mode,
-                n_a=n_a,
+                Nx=self.Nx, Ny=self.Ny, cycles=cycles, samples=samples_count,
+                nshell=self.nshell, DW=self.DW, init_mode=init_mode,
+                n_a=n_a, seq=sequence_mode,
+                store_mode="history" if G_history else "final",
+                exclude=exclude_arg,
+                pm=p_meas,
+                tbtf=top_triv_back_forth,
+                tbtf_lm=top_triv_back_forth_local_mode,
+                tbtf_bc=top_triv_block_cycles,
             )
             filename = f"{key}.npz"
             if save_suffix:
@@ -1124,39 +1908,216 @@ class classA_U1FGTN:
             path = _expected_save_path(samples_count)
             if path is None:
                 return
-            print(f"[info] Markov circuit will save history to {path}")
+            label = "history" if G_history else "final state(s)"
+            print(f"[info] Markov circuit will save {label} to {path}")
             time.sleep(2)
 
         Nlayer = self.Ntot // 2
-        filling = getattr(self, "filling_frac", 0.5)
-
+        
         def _prepare_initial_top(instance):
             if G_init is not None:
                 arr = np.asarray(G_init, dtype=np.complex128)
                 if arr.shape == (instance.Ntot, instance.Ntot):
                     arr = arr[:Nlayer, :Nlayer]
                 elif arr.shape != (Nlayer, Nlayer):
-                    raise ValueError(
-                        f"G_init must have shape ({instance.Ntot},{instance.Ntot}) or ({Nlayer},{Nlayer}); got {arr.shape}"
-                    )
+                    raise ValueError(f"G_init shape error: {arr.shape}")
                 return 0.5 * (arr + arr.conj().T)
             if init_mode == "default":
-                return instance.random_complex_fermion_covariance(Nlayer, filling_frac=filling)
+                return instance.random_complex_fermion_covariance(N=Nlayer)
             if init_mode == "maxmix":
                 return np.zeros((Nlayer, Nlayer), dtype=np.complex128)
             raise ValueError("init_mode must be 'default' or 'maxmix'.")
 
-        store_full_history = G_history and not save_final_G_only
+        store_full_history = G_history
+        if save_final_G_only and G_history:
+            print("[warn] save_final_G_only is ignored; full history is stored because G_history=True.")
 
         def _run_single(instance, enable_progress, return_eta=False, sample_idx=None, total_samples=None):
             G_top = np.array(_prepare_initial_top(instance), copy=True)
             history = [] if store_full_history else None
-            if store_full_history and remember_init:
+            if store_full_history:
                 history.append(G_top.copy())
 
-            Nx, Ny = int(instance.Nx), int(instance.Ny)
-            total_sites = cycles * Nx * Ny
-            desc = "Markov RAC (sites)"
+            exclude_arg_inner = dw_exclude_norm if (getattr(instance, "DW", False) and dw_exclude_norm is not None) else None
+            should_bulk_last_inner = (top_region_last and getattr(instance, "DW", False))
+            
+            local_seq = instance._sequence_helper(
+                sequence_mode, 
+                Nx=instance.Nx, 
+                Ny=instance.Ny, 
+                rng=np.random.default_rng(),
+                dw_exclude=exclude_arg_inner,
+                top_region_last=should_bulk_last_inner,
+                skip_trivial=(skip_trivial and getattr(instance, "DW", False))
+            )
+            coords_for_len = local_seq["coords_for_len"]
+            iter_fn = local_seq["iter_fn"]
+            iter_bulk_fn = local_seq["iter_bulk_fn"]
+
+            use_bulk_extra_local = use_bulk_extra_effective
+            mid_x = (instance.Nx // 2) if dont_meas_center else None
+            interface_tol_f = float(interface_tol)
+            force_triv_active = bool(infinite_triv_mass)
+            orig_mmf = None
+            if force_triv_active:
+                if not getattr(instance, "DW", False):
+                    raise ValueError("infinite_triv_mass requires DW=True.")
+                if not (hasattr(instance, "DW_loc") and len(instance.DW_loc) >= 2):
+                    raise ValueError("infinite_triv_mass requires valid DW_loc.")
+                dw_sorted = sorted(list(set(instance.DW_loc)))
+                dw_min = int(dw_sorted[0])
+                dw_max = int(dw_sorted[-1])
+                orig_mmf = instance.markov_meas_feedback
+
+                def _mmf(G_top_in, Rx, Ry, *, n_a=n_a, p_meas=p_meas, local_mode=False):
+                    if Rx < dw_min or Rx > dw_max:
+                        local_mode = True
+                    return orig_mmf(G_top_in, Rx, Ry, n_a=n_a, p_meas=p_meas, local_mode=local_mode)
+
+                instance.markov_meas_feedback = _mmf
+
+            def _interface_coords_by_sequence(x0_wall, x1_wall):
+                nx = int(instance.Nx)
+                top_xs = [x for x in (x0_wall, x1_wall) if 0 <= x < nx]
+                triv_xs = [x for x in (x0_wall - 1, x1_wall + 1) if 0 <= x < nx]
+                seen_y = set()
+                y_order = []
+                for Rx, Ry in iter_fn():
+                    if Rx in top_xs and Ry not in seen_y:
+                        seen_y.add(Ry)
+                        y_order.append(Ry)
+                coords = []
+                for Ry in y_order:
+                    if x0_wall in top_xs:
+                        coords.append((x0_wall, Ry))
+                    if (x0_wall - 1) in triv_xs:
+                        coords.append((x0_wall - 1, Ry))
+                    if x1_wall in top_xs:
+                        coords.append((x1_wall, Ry))
+                    if (x1_wall + 1) in triv_xs:
+                        coords.append((x1_wall + 1, Ry))
+                return coords, set(triv_xs)
+
+            def _dw_region_from_trivial(Nx):
+                half = Nx // 2
+                w = max(1, int(np.floor(0.2 * Nx)))
+                x0 = max(0, half - w) - 1
+                x1 = min(Nx, half + w + 1)  # end-exclusive slab
+                return int(x0), int(x1)
+
+            def _excluded_x_for_trivial(x0_wall, x1_wall, s, Nx):
+                if s < 0:
+                    raise ValueError("dw_exclude must be non-negative.")
+                excluded_x = set()
+                cutoff_occured = False
+                intervals = [
+                    (x0_wall - s, x0_wall),     # buffer on the left DW (inclusive)
+                    (x1_wall, x1_wall + s)      # buffer on the right DW (inclusive)
+                ]
+                for start, end in intervals:
+                    if start < 0:
+                        start = 0; cutoff_occured = True
+                    if end >= Nx:
+                        end = Nx - 1; cutoff_occured = True
+                    for x_ex in range(start, end + 1):
+                        excluded_x.add(x_ex)
+                if cutoff_occured:
+                    print(f"[Warning] dw_exclude={s} clipped by lattice boundaries.")
+                if excluded_x:
+                    excluded_list = sorted(excluded_x)
+                    print(f"[info] dw_exclude={s} excludes x-columns {excluded_list}")
+                return excluded_x
+
+            top_triv_x0 = None
+            top_triv_x1 = None
+            trivial_excluded_x = set()
+
+            if use_top_triv:
+                if not (getattr(instance, "DW", False) and hasattr(instance, "DW_loc") and len(instance.DW_loc) >= 2):
+                    raise ValueError("top_triv_back_forth requires DW=True with valid DW_loc.")
+                dw_sorted = sorted(list(set(instance.DW_loc)))
+                top_triv_x0 = int(dw_sorted[0])
+                top_triv_x1 = int(dw_sorted[-1]) + 1
+                if dw_exclude_norm is not None:
+                    trivial_excluded_x = _excluded_x_for_trivial(
+                        top_triv_x0, top_triv_x1 - 1, int(dw_exclude_norm), int(instance.Nx)
+                    )
+
+            if top_first_triv_last_edge_more or top_first_triv_last_edge_more_product:
+                if not (getattr(instance, "DW", False) and hasattr(instance, "DW_loc") and len(instance.DW_loc) >= 2):
+                    raise ValueError("top_first_triv_last_edge_more requires valid DW_loc.")
+                dw_sorted = sorted(list(set(instance.DW_loc)))
+                x0 = int(dw_sorted[0]); x1 = int(dw_sorted[-1])
+                top_len = len([c for c in coords_for_len if x0 <= c[0] <= x1 and (mid_x is None or c[0] != mid_x)])
+                triv_len = len([c for c in coords_for_len if (c[0] < x0 or c[0] > x1) and (mid_x is None or c[0] != mid_x)])
+                interface_coords, _interface_triv_xs = _interface_coords_by_sequence(x0, x1)
+                interface_len = len([c for c in interface_coords if (mid_x is None or c[0] != mid_x)])
+                total_sites = (cycles * top_len) + (cycles * triv_len) + interface_len
+                desc = "Markov RAC (top->triv->interface)"
+            elif top_first_triv_last_product:
+                if not (getattr(instance, "DW", False) and hasattr(instance, "DW_loc") and len(instance.DW_loc) >= 2):
+                    raise ValueError("top_first_triv_last_product requires valid DW_loc.")
+                dw_sorted = sorted(list(set(instance.DW_loc)))
+                x0 = int(dw_sorted[0]); x1 = int(dw_sorted[-1])
+                top_len = len([c for c in coords_for_len if x0 <= c[0] <= x1 and (mid_x is None or c[0] != mid_x)])
+                triv_len = len([c for c in coords_for_len if (c[0] < x0 or c[0] > x1) and (mid_x is None or c[0] != mid_x)])
+                total_sites = (cycles * top_len) + (cycles * triv_len)
+                desc = "Markov RAC (top->triv-local)"
+            elif top_last:
+                if getattr(instance, "DW", False):
+                    raise ValueError("top_last requires DW=False.")
+                Nx = instance.Nx
+                half = Nx // 2
+                w = max(1, int(np.floor(0.2 * Nx)))
+                x0 = max(0, half - w) - 1
+                x1 = min(Nx, half + w + 1)  # inclusive slab -> slice end-exclusive
+                pre_cycles = cycles
+                phase_cycles = cycles // 2
+                coords_len = len([c for c in coords_for_len if (mid_x is None or c[0] != mid_x)])
+                filtered_coords_len = len([c for c in coords_for_len if not (x0 <= c[0] < x1) and (mid_x is None or c[0] != mid_x)])
+                inner_coords_len = len([c for c in coords_for_len if (x0 <= c[0] <= x1) and (mid_x is None or c[0] != mid_x)])
+                total_sites = (
+                    pre_cycles * coords_len
+                    + (2 * phase_cycles * (2 * filtered_coords_len + inner_coords_len))
+                )
+                desc = "Markov RAC (trivial->top-last)"
+            elif trivial_product_state_DW:
+                if getattr(instance, "DW", False):
+                    raise ValueError("trivial_product_state_DW requires DW=False.")
+                Nx = instance.Nx
+                half = Nx // 2
+                w = max(1, int(np.floor(0.2 * Nx)))
+                x0 = max(0, half - w) - 1
+                x1 = min(Nx, half + w + 1)  # inclusive slab -> slice end-exclusive
+                instance.DW_loc = [int(x0), int(x1-1)]
+
+                pre_cycles = cycles
+                post_cycles = cycles
+                coords_len = len([c for c in coords_for_len if (mid_x is None or c[0] != mid_x)])
+                filtered_coords_len = len([c for c in coords_for_len if not (x0 <= c[0] < x1) and (mid_x is None or c[0] != mid_x)])
+                inner_coords_len = len([c for c in coords_for_len if (x0 <= c[0] <= x1) and (mid_x is None or c[0] != mid_x)])
+                mid_coords_len = len([c for c in coords_for_len if c[0] in mid_xs])
+                total_sites = pre_cycles * coords_len + post_cycles * (2 * filtered_coords_len + inner_coords_len + mid_coords_len)
+                desc = "Markov RAC (trivial->local)"
+            elif use_top_triv:
+                top_len = len([c for c in coords_for_len if top_triv_x0 <= c[0] < top_triv_x1 and (mid_x is None or c[0] != mid_x)])
+                trivial_len = len([c for c in coords_for_len if not (top_triv_x0 <= c[0] < top_triv_x1) and c[0] not in trivial_excluded_x and (mid_x is None or c[0] != mid_x)])
+                block_cycles = 10 if top_triv_block_cycles is None else top_triv_block_cycles
+                cycles_eff = cycles + ((block_cycles - (cycles % block_cycles)) % block_cycles)
+                blocks_count = cycles_eff // block_cycles
+                top_blocks = (blocks_count + 1) // 2
+                triv_blocks = blocks_count // 2
+                total_sites = (top_blocks * block_cycles * top_len) + (triv_blocks * block_cycles * trivial_len)
+                desc = f"Markov RAC (top->triv {block_cycles}-cycle blocks)"
+            else:
+                coords_len = len([c for c in coords_for_len if (mid_x is None or c[0] != mid_x)])
+                total_sites = (cycles * coords_len)
+                if use_bulk_extra_local:
+                    bulk_coords = iter_bulk_fn()
+                    bulk_len = len([c for c in bulk_coords if (mid_x is None or c[0] != mid_x)])
+                    total_sites += (bulk_cycles * bulk_len)
+                desc = "Markov RAC (sites)"
+
             if sample_idx is not None:
                 suffix = f"{sample_idx}/{total_samples}" if total_samples and total_samples > 1 else f"{sample_idx}"
                 desc = f"Sample {suffix} | {desc}"
@@ -1165,147 +2126,886 @@ class classA_U1FGTN:
 
             def _capture_eta():
                 nonlocal last_eta
-                if pbar is None:
-                    return
-                remaining = pbar.format_dict.get("remaining", None)
-                if remaining is None:
-                    return
-                try:
-                    remaining = float(remaining)
-                except (TypeError, ValueError):
-                    return
-                if remaining > 0 and np.isfinite(remaining):
-                    last_eta = remaining
+                if pbar is None: return
+                rem = pbar.format_dict.get("remaining", None)
+                if rem is not None:
+                    try:
+                        rem = float(rem)
+                        if rem > 0 and np.isfinite(rem): last_eta = rem
+                    except: pass
 
-            for _ in range(cycles):
-                for Rx in range(Nx):
-                    for Ry in range(Ny):
-                        G_top = instance.markov_meas_feedback(G_top, Rx, Ry, n_a=n_a)
+            if top_first_triv_last_edge_more or top_first_triv_last_edge_more_product:
+                if not (getattr(instance, "DW", False) and hasattr(instance, "DW_loc") and len(instance.DW_loc) >= 2):
+                    raise ValueError("top_first_triv_last_edge_more requires valid DW_loc.")
+                dw_sorted = sorted(list(set(instance.DW_loc)))
+                x0 = int(dw_sorted[0]); x1 = int(dw_sorted[-1])
+                mode_label = "top_first_triv_last_edge_more_product" if top_first_triv_last_edge_more_product else "top_first_triv_last_edge_more"
+                print(f"[info] {mode_label}: top-region sweeps on x in [{x0}, {x1}] for {cycles} cycle(s).")
+                for _ in range(cycles):
+                    iter_coords = iter_fn()
+                    iter_coords = [(Rx, Ry) for Rx, Ry in iter_coords if x0 <= Rx <= x1 and (mid_x is None or Rx != mid_x)]
+                    for Rx, Ry in iter_coords:
+                        G_top = instance.markov_meas_feedback(
+                            G_top, Rx, Ry, n_a=n_a, p_meas=p_meas
+                        )
                         if pbar is not None:
                             pbar.update(1)
                             _capture_eta()
-                if store_full_history:
-                    history.append(G_top.copy())
+                    if store_full_history:
+                        history.append(G_top.copy())
+
+                print(f"[info] {mode_label}: trivial-region sweeps outside x in [{x0}, {x1}] for {cycles} cycle(s).")
+                for _ in range(cycles):
+                    iter_coords = iter_fn()
+                    iter_coords = [(Rx, Ry) for Rx, Ry in iter_coords if (Rx < x0 or Rx > x1) and (mid_x is None or Rx != mid_x)]
+                    for Rx, Ry in iter_coords:
+                        G_top = instance.markov_meas_feedback(
+                            G_top, Rx, Ry, n_a=n_a, p_meas=p_meas, local_mode=bool(top_first_triv_last_edge_more_product)
+                        )
+                        if pbar is not None:
+                            pbar.update(1)
+                            _capture_eta()
+                    if store_full_history:
+                        history.append(G_top.copy())
+
+                print(f"[info] {mode_label}: starting interface-only sweeps.")
+                interface_cycle = 0
+                prev_G = G_top.copy()
+                while True:
+                    interface_cycle += 1
+                    interface_coords, interface_triv_xs = _interface_coords_by_sequence(x0, x1)
+                    if mid_x is not None:
+                        interface_coords = [(Rx, Ry) for Rx, Ry in interface_coords if Rx != mid_x]
+                    if pbar is not None and pbar.total is not None:
+                        pbar.total += len(interface_coords)
+                        pbar.refresh()
+                    for Rx, Ry in interface_coords:
+                        local_mode_interface = bool(top_first_triv_last_edge_more_product and (Rx in interface_triv_xs))
+                        G_top = instance.markov_meas_feedback(
+                            G_top, Rx, Ry, n_a=n_a, p_meas=p_meas, local_mode=local_mode_interface
+                        )
+                        if pbar is not None:
+                            pbar.update(1)
+                            _capture_eta()
+                    diff = np.linalg.norm(np.abs(G_top - prev_G), ord="fro")
+                    print(f"[info] Interface cycle {interface_cycle}: frob(abs diff) = {diff:.6e}")
+                    if store_full_history:
+                        history.append(G_top.copy())
+                    if diff < interface_tol_f:
+                        print(f"[info] Interface convergence reached at cycle {interface_cycle} (tol={interface_tol_f:.3e}).")
+                        break
+                    if interface_cycle >= int(interface_max_cycles):
+                        print(f"[warn] Interface max cycles reached ({interface_max_cycles}); stopping.")
+                        break
+                    prev_G = G_top.copy()
+            elif top_first_triv_last_product:
+                if not (getattr(instance, "DW", False) and hasattr(instance, "DW_loc") and len(instance.DW_loc) >= 2):
+                    raise ValueError("top_first_triv_last_product requires valid DW_loc.")
+                dw_sorted = sorted(list(set(instance.DW_loc)))
+                x0 = int(dw_sorted[0]); x1 = int(dw_sorted[-1])
+                print(f"[info] top_first_triv_last_product: top-region sweeps on x in [{x0}, {x1}] for {cycles} cycle(s).")
+                for _ in range(cycles):
+                    iter_coords = iter_fn()
+                    iter_coords = [(Rx, Ry) for Rx, Ry in iter_coords if x0 <= Rx <= x1 and (mid_x is None or Rx != mid_x)]
+                    for Rx, Ry in iter_coords:
+                        G_top = instance.markov_meas_feedback(
+                            G_top, Rx, Ry, n_a=n_a, p_meas=p_meas
+                        )
+                        if pbar is not None:
+                            pbar.update(1)
+                            _capture_eta()
+                    if store_full_history:
+                        history.append(G_top.copy())
+
+                print(f"[info] top_first_triv_last_product: trivial-region local-mode sweeps outside x in [{x0}, {x1}] for {cycles} cycle(s).")
+                for _ in range(cycles):
+                    iter_coords = iter_fn()
+                    iter_coords = [(Rx, Ry) for Rx, Ry in iter_coords if (Rx < x0 or Rx > x1) and (mid_x is None or Rx != mid_x)]
+                    for Rx, Ry in iter_coords:
+                        G_top = instance.markov_meas_feedback(
+                            G_top, Rx, Ry, n_a=n_a, p_meas=p_meas, local_mode=True
+                        )
+                        if pbar is not None:
+                            pbar.update(1)
+                            _capture_eta()
+                    if store_full_history:
+                        history.append(G_top.copy())
+            elif top_last:
+                if getattr(instance, "DW", False):
+                    raise ValueError("top_last requires DW=False.")
+                Nx = instance.Nx
+                half = Nx // 2
+                w = max(1, int(np.floor(0.2 * Nx)))
+                x0 = max(0, half - w) - 1
+                x1 = min(Nx, half + w + 1)  # inclusive slab -> slice end-exclusive
+                pre_cycles = cycles
+                phase_cycles = cycles // 2
+                mid_xs = {half, half - 1}
+                mid_xs = {x for x in mid_xs if 0 <= x < Nx}
+                if mid_x is not None and mid_x in mid_xs:
+                    mid_xs.remove(mid_x)
+                print(f"[info] top_last: Phase 1 (OW) full sweeps = {pre_cycles} cycle(s).")
+                for _ in range(pre_cycles):
+                    iter_coords = iter_fn()
+                    if mid_x is not None:
+                        iter_coords = [(Rx, Ry) for Rx, Ry in iter_coords if Rx != mid_x]
+                    for Rx, Ry in iter_coords:
+                        G_top = instance.markov_meas_feedback(
+                            G_top, Rx, Ry, n_a=n_a, local_mode=False, p_meas=p_meas
+                        )
+                        if pbar is not None:
+                            pbar.update(1)
+                            _capture_eta()
+                    if store_full_history:
+                        history.append(G_top.copy())
+
+                if phase_cycles > 0:
+                    print(f"[info] top_last: Phase 2 (trivial-region) OW sweeps outside slab x in [{x0}, {x1}) for {phase_cycles} cycle(s).")
+                old_alpha1 = getattr(instance, "alpha_1", None)
+                try:
+                    instance.alpha_1 = getattr(instance, "alpha_2", instance.alpha_1)
+                    instance.construct_OW_projectors(nshell=instance.nshell, DW=False)
+                    print(f"[info] top_last: Phase 2 projectors set to trivial mass (alpha_1=alpha_2={instance.alpha_1}).")
+                    for _ in range(phase_cycles):
+                        iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if not (x0 <= Rx < x1) and (mid_x is None or Rx != mid_x)]
+                        for Rx, Ry in iter_coords:
+                            G_top = instance.markov_meas_feedback(
+                                G_top, Rx, Ry, n_a=n_a, local_mode=False, p_meas=p_meas
+                            )
+                            if pbar is not None:
+                                pbar.update(1)
+                                _capture_eta()
+                        if store_full_history:
+                            history.append(G_top.copy())
+
+                    if old_alpha1 is not None:
+                        instance.alpha_1 = old_alpha1
+                    instance.construct_OW_projectors(nshell=instance.nshell, DW=False)
+                    print(f"[info] top_last: Phase 3 projectors restored to top mass (alpha_1={instance.alpha_1}); sweeping x in [{x0}, {x1}] for {phase_cycles} cycle(s).")
+                    for _ in range(phase_cycles):
+                        iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if (x0 <= Rx <= x1) and (mid_x is None or Rx != mid_x)]
+                        for Rx, Ry in iter_coords:
+                            G_top = instance.markov_meas_feedback(
+                                G_top, Rx, Ry, n_a=n_a, local_mode=False, p_meas=p_meas
+                            )
+                            if pbar is not None:
+                                pbar.update(1)
+                                _capture_eta()
+                        if store_full_history:
+                            history.append(G_top.copy())
+
+                    instance.alpha_1 = getattr(instance, "alpha_2", instance.alpha_1)
+                    instance.construct_OW_projectors(nshell=instance.nshell, DW=False)
+                    print(f"[info] top_last: Phase 4 projectors set to trivial mass (alpha_1=alpha_2={instance.alpha_1}); repeating trivial-region sweeps for {phase_cycles} cycle(s).")
+                    for _ in range(phase_cycles):
+                        iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if not (x0 <= Rx < x1) and (mid_x is None or Rx != mid_x)]
+                        for Rx, Ry in iter_coords:
+                            G_top = instance.markov_meas_feedback(
+                                G_top, Rx, Ry, n_a=n_a, local_mode=False, p_meas=p_meas
+                            )
+                            if pbar is not None:
+                                pbar.update(1)
+                                _capture_eta()
+                        if store_full_history:
+                            history.append(G_top.copy())
+
+                    if old_alpha1 is not None:
+                        instance.alpha_1 = old_alpha1
+                    instance.construct_OW_projectors(nshell=instance.nshell, DW=False)
+                    print(f"[info] top_last: Phase 5 projectors restored to top mass (alpha_1={instance.alpha_1}); sweeping x in [{x0}, {x1}] for {phase_cycles} cycle(s).")
+                    for _ in range(phase_cycles):
+                        iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if (x0 <= Rx <= x1) and (mid_x is None or Rx != mid_x)]
+                        for Rx, Ry in iter_coords:
+                            G_top = instance.markov_meas_feedback(
+                                G_top, Rx, Ry, n_a=n_a, local_mode=False, p_meas=p_meas
+                            )
+                            if pbar is not None:
+                                pbar.update(1)
+                                _capture_eta()
+                        if store_full_history:
+                            history.append(G_top.copy())
+
+                    instance.alpha_1 = getattr(instance, "alpha_2", instance.alpha_1)
+                    instance.construct_OW_projectors(nshell=instance.nshell, DW=False)
+                    print(f"[info] top_last: Phase 6 projectors set to trivial mass (alpha_1=alpha_2={instance.alpha_1}); repeating trivial-region sweeps for {phase_cycles} cycle(s).")
+                    for _ in range(phase_cycles):
+                        iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if not (x0 <= Rx < x1) and (mid_x is None or Rx != mid_x)]
+                        for Rx, Ry in iter_coords:
+                            G_top = instance.markov_meas_feedback(
+                                G_top, Rx, Ry, n_a=n_a, local_mode=False, p_meas=p_meas
+                            )
+                            if pbar is not None:
+                                pbar.update(1)
+                                _capture_eta()
+                        if store_full_history:
+                            history.append(G_top.copy())
+
+                finally:
+                    if old_alpha1 is not None:
+                        instance.alpha_1 = old_alpha1
+                    instance.construct_OW_projectors(nshell=instance.nshell, DW=False)
+                    print(f"[info] top_last: restored OW projectors to original alpha_1={instance.alpha_1}.")
+
+
+            elif trivial_product_state_DW:
+                Nx = instance.Nx
+                half = Nx // 2
+                mid_xs = {half, half - 1}
+                mid_xs = {x for x in mid_xs if 0 <= x < Nx}
+                if mid_x is not None and mid_x in mid_xs:
+                    mid_xs.remove(mid_x)
+                for _ in range(pre_cycles):
+                    iter_coords = iter_fn()
+                    if mid_x is not None:
+                        iter_coords = [(Rx, Ry) for Rx, Ry in iter_coords if Rx != mid_x]
+                    for Rx, Ry in iter_coords:
+                        G_top = instance.markov_meas_feedback(
+                            G_top, Rx, Ry, n_a=n_a, local_mode=False, p_meas=p_meas
+                        )
+                        
+                        if pbar is not None:
+                            pbar.update(1)
+                            _capture_eta()
+                    if store_full_history:
+                        history.append(G_top.copy())
+
+                if post_cycles > 0:
+                    print(f"[info] Switching to local_mode=True outside slab x in [{x0}, {x1}) after {pre_cycles} cycle(s).")
+
+                for _ in range(post_cycles):
+                    iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if not (x0 <= Rx < x1) and (mid_x is None or Rx != mid_x)]
+                    for Rx, Ry in iter_coords:
+                        G_top = instance.markov_meas_feedback(
+                            G_top, Rx, Ry, n_a=n_a, local_mode=True, p_meas=p_meas
+                        )
+
+                        if pbar is not None:
+                            pbar.update(1)
+                            _capture_eta()
+                    if store_full_history:
+                        history.append(G_top.copy())
+
+                if mid_xs:
+                    print(f"[info] trivial_product_state_DW: mid-column OW sweeps at x in {sorted(mid_xs)} for {post_cycles} cycle(s).")
+                    for _ in range(post_cycles):
+                        iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if Rx in mid_xs]
+                        for Rx, Ry in iter_coords:
+                            G_top = instance.markov_meas_feedback(
+                                G_top, Rx, Ry, n_a=n_a, local_mode=False, p_meas=p_meas
+                            )
+                            if pbar is not None:
+                                pbar.update(1)
+                                _capture_eta()
+                        if store_full_history:
+                            history.append(G_top.copy())
+
+                if post_cycles > 0:
+                    print(f"[info] trivial_product_state_DW: OW sweeps inside slab x in [{x0}, {x1}] for {post_cycles} cycle(s).")
+                for _ in range(post_cycles):
+                    iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if (x0 <= Rx <= x1) and (mid_x is None or Rx != mid_x)]
+                    for Rx, Ry in iter_coords:
+                        G_top = instance.markov_meas_feedback(
+                            G_top, Rx, Ry, n_a=n_a, local_mode=False, p_meas=p_meas
+                        )
+                        if pbar is not None:
+                            pbar.update(1)
+                            _capture_eta()
+                    if store_full_history:
+                        history.append(G_top.copy())
+
+                if post_cycles > 0:
+                    print(f"[info] trivial_product_state_DW: repeating local-mode sweeps outside slab x in [{x0}, {x1}) for {post_cycles} cycle(s).")
+                for _ in range(post_cycles):
+                    iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if not (x0 <= Rx < x1) and (mid_x is None or Rx != mid_x)]
+                    for Rx, Ry in iter_coords:
+                        G_top = instance.markov_meas_feedback(
+                            G_top, Rx, Ry, n_a=n_a, local_mode=True, p_meas=p_meas
+                        )
+                        if pbar is not None:
+                            pbar.update(1)
+                            _capture_eta()
+                    if store_full_history:
+                        history.append(G_top.copy())
+            elif use_top_triv:
+                block_cycles = 10 if top_triv_block_cycles is None else top_triv_block_cycles
+                cycles_eff = cycles + ((block_cycles - (cycles % block_cycles)) % block_cycles)
+                triv_local_mode = bool(top_triv_back_forth_local_mode)
+                if cycles_eff != cycles:
+                    print(f"[info] top_triv_back_forth: cycles rounded up from {cycles} to {cycles_eff} to align with {block_cycles}-cycle blocks.")
+                for _c in range(cycles_eff):
+                    in_top_block = ((_c // block_cycles) % 2) == 0
+                    if in_top_block:
+                        iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if top_triv_x0 <= Rx < top_triv_x1 and (mid_x is None or Rx != mid_x)]
+                    else:
+                        iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if not (top_triv_x0 <= Rx < top_triv_x1) and Rx not in trivial_excluded_x and (mid_x is None or Rx != mid_x)]
+                    for Rx, Ry in iter_coords:
+                        G_top = instance.markov_meas_feedback(
+                            G_top, Rx, Ry, n_a=n_a, local_mode=(False if in_top_block else triv_local_mode), p_meas=p_meas
+                        )
+                        if pbar is not None:
+                            pbar.update(1)
+                            _capture_eta()
+                    if store_full_history:
+                        history.append(G_top.copy())
+            else:
+                for _ in range(cycles):
+                    iter_coords = iter_fn()
+                    if mid_x is not None:
+                        iter_coords = [(Rx, Ry) for Rx, Ry in iter_coords if Rx != mid_x]
+                    for Rx, Ry in iter_coords:
+                        G_top = instance.markov_meas_feedback(
+                            G_top, Rx, Ry, n_a=n_a, p_meas=p_meas
+                        )
+                        
+                        if pbar is not None:
+                            pbar.update(1)
+                            _capture_eta()
+                    if store_full_history:
+                        history.append(G_top.copy())
+
+                if use_bulk_extra_local:
+                    for _ in range(bulk_cycles):
+                        bulk_coords = iter_bulk_fn()
+                        if mid_x is not None:
+                            bulk_coords = [(Rx, Ry) for Rx, Ry in bulk_coords if Rx != mid_x]
+                        for Rx, Ry in bulk_coords:
+                            G_top = instance.markov_meas_feedback(
+                                G_top, Rx, Ry, n_a=n_a, p_meas=p_meas
+                            )
+                            
+                            if pbar is not None:
+                                pbar.update(1)
+                                _capture_eta()
+                        if store_full_history:
+                            history.append(G_top.copy())
 
             if pbar is not None:
                 _capture_eta()
                 pbar.close()
 
-            result = None
+            if orig_mmf is not None:
+                instance.markov_meas_feedback = orig_mmf
+
             if G_history:
-                if save_final_G_only:
-                    result = np.expand_dims(G_top.copy(), axis=0)
-                else:
-                    result = np.stack(history, axis=0) if history else np.empty((0, Nlayer, Nlayer), dtype=np.complex128)
+                result = np.stack(history, axis=0) if history else np.empty((0, Nlayer, Nlayer), dtype=np.complex128)
             else:
-                result = G_top
+                result = G_top.copy()
 
             if return_eta:
                 return result, (last_eta if last_eta is not None else None)
             return result
 
         samples = 1 if samples is None else int(samples)
-        if samples <= 0:
-            raise ValueError("samples must be a positive integer")
+        if samples <= 0: raise ValueError("samples must be a positive integer")
 
-        # sequential path
         if not parallelize_samples:
             histories = [] if G_history else None
+            finals = [] if not G_history else None
             total_samples = samples
             _emit_save_notice(total_samples)
             for idx in range(total_samples):
                 if progress:
-                    single_result, eta = _run_single(
-                        self, enable_progress=True, return_eta=True, sample_idx=idx + 1, total_samples=total_samples
-                    )
+                    single_result, eta = _run_single(self, enable_progress=True, return_eta=True, sample_idx=idx + 1, total_samples=total_samples)
                 else:
-                    single_result = _run_single(
-                        self, enable_progress=False, return_eta=False, sample_idx=idx + 1, total_samples=total_samples
-                    )
+                    single_result = _run_single(self, enable_progress=False, return_eta=False, sample_idx=idx + 1, total_samples=total_samples)
                     eta = None
-
-                if histories is not None:
-                    histories.append(single_result)
-
+                if histories is not None: histories.append(single_result)
+                if finals is not None: finals.append(single_result)
                 if progress and total_samples > 1:
                     completed = idx + 1
-                    remaining_samples = total_samples - completed
-                    if eta is not None and np.isfinite(eta) and remaining_samples > 0:
-                        print(
-                            f"Samples {completed}/{total_samples} completed. "
-                            f"Est remaining time: {self.format_interval(eta * remaining_samples)}",
-                            flush=True,
-                        )
+                    rem = total_samples - completed
+                    if eta is not None and np.isfinite(eta) and rem > 0:
+                        print(f"Samples {completed}/{total_samples} completed. Est remaining time: {self.format_interval(eta * rem)}", flush=True)
                     else:
                         print(f"Samples {completed}/{total_samples} completed.", flush=True)
 
-            if not G_history:
-                return None
+            if G_history:
+                G_hist = np.stack(histories, axis=0)
+                saved_path = _save_histories(G_hist, samples_count=G_hist.shape[0])
+                return {"G_hist": G_hist, "G_hist_avg": np.mean(G_hist, axis=0), "samples": total_samples, "T": G_hist.shape[1], "save_path": saved_path}
 
-            G_hist = np.stack(histories, axis=0)
-            saved_path = _save_histories(G_hist, samples_count=G_hist.shape[0])
-            return {
-                "G_hist": G_hist,
-                "G_hist_avg": np.mean(G_hist, axis=0),
-                "samples": total_samples,
-                "T": G_hist.shape[1],
-                "save_path": saved_path,
-            }
+            G_final = np.stack(finals, axis=0)
+            saved_path = _save_finals(G_final, samples_count=G_final.shape[0])
+            return {"G_final": G_final, "G_final_avg": np.mean(G_final, axis=0), "samples": total_samples, "T": cycles + 1 + (bulk_cycles if use_bulk_extra_effective else 0), "save_path": saved_path}
 
-        # -------- parallel path over samples --------
         S = samples
         n_jobs_eff = n_jobs
-
         _emit_save_notice(S)
-
-        if backend not in ("loky", "threading"):
-            raise ValueError("backend must be 'loky' or 'threading'.")
-
+        if backend not in ("loky", "threading"): raise ValueError("backend error")
         ss = np.random.SeedSequence()
         seeds = ss.generate_state(S, dtype=np.uint32).tolist()
 
+        def _make_G0(instance):
+            return np.array(_prepare_initial_top(instance), copy=True)
+
         def _worker(seed_u32):
-            # Make BLAS single-threaded in each worker as well
             with threadpool_limits(limits=1):
                 np.random.seed(int(seed_u32) & 0xFFFFFFFF)
                 child = self._spawn_for_parallel()
-                return _run_single(child, enable_progress=False)
+                child.G0 = _make_G0(child)
+                result = child.run_markov_circuit(
+                    G_history=G_history, progress=False, 
+                    cycles=cycles, 
+                    samples=1,
+                    parallelize_samples=False, init_mode="default",
+                    save_final_G_only=False, save=False, n_a=n_a,
+                    sequence=sequence_mode,
+                    dw_exclude=exclude_arg,
+                    p_meas=p_meas,
+                    top_triv_back_forth=top_triv_back_forth,
+                    top_triv_block_cycles=top_triv_block_cycles,
+                    top_triv_back_forth_local_mode=top_triv_back_forth_local_mode
+                )
+                if G_history:
+                    return np.asarray(result["G_hist"])[0]
+                return np.asarray(result["G_final"])[0]
 
         with self._joblib_tqdm_ctx(S, "samples"):
             if backend == "loky":
-                # Processes + one BLAS thread per process
                 with parallel_backend("loky", n_jobs=n_jobs_eff, inner_max_num_threads=1):
                     with threadpool_limits(limits=1):
                         G_hist_list = Parallel(n_jobs=n_jobs_eff)(
                             delayed(_worker)(seeds[i]) for i in range(S)
                         )
-            else:  # threading
-                # Keep BLAS single-threaded for threads too
+            else:
                 os.environ.setdefault("OMP_NUM_THREADS", "1")
-                os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
-                os.environ.setdefault("MKL_NUM_THREADS", "1")
-                os.environ.setdefault("NUMEXPR_MAX_THREADS", "1")
                 with threadpool_limits(limits=1):
                     G_hist_list = Parallel(n_jobs=n_jobs_eff, backend="threading")(
                         delayed(_worker)(seeds[i]) for i in range(S)
                     )
 
-        if not G_history:
-            return None
+        if G_history:
+            G_hist = np.stack(G_hist_list, axis=0)
+            G_hist_avg = np.mean(G_hist, axis=0)
+            saved_path = _save_histories(G_hist, samples_count=G_hist.shape[0])
+            return {
+                "G_hist": G_hist,
+                "G_hist_avg": G_hist_avg,
+                "samples": S,
+                "T": G_hist.shape[1],
+                "save_path": saved_path,
+            }
 
-        G_hist = np.stack(G_hist_list, axis=0)
-        G_hist_avg = np.mean(G_hist, axis=0)
-        saved_path = _save_histories(G_hist, samples_count=G_hist.shape[0])
+        G_final = np.stack(G_hist_list, axis=0)
+        G_final_avg = np.mean(G_final, axis=0)
+        saved_path = _save_finals(G_final, samples_count=G_final.shape[0])
         return {
-            "G_hist": G_hist,
-            "G_hist_avg": G_hist_avg,
+            "G_final": G_final,
+            "G_final_avg": G_final_avg,
             "samples": S,
-            "T": G_hist.shape[1],
+            "T": cycles + 1 + (bulk_cycles if use_bulk_extra_effective else 0),
             "save_path": saved_path,
         }
 
-    
-    # ---------------------------- Chern observables ----------------------------
+    def run_markov_channel(
+        self,
+        G_history=True,
+        progress=True,
+        cycles=20,
+        p=1.0,
+        init_mode="default",
+        G_init=None,
+        remember_init=True,
+        save=True,
+        save_suffix=None,
+        n_a=0.5,
+        sequence="snake_y",
+        dw_exclude=None,
+        top_triv_back_forth=False,
+        top_triv_block_cycles=False,
+    ):
+        """
+        Deterministic trajectory-averaged Markov channel.
+        top_triv_back_forth: If True (DW must be True), alternate sweeps on the
+        topological slab and the trivial region.
+        top_triv_block_cycles: If an integer > 0, use that many sweeps per region
+        (top then trivial) in top_triv_back_forth. Defaults to 10 when enabled.
+        """
+        have_ow = all(hasattr(self, attr) for attr in ("WF_Ap", "WF_Bp", "WF_Am", "WF_Bm"))
+        if not have_ow:
+            self.construct_OW_projectors(nshell=self.nshell, DW=self.DW)
+
+        if p <= 0 or p > 1: raise ValueError("p must lie in (0, 1].")
+        if cycles < 0: raise ValueError("cycles must be non-negative.")
+        
+        sweeps = int(np.round(cycles / p))
+        # Deprecated modes removed from the public API; keep disabled internally.
+        bulk_sweeps = 0
+        top_region_last = False
+        skip_trivial = False
+        trivial_product_state_DW = False
+        top_last = False
+
+        Nlayer = self.Ntot // 2
+        is_dw_active = getattr(self, "DW", False)
+        use_top_triv = bool(top_triv_back_forth)
+        if use_top_triv:
+            if not is_dw_active:
+                raise ValueError("top_triv_back_forth requires DW=True.")
+        if top_triv_block_cycles is not False and top_triv_block_cycles is not None:
+            try:
+                top_triv_block_cycles = int(top_triv_block_cycles)
+            except Exception as exc:
+                raise ValueError("top_triv_block_cycles must be an integer > 0.") from exc
+            if top_triv_block_cycles <= 0:
+                raise ValueError("top_triv_block_cycles must be an integer > 0.")
+        else:
+            top_triv_block_cycles = None
+        block_cycles = None
+        sweeps_eff = sweeps
+        if use_top_triv:
+            block_cycles = 10 if top_triv_block_cycles is None else top_triv_block_cycles
+            sweeps_eff = sweeps + ((block_cycles - (sweeps % block_cycles)) % block_cycles)
+            if sweeps_eff != sweeps:
+                print(f"[info] top_triv_back_forth: sweeps rounded up from {sweeps} to {sweeps_eff} to align with {block_cycles}-sweep blocks.")
+        use_bulk_extra = (top_region_last and is_dw_active and bulk_sweeps > 0)
+        use_bulk_extra_effective = use_bulk_extra and (not trivial_product_state_DW) and (not top_last) and (not use_top_triv)
+        dw_exclude_norm = self._normalize_dw_exclude(dw_exclude)
+        exclude_arg = dw_exclude_norm if (is_dw_active and dw_exclude_norm is not None) else None
+        
+        seq_info = self._sequence_helper(
+            sequence, 
+            Nx=self.Nx, 
+            Ny=self.Ny, 
+            rng=np.random.default_rng(),
+            dw_exclude=exclude_arg,
+            top_region_last=(top_region_last and is_dw_active),
+            skip_trivial=(skip_trivial and is_dw_active)
+        )
+        sequence_mode = seq_info["mode"]
+
+        def _cache_key(*, Nx, Ny, sweeps, nshell, DW, init_mode, n_a, p, exclude, tbtf_mode, tbtf_bc):
+            nsh = "None" if nshell is None else str(nshell)
+            ex_str = str(exclude) if exclude is not None else "None"
+            bc_str = "None" if tbtf_bc is None else str(int(tbtf_bc))
+            return (
+                f"N{int(Nx)}x{int(Ny)}"
+                f"_S{int(sweeps)}"
+                f"_nsh{nsh}"
+                f"_DW{int(bool(DW))}"
+                f"_init-{init_mode}"
+                f"_n_a{n_a}"
+                f"_p{p}"
+                f"_excl{ex_str}"
+                f"_tbtf{int(tbtf_mode)}"
+                f"_tbtfbc{bc_str}"
+                "_markov_channel"
+            )
+
+        def _save_results(history_array, final_G, store_history):
+            if not save: return None
+            outdir = self._ensure_outdir("cache/G_history_samples")
+            key = _cache_key(
+                Nx=self.Nx, Ny=self.Ny, sweeps=sweeps_eff if use_top_triv else sweeps, nshell=self.nshell,
+                DW=self.DW, init_mode=init_mode, n_a=n_a, p=p, 
+                exclude=exclude_arg,
+                tbtf_mode=top_triv_back_forth,
+                tbtf_bc=top_triv_block_cycles,
+            )
+            filename = f"{key}.npz"
+            if save_suffix:
+                root, ext = os.path.splitext(filename)
+                filename = f"{root}{save_suffix}{ext}"
+            path = os.path.join(outdir, filename)
+            payload = {}
+            if store_history and history_array is not None:
+                payload["G_hist"] = np.asarray(history_array, dtype=np.complex128)
+            if final_G is not None:
+                payload["G_final"] = np.asarray(final_G, dtype=np.complex128)
+            np.savez_compressed(path, **payload)
+            return path
+
+        def _expected_save_path():
+            if not save: return None
+            outdir = os.path.join("cache", "G_history_samples")
+            key = _cache_key(
+                Nx=self.Nx, Ny=self.Ny, sweeps=sweeps_eff if use_top_triv else sweeps, nshell=self.nshell,
+                DW=self.DW, init_mode=init_mode, n_a=n_a, p=p, 
+                exclude=exclude_arg,
+                tbtf_mode=top_triv_back_forth,
+                tbtf_bc=top_triv_block_cycles,
+            )
+            filename = f"{key}.npz"
+            if save_suffix:
+                root, ext = os.path.splitext(filename)
+                filename = f"{root}{save_suffix}{ext}"
+            return os.path.join(outdir, filename)
+
+        def _emit_save_notice():
+            path = _expected_save_path()
+            if path is None: return
+            label = "history" if G_history else "steady-state"
+            print(f"[info] Markov channel will save {label} to {path}")
+            time.sleep(2)
+
+        G_top = np.array(self.random_complex_fermion_covariance(N=Nlayer) if init_mode=="default" else np.zeros((Nlayer, Nlayer), dtype=np.complex128) if init_mode=="maxmix" else self.G0, copy=True)
+        if G_init is not None: 
+             # Prep G_init
+             pass
+
+        history = [] if G_history else None
+        if G_history and remember_init:
+            history.append(G_top.copy())
+
+        Nx, Ny = int(self.Nx), int(self.Ny)
+        coords_for_len = seq_info["coords_for_len"]
+        iter_fn = seq_info["iter_fn"]
+        iter_bulk_fn = seq_info["iter_bulk_fn"]
+
+        def _excluded_x_for_trivial(x0_wall, x1_wall, s, Nx):
+            if s < 0:
+                raise ValueError("dw_exclude must be non-negative.")
+            excluded_x = set()
+            cutoff_occured = False
+            intervals = [
+                (x0_wall - s, x0_wall),
+                (x1_wall, x1_wall + s),
+            ]
+            for start, end in intervals:
+                if start < 0:
+                    start = 0; cutoff_occured = True
+                if end >= Nx:
+                    end = Nx - 1; cutoff_occured = True
+                for x_ex in range(start, end + 1):
+                    excluded_x.add(x_ex)
+            if cutoff_occured:
+                print(f"[Warning] dw_exclude={s} clipped by lattice boundaries.")
+            if excluded_x:
+                excluded_list = sorted(excluded_x)
+                print(f"[info] dw_exclude={s} excludes x-columns {excluded_list}")
+            return excluded_x
+
+        top_triv_x0 = None
+        top_triv_x1 = None
+        trivial_excluded_x = set()
+        if use_top_triv:
+            if not (getattr(self, "DW", False) and hasattr(self, "DW_loc") and len(self.DW_loc) >= 2):
+                raise ValueError("top_triv_back_forth requires DW=True with valid DW_loc.")
+            dw_sorted = sorted(list(set(self.DW_loc)))
+            top_triv_x0 = int(dw_sorted[0])
+            top_triv_x1 = int(dw_sorted[-1]) + 1
+            if dw_exclude_norm is not None:
+                trivial_excluded_x = _excluded_x_for_trivial(
+                    top_triv_x0, top_triv_x1 - 1, int(dw_exclude_norm), int(self.Nx)
+                )
+
+        extra_trivial_sweep = 0
+        top_last_extra = 0
+        total_sites = None
+        if trivial_product_state_DW:
+            Nx = self.Nx
+            half = Nx // 2
+            w = max(1, int(np.floor(0.2 * Nx)))
+            x0 = max(0, half - w) - 1
+            x1 = min(Nx, half + w + 1)
+            post_cycles = sweeps // 2
+            outside_len = len([c for c in coords_for_len if not (x0 <= c[0] < x1)])
+            mid_xs = {half, half - 1}
+            mid_xs = {x for x in mid_xs if 0 <= x < Nx}
+            mid_len = len([c for c in coords_for_len if c[0] in mid_xs])
+            extra_trivial_sweep = post_cycles * (outside_len + mid_len)
+        elif top_last:
+            Nx = self.Nx
+            half = Nx // 2
+            w = max(1, int(np.floor(0.2 * Nx)))
+            x0 = max(0, half - w) - 1
+            x1 = min(Nx, half + w + 1)
+            self.DW_loc = [int(x0), int(x1 - 1)]
+            phase_cycles = sweeps // 2
+            coords_len = len(coords_for_len)
+            outside_len = len([c for c in coords_for_len if not (x0 <= c[0] < x1)])
+            inner_len = len([c for c in coords_for_len if (x0 <= c[0] <= x1)])
+            top_last_extra = (phase_cycles * (3 * outside_len + 2 * inner_len))
+        elif use_top_triv:
+            top_len = len([c for c in coords_for_len if top_triv_x0 <= c[0] < top_triv_x1])
+            trivial_len = len([c for c in coords_for_len if not (top_triv_x0 <= c[0] < top_triv_x1) and c[0] not in trivial_excluded_x])
+            blocks_count = sweeps_eff // block_cycles
+            top_blocks = (blocks_count + 1) // 2
+            triv_blocks = blocks_count // 2
+            total_sites = (top_blocks * block_cycles * top_len) + (triv_blocks * block_cycles * trivial_len)
+
+        if total_sites is None:
+            total_sites = (sweeps * len(coords_for_len)) + extra_trivial_sweep + top_last_extra
+        if use_bulk_extra_effective:
+            total_sites += (bulk_sweeps * seq_info["bulk_len"])
+
+        pbar = tqdm(total=total_sites, desc="Markov channel (sites)", unit="site", leave=True) if (progress and total_sites > 0) else None
+
+        _emit_save_notice()
+
+        # Buffers
+        Il_top = np.eye(Nlayer, dtype=np.complex128)
+        Il_half = 0.5 * Il_top
+        G2pt = np.empty_like(G_top)
+        tmp_pg = np.empty_like(G_top); tmp_gp = np.empty_like(G_top); tmp_P = np.empty_like(G_top)
+        chi_Ap_all = np.array(self.WF_Ap, dtype=np.complex128, copy=True)
+        chi_Bp_all = np.array(self.WF_Bp, dtype=np.complex128, copy=True)
+        chi_Am_all = np.array(self.WF_Am, dtype=np.complex128, copy=True)
+        chi_Bm_all = np.array(self.WF_Bm, dtype=np.complex128, copy=True)
+
+        def _apply_deplete(chi):
+            nonlocal G2pt, tmp_pg, tmp_gp, tmp_P
+            chi_conj = chi.conj()
+            chiHG = chi_conj @ G2pt
+            Gchi = G2pt @ chi
+            np.multiply.outer(chi, chiHG, out=tmp_pg)
+            np.multiply.outer(Gchi, chi_conj, out=tmp_gp)
+            tmp_pg += tmp_gp
+            np.multiply.outer(chi, chi_conj, out=tmp_P)
+            scalar = chiHG @ chi
+            np.multiply(tmp_P, (1 + n_a) * scalar, out=tmp_gp)
+            G2pt -= p * tmp_pg; G2pt += p * tmp_gp
+
+        def _apply_fill(chi):
+            nonlocal G2pt, tmp_pg, tmp_gp, tmp_P
+            chi_conj = chi.conj()
+            chiHG = chi_conj @ G2pt
+            Gchi = G2pt @ chi
+            np.multiply.outer(chi, chiHG, out=tmp_pg)
+            np.multiply.outer(Gchi, chi_conj, out=tmp_gp)
+            tmp_pg += tmp_gp
+            np.multiply.outer(chi, chi_conj, out=tmp_P)
+            scalar = chiHG @ chi
+            G2pt += p * n_a * tmp_P
+            np.multiply(tmp_P, (2 - n_a) * scalar, out=tmp_gp)
+            G2pt -= p * tmp_pg; G2pt += p * tmp_gp
+
+        def _execute_sweep_with_projectors(coords_list, chi_Ap, chi_Bp, chi_Am, chi_Bm):
+            nonlocal G_top, G2pt
+            for Rx, Ry in coords_list:
+                np.multiply(G_top, 0.5, out=G2pt); G2pt += Il_half
+                chi_Ap_loc = chi_Ap[:, Rx, Ry]; chi_Bp_loc = chi_Bp[:, Rx, Ry]
+                chi_Am_loc = chi_Am[:, Rx, Ry]; chi_Bm_loc = chi_Bm[:, Rx, Ry]
+                _apply_deplete(chi_Ap_loc); _apply_deplete(chi_Bp_loc)
+                _apply_fill(chi_Am_loc); _apply_fill(chi_Bm_loc)
+                np.multiply(G2pt, 2.0, out=G_top); G_top -= Il_top
+                if pbar is not None: pbar.update(1)
+
+        def _execute_sweep(coords_list):
+            _execute_sweep_with_projectors(coords_list, chi_Ap_all, chi_Bp_all, chi_Am_all, chi_Bm_all)
+
+        def _execute_local_mode_sweep(coords_list):
+            nonlocal G_top, G2pt
+            for Rx, Ry in coords_list:
+                np.multiply(G_top, 0.5, out=G2pt); G2pt += Il_half
+                idx_mu1 = 0 + 2 * Rx + 2 * self.Nx * Ry
+                idx_mu2 = 1 + 2 * Rx + 2 * self.Nx * Ry
+                chi_mu1 = Il_top[idx_mu1]
+                chi_mu2 = Il_top[idx_mu2]
+                _apply_fill(chi_mu1)
+                _apply_deplete(chi_mu2)
+                np.multiply(G2pt, 2.0, out=G_top); G_top -= Il_top
+                if pbar is not None: pbar.update(1)
+
+        if trivial_product_state_DW:
+            Nx = self.Nx
+            half = Nx // 2
+            w = max(1, int(np.floor(0.2 * Nx)))
+            x0 = max(0, half - w) - 1
+            x1 = min(Nx, half + w + 1)
+            self.DW_loc = [int(x0), int(x1 - 1)]
+            post_cycles = sweeps // 2
+            mid_xs = {half, half - 1}
+            mid_xs = {x for x in mid_xs if 0 <= x < Nx}
+            for _ in range(sweeps):
+                _execute_sweep(iter_fn())
+                if G_history: history.append(G_top.copy())
+            if post_cycles > 0:
+                print(f"[info] Switching to local_mode=True outside slab x in [{x0}, {x1}) after {sweeps} sweep(s).")
+            for _ in range(post_cycles):
+                iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if not (x0 <= Rx < x1)]
+                _execute_local_mode_sweep(iter_coords)
+                if G_history: history.append(G_top.copy())
+            if mid_xs:
+                for _ in range(post_cycles):
+                    iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if Rx in mid_xs]
+                    _execute_sweep(iter_coords)
+                    if G_history: history.append(G_top.copy())
+        elif top_last:
+            Nx = self.Nx
+            half = Nx // 2
+            w = max(1, int(np.floor(0.2 * Nx)))
+            x0 = max(0, half - w) - 1
+            x1 = min(Nx, half + w + 1)
+            phase_cycles = sweeps // 2
+            for _ in range(sweeps):
+                _execute_sweep(iter_fn())
+                if G_history: history.append(G_top.copy())
+
+            chi_Ap_top, chi_Bp_top, chi_Am_top, chi_Bm_top = self._compute_ow_projectors_for_alpha(self.alpha_1, self.nshell)
+            chi_Ap_triv, chi_Bp_triv, chi_Am_triv, chi_Bm_triv = self._compute_ow_projectors_for_alpha(self.alpha_2, self.nshell)
+
+            for _ in range(phase_cycles):
+                iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if not (x0 <= Rx < x1)]
+                _execute_sweep_with_projectors(iter_coords, chi_Ap_triv, chi_Bp_triv, chi_Am_triv, chi_Bm_triv)
+                if G_history: history.append(G_top.copy())
+
+            for _ in range(phase_cycles):
+                iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if (x0 <= Rx <= x1)]
+                _execute_sweep_with_projectors(iter_coords, chi_Ap_top, chi_Bp_top, chi_Am_top, chi_Bm_top)
+                if G_history: history.append(G_top.copy())
+
+            for _ in range(phase_cycles):
+                iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if not (x0 <= Rx < x1)]
+                _execute_sweep_with_projectors(iter_coords, chi_Ap_triv, chi_Bp_triv, chi_Am_triv, chi_Bm_triv)
+                if G_history: history.append(G_top.copy())
+
+            for _ in range(phase_cycles):
+                iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if (x0 <= Rx <= x1)]
+                _execute_sweep_with_projectors(iter_coords, chi_Ap_top, chi_Bp_top, chi_Am_top, chi_Bm_top)
+                if G_history: history.append(G_top.copy())
+
+            for _ in range(phase_cycles):
+                iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if not (x0 <= Rx < x1)]
+                _execute_sweep_with_projectors(iter_coords, chi_Ap_triv, chi_Bp_triv, chi_Am_triv, chi_Bm_triv)
+                if G_history: history.append(G_top.copy())
+        elif use_top_triv:
+            for s in range(sweeps_eff):
+                in_top_block = ((s // block_cycles) % 2) == 0
+                if in_top_block:
+                    iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if top_triv_x0 <= Rx < top_triv_x1]
+                else:
+                    iter_coords = [(Rx, Ry) for Rx, Ry in iter_fn() if not (top_triv_x0 <= Rx < top_triv_x1) and Rx not in trivial_excluded_x]
+                _execute_sweep(iter_coords)
+                if G_history: history.append(G_top.copy())
+        else:
+            for _ in range(sweeps):
+                _execute_sweep(iter_fn())
+                if G_history: history.append(G_top.copy())
+
+        if use_bulk_extra_effective:
+            for _ in range(bulk_sweeps):
+                _execute_sweep(iter_bulk_fn())
+                if G_history: history.append(G_top.copy())
+
+        if pbar is not None: pbar.close()
+
+        base_sweeps = sweeps_eff if use_top_triv else sweeps
+        final_G = G_top.copy()
+        if not G_history:
+            saved_path = _save_results(history_array=None, final_G=final_G, store_history=False)
+            extra_cycles = 0
+            if trivial_product_state_DW:
+                extra_cycles = (2 * (sweeps // 2))
+            elif top_last:
+                extra_cycles = sweeps + (5 * (sweeps // 2))
+            return {"G_final": final_G, "save_path": saved_path, "cycles": base_sweeps + extra_cycles + (bulk_sweeps if use_bulk_extra_effective else 0), "T": 1}
+
+        if not history: history.append(final_G.copy())
+        G_hist = np.stack(history, axis=0)
+        G_hist_avg = np.mean(G_hist, axis=0) if G_hist.shape[0] > 0 else None
+        saved_path = _save_results(history_array=G_hist, final_G=final_G, store_history=True)
+        return {
+            "G_hist": G_hist,
+            "G_hist_avg": G_hist_avg,
+            "G_final": final_G,
+            "cycles": base_sweeps
+            + ((2 * (sweeps // 2)) if trivial_product_state_DW else 0)
+            + ((sweeps + (5 * (sweeps // 2))) if top_last else 0)
+            + (bulk_sweeps if use_bulk_extra_effective else 0),
+            "T": G_hist.shape[0],
+            "save_path": saved_path,
+        }    # ---------------------------- Chern observables ----------------------------
 
     def real_space_chern_number(self, G):
         '''Compute the disk-partition real-space Chern number from a covariance.'''
@@ -1409,6 +3109,356 @@ class classA_U1FGTN:
         if mask_outside and inside_mask is not None:
             C = np.where(inside_mask, C, 0.0)
         return C
+
+    # ------------------ Real-space Wilson loop / spectral flow ------------------
+
+    def compute_spectral_flow(self, G, axis='y'):
+        """
+        Computes the Real-Space Wilson Loop (Spectral Flow) for a given covariance matrix G.
+
+        Parameters
+        ----------
+        G : ndarray
+            Covariance matrix (can be top layer or full).
+        axis : str
+            'y' computes the flow of Y-centers vs X-position (standard for X-domain walls).
+            'x' computes the flow of X-centers vs Y-position.
+
+        Returns
+        -------
+        centers : array
+            The spatial center of mass (X if axis='y') for each mode.
+        phases : array
+            The Wilson loop phase (Y-position if axis='y') for each mode [-pi, pi].
+        """
+        Nx, Ny = self.Nx, self.Ny
+        Nlayer = 2 * Nx * Ny
+
+        axis = str(axis).lower()
+        if axis not in {"x", "y"}:
+            raise ValueError("axis must be 'x' or 'y'")
+
+        # 1. Handle Input Shape
+        G = np.asarray(G, dtype=np.complex128)
+        if G.shape == (self.Ntot, self.Ntot):
+            G = G[:Nlayer, :Nlayer]  # Extract top layer if full given
+        elif G.shape != (Nlayer, Nlayer):
+            raise ValueError(f"Expected top-layer ({Nlayer},{Nlayer}) or full ({self.Ntot},{self.Ntot}); got {G.shape}")
+
+        # 2. Extract Occupied Subspace (Purification)
+        # G has eigenvalues approx +1 (occupied) and -1 (empty).
+        # We want the eigenvectors corresponding to +1.
+        evals, evecs = np.linalg.eigh(G)
+
+        # Select occupied states (evals > 0)
+        # For a half-filled system, this should be exactly Nlayer // 2 states
+        occ_mask = evals > 0.0
+        V = evecs[:, occ_mask]  # Shape (N_sites, N_occupied)
+
+        if V.shape[1] == 0:
+            print("[Warn] No occupied states found in G.")
+            return np.array([]), np.array([])
+
+        # 3. Construct Operators
+        # Coordinate grids (x fastest, y next: i = x + Nx*y)
+        x_grid = np.tile(np.arange(Nx), Ny)
+        y_grid = np.repeat(np.arange(Ny), Nx)
+
+        # Expand for spinors (repeat twice)
+        x_vec = np.repeat(x_grid, 2)
+        y_vec = np.repeat(y_grid, 2)
+
+        if axis == 'y':
+            # We want to measure Position X, and Winding Phase Y
+            # Flux Operator U_y = exp(i * 2pi * y / Ny)
+            U_flux = np.exp(1j * 2 * np.pi * y_vec / Ny)
+            Pos_vec = x_vec
+        else:
+            # We want to measure Position Y, and Winding Phase X
+            # Flux Operator U_x = exp(i * 2pi * x / Nx)
+            U_flux = np.exp(1j * 2 * np.pi * x_vec / Nx)
+            Pos_vec = y_vec
+
+        # 4. Projected Flux Operator (The "Coupling Matrix")
+        # W = V^dag @ U_flux @ V
+        # U_flux is diagonal, so we broadcast multiply
+        V_twisted = V * U_flux[:, np.newaxis]
+        W_small = V.conj().T @ V_twisted  # Shape (N_occ, N_occ)
+
+        # 5. Diagonalize W_small
+        # The eigenvalues contain the "Wannier Centers" in the flux direction
+        w_evals, w_evecs = np.linalg.eig(W_small)
+
+        # Phase is the position in the periodic direction (-pi to pi)
+        phases = np.angle(w_evals)
+
+        # 6. Compute Center of Mass in the other direction
+        # We need expectation value <psi | Position | psi>
+        # The eigenstates of W_small are 'v'. The full state is psi = V @ v.
+        # <psi|X|psi> = v^dag @ (V^dag @ X @ V) @ v
+
+        # Project Position operator
+        V_weighted = V * Pos_vec[:, np.newaxis]
+        X_small = V.conj().T @ V_weighted
+
+        # Compute diag(w_evecs.H @ X_small @ w_evecs)
+        X_centers = []
+        for i in range(w_evecs.shape[1]):
+            vec = w_evecs[:, i]
+            # Expectation value (real part)
+            val = np.vdot(vec, X_small @ vec)
+            X_centers.append(np.real(val))
+
+        return np.array(X_centers), phases
+
+    def plot_spectral_flow(self, G, filename=None, title=None):
+        """
+        Visualizes the output of compute_spectral_flow.
+        """
+        centers, phases = self.compute_spectral_flow(G, axis='y')
+
+        fig, ax = plt.subplots(figsize=(8, 6))
+
+        # Scatter plot
+        ax.scatter(centers, phases, s=10, alpha=0.6, c='blue', edgecolors='none')
+
+        ax.set_ylim(-np.pi, np.pi)
+        ax.set_xlim(0, self.Nx)
+        ax.set_xlabel(r"Spatial Position $\langle X \rangle$")
+        ax.set_ylabel(r"Wannier Center $\theta_y$")
+        ax.axhline(0, color='k', ls=':', alpha=0.3)
+
+        # Mark Domain Walls if they exist
+        if hasattr(self, 'DW_loc') and self.DW_loc:
+            for dw in self.DW_loc:
+                ax.axvline(dw, color='red', ls='--', alpha=0.5, label='DW')
+            ax.legend()
+
+        if title:
+            ax.set_title(title)
+        else:
+            ax.set_title("Real-Space Spectral Flow")
+
+        plt.tight_layout()
+
+        if filename:
+            fig.savefig(filename, bbox_inches='tight', dpi=150)
+            plt.close(fig)
+        else:
+            plt.show()
+    
+    # ------------------------- Gauge-invariant currents -------------------------
+
+    def current_maps_gauge_invariant(self, G, Nx=None, Ny=None):
+        '''
+        Build gauge-invariant bond-current maps along +x and +y from a covariance.
+
+        Parameters
+        ----------
+        G : ndarray
+            Top-layer covariance of shape (2*Nx*Ny, 2*Nx*Ny) or full-layer covariance
+            of shape (self.Ntot, self.Ntot). The top-layer block is used if full.
+        Nx, Ny : int, optional
+            Lattice dimensions; defaults to the values stored on the instance.
+
+        Returns
+        -------
+        J_x, J_y : ndarray
+            Arrays of shape (Nx, Ny) giving currents on +x and +y bonds.
+        '''
+        Nx = self.Nx if Nx is None else int(Nx)
+        Ny = self.Ny if Ny is None else int(Ny)
+        Nlayer = 2 * Nx * Ny
+
+        G = np.asarray(G, dtype=np.complex128)
+        if G.shape == (self.Ntot, self.Ntot):
+            G_flat = G[:Nlayer, :Nlayer]
+        elif G.shape == (Nlayer, Nlayer):
+            G_flat = G
+        else:
+            raise ValueError(f"Expected top-layer ({Nlayer},{Nlayer}) or full ({self.Ntot},{self.Ntot}); got {G.shape}")
+
+        def _as_block(G_flat):
+            G2 = 0.5 * (G_flat + np.eye(G_flat.shape[-1], dtype=np.complex128))
+            G6 = G2.reshape(2, Nx, Ny, 2, Nx, Ny, order="F")
+            return np.transpose(G6, (1, 2, 0, 4, 5, 3))
+
+        block = _as_block(G_flat)
+        x_idx = np.arange(Nx)[:, None]
+        y_idx = np.arange(Ny)[None, :]
+
+        x_next = (x_idx + 1) % Nx
+        y_next = (y_idx + 1) % Ny
+
+        G11_x = block[x_idx, y_idx, 0, x_next, y_idx, 0]
+        G22_x = block[x_idx, y_idx, 1, x_next, y_idx, 1]
+        G12_x = block[x_idx, y_idx, 0, x_next, y_idx, 1]
+
+        G11_y = block[x_idx, y_idx, 0, x_idx, y_next, 0]
+        G22_y = block[x_idx, y_idx, 1, x_idx, y_next, 1]
+        G12_y = block[x_idx, y_idx, 0, x_idx, y_next, 1]
+
+        J_x = np.imag(-G11_x + G22_x + 1j * G12_x)
+        J_y = np.imag(-G11_y + G22_y - G12_y)
+        return J_x, J_y
+
+    def plot_current_maps(
+        self,
+        J_x,
+        J_y,
+        figsize=(18, 5),
+        cmap="RdBu_r",
+        quiver_cmap="plasma",
+        sharey=True,
+        vmin = -1,
+        vmax = 1
+    ):
+        '''
+        Plot bond-current maps J_x, J_y along with a quiver field.
+
+        Parameters
+        ----------
+        J_x, J_y : ndarray
+            Arrays of shape (Nx, Ny) giving currents along +x and +y bonds.
+        figsize : tuple, optional
+            Matplotlib figure size for the (1x3) subplot layout.
+        cmap : str, optional
+            Colormap for the J_x/J_y heatmaps.
+        quiver_cmap : str, optional
+            Colormap mapping |J| magnitudes in the quiver plot.
+
+        Returns
+        -------
+        fig, axes : matplotlib Figure and Axes array
+            Figure and axes handles for further customization.
+        '''
+        J_x = np.asarray(J_x, dtype=float)
+        J_y = np.asarray(J_y, dtype=float)
+        if J_x.shape != J_y.shape:
+            raise ValueError(f"J_x shape {J_x.shape} does not match J_y shape {J_y.shape}")
+
+        Nx, Ny = J_x.shape
+        extent = (-0.5, Ny - 0.5, -0.5, Nx - 0.5)
+
+        fig, axes = plt.subplots(1, 3, figsize=figsize, sharey=sharey, constrained_layout=True)
+
+        for ax, (title, data) in zip(axes[:2], [("J_x", J_x), ("J_y", J_y)]):
+            im = ax.imshow(
+                data,
+                origin="lower",
+                aspect="auto",
+                cmap=cmap,
+                extent=extent,
+                vmin = vmin,
+                vmax = vmax
+            )
+            ax.set_title(title)
+            ax.set_xlabel(r"$y$")
+            ax.set_ylabel(r"$x$")
+            fig.colorbar(im, ax=ax, shrink=0.85)
+
+        y_coords, x_coords = np.meshgrid(np.arange(Ny), np.arange(Nx))
+        magnitude = np.hypot(J_x, J_y)
+        quiv = axes[2].quiver(
+            y_coords,
+            x_coords,
+            J_y,
+            J_x,
+            magnitude,
+            cmap=quiver_cmap,
+            angles="xy",
+            scale_units="xy",
+            scale=None,
+            pivot="mid",
+        )
+        axes[2].set_xlim(extent[0], extent[1])
+        axes[2].set_ylim(extent[2], extent[3])
+        axes[2].set_xlabel(r"$y$")
+        axes[2].set_ylabel(r"$x$")
+        axes[2].set_title("Current field $(J_x, J_y)$")
+        axes[2].set_aspect("equal")
+        fig.colorbar(quiv, ax=axes[2], shrink=0.85, label="|J|")
+
+        return fig, axes
+
+    # -------------------- Translation checks / reshape helpers --------------------
+
+    def _unflatten_top_to_G6(self, G_flat, Nx=None, Ny=None):
+        """Reshape a flattened top-layer covariance into (Nx,Ny,2, Nx,Ny,2)."""
+        Nx = self.Nx if Nx is None else int(Nx)
+        Ny = self.Ny if Ny is None else int(Ny)
+        Nlayer = 2 * Nx * Ny
+        G_flat = np.asarray(G_flat, dtype=np.complex128)
+        if G_flat.shape != (Nlayer, Nlayer):
+            raise ValueError(f"Expected flattened top-layer shape ({Nlayer},{Nlayer}); got {G_flat.shape}")
+        G6m = G_flat.reshape((2, Nx, Ny, 2, Nx, Ny), order="F")
+        return np.transpose(G6m, (1, 2, 0, 4, 5, 3))
+
+    def _flatten_G6_top(self, G6):
+        """Flatten G6 with indices (x,y,μ; x',y',ν) to (i,j) with i=μ+2x+2Nx*y (Fortran)."""
+        G6 = np.asarray(G6, dtype=np.complex128)
+        Nx, Ny, s1, Nx2, Ny2, s2 = G6.shape
+        if not ((s1, s2) == (2, 2) and (Nx, Ny) == (Nx2, Ny2)):
+            raise ValueError(f"G must have shape (Nx, Ny, 2, Nx, Ny, 2); got {G6.shape}")
+        G6m = np.transpose(G6, (2, 0, 1, 5, 3, 4))  # (2,Nx,Ny, 2,Nx,Ny)
+        return G6m.reshape(2 * Nx * Ny, 2 * Nx * Ny, order="F")
+
+    def check_y_translation_invariance(self, G, *, Nx=None, Ny=None, tol_shift=1e-10, tol_offdiag=1e-10, hermitize=True):
+        """
+        Check y-translation invariance and the block structure after the y/y' unitary FFT.
+
+        G can be:
+          - G6 of shape (Nx,Ny,2,Nx,Ny,2)
+          - flattened top-layer of shape (2*Nx*Ny, 2*Nx*Ny)
+          - full-layer of shape (self.Ntot, self.Ntot) (top block is used)
+        """
+        Nx = self.Nx if Nx is None else int(Nx)
+        Ny = self.Ny if Ny is None else int(Ny)
+        Nlayer = 2 * Nx * Ny
+
+        G_arr = np.asarray(G, dtype=np.complex128)
+        if G_arr.ndim == 2:
+            if G_arr.shape == (self.Ntot, self.Ntot):
+                G_arr = G_arr[:Nlayer, :Nlayer]
+            if G_arr.shape != (Nlayer, Nlayer):
+                return {"shape_ok": False}
+            G6 = self._unflatten_top_to_G6(G_arr, Nx=Nx, Ny=Ny)
+        elif G_arr.ndim == 6:
+            G6 = G_arr
+            if G6.shape != (Nx, Ny, 2, Nx, Ny, 2):
+                return {"shape_ok": False}
+        else:
+            return {"shape_ok": False}
+
+        if hermitize:
+            G6 = 0.5 * (G6 + np.transpose(G6.conj(), (3, 4, 5, 0, 1, 2)))
+
+        # 1) shift invariance along y
+        Gy = G6
+        Gy_p = np.roll(np.roll(G6, shift=+1, axis=1), shift=+1, axis=4)
+        shift_max_abs_diff = float(np.max(np.abs(Gy - Gy_p)))
+        shift_pass = (shift_max_abs_diff <= tol_shift)
+
+        # 2) ky block off-diagonal check
+        Gk = np.fft.fft(G6, axis=1, norm="ortho")
+        Gk = np.fft.ifft(Gk, axis=4, norm="ortho")
+
+        diag_mask = np.eye(Ny, dtype=bool)
+        off_mask = ~diag_mask
+        block_norms = np.sum(np.abs(Gk) ** 2, axis=(0, 2, 3, 5))
+        den = float(block_norms.sum())
+        num = float(block_norms[off_mask].sum())
+        offdiag_ratio = 0.0 if den == 0 else float(num / den)
+        offdiag_pass = (offdiag_ratio <= tol_offdiag)
+
+        return {
+            "shape_ok": True,
+            "Ny": Ny,
+            "shift_max_abs_diff": shift_max_abs_diff,
+            "shift_pass": bool(shift_pass),
+            "offdiag_ratio": offdiag_ratio,
+            "offdiag_pass": bool(offdiag_pass),
+        }
 
     # ------------------------- Plotting Methods -------------------------
 
@@ -1633,7 +3683,8 @@ class classA_U1FGTN:
         child.WF_Bp  = self.WF_Bp
         child.WF_Am  = self.WF_Am
         child.WF_Bm  = self.WF_Bm
-        child.alpha  = self.alpha
+        child.alpha_profile = getattr(self, "alpha_profile", None)
+        child.alpha  = getattr(self, "alpha", child.alpha_profile)
     
         # ---- per-worker mutable state ----
         # fresh starting state for each worker (top-layer randomized in your __init__)
