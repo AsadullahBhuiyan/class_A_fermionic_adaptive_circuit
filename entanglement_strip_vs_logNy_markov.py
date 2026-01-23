@@ -48,7 +48,7 @@ def entanglement_contour_map(model, G_top):
     G_sub = G_top[np.ix_(sub_indices, sub_indices)]
     Ny_sub = len(yA)
     contour_helper = classA_U1FGTN(model.Nx, Ny_sub, DW=False, alpha_1=1, alpha_2=1)
-    s_map = contour_helper.entanglement_contour(G_sub)
+    s_map = contour_helper.entanglement_contour(G_sub, model.Nx, Ny_sub)
 
     return s_map
 
@@ -56,7 +56,7 @@ def entanglement_contour_map(model, G_top):
 def main():
     # Parameters from the provided setup
     Nx = 12
-    Ny_list = [12, 16, 20, 24, 28, 32]
+    Ny_list = [16, 20, 24, 28, 32]
     alpha_1, alpha_2 = 30, 1
     cycles = 48
     nshell = 2

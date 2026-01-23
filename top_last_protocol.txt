@@ -1,0 +1,42 @@
+Top_last protocol (run_markov_circuit)
+
+Context
+- DW must be False.
+- Slab bounds are defined by x0 = max(0, Nx//2 - floor(0.2*Nx)) - 1 and x1 = min(Nx, Nx//2 + floor(0.2*Nx) + 1).
+- “Outside slab” means Rx < x0 or Rx >= x1 (i.e., not (x0 <= Rx < x1)).
+- “Inside slab” means x0 <= Rx <= x1 for Phase 3/5.
+- All sweeps honor the chosen sequence; filtering is applied after ordering.
+
+Cycle counts
+- Phase 1 runs for cycles (full sweeps).
+- Phases 2–6 run for phase_cycles = cycles // 2 (full sweeps each).
+
+Phases
+1) Phase 1 (top mass, OW, full lattice)
+   - Projectors: top mass (alpha_1).
+   - Sweeps: all sites, cycles times.
+
+2) Phase 2 (trivial mass, OW, outside slab)
+   - Projectors: trivial mass (alpha_1 = alpha_2).
+   - Sweeps: outside slab only, phase_cycles times.
+
+3) Phase 3 (top mass, OW, inside slab)
+   - Projectors: restore top mass (alpha_1).
+   - Sweeps: inside slab (including DW columns), phase_cycles times.
+
+4) Phase 4 (trivial mass, OW, outside slab)
+   - Projectors: trivial mass (alpha_1 = alpha_2).
+   - Sweeps: outside slab only, phase_cycles times.
+
+5) Phase 5 (top mass, OW, inside slab)
+   - Projectors: restore top mass (alpha_1).
+   - Sweeps: inside slab (including DW columns), phase_cycles times.
+
+6) Phase 6 (trivial mass, OW, outside slab)
+   - Projectors: trivial mass (alpha_1 = alpha_2).
+   - Sweeps: outside slab only, phase_cycles times.
+
+Cleanup
+- Restores projectors to original alpha_1 after Phase 6.
+- No local-mode sweeps are used in top_last.
+- No mid-column sweeps are performed.
