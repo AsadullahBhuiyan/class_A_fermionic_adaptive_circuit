@@ -1,0 +1,51 @@
+{
+  "schema": "wall_pump_endpoint_cpu_fallback_campaign_v1",
+  "sampling_revision": "wall_pump_width_endpoints_s100_v1",
+  "execution_revision": "wall_pump_width_endpoints_cpu_fallback_v1",
+  "root_seed": 2026090701,
+  "Ny": 24,
+  "cycles": 48,
+  "checkpoint_every_cycles": 5,
+  "result_shard_size": 5,
+  "primary_cells": [
+    {"protocol": "nsh1", "Nx": 28, "samples_per_wall": 100},
+    {"protocol": "nsh1", "Nx": 32, "samples_per_wall": 100},
+    {"protocol": "dense", "Nx": 24, "samples_per_wall": 100},
+    {"protocol": "dense", "Nx": 28, "samples_per_wall": 100},
+    {"protocol": "dense", "Nx": 32, "samples_per_wall": 100}
+  ],
+  "walls": {
+    "soft": {"dw_truncation": false, "meas_slab_only": false},
+    "hard": {"dw_truncation": true, "meas_slab_only": true}
+  },
+  "shells": {"nsh1": 1, "dense": null},
+  "dynamics": {
+    "DW": true,
+    "wall_locations_rule": ["Nx/4", "3Nx/4"],
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "filling_frac": 0.5,
+    "trial_orbitals": "X",
+    "init_mode": "default",
+    "sequence": "raster_y",
+    "perfect_correction": true,
+    "postselect": false,
+    "postselect_probability": 0.0,
+    "n_a": 0.5,
+    "state_representation": "physical_frame",
+    "physical_covariance_update": "rank1",
+    "frame_reorthonormalize_interval": 1,
+    "dtype": "complex128"
+  },
+  "execution": {
+    "backend": "canonical_cpu",
+    "lanes": [
+      {"lane": 0, "physical_cpu_set": "0-27", "workers": 28},
+      {"lane": 1, "physical_cpu_set": "28-55", "workers": 28}
+    ],
+    "blas_threads_per_worker": 1
+  },
+  "paths": {
+    "output_root_default": "imported_endpoints/wall_pump_width_endpoints_s100_v1_cpu_fallback"
+  }
+}

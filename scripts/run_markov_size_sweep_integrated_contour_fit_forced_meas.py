@@ -38,15 +38,23 @@ from tqdm import tqdm
 from fgtn.classA_U1FGTN import classA_U1FGTN
 # ---- Config ----
 NX = 12
-NY_LIST = [16, 24, 36]
+# Set either list to None to disable that source.
+# NY_SIM_LIST: Ny values to simulate now.
+# NY_LOAD_LIST: Ny values to load from cache.
+NY_SIM_LIST = [16, 24, 36]
+NY_LOAD_LIST = None
+
 CYCLES = 20
 SAMPLES = 250
 NSHELL = None
 ALPHA_1 = 30.0
 ALPHA_2 = 1.0
-P_MEAS = 1.0
-SEQUENCE = "random"
+SEQUENCE = "dw_symmetric_random"
 PARALLEL_SAMPLES = True
+
+NY_SIM_LIST = [] if NY_SIM_LIST is None else list(NY_SIM_LIST)
+NY_LOAD_LIST = [] if NY_LOAD_LIST is None else list(NY_LOAD_LIST)
+NY_LIST = sorted(set(NY_SIM_LIST + NY_LOAD_LIST))
 # --------------
 
 
@@ -123,8 +131,50 @@ def mean_pair_curve_for_ycuts(G_final, y_cut_list, sample_idx, sub_idx_map, ny_s
     return vals
 
 
+def cache_path_for_ny(ny):
+    nshell_tag = "None" if NSHELL is None else str(NSHELL)
+    return (
+        "cache/G_history_samples/"
+        f"N12x{ny}/"
+        f"N12x{ny}_C{int(CYCLES)}_S{int(SAMPLES)}_nsh{nshell_tag}_DW1_"
+        "init-default_n_a0.5_seq-dw_symmetric_random_exclNone_"
+        "ps0_pc0_markov_circuit_size_sweep_default_from_legacy_forced_meas.npz"
+    )
+
+
+DATA_PATH_BY_NY = {ny: cache_path_for_ny(ny) for ny in NY_LOAD_LIST}
+
+
+def load_final_from_cache(path):
+    if not os.path.exists(path):
+        raise FileNotFoundError(path)
+    with np.load(path) as data:
+        if "G_final" in data:
+            G_final = data["G_final"]
+        elif "G_hist" in data:
+            G_hist = data["G_hist"]
+            if G_hist.ndim == 4:
+                G_final = G_hist[:, -1]
+            elif G_hist.ndim == 3:
+                G_final = G_hist
+            else:
+                raise ValueError(f"G_hist must have shape (S,T,N,N) or (S,N,N); got {G_hist.shape}")
+        else:
+            raise KeyError(f"'G_final' or 'G_hist' not found in {path}")
+    if G_final.ndim != 3:
+        raise ValueError(f"G_final must have shape (S,N,N); got {G_final.shape}")
+    return G_final
+
+
 def main():
     t0 = time.time()
+    if not NY_LIST:
+        raise ValueError("No Ny values selected. Set NY_SIM_LIST and/or NY_LOAD_LIST.")
+    print(
+        "[info] forced_meas was removed from the canonical CPU Markov driver; "
+        "this script now runs the default adaptive dynamics.",
+        flush=True,
+    )
 
     cfg_names = [
         "Left DW, y_cut_list_1",
@@ -138,7 +188,11 @@ def main():
 
     ny_bar = tqdm(NY_LIST, desc="Ny sweep", unit="Ny")
     for i_ny, NY in enumerate(ny_bar):
-        ny_bar.set_postfix({"Ny": NY, "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, refresh=False)
+        source = "load" if NY in NY_LOAD_LIST else "sim"
+        ny_bar.set_postfix(
+            {"Ny": NY, "src": source, "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")},
+            refresh=False,
+        )
 
         model = classA_U1FGTN(NX, NY, nshell=NSHELL, DW=True, alpha_1=ALPHA_1, alpha_2=ALPHA_2)
         if not (hasattr(model, "DW_loc") and len(model.DW_loc) >= 2):
@@ -148,32 +202,34 @@ def main():
         left_pair = np.array([x0 % NX, (x0 + 1) % NX], dtype=int)
         right_pair = np.array([(x1 - 1) % NX, x1 % NX], dtype=int)
 
-        res = model.run_markov_circuit(
-            G_history=True,
-            cycles=CYCLES,
-            progress=True,
-            postselect=False,
-            forced_meas=True,
-            init_mode="default",
-            G_init=None,
-            save=True,
-            samples=SAMPLES,
-            p_meas=P_MEAS,
-            n_jobs=cpu_cap,
-            parallelize_samples=True,
-            sequence=SEQUENCE,
-            top_triv_back_forth=True,
-            max_in_flight=cpu_cap,
-            save_suffix="_size_sweep_forced_meas",
-        )
+        if NY in NY_LOAD_LIST:
+            cache_path = DATA_PATH_BY_NY[NY]
+            print(f"[load] Ny={NY}: {cache_path}")
+            G_final = load_final_from_cache(cache_path)
+        else:
+            res = model.run_markov_circuit(
+                G_history=True,
+                cycles=CYCLES,
+                progress=True,
+                postselect=False,
+                init_mode="default",
+                G_init=None,
+                save=True,
+                samples=SAMPLES,
+                n_jobs=cpu_cap,
+                parallelize_samples=True,
+                sequence=SEQUENCE,
+                max_in_flight=cpu_cap,
+                save_suffix="_size_sweep_default_from_legacy_forced_meas",
+            )
 
-        G_hist = res.get("G_hist")
-        if G_hist is None:
-            raise RuntimeError("G_hist not available; set G_history=True.")
-        if G_hist.ndim != 4:
-            raise ValueError(f"G_hist must have shape (S,T,N,N); got {G_hist.shape}")
+            G_hist = res.get("G_hist")
+            if G_hist is None:
+                raise RuntimeError("G_hist not available; set G_history=True.")
+            if G_hist.ndim != 4:
+                raise ValueError(f"G_hist must have shape (S,T,N,N); got {G_hist.shape}")
 
-        G_final = G_hist[:, -1]
+            G_final = G_hist[:, -1]
 
         S_tot, Nlayer, Nlayer2 = G_final.shape
         if Nlayer != Nlayer2:
@@ -183,11 +239,9 @@ def main():
 
         sample_idx = np.arange(S_tot, dtype=int)
 
-        y_cut_list_1 = np.arange(2, NY // 2, dtype=int)
-        y_cut_list_2 = np.arange(NY // 2, NY - 1, dtype=int)
-        n = min(len(y_cut_list_1), len(y_cut_list_2))
-        y_cut_list_1 = y_cut_list_1[:n]
-        y_cut_list_2 = y_cut_list_2[:n]
+        y_cut_base = np.arange(2, NY // 2, dtype=int)
+        y_cut_list_1 = y_cut_base.copy()
+        y_cut_list_2 = np.sort(NY - y_cut_base)
         Ay_list_1 = NY - y_cut_list_1
         Ay_list_2 = NY - y_cut_list_2
 
@@ -238,7 +292,7 @@ def main():
         )
     ax0.set_xlabel("Ny")
     ax0.set_ylabel("Slope m +/- fit stderr")
-    ax0.set_title("Forced-measurement: slope from integrated contour (final snapshot from history)")
+    ax0.set_title("Default adaptive dynamics: slope from integrated contour (final snapshot from history)")
     ax0.grid(alpha=0.3)
     ax0.legend(ncol=2, fontsize=9)
 
@@ -246,7 +300,7 @@ def main():
         ax1.plot(NY_LIST, 1.0 - r2[name], marker="o", lw=1.4, label=name)
     ax1.set_xlabel("Ny")
     ax1.set_ylabel("R^2 error (1 - R^2)")
-    ax1.set_title("Forced-measurement: fit error vs system size (final snapshot from history)")
+    ax1.set_title("Default adaptive dynamics: fit error vs system size (final snapshot from history)")
     ax1.grid(alpha=0.3)
     ax1.legend(ncol=2, fontsize=9)
 
@@ -257,7 +311,7 @@ def main():
     pdf_name = (
         "markov_circuit_boundary_EC_slope_fit_size_sweep_"
         f"Nyleq{ny_max}_integrated_contour_fit_C{int(CYCLES)}_S{int(SAMPLES)}"
-        f"_nsh{nshell_tag}_forced_meas.pdf"
+        f"_nsh{nshell_tag}_default_from_legacy_forced_meas.pdf"
     )
     pdf_path = os.path.join(figs_dir, pdf_name)
     fig.tight_layout()

@@ -1,0 +1,87 @@
+{
+  "canonical_gpu_sha256": "562a5dc2ec42e64d15a19b0fb2ffce56f5e7daba82f60689c087e1868e7ba702",
+  "files": {
+    "__init__.py": {
+      "repository_source": "generated",
+      "sha256": "7a0df3eca372952f3494a4c51a48e24e842b8ca76996a4c09fbbd2e7b8f2038b"
+    },
+    "campaign_cases.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/campaign_cases.py",
+      "sha256": "64793b16e518d1456c85e9aa1ec5f769ef9b95e2aa99c87da1e531b08e46e500"
+    },
+    "classA_U1FGTN_gpu.py": {
+      "repository_source": "src/fgtn/classA_U1FGTN_gpu.py",
+      "sha256": "562a5dc2ec42e64d15a19b0fb2ffce56f5e7daba82f60689c087e1868e7ba702"
+    },
+    "drive_storage_guard.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/drive_storage_guard.py",
+      "sha256": "50a43ada77f556de6678a8ebefa73a5fd7a9fdde9afd8d4b9f7abc90530f2864"
+    },
+    "fused_chirality_observables.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/fused_chirality_observables.py",
+      "sha256": "7386cc5773b13cd8bd9862e5f47321e1dc4179acdcd523c3db6124880c24fd9e"
+    },
+    "gate_analysis.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/gate_analysis.py",
+      "sha256": "7c116a9f219569d01ed495a7f75471bcf7bf002062d3dc17bf3d9db908d3a5c6"
+    },
+    "h3_twist_observables.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/h3_twist_observables.py",
+      "sha256": "2559c9ffbd3b2f1eaff45a1c896665b1a16a95ed31a622befb8b8301549ab351"
+    },
+    "lyapunov_observables_gpu.py": {
+      "repository_source": "colab_lyapunov/src/lyapunov_observables_gpu.py",
+      "sha256": "9353a17d3453c198ac4429cc1a51e432b6f6c8f670f08b2afde36df8b545a81a"
+    },
+    "noise_observables.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/noise_observables.py",
+      "sha256": "3ceb21d9d2abd9be8fb69bc7756d2ed92e1e63416dd40732161e819fa711c1aa"
+    },
+    "occupied_frame_gpu.py": {
+      "repository_source": "src/fgtn/occupied_frame_gpu.py",
+      "sha256": "bfc10cefea98ce00184a88b5c375eadfcda8e3dc6954d9f66183d566008951b0"
+    },
+    "production_runtime.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/production_runtime.py",
+      "sha256": "bafa7c5fb715c2be812e99814cb86e7138a0ea41bd5d83c823229fc07a6da6e9"
+    },
+    "purification_dynamics_observables_gpu.py": {
+      "repository_source": "colab_charge_fluctuations/src/purification_dynamics_observables_gpu.py",
+      "sha256": "1fa096799e4c6fad4f72c55afe250e78aa4d11dfd4babe28bad8af823561a308"
+    },
+    "record_observables.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/record_observables.py",
+      "sha256": "10b17bfd7cffa085df673e21ea65862a0890ee0f31ded53f8a47c0786e1c41a9"
+    },
+    "record_spectrum_analysis.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/record_spectrum_analysis.py",
+      "sha256": "896f994a1eb91837cb77b7d254ee279e853e8af11c25e4b2a639f82e23cfaae0"
+    },
+    "run_core_shard.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/run_core_shard.py",
+      "sha256": "b5c300669552f08494e65db3cb40f385de1e6fdda06fb3c6141800be4d3be14c"
+    },
+    "run_h3_shard.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/run_h3_shard.py",
+      "sha256": "2f0dc7a436e91ce17b46418405b8545416306a3abb8fdca41eb22734cdb3b7dc"
+    },
+    "run_validation_suite.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/run_validation_suite.py",
+      "sha256": "976a81697d3310b2ad9a4c8cc93c50a1678b7a66f590aa8a9f33e93f568f19ad"
+    },
+    "selected_observables.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/selected_observables.py",
+      "sha256": "bd4e6dbc34fe0902fe51c19b65fae2c706eb3d9e6d8f2fa6ad8289e2c3c52601"
+    },
+    "streaming_covariance_observables_gpu.py": {
+      "repository_source": "colab_charge_fluctuations/src/streaming_covariance_observables_gpu.py",
+      "sha256": "96b8bf9c022f226dcb6bc9c03058b175535dd041e84a9e904015c29e766f667b"
+    },
+    "tangent_observables.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/tangent_observables.py",
+      "sha256": "926ecc777896163d155f6d8023286b0c42a8b192f305658126c38cb4dd12252c"
+    }
+  },
+  "schema_version": 1,
+  "warning": "Generated copies; edit repository sources and rerun sync_bundle_sources.py."
+}

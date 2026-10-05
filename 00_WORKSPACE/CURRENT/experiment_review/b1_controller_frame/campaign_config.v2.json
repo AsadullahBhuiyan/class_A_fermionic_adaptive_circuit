@@ -1,0 +1,46 @@
+{
+  "schema_version": 2,
+  "campaign": "B1_signed_controller_frame",
+  "config_locked": true,
+  "dtype": "complex128",
+  "nx": 20,
+  "ny_values": [24, 40],
+  "nshell": 1,
+  "alpha_top": 1.0,
+  "alpha_trivial": 30.0,
+  "trial_orbitals": "X",
+  "constructions": [
+    "explicit_interface",
+    "explicit_wall_off",
+    "support_terminated",
+    "support_wall_off"
+  ],
+  "trajectory_splits": {
+    "train": 4,
+    "test": 4
+  },
+  "cycles_factor": 4,
+  "burn_in_factor": 2,
+  "sequence": "random",
+  "init_mode": "default",
+  "perfect_correction": true,
+  "bootstrap_samples": 2000,
+  "root_seed": 20260817,
+  "svd_rtol": 1e-10,
+  "numerical_tolerance": 1e-10,
+  "charge_integer_tolerance": 1e-8,
+  "wall_window_columns": 2,
+  "max_workers": 4,
+  "blas_threads": 1,
+  "idle_cpu_threshold_percent": 10.0,
+  "idle_poll_seconds": 60,
+  "supersedes_campaign_id": "20260816_205624",
+  "correction_reason": "v1 CPU discovery parsed complete /proc/stat lines instead of cpu tokens and therefore found zero CPUs",
+  "legacy_paths": [
+    "notebooks/flattened_hamiltonian_analysis/docs/flattened_hamiltonian_analysis.tex",
+    "notebooks/flattened_hamiltonian_analysis/data",
+    "notebooks/flattened_hamiltonian_analysis/figures",
+    "topological_frustration_diagnostics/docs/numerical_diagnostics.tex",
+    "topological_frustration_diagnostics/results"
+  ]
+}

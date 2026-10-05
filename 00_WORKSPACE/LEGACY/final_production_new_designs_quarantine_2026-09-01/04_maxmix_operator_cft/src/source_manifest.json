@@ -1,0 +1,35 @@
+{
+  "canonical_gpu_sha256": "562a5dc2ec42e64d15a19b0fb2ffce56f5e7daba82f60689c087e1868e7ba702",
+  "files": {
+    "__init__.py": {
+      "repository_source": "generated",
+      "sha256": "7a0df3eca372952f3494a4c51a48e24e842b8ca76996a4c09fbbd2e7b8f2038b"
+    },
+    "classA_U1FGTN_gpu.py": {
+      "repository_source": "src/fgtn/classA_U1FGTN_gpu.py",
+      "sha256": "562a5dc2ec42e64d15a19b0fb2ffce56f5e7daba82f60689c087e1868e7ba702"
+    },
+    "drive_storage_guard.py": {
+      "repository_source": "final_production_new_designs/_shared_src/drive_storage_guard.py",
+      "sha256": "50a43ada77f556de6678a8ebefa73a5fd7a9fdde9afd8d4b9f7abc90530f2864"
+    },
+    "g4_analysis.py": {
+      "repository_source": "final_production_new_designs/04_maxmix_operator_cft/src/g4_analysis.py",
+      "sha256": "a56e1168aed7af5a6919cf25f47d3a8d272783b88cd1d678954b9a52d1e79f3d"
+    },
+    "g4_observables.py": {
+      "repository_source": "final_production_new_designs/04_maxmix_operator_cft/src/g4_observables.py",
+      "sha256": "d0ee076fdcb1a127ddfa6ad90555082d1ebcea99220664729a1bd3b034c474e1"
+    },
+    "g4_runner.py": {
+      "repository_source": "final_production_new_designs/04_maxmix_operator_cft/src/g4_runner.py",
+      "sha256": "a14f1f18f9fb51ac5f7d9217b6949393b9926fce6eec628a830252e1aee1dda1"
+    },
+    "occupied_frame_gpu.py": {
+      "repository_source": "src/fgtn/occupied_frame_gpu.py",
+      "sha256": "bfc10cefea98ce00184a88b5c375eadfcda8e3dc6954d9f66183d566008951b0"
+    }
+  },
+  "schema_version": 1,
+  "warning": "Generated copies; edit repository sources and rerun sync_bundle_sources.py."
+}

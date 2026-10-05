@@ -1,0 +1,21 @@
+{
+  "nx": 20,
+  "ny": 24,
+  "nshell": 1,
+  "burn_cycles": 48,
+  "observation_cycles": 48,
+  "twist_count": 21,
+  "root_seed": 1701,
+  "DW": true,
+  "alpha_1": 1,
+  "alpha_2": 30,
+  "dw_truncation": true,
+  "meas_slab_only": true,
+  "trial_orbitals": "X",
+  "sequence": "dw_symmetric_random",
+  "init_mode": "maxmix",
+  "perfect_correction": true,
+  "physical_covariance_update": "rank1",
+  "singular_tol": 1e-12,
+  "replay_probability_tol": 1e-14
+}

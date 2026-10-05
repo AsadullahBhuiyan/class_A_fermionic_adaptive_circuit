@@ -1,0 +1,39 @@
+{
+  "canonical_gpu_sha256": "562a5dc2ec42e64d15a19b0fb2ffce56f5e7daba82f60689c087e1868e7ba702",
+  "files": {
+    "__init__.py": {
+      "repository_source": "generated",
+      "sha256": "7a0df3eca372952f3494a4c51a48e24e842b8ca76996a4c09fbbd2e7b8f2038b"
+    },
+    "classA_U1FGTN_gpu.py": {
+      "repository_source": "src/fgtn/classA_U1FGTN_gpu.py",
+      "sha256": "562a5dc2ec42e64d15a19b0fb2ffce56f5e7daba82f60689c087e1868e7ba702"
+    },
+    "drive_remote_commit.py": {
+      "repository_source": "final_production_new_designs/_shared_src/drive_remote_commit.py",
+      "sha256": "1fd83bfe8d9487276e2b8793d4d2cdb8d1f20ff744911dfb617b09f3b439fe9d"
+    },
+    "drive_storage_guard.py": {
+      "repository_source": "final_production_new_designs/_shared_src/drive_storage_guard.py",
+      "sha256": "86a9a2ffe09e444d98a46158e75694d075a3ec852a9264d4affcef233594bae0"
+    },
+    "occupied_frame_gpu.py": {
+      "repository_source": "src/fgtn/occupied_frame_gpu.py",
+      "sha256": "bfc10cefea98ce00184a88b5c375eadfcda8e3dc6954d9f66183d566008951b0"
+    },
+    "p1_chern_analysis.py": {
+      "repository_source": "final_production_new_designs/_shared_src/p1_chern_analysis.py",
+      "sha256": "a11390bc52d325fae4e3b20de03a8efe6abceb47e7e6fc8867168f5ddbf69280"
+    },
+    "p1_chern_observables.py": {
+      "repository_source": "final_production_new_designs/_shared_src/p1_chern_observables.py",
+      "sha256": "e46b0c5ee68f8bb6d46d63a2e9406c2ba9cf6b56a3e546122ed4211a9044a99e"
+    },
+    "p1_chern_runner.py": {
+      "repository_source": "final_production_new_designs/_shared_src/p1_chern_runner.py",
+      "sha256": "f75612f52dc58018a2fda767fe7e343367b4f899074cc216baf2e1bb2b986a0d"
+    }
+  },
+  "schema_version": 1,
+  "warning": "Generated copies; edit repository sources and rerun sync_bundle_sources.py."
+}

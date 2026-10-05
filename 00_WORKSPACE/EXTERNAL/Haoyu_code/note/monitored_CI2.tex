@@ -1,0 +1,3934 @@
+\documentclass[aps,prx,preprint,amsmath,amssymb]{revtex4-2}
+%\usepackage[bookmarks=false,linkcolor=NavyBlue,urlcolor=NavyBlue,colorlinks,citecolor=NavyBlue]{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage[colorlinks=true, linkcolor=blue]{hyperref}
+%\hypersetup{colorlinks,allcolors=black}
+%\usepackage{amssymb}
+%\usepackage{gensymb}
+\usepackage{comment}
+\usepackage{float}
+%\usepackage{amsmath}
+\usepackage{tabularx,graphicx}
+\usepackage{epstopdf}
+\usepackage{latexsym}
+\usepackage{color, colortbl}
+\usepackage{psfrag}
+\usepackage{bbm}
+\usepackage{bm}
+\usepackage{titlesec}
+\usepackage{dsfont}
+\usepackage{feynmp}
+\usepackage{slashed}
+\usepackage{subcaption}
+%\captionsetup[subfigure]{position=top, labelfont=bf,textfont=normalfont,singlelinecheck=off,justification=raggedright}
+\usepackage{multirow}
+%\usepackage{txfonts}
+\usepackage{subcaption}
+\usepackage[newcommands]{ragged2e}
+\captionsetup{font=small, justification=Justified}
+\usepackage[normalem]{ulem}
+\renewcommand{\vec}[1]{{\boldsymbol{#1}}}
+\usepackage{braket}
+\usepackage{subcaption}
+\def \rar{{\rightarrow}}
+\def \uar{{\uparrow}}
+\def \dar{{\downarrow}}
+\def \k {{\vec k}}
+\def \p {{\vec p}}
+\def \R {{\cal{R}}}
+\def \bI{{\vec I}}
+\def \bJ{{\vec J}}
+\def \e {\epsilon}
+\def \ve {\varepsilon}
+\def \r {{\vec r}}
+\def \A {\mathrm{A}}
+\def \B {\mathrm{B}}
+\def \C {\mathrm{C}}
+\def \v {{\bf v}}
+\def \el {\ell}
+\def \s {\vec{s}}
+\def \q {{\vec q}}
+\def \d{\partial}
+\def \Q{{\cal Q}}
+\def \Dg {\Delta_{\tn{gap}}}
+\def \Ds {\Delta_{\tn{sc}}}
+\def \l {\ell}
+\def \dv {\delta\vec{\varphi}}
+\def \S {{\cal{S}}}
+\def \G {{\cal{G}}}
+\def \C {{\cal{C}}}
+\def \K {{\vec K}}
+\def \x {{\vec x}}
+\def \y {{\vec y}}
+\def \Y {\mathbb{Y}}
+\def \P {\vec{\Phi}}
+\def \Ps {\Psi}
+\def \Ph{\Phi}
+\def \D{\Delta}
+\def \t {\theta}
+\def \ol{\overline}
+\def \n{{\mathbf{n}}}
+\def \L{{\cal{L}}}
+\def \O {\cal{O}}
+\def \beq {\begin{eqnarray}}
+\def \eeq {\end{eqnarray}}
+\def \tn {\textnormal}
+\def \PP {{\cal {P}}}
+\def \vp{\varphi}
+\def \M{{\cal {M}}}
+\def \Z {{\cal {Z}}}
+\def \F {{\cal {F}}}
+\def \E {{\cal {E}}}
+\def \N {{\cal{N}}}
+\def \m {{\mathcal}}
+\def \nn {\nonumber}
+\def \omd {{\omega_{\rm D}}}
+\def \kpa {\kappa_\Vert}
+\def \kpe {\kappa_\perp}
+\def \ol{\overline}
+\def \th{\vartheta}
+\def \la{\langle}
+\def \ra{\rangle}
+\def \ua {\uparrow}
+\def \da {\downarrow}
+\def \cb {\color{blue}}
+\def \ie {{\it i.e.}}
+\def \phd {\phantomdagger}
+\newcommand{\DC}[1]{ { \color{red} \footnotesize (\textsf{DC})\textsf{\textsl{#1}}}}
+\newcommand{\HG}[1]{ { \color{green} \footnotesize (\textsf{HG})\textsf{\textsl{#1}}}}
+\newcommand{\change}[1]{{\color{blue} #1}}
+\newcommand{\rd}{{\rm d}}
+\newcommand{\sgn}{{\rm sgn\,}}
+\newcommand{\Tr}{{\rm \, Tr\,}}
+\newcommand{\tr}{{\rm \, tr\,}}
+\newcommand{\vn}[1]{{\left|\vec{#1}\right|}}
+\newcommand{\calN}{{\mathcal N}}
+\newcommand{\calG}{{\mathcal G}}
+\newcommand{\calF}{{\mathcal F}}
+\newcommand{\calD}{{\mathcal D}}
+\newcommand{\calQ}{{\mathcal Q}}
+\newcommand{\calL}{{\mathcal L}}
+\newcommand{\calH}{{\mathcal H}}
+\newcommand{\calX}{{\mathcal X}}
+\newcommand{\calO}{{\mathcal O}}
+\renewcommand{\Re}{\text{Re}}
+\renewcommand{\Im}{\text{Im}}
+
+\usepackage{tikz-feynman}
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows}
+\tikzset{
+  % style to add an arrow in the middle of a path
+  mid arrow/.style={postaction={decorate,decoration={
+        markings,
+        mark=at position .575 with {\arrow[#1]{stealth}}
+      }}},
+  near arrow/.style={postaction={decorate,decoration={
+        markings,
+        mark=at position .275 with {\arrow[#1]{stealth}}
+      }}},
+   far arrow/.style={postaction={decorate,decoration={
+        markings,
+        mark=at position .800 with {\arrow[#1]{stealth}}
+      }}},
+   boson/.style={decorate, draw=black,
+    decoration={snake,amplitude=1pt, segment length=5pt},
+      },
+      phonon/.style={decorate, draw=red,
+    decoration={snake,amplitude=1pt, segment length=5pt},
+      },
+   mid triangle/.style={postaction={decorate,decoration={
+        markings,
+        mark=at position .575 with {\arrow[#1]{triangle 45}}
+      }}}
+}
+
+
+%\captionsetup{justification=justified}
+
+\usepackage{tikz-feynman}
+\usetikzlibrary{arrows}
+\usetikzlibrary{arrows.meta, positioning,shapes.geometric}
+\tikzset{
+  % style to add an arrow in the middle of a path
+  mid arrow/.style={postaction={decorate,decoration={
+        markings,
+        mark=at position .575 with {\arrow[#1]{stealth}}
+      }}},
+  near arrow/.style={postaction={decorate,decoration={
+        markings,
+        mark=at position .275 with {\arrow[#1]{stealth}}
+      }}},
+   far arrow/.style={postaction={decorate,decoration={
+        markings,
+        mark=at position .800 with {\arrow[#1]{stealth}}
+      }}},
+   boson/.style={decorate, draw=black,
+    decoration={snake,amplitude=1pt, segment length=5pt},
+      },
+   mid triangle/.style={postaction={decorate,decoration={
+        markings,
+        mark=at position .575 with {\arrow[#1]{triangle 45}}
+      }}}
+}
+
+
+\begin{document}
+\title{Note on Monitored Chern Insulator (Reowrked)}
+
+\author{Haoyu Guo}
+
+\affiliation{Department of Physics, Cornell University, Ithaca, New York 14853, USA.}
+
+
+\maketitle
+
+
+\section{Bulk model}
+
+We consider the following bulk model proposed by Matt: 
+\begin{equation}\label{}
+  h(k_x,k_y)/t_0=\sigma^1 \sin k_x +\sigma^2 \sin k_y+\sigma^3\left(r-\cos k_x-\cos k_y\right)\,.
+\end{equation} This hamiltonian has a Chern number when $0<|r|<2$.
+
+We can write down the real-space tight binding Hamiltonian as 
+\begin{equation}\label{}
+  h/t_0=\sigma^1\frac{T_x^\dagger-T_x}{2i}+\sigma^2 \frac{T_y^\dagger -T_y}{2i}+\sigma^3 \left(r-\frac{T_x+T_x^\dagger+T_y+T_y^\dagger}{2}\right)\,,
+\end{equation} where $T_x,T_y$ are the translation operators in the $x,y$ directions respectively. 
+
+\section{The model on the semi-infinite geometry}
+
+Let's write down the second quantized hamiltonian 
+\begin{equation}\label{}
+\begin{split}
+  H/t_{0}&= \sum_{k_x,y=0} c_{k_x,y}^\dagger\left(\sigma^1 \sin k_x+\sigma^3 (r-\cos k_x)\right)c_{kx,y} \\
+&+ c_{k_x,y}^\dagger \left(\frac{\sigma^2}{2i}-\frac{\sigma^3}{2}\right)c_{k_x,y+1}+c_{k_x,y+1}^\dagger\left(-\frac{\sigma^2}{2i}-\frac{\sigma^3}{2}\right)c_{k_x,y}\,,
+\end{split}
+\end{equation} 
+
+The Green's function is found to be 
+\begin{equation}\label{}
+  G^{-1}(z,k_x)=z-\sigma^1 \sin k_x- \sigma^3(r-\cos k_x)-\Sigma(z,k_x)\frac{1-\sigma^1}{2}\,,
+\end{equation} where 
+\begin{equation}\label{}
+  \Sigma(z,k_x)=\frac{z^2+2r\cos k_x-r^2-\sqrt{z^2-E_+^2}\sqrt{z^2-E_-^2}}{2(z-\sin k_x)}\,.
+\end{equation} and 
+\begin{equation}\label{}
+   E_{\pm}^2= \sin^2 k_x+(r-\cos k_x \pm 1)^2\,.
+\end{equation} Here the branch cut is the standard one for square root.
+
+The spectral function can be written as the sum of two terms $A=-2\Im G_R=A_\text{edge}+A_\text{bulk}$.
+
+\begin{equation}\label{}
+  A_\text{edge}=2\pi \delta(z-\sin k_x) \frac{1-(r-\cos k_x)^2}{2}\theta(1-(r-\cos k_x)^2)\begin{pmatrix}
+           1 & 1 \\
+           1 & 1 
+         \end{pmatrix}\,,
+\end{equation}
+\begin{equation}\label{}
+\begin{split}
+  A_\text{bulk}&=\frac{1}{2(r-\cos k_x)^2}\frac{1}{|z-\sin k_x|}\sqrt{(E_+^2-z^2)(z^2-E_-^2)}\theta(E_-<|z|<E_+) \\
+  &\times \begin{pmatrix}
+                                                                                (r+z-\cos k_x-\sin k_x)^2 & (r-\cos k_x)^2-(z-\sin k_x)^2 \\
+                                                                                 (r-\cos k_x)^2-(z-\sin k_x)^2 & (r-z-\cos k_x+\sin k_x)^2 
+                                                                              \end{pmatrix}\,.
+\end{split}
+\end{equation}
+
+\section{Setting up measurement}
+
+We briefly discuss how the measurement is setup. The measurement is described by a set of Kraus operators:
+\begin{equation}\label{}
+  \rho\to K_\upsilon \rho K^\dagger_\upsilon\,,
+\end{equation} with the POVM condition 
+\begin{equation}\label{}
+  \sum_{\upsilon} K_\upsilon^\dagger K_\upsilon = \mathds{1}\,.
+\end{equation} We consider measuring a fermion operator
+\begin{equation}
+\hat{n}_i[\alpha]=(\alpha^\dagger c_i)^\dagger (\alpha^\dagger c_i)\,,
+\end{equation} where $\alpha$ is a unit vector in the orbital space, so that $\hat{n}_i[\alpha]^2=\hat{n}_i[\alpha]$, i.e. it has eigenvalue 0,1.  Using this property, we can construct the Kraus operator using a $\upsilon_i^\alpha$ drawn from the real line. 
+\begin{equation}\label{}
+  K_{\upsilon_i^\alpha} \propto \exp\left(\kappa \upsilon_i^\alpha (\hat{n}_i[\alpha]-1/2) \right)\,,\quad \int \rd \upsilon_i^\alpha K_{\upsilon_i^\alpha}^\dagger K_{\upsilon_i^\alpha} \propto \mathds{1}\,.
+\end{equation}  
+
+Assuming continuum limit makes sense, the Keldysh action for the measurement takes the form 
+\begin{equation}\label{}
+  iS_m=\int\rd_t \rd^d\vec{r} \sum_{\alpha} \upsilon^\alpha(t,\vec{r})\sum_{a=1}^{r} \psi_a^\dagger \alpha \tau^x \alpha^\dagger \psi_a
+\end{equation} 
+
+Averaging over the trajectories with $\braket{\upsilon^\alpha \upsilon^\beta}=\gamma^2 \delta^{\alpha\beta}$, we therefore obtain 
+\begin{equation}\label{}
+  iS_m \Rightarrow \frac{\gamma^2}{2}\int\rd t\rd \vec{r} \sum_{\alpha} \psi^\dagger \mathbb{P}_\alpha \tau^x \psi  \mathbb{P}_\alpha \tau^x \psi\,.
+\end{equation} Here $\mathbb{P}_\alpha=\alpha \alpha^\dagger$ is a projector in the orbital space. Decouple with Green's function $G\propto -i \psi \psi^\dagger$, we obtain 
+\begin{equation}\label{}
+  iS_m \Rightarrow \frac{\gamma^2}{2} \int_{t,\vec{r}} \sum_\alpha\Tr(G \tau^x \mathbb{P}_\alpha G \tau^x \mathbb{P}_\alpha)-f_R \Tr^2\left(G \tau^x \mathbb{P}_\alpha\right)
+\end{equation} The trace is over replica, Keldysh, and orbital indices. To make sure the different Kraus operators commute, we require $\{\mathbb{P}_\alpha\}$ to be orthogonal to each other. For now we ignore the $f_R$ parameter, and just focus on the entanglement sector.
+
+The full action is 
+\begin{equation}\label{}
+  iS = \ln\det\left(G_0^{-1}-\Sigma\right) +\Tr\left(\Sigma\cdot G\right)+i S_m
+\end{equation}
+
+We should note that while the saddle point is not very sensitive to the choice of $\{\mathbb{P}_\alpha\}$, but the fluctuations are. In particular, the fluctuations are diagonal in the basis described by $\{\mathbb{P}_\alpha\}$.
+
+\section{Saddle point}
+
+The saddle point equation with $f_R=0$ is 
+\begin{equation}\label{}
+  \Sigma_M(t,\vec{r})=-\gamma^2 \sum_\alpha\int\frac{\rd \omega}{2\pi}\frac{\rd k}{2\pi} \mathbb{P}_\alpha \tau^x G(\omega,k) \tau^x \mathbb{P}_\alpha =\frac{-i\Gamma}{2} \tau_z \sum_\alpha \mathbb{P}_\alpha\,,
+\end{equation} Here
+\begin{equation}\label{}
+  \Gamma=\gamma^2\,,
+\end{equation} and we have evaluated the $\omega$-integral using the sum rule (leading to a result proportional identity), and assume the BZ spans $k\in[-\pi,\pi]$.
+
+\section{Orbit monitoring}
+
+  Now we consider the orbit monitoring case, where $\{\mathbb{P}_\alpha\}=\{\mathbb{P}_{z,-},\mathbb{P}_{z,+}\}$, i.e. the eigenbasis of $\sigma_z$. In this setting, the saddle point self-energy is 
+\begin{equation}\label{}
+  \Sigma_{M,\text{saddle}}=-\frac{i \Gamma}{2}\tau_z\,.
+\end{equation}
+
+  We next derive the NLSM for the fluctuations around the saddle point. We first integrate out $G$, so the action becomes 
+\begin{equation}\label{}
+  i S = \ln \det\left(G_0^{-1}-\Sigma\right)+\frac{1}{2}\Tr\left(\Sigma\cdot  W_G^{-1}[\Sigma]\right)\,.
+\end{equation} Here, the functional $W_G$ is local in space time, and the local action is given by 
+\begin{equation}\label{}
+  W_G[F]=-\gamma^2 \sum_{\alpha}\left[\tau^x \mathbb{P}_\alpha F \mathbb{P}_\alpha \tau^x-\tau^x \mathbb{P}_\alpha f_R \Tr\left(F \tau^x \mathbb{P}_\alpha\right)\right]
+\end{equation}
+
+\subsection{Choice of the parameter $f_R$}
+
+  In this subsection, we determine the value of $f_R$ using the requirement that $\Sigma_M$ can be extended to a causal solution 
+\begin{equation}\label{}
+  \Sigma_M =\begin{pmatrix}
+              \Sigma_R & \Sigma_K \\
+              0 & \Sigma_A 
+            \end{pmatrix}\,,
+\end{equation} we assume all of them remain to be a frequency-independent number. Substituting the above ansatz into the saddle point equation, we obtain 
+\begin{equation}\label{}
+  \sum_{\alpha}\mathbb{P}_\alpha G_K \mathbb{P}_\alpha = \sum_{\alpha} f_R \mathbb{P}_\alpha \Tr\left(\mathbb{P}_\alpha G_K\right)\,.
+\end{equation} Here $G_K$ is the local Keldysh Green's function of the saddle. The above equation simply says that the orbital-diagonal entries of $G_K$ is related to its trace over the replica indices, and therefore it requires 
+\begin{equation}\label{}
+  f_R=\frac{1}{R}\,,
+\end{equation} which is the same conclusion as the previous AIII paper. The remaining determines the Keldysh self-energy $\Sigma_K$ in terms of the local Keldysh $G_K$.  In the upper-triangular Keldysh convention used throughout this note, $\Sigma_K$ is anti-Hermitian, so the Hermitian density kernel carries an additional factor of $-i$:
+\begin{equation}\label{}
+  \Sigma_K=-i \gamma^2\begin{pmatrix}
+             G_K^1 & 0 \\
+             0 & G_K^2 
+           \end{pmatrix}_\text{orbit}=-i\Gamma\begin{pmatrix}
+                                              1-2n_1 & 0 \\
+                                              0 & 1-2n_2 
+                                            \end{pmatrix}\,,
+\end{equation} i.e. the Keldysh component is an anti-Hermitian matrix set by the orbital densities, while the Hermitian kernel is $\Gamma(1-2n_a)$. 
+
+\subsection{Deriving the NLSM}
+
+We again consider the half-filling case, so that the saddle has
+\(\Sigma_K=0\).  Before choosing coordinates on the soft manifold, it is useful
+to spell out the orbital structure of \(Q\).  The monitoring projectors are
+\(\mathbb P_{z,+}\) and \(\mathbb P_{z,-}\), so the most general local
+measurement saddle within the orbital-density Hubbard-Stratonovich channel is
+block diagonal in this monitored orbital basis:
+\begin{equation}
+\label{eq:orbital-general-Q}
+Q_{\rm orb}
+=
+\mathbb P_{z,+}\,Q_+
++\mathbb P_{z,-}\,Q_-,
+\qquad
+Q_\pm^2=\mathbf{1}.
+\end{equation}
+Here \(Q_\pm\) are matrices in Keldysh and replica space.  Equivalently,
+\[
+Q_\pm=T_\pm^{-1}\tau^zT_\pm
+\]
+with the usual causal constraints on \(T_\pm\).  In the explicit coordinates
+used below one may write
+\begin{equation}
+\label{eq:orbital-general-Qpm}
+Q_\pm
+=
+\cos\phi_\pm
+\left[\tau^z\cos B_\pm+\tau^y\sin B_\pm\right]
++\sin\phi_\pm\,\tau^x,
+\qquad
+B_\pm=\theta_\pm\mathbf{1}_R+Y_\pm,
+\end{equation}
+with \(Y_\pm^\dagger=Y_\pm\) and \(\Tr_RY_\pm=0\).  Since the two orbital
+projectors are orthogonal, \eqref{eq:orbital-general-Q} satisfies
+\[
+Q_{\rm orb}^2
+=
+\mathbb P_{z,+}Q_+^2+\mathbb P_{z,-}Q_-^2
+=\mathbf{1}
+\]
+whenever \(Q_\pm^2=\mathbf{1}\).
+
+Equation \eqref{eq:nlsm-Q-param} below is the diagonal submanifold
+\[
+Q_+=Q_-\equiv Q,
+\qquad
+Q_{\rm orb}=\mathbf{1}_{\rm orb}\,Q.
+\]
+This is the unique gapless orbital sector.  The reason is that only a common
+Keldysh-replica rotation of both monitored orbitals is a symmetry of the full
+fermion determinant.  A relative orbital rotation \(Q_+\neq Q_-\) inserts the
+orbital matrix \(\mathbb P_{z,+}-\mathbb P_{z,-}=\sigma_z\) at the fluctuation
+vertex.  The single-particle Hamiltonian contains orbital matrices that do not
+commute with \(\sigma_z\), for example the \(\sin q\,\sigma_x\) term, so this
+relative rotation is not protected by a Ward identity.  In the quadratic action
+the common mode has the subtracted bubble
+\(\Pi_{RA}(\Omega,k)-\Pi_{RA}(0,0)\), which vanishes at zero external arguments,
+whereas the relative orbital mode involves bubbles with \(\sigma_z\) insertions,
+such as
+\[
+\Pi_{RA}^{zz}(0,0)
+=
+\int\frac{d\omega\,dq}{(2\pi)^2}\,
+\tr_{\rm orb}\!\left[
+\sigma_zG_R(\omega,q)\sigma_zG_A(\omega,q)
+\right],
+\]
+and this does not cancel the local measurement term.  Thus \(Q_+-Q_-\) is a
+massive orbital-coherence mode.  Off-diagonal orbital components, which would
+mix \(\mathbb P_{z,+}\) and \(\mathbb P_{z,-}\), are even more directly outside
+the monitored-density saddle channel and are also massive.  The NLSM therefore
+keeps only the orbital-identity component.
+
+It is convenient to rewrite this remaining fluctuation manifold in a form that
+makes the nonlinear constraint manifest.  Let
+\begin{equation}\label{eq:nlsm-Q-param}
+\Sigma=-\frac{i\Gamma}{2}Q,
+\qquad
+Q=\cos\phi\left[\tau^z\cos B+\tau^y\sin B\right]+\sin\phi\,\tau^x,
+\end{equation}
+where
+\begin{equation}\label{eq:B-theta-Y}
+B=\theta\,\mathbf{1}_R+Y,
+\qquad
+Y^\dagger=Y,
+\qquad
+\Tr_R Y=0.
+\end{equation}
+This is equivalent to the previous parametrization with
+\(\mathcal X=e^{iB}=e^{i\theta}X\), \(X\in SU(R)\).  Since \(\cos B\) and
+\(\sin B\) commute, one immediately checks that \(Q^2=\mathbf{1}\).  The saddle
+point corresponds to
+\begin{equation}\label{eq:Q-saddle}
+Q_{\rm saddle}=\tau^z,
+\qquad
+\Sigma_{\rm saddle}=-\frac{i\Gamma}{2}\tau^z.
+\end{equation}
+
+For small fluctuations,
+\begin{equation}\label{eq:Q-small-expand}
+Q
+=
+\tau^z
++B\,\tau^y
++\phi\,\tau^x
+-\frac{1}{2}\left(B^2+\phi^2\right)\tau^z
++O(\Phi^3),
+\end{equation}
+so the linear fluctuation of the self-energy is
+\begin{equation}\label{eq:deltaSigma-linear}
+\delta\Sigma
+=
+-\frac{i\Gamma}{2}\left(B\,\tau^y+\phi\,\tau^x\right)+O(\Phi^2).
+\end{equation}
+
+Expanding the action around the saddle gives
+\begin{equation}\label{eq:quadratic-general}
+iS
+=
+iS_{\rm saddle}
++\frac{1}{2}\Tr\left(\delta\Sigma\cdot W_G^{-1}[\delta\Sigma]\right)
+-\frac{1}{2}\Tr\left(G_{\rm saddle}\,\delta\Sigma\,G_{\rm saddle}\,\delta\Sigma\right)
++O(\Phi^3).
+\end{equation}
+The linear term vanishes by the saddle-point equation.  Moreover, the
+parametrization \eqref{eq:nlsm-Q-param} moves along the degenerate local saddle
+manifold, so the purely local part of the quadratic kernel cancels between the
+two terms in \eqref{eq:quadratic-general}.  The surviving quadratic action is
+therefore controlled by the nonlocal fermion bubble.
+
+We now Fourier transform the fluctuation fields and use the shorthand
+\begin{equation}\label{eq:Q-int-short}
+\int_Q \equiv \int \frac{d\Omega\,dk}{(2\pi)^2}.
+\end{equation}
+At linear order, the \(B\) mode couples through \(\tau^y\) and the \(\phi\) mode
+through \(\tau^x\).  Using
+\begin{equation}\label{eq:G-keldysh-triangular}
+G(\omega,k)=
+\begin{pmatrix}
+G_R(\omega,k) & G_K(\omega,k)\\
+0 & G_A(\omega,k)
+\end{pmatrix},
+\qquad
+G_A=G_R^\dagger,
+\end{equation}
+the relevant Keldysh traces are
+\begin{align}
+\tr_K\!\left(G_1\tau^y G_2\tau^y\right)
+&=
+\tr_{\rm orb}\!\left(
+G_{R,1}G_{A,2}+G_{A,1}G_{R,2}-G_{K,1}G_{K,2}
+\right),
+\label{eq:tauy-bubble}
+\\
+\tr_K\!\left(G_1\tau^x G_2\tau^x\right)
+&=
+\tr_{\rm orb}\!\left(
+G_{R,1}G_{A,2}+G_{A,1}G_{R,2}+G_{K,1}G_{K,2}
+\right),
+\label{eq:taux-bubble}
+\\
+\tr_K\!\left(G_1\tau^x G_2\tau^y\right)
+&=
+i\,\tr_{\rm orb}\!\left(
+G_{R,1}G_{A,2}-G_{A,1}G_{R,2}+G_{K,1}G_{K,2}
+\right).
+\label{eq:taux-tauy-mixing}
+\end{align}
+There is therefore a genuine mixed \(B\)-\(\phi\) quadratic kernel. Since the
+saddle Green's function is proportional to the identity in replica space, the
+\(U(1)\) and \(SU(R)\) parts of \(B\) share the same diagonal kernel, but only
+the replica-singlet \(\theta\) mode can mix with \(\phi\):
+\begin{equation}\label{eq:B-trace-split}
+\Tr_R\!\left[B(-Q)B(Q)\right]
+=
+R\,\theta(-Q)\theta(Q)+\Tr_R\!\left[Y(-Q)Y(Q)\right].
+\end{equation}
+while
+\begin{equation}\label{eq:B-phi-trace}
+\Tr_R\!\left[B(-Q)\,\phi(Q)\right]=R\,\theta(-Q)\phi(Q),
+\qquad
+\Tr_R\!\left[Y(-Q)\,\phi(Q)\right]=0.
+\end{equation}
+
+Define the retarded-advanced bubble
+\begin{equation}\label{eq:Pi-RA-def}
+\Pi_{RA}(\Omega,k)
+=
+\int \frac{d\omega\,dq}{(2\pi)^2}\,
+\tr_{\rm orb}\!\left[
+G_R(\omega+\Omega,q+k)\,G_A(\omega,q)
+\right],
+\end{equation}
+and the Keldysh-Keldysh bubble
+\begin{equation}\label{eq:Pi-KK-def}
+\Pi_{KK}(\Omega,k)
+=
+\int \frac{d\omega\,dq}{(2\pi)^2}\,
+\tr_{\rm orb}\!\left[
+G_K(\omega+\Omega,q+k)\,G_K(\omega,q)
+\right].
+\end{equation}
+At the quadratic level, the two kernels entering the NLSM are
+\begin{align}
+\mathcal W_B(\Omega,k)
+&=
+\bigl[\Pi_{RA}(\Omega,k)+\Pi_{RA}(-\Omega,-k)-2\Pi_{RA}(0,0)\bigr]
+\notag\\
+&\qquad
+-\bigl[\Pi_{KK}(\Omega,k)-\Pi_{KK}(0,0)\bigr],
+\label{eq:WB-def}
+\\
+\mathcal W_\phi(\Omega,k)
+&=
+\bigl[\Pi_{RA}(\Omega,k)+\Pi_{RA}(-\Omega,-k)-2\Pi_{RA}(0,0)\bigr]
+\notag\\
+&\qquad
++\bigl[\Pi_{KK}(\Omega,k)-\Pi_{KK}(0,0)\bigr].
+\label{eq:Wphi-def}
+\end{align}
+The off-diagonal kernels are
+\begin{align}
+\mathcal W_{\theta\phi}(\Omega,k)
+&=
+i\Bigl[
+\Pi_{RA}(\Omega,k)-\Pi_{RA}(-\Omega,-k)
++\Pi_{KK}(\Omega,k)-\Pi_{KK}(0,0)
+\Bigr],
+\label{eq:Wthetaphi-def}
+\\
+\mathcal W_{\phi\theta}(\Omega,k)
+&=
+i\Bigl[
+\Pi_{RA}(-\Omega,-k)-\Pi_{RA}(\Omega,k)
++\Pi_{KK}(\Omega,k)-\Pi_{KK}(0,0)
+\Bigr].
+\label{eq:Wphitheta-def}
+\end{align}
+Therefore
+\begin{equation}\label{eq:nlsm-quadratic-final}
+iS^{(2)}
+=
+-\frac{\Gamma^2}{8}\int_Q
+\left[
+\mathcal W_B(\Omega,k)\,
+\Bigl(R\,\theta(-Q)\theta(Q)+\Tr_R[Y(-Q)Y(Q)]\Bigr)
++R\,\mathcal W_{\theta\phi}(\Omega,k)\,\theta(-Q)\phi(Q)
++R\,\mathcal W_{\phi\theta}(\Omega,k)\,\phi(-Q)\theta(Q)
++R\,\mathcal W_\phi(\Omega,k)\,\phi(-Q)\phi(Q)
+\right].
+\end{equation}
+
+The retarded-advanced part is the same fermion bubble analyzed in
+Appendix~\ref{app:ra-bubble}.  In the notation introduced there,
+\begin{equation}\label{eq:Delta-to-W}
+\Gamma\,\Re\!\left[
+\frac{\Pi_{RA}(\Omega,k)+\Pi_{RA}(-\Omega,-k)}{2}-\Pi_{RA}(0,0)
+\right]
+=
+\Delta(\Omega,k),
+\end{equation}
+so the real part of the retarded-advanced contribution to the NLSM kernel is
+\begin{equation}\label{eq:W-RA-real}
+\Re\,\mathcal W_{B,\phi}^{RA}(\Omega,k)=\frac{2}{\Gamma}\,\Delta(\Omega,k).
+\end{equation}
+For the off-diagonal piece, the retarded-advanced contribution is the odd part
+\begin{equation}\label{eq:W-RA-mixed}
+\mathcal W_{\theta\phi}^{RA}(\Omega,k)
+=
+i\Bigl[\Pi_{RA}(\Omega,k)-\Pi_{RA}(-\Omega,-k)\Bigr],
+\end{equation}
+so the \(\theta\)-\(\phi\) coupling starts at odd order in the external
+variables.  Moreover,
+\begin{equation}\label{eq:PiKK-even}
+\Pi_{KK}(-\Omega,-k)=\Pi_{KK}(\Omega,k),
+\end{equation}
+which follows directly from the definition \eqref{eq:Pi-KK-def} by shifting the
+integration variables and using cyclicity of the orbital trace.  Therefore the
+Keldysh-Keldysh contribution to the mixed kernel is even in \((\Omega,k)\) and,
+after subtracting the local piece \(\Pi_{KK}(0,0)\), it starts only at even
+order.  In particular, the leading odd small-\((\Omega,k)\) term remains
+proportional to \(\Omega k\) and comes entirely from the retarded-advanced
+sector.
+Hence, if we leave the Keldysh-Keldysh piece abstract for the moment, the
+quadratic NLSM inherits the previously established small-\((\Omega,k)\) structure
+\begin{equation}\label{eq:nlsm-small-structure}
+\Delta(\Omega,k)
+=
+-A_k\,k^2
++A_{\Omega k}\,\Omega k
+-\frac{\Omega^2}{8\pi}\log\!\frac{C_\Omega}{\Gamma|\Omega|}
++\cdots.
+\end{equation}
+The \(U(1)\) mode \(\theta\) and the \(SU(R)\) mode \(Y\) therefore share the
+same singular retarded-advanced diagonal kernel, the \(\phi\) mode differs by
+the sign of the abstract \(\Pi_{KK}\) contribution, and there is in general a
+\(\theta\)-\(\phi\) mixing kernel \(\mathcal W_{\theta\phi}\) as well.
+
+\subsubsection{Diagonalizing the \(\theta\)-\(\phi\) sector for \(\Pi_{KK}=0\)}
+
+If we temporarily set
+\begin{equation}
+\Pi_{KK}(\Omega,k)=0,
+\end{equation}
+then the singlet \(\theta\)-\(\phi\) block of
+\eqref{eq:nlsm-quadratic-final} takes the form
+\begin{equation}\label{eq:theta-phi-block}
+\begin{split}
+iS^{(2)}_{\theta\phi}
+=
+-\frac{\Gamma^2R}{8}\int_Q
+\Bigl[
+W_s(\Omega,k)\,\theta(-Q)\theta(Q)
++W_s(\Omega,k)\,\phi(-Q)\phi(Q)
+\\
+\qquad\qquad\qquad\qquad
++W_a(\Omega,k)\,\theta(-Q)\phi(Q)
+-W_a(\Omega,k)\,\phi(-Q)\theta(Q)
+\Bigr],
+\end{split}
+\end{equation}
+where
+\begin{align}
+W_s(\Omega,k)
+&=
+\Pi_{RA}(\Omega,k)+\Pi_{RA}(-\Omega,-k)-2\Pi_{RA}(0,0),
+\label{eq:Ws-def}
+\\
+W_a(\Omega,k)
+&=
+i\Bigl[\Pi_{RA}(\Omega,k)-\Pi_{RA}(-\Omega,-k)\Bigr].
+\label{eq:Wa-def}
+\end{align}
+
+Now define the circular combinations
+\begin{equation}\label{eq:psi-pm-def}
+\psi_\pm(Q)=\frac{\theta(Q)\pm i\phi(Q)}{\sqrt2},
+\qquad
+\bar\psi_\pm(Q)=\frac{\theta(-Q)\mp i\phi(-Q)}{\sqrt2}.
+\end{equation}
+In terms of these variables,
+\begin{align}
+\bar\psi_+(Q)\psi_+(Q)
+&=
+\frac{1}{2}\Bigl[
+\theta(-Q)\theta(Q)+\phi(-Q)\phi(Q)
+\notag\\
+&\qquad\qquad\qquad
++i\theta(-Q)\phi(Q)-i\phi(-Q)\theta(Q)
+\Bigr],
+\\
+\bar\psi_-(Q)\psi_-(Q)
+&=
+\frac{1}{2}\Bigl[
+\theta(-Q)\theta(Q)+\phi(-Q)\phi(Q)
+\notag\\
+&\qquad\qquad\qquad
+-i\theta(-Q)\phi(Q)+i\phi(-Q)\theta(Q)
+\Bigr].
+\end{align}
+Therefore the singlet block diagonalizes as
+\begin{equation}\label{eq:theta-phi-diagonalized}
+iS^{(2)}_{\theta\phi}
+=
+-\frac{\Gamma^2R}{8}\int_Q
+\left[
+\bigl(W_s-iW_a\bigr)\,\bar\psi_+(Q)\psi_+(Q)
++\bigl(W_s+iW_a\bigr)\,\bar\psi_-(Q)\psi_-(Q)
+\right].
+\end{equation}
+Using \eqref{eq:Ws-def} and \eqref{eq:Wa-def}, the two eigen-kernels are simply
+\begin{align}
+W_s(\Omega,k)-iW_a(\Omega,k)
+&=
+2\Bigl[\Pi_{RA}(\Omega,k)-\Pi_{RA}(0,0)\Bigr],
+\\
+W_s(\Omega,k)+iW_a(\Omega,k)
+&=
+2\Bigl[\Pi_{RA}(-\Omega,-k)-\Pi_{RA}(0,0)\Bigr].
+\end{align}
+So when \(\Pi_{KK}=0\), the \(\theta\)-\(\phi\) sector is exactly diagonalized by
+the circular combinations \(\psi_\pm\): one mode is governed by the retarded-
+advanced bubble at \((\Omega,k)\), and the other by the same bubble at
+\((-\Omega,-k)\).  The mixing seen in the \((\theta,\phi)\) basis is therefore
+just the statement that the natural eigenmodes are \(\theta\pm i\phi\), rather
+than \(\theta\) and \(\phi\) separately.
+
+\subsubsection{Including the even \(\Pi_{KK}\) contribution}
+
+When \(\Pi_{KK}\neq 0\), the symmetry \eqref{eq:PiKK-even} implies that only the
+even combination
+\begin{equation}
+K_s(\Omega,k)\equiv \Pi_{KK}(\Omega,k)-\Pi_{KK}(0,0)
+\end{equation}
+can enter the singlet block.  Then \eqref{eq:theta-phi-block} generalizes to
+\begin{equation}
+\begin{split}
+iS^{(2)}_{\theta\phi}
+=
+-\frac{\Gamma^2R}{8}\int_Q
+\Bigl[
+W_s\,\theta(-Q)\theta(Q)
++W_s\,\phi(-Q)\phi(Q)
++W_a\,\theta(-Q)\phi(Q)
+-W_a\,\phi(-Q)\theta(Q)
+\\
+\qquad\qquad\qquad\qquad
+-K_s\,\theta(-Q)\theta(Q)
++K_s\,\phi(-Q)\phi(Q)
++iK_s\,\theta(-Q)\phi(Q)
++iK_s\,\phi(-Q)\theta(Q)
+\Bigr].
+\end{split}
+\end{equation}
+Transforming to the circular variables \(\psi_\pm\) gives
+\begin{equation}\label{eq:theta-phi-with-KK}
+iS^{(2)}_{\theta\phi}
+=
+-\frac{\Gamma^2R}{8}\int_Q
+\left[
+\bigl(W_s-iW_a\bigr)\,\bar\psi_+(Q)\psi_+(Q)
++\bigl(W_s+iW_a\bigr)\,\bar\psi_-(Q)\psi_-(Q)
+-2K_s(\Omega,k)\,\bar\psi_+(Q)\psi_-(Q)
+\right].
+\end{equation}
+Using \eqref{eq:Ws-def} and \eqref{eq:Wa-def}, this can be written as
+\begin{equation}
+\begin{split}
+iS^{(2)}_{\theta\phi}
+=
+-\frac{\Gamma^2R}{4}\int_Q
+\Bigl[
+\bigl(\Pi_{RA}(\Omega,k)-\Pi_{RA}(0,0)\bigr)\bar\psi_+(Q)\psi_+(Q)
+\\
+\qquad\qquad
++\bigl(\Pi_{RA}(-\Omega,-k)-\Pi_{RA}(0,0)\bigr)\bar\psi_-(Q)\psi_-(Q)
+-K_s(\Omega,k)\,\bar\psi_+(Q)\psi_-(Q)
+\Bigr].
+\end{split}
+\end{equation}
+So the effect of a nonzero \(\Pi_{KK}\) is not to change the odd
+\(\Omega k\) coefficient of the diagonalized retarded-advanced kernels.  Instead,
+it introduces an even off-diagonal mixing between the two circular modes
+\(\psi_+\) and \(\psi_-\).  The simple diagonalization by \(\theta\pm i\phi\)
+therefore holds only when \(\Pi_{KK}=0\); otherwise those combinations remain
+useful because they isolate the retarded-advanced odd part, but they are coupled
+to each other by the even kernel \(K_s(\Omega,k)\).
+
+\subsubsection{Low-energy dispersion of the \texorpdfstring{$(\theta,\phi)$}{(theta,phi)} sector}
+
+To identify the low-energy singlet modes, we now follow the same strategy as in
+the Guo et al. reference in the \texttt{References/} folder: first diagonalize the \((\theta,\phi)\) block in the
+circular basis, then insert the low-energy bubble expansion, and finally read
+off the resulting soft trajectories and pole structure.
+
+As discussed above, the full KK bubble is smooth at the origin and extremely
+small numerically; Appendix~\ref{app:kk-bubble} gives
+\[
+\Re \Pi_{KK}(0,0)
+\approx
+-8.38\times 10^{-5},\quad
+-8.08\times 10^{-6},\quad
+-6.70\times 10^{-7}
+\qquad
+(\Gamma=20,40,80),
+\]
+consistent with the large-\(\Gamma\) estimate
+\(\Pi_{KK}=O(\Gamma^{-4})\); see \eqref{eq:PiKK-largeGamma-appendix}.  If we
+therefore treat \(\Pi_{KK}\) as independent of \((\Omega,k)\) at low energy,
+then \(K_s(\Omega,k)=\Pi_{KK}(\Omega,k)-\Pi_{KK}(0,0)\approx 0\), and the
+singlet block is controlled entirely by the retarded-advanced kernel.
+
+Using \eqref{eq:theta-phi-diagonalized}, the quadratic action becomes
+\begin{equation}\label{eq:psi-pm-lowE-general}
+iS^{(2)}_{\theta\phi}
+\simeq
+-\frac{\Gamma^2R}{4}\int_Q
+\Bigl[
+\delta\Pi_{RA}(\Omega,k)\,\bar\psi_+(Q)\psi_+(Q)
+\;+\;
+\delta\Pi_{RA}(-\Omega,-k)\,\bar\psi_-(Q)\psi_-(Q)
+\Bigr],
+\end{equation}
+where
+\[
+\delta\Pi_{RA}(\Omega,k)\equiv \Pi_{RA}(\Omega,k)-\Pi_{RA}(0,0).
+\]
+The appendix result \eqref{eq:Delta-summary-app} then implies, to leading order
+in small external arguments,
+\begin{equation}\label{eq:psi-pm-lowE-real}
+\Gamma\,\Re\,\delta\Pi_{RA}(\pm\Omega,\pm k)
+=
+-A_k\,k^2
+\pm A_{\Omega k}\,\Omega k
+-\frac{\Omega^2}{8\pi}\log\!\frac{C_\Omega}{\Gamma|\Omega|}
++\cdots,
+\end{equation}
+with
+\begin{equation}\label{eq:psi-pm-coeffs}
+A_k\xrightarrow[\Gamma\to\infty]{}\frac{1}{3\sqrt3}-\frac18,
+\qquad
+A_{\Omega k}\xrightarrow[\Gamma\to\infty]{}\frac{1}{3\sqrt3}.
+\end{equation}
+The even real part is not the whole story, however.  The full complex bubble can
+also contain terms linear in \(\Omega\) and \(k\).  As shown in
+Appendix~\ref{app:ra-bubble-odd-linear}, those linear terms are necessarily
+purely imaginary:
+\begin{equation}\label{eq:psi-pm-linear-imag}
+\Gamma\,\delta\Pi_{RA}(\Omega,k)
+=
+i\bigl[b_\Omega(\Gamma)\,\Omega-b_k(\Gamma)\,k\bigr]
+-A_k\,k^2
++A_{\Omega k}\,\Omega k
+-\frac{\Omega^2}{8\pi}\log\!\frac{C_\Omega}{\Gamma|\Omega|}
++\cdots,
+\end{equation}
+with
+\begin{equation}\label{eq:odd-linear-scaling-main}
+b_\Omega(\Gamma)=O(\Gamma^{-1}),
+\qquad
+b_k(\Gamma)=O(\Gamma^{-1}).
+\end{equation}
+These odd analytic terms therefore do not modify the real-part zero condition
+used below to identify the soft real-frequency trajectories, although they do
+contribute to the phase of the circular \(\psi_\pm\) kernels and hence to the
+\(\theta\)-\(\phi\) mixing structure.
+Since \(\Omega\) in \eqref{eq:Pi-RA-def} is already the physical real
+frequency, there is no additional analytic continuation here.  The low-energy
+dispersion is read off directly from the real-frequency quadratic kernels of
+\(\psi_\pm\).
+
+It is convenient to define the dimensionless ratio
+\begin{equation}\label{eq:v-theta-phi-def}
+v\equiv \frac{A_{\Omega k}}{A_k},
+\qquad
+v\xrightarrow[\Gamma\to\infty]{}
+\frac{1/(3\sqrt3)}{1/(3\sqrt3)-1/8}
+\approx 2.853.
+\end{equation}
+Then \eqref{eq:psi-pm-lowE-real} becomes
+\begin{equation}\label{eq:psi-pm-lowE-real-v}
+\Gamma\,\Re\,\delta\Pi_{RA}(\pm\Omega,\pm k)
+=
+-A_k
+\left[
+k^2\mp v\,\Omega k
++\frac{\Omega^2}{8\pi A_k}\log\!\frac{C_\Omega}{\Gamma|\Omega|}
+\right]
++\cdots.
+\end{equation}
+If one temporarily drops the nonanalytic \(\Omega^2\log|\Omega|\) term, the
+two circular modes would have the linear dispersions
+\begin{equation}\label{eq:linear-dispersion-theta-phi}
+\Omega_\pm(k)\simeq \pm \frac{k}{v},
+\qquad
+\frac{1}{v}\approx 0.350.
+\end{equation}
+This is the direct analogue of the shear structure found in the Guo et al.
+analysis: the \(\psi_+\) and \(\psi_-\) sectors disperse in opposite
+directions.
+
+Keeping the logarithmic term, the zero of the real part of the quadratic kernel
+obeys
+\begin{equation}\label{eq:dispersion-equation-theta-phi}
+k^2\mp v\,\Omega k
++\frac{\Omega^2}{8\pi A_k}\log\!\frac{C_\Omega}{\Gamma|\Omega|}
+=0.
+\end{equation}
+For fixed \(\Omega\), this is a quadratic equation for \(k\):
+\begin{equation}\label{eq:k-of-omega-theta-phi}
+k_{\pm,\sigma}(\Omega)
+=
+\frac{\Omega}{2A_k}
+\left[
+\pm A_{\Omega k}
++\sigma\sqrt{
+A_{\Omega k}^2
+-\frac{A_k}{2\pi}\log\!\frac{C_\Omega}{\Gamma|\Omega|}
+}
+\right],
+\qquad
+\sigma=\pm.
+\end{equation}
+Real solutions exist only when
+\begin{equation}\label{eq:discriminant-theta-phi}
+A_{\Omega k}^2
+>
+\frac{A_k}{2\pi}\log\!\frac{C_\Omega}{\Gamma|\Omega|}.
+\end{equation}
+Because the logarithm grows without bound as \(|\Omega|\to 0\), this condition
+eventually fails at asymptotically low frequency.  Therefore the
+\((\theta,\phi)\) sector does not possess an exact real-frequency pole that
+survives all the way to the origin.  Instead, the linear relation
+\(\Omega_\pm(k)\simeq \pm k/v\) describes the incipient dispersion that is
+progressively cut off by the singular \(\Omega^2\log(1/|\Omega|)\) term.
+
+Even when the discriminant is negative, the kernel still has a soft ridge.
+Completing the square in \eqref{eq:psi-pm-lowE-real-v} gives
+\begin{equation}\label{eq:soft-ridge-theta-phi}
+k^2\mp v\,\Omega k
++\frac{\Omega^2}{8\pi A_k}\log\!\frac{C_\Omega}{\Gamma|\Omega|}
+=
+\left(k\mp\frac{v}{2}\Omega\right)^2
++\left[
+\frac{1}{8\pi A_k}\log\!\frac{C_\Omega}{\Gamma|\Omega|}
+-\frac{v^2}{4}
+\right]\Omega^2.
+\end{equation}
+Thus the minimum of the real-frequency kernel at fixed \(\Omega\) lies along
+\begin{equation}\label{eq:ridge-theta-phi}
+k_\pm^{\ast}(\Omega)=\pm \frac{v}{2}\,\Omega,
+\end{equation}
+while the residual stiffness along this ridge is set by the bracketed
+\(\Omega^2\) coefficient in \eqref{eq:soft-ridge-theta-phi}.  At sufficiently
+small \(|\Omega|\), the logarithm dominates, so the ridge remains soft but does
+not turn into a true zero mode away from \((\Omega,k)=(0,0)\).
+
+\subsection{Implications of the bubble analysis}
+
+The technical analysis of the fermion bubble is collected in
+Appendix~\ref{app:bubble-appendix}.  Here we only summarize the conclusions that
+enter the NLSM.
+
+First, the retarded-advanced bubble controls the singular low-energy structure.
+In the notation of \eqref{eq:Delta-to-W},
+\begin{equation}\label{eq:Delta-summary-main}
+\Delta(\Omega,k)
+=
+-A_k\,k^2
++A_{\Omega k}\,\Omega k
+-\frac{\Omega^2}{8\pi}\log\!\frac{C_\Omega}{\Gamma|\Omega|}
++\cdots,
+\end{equation}
+with
+\begin{equation}\label{eq:Ak-Aomegak-summary-main}
+A_k\xrightarrow[\Gamma\to\infty]{}\frac{1}{3\sqrt{3}}-\frac{1}{8},
+\qquad
+A_{\Omega k}\xrightarrow[\Gamma\to\infty]{}\frac{1}{3\sqrt{3}}.
+\end{equation}
+These coefficients come from the exact \(--\) sector of the full Green's
+function rather than from the bare edge pole alone; see
+Appendix~\ref{app:ra-bubble}.
+
+Second, the Keldysh-Keldysh bubble is even under
+\((\Omega,k)\rightarrow(-\Omega,-k)\) and therefore does not affect the leading
+odd \(\Omega k\) term.  More importantly, the full KK bubble is smooth near the
+origin and is strongly suppressed at large \(\Gamma\); see
+Appendix~\ref{app:kk-bubble}.  Thus the nonanalytic low-energy structure of the
+quadratic NLSM kernel comes entirely from the retarded-advanced sector.
+
+\subsection{Replica sector \(Y\)}
+
+The traceless replica field \(Y\) is simpler than the singlet sector because it
+does not mix with \(\phi\).  From \eqref{eq:nlsm-quadratic-final}, its quadratic
+action is
+\begin{equation}\label{eq:Y-sector-general}
+iS_Y^{(2)}
+=
+-\frac{\Gamma^2}{8}\int_Q \mathcal W_Y(\Omega,k)\,
+\Tr_R\!\left[Y(-Q)Y(Q)\right],
+\end{equation}
+with
+\begin{equation}\label{eq:Y-kernel-general}
+\mathcal W_Y(\Omega,k)\equiv \mathcal W_B(\Omega,k)
+=
+\bigl[\Pi_{RA}(\Omega,k)+\Pi_{RA}(-\Omega,-k)-2\Pi_{RA}(0,0)\bigr]
+-\bigl[\Pi_{KK}(\Omega,k)-\Pi_{KK}(0,0)\bigr].
+\end{equation}
+So the \(Y\) kernel is exactly the same diagonal \(\tau^y\) kernel as the
+replica-singlet field \(\theta\), but without any coupling to \(\phi\).
+
+Because the retarded-advanced bubble carries the singular
+small-\((\Omega,k)\) dependence while the full KK bubble is smooth and strongly
+suppressed, the leading low-energy behavior of the \(Y\) sector is the same as
+that of the \(\theta\) sector.  In particular, the dominant momentum, mixed, and
+frequency dependence are inherited from \eqref{eq:Delta-summary-main}.
+
+\section{Generic-\texorpdfstring{$r$}{r} Fermion-Bubble Coefficients}
+\label{sec:generic-r-bubbles}
+
+The preceding fermion-bubble analysis was written at the symmetric value
+\(r=1\).  Here we keep the same Chern-insulator phase,
+\begin{equation}
+0<r<2,
+\end{equation}
+and redo the large-\(\Gamma\) coefficient extraction.  To avoid overloading the
+same symbol in several roles, this section uses the following conventions:
+\(r\) is the microscopic mass parameter of the Chern-insulator Hamiltonian,
+\(q_r\) is the positive momentum at which the edge mode touches the bulk
+continuum, \(c_r\) is the edge velocity at that touching point, and \(s_r\) is
+the corresponding sine.  Explicitly,
+\begin{equation}
+q_r\equiv \arccos(r-1),
+\qquad
+c_r\equiv r-1,
+\qquad
+s_r\equiv \sin q_r=\sqrt{r(2-r)}.
+\end{equation}
+Thus \(c_r\) is not a new coupling: it is simply
+\(\cos q_r\), or equivalently the endpoint value of the group velocity
+\(\partial_q\sin q\).  The main change relative to \(r=1\) is that the
+edge-bulk touching points move from \(\pm\pi/2\) to \(\pm q_r\).
+The edge pole exists on the interval
+\begin{equation}
+\mathcal I_r=(-q_r,q_r),
+\qquad
+|r-\cos q|<1,
+\end{equation}
+and its residue is
+\begin{equation}
+Z_r(q)\equiv 1-(r-\cos q)^2.
+\end{equation}
+Inside \(\mathcal I_r\), the bulk self-energy has the pole
+\begin{equation}
+\Sigma_R(\omega,q)
+=
+\frac{Z_r(q)}{\omega-\sin q+i0}
+\;+\;
+\Sigma_{\rm reg}(\omega,q),
+\end{equation}
+while outside \(\mathcal I_r\) this pole is absent.  In the \(\sigma_x\)
+eigenbasis, the retarded inverse Green's function is
+\begin{equation}
+G_R^{-1}(\omega,q)
+=
+\begin{pmatrix}
+\omega-\sin q+i\Gamma/2 & -(r-\cos q)\\
+-(r-\cos q) & \omega+\sin q-\Sigma_R(\omega,q)+i\Gamma/2
+\end{pmatrix}.
+\end{equation}
+As before, the large-\(\Gamma\) small-argument coefficients are dominated by the
+\(--\) component.  On the resonance strip
+\begin{equation}
+\omega-\sin q=O\!\left(\frac{Z_r(q)}{\Gamma}\right),
+\end{equation}
+the leading local form is
+\begin{equation}
+\label{eq:Gmm-local-generic-r}
+G_{--}^{\rm loc}(\omega,q)
+=
+\frac{\omega-\sin q}
+{i\Gamma(\omega-\sin q)/2-Z_r(q)}.
+\end{equation}
+
+For the reduced local bubble, the \(\omega\) integral is again elementary.  After
+taking the real part and subtracting the local \((\Omega,k)=(0,0)\) piece, the
+small-\((\Omega,k)\) density is
+\begin{equation}
+\label{eq:generic-r-density}
+\Gamma\,\Re\,\mathcal I_\Gamma(q;\Omega,k)
+=
+-\frac{4Z_r(q)}{\Gamma^2}
+-\frac{(\Omega-k\cos q)^2}{4Z_r(q)}
++O\!\left(Q^3,\frac{Q^2}{\Gamma^2},\frac{k}{\Gamma^2}\right),
+\end{equation}
+where \(Q\) denotes either external argument.  Therefore the formal local Taylor
+kernel is
+\begin{equation}
+\label{eq:generic-r-formal-kernel}
+\Delta_r^{(--)}(\Omega,k)
+=
+-\int_{-q_r}^{q_r}\frac{dq}{8\pi}\,
+\frac{(\Omega-k\cos q)^2}{Z_r(q)}
++\cdots.
+\end{equation}
+At \(r=1\), the factors of \(\cos q\) in the \(k^2\) and \(\Omega k\) terms
+remove the endpoint divergence, giving the finite constants quoted above.  For a
+generic \(r\neq1\), however, the endpoint velocity is
+\(\cos q_r=c_r\neq0\), so the same endpoint that produced the
+\(\Omega^2\log|\Omega|\) term now also produces logarithms in the momentum and
+mixed coefficients.
+
+Near either touching point,
+\begin{equation}
+Z_r(q_r-p)=2s_r p+O(p^2),
+\qquad
+Z_r(-q_r+p)=2s_r p+O(p^2),
+\end{equation}
+and \(\cos q\to c_r\).  Thus the singular endpoint contribution is
+\begin{equation}
+\label{eq:generic-r-singular-kernel}
+\Delta_{r,\rm sing}^{(--)}(\Omega,k)
+=
+-\frac{(\Omega-c_r k)^2}{8\pi s_r}
+\log\!\frac{C_r}{\Gamma|\Omega-c_r k|}
++O(Q^2),
+\end{equation}
+where \(Q\) denotes a generic small external argument, either \(\Omega\) or
+\(k\).  The combination
+\(\Omega-c_r k\) is the mismatch between the external frequency and the edge
+dispersion linearized at either touching point in the bubble convention used
+above:
+\[
+\Omega+\sin(q-k)-\sin q \simeq \Omega-c_r k
+\qquad
+(q\simeq \pm q_r).
+\]
+The constant \(C_r\) is a nonuniversal matching constant.  It absorbs the
+finite part of the pure endpoint integral proportional to
+\((\Omega-c_r k)^2\), and it also depends on the precise convention used to
+match the local endpoint model onto the nonsingular part of the full lattice
+Green's function.  The important universal statement in
+\eqref{eq:generic-r-singular-kernel} is therefore the coefficient of the
+logarithm.
+
+The infrared cutoff in this logarithm is fixed by the point where the
+fixed-\(q\) Taylor expansion \eqref{eq:generic-r-formal-kernel} stops being
+valid.  Near the right touching point, \(q=q_r-p\), the residue is
+\[
+Z_r(q)\simeq 2s_r p.
+\]
+The unexpanded local kernel contains the denominator
+\[
+\bigl[Z_r(q)+Z_r(q-k)\bigr]^2
++\frac{\Gamma^2}{4}
+\bigl[\Omega+\sin(q-k)-\sin q\bigr]^2.
+\]
+Thus the Taylor expansion in external arguments assumes
+\[
+Z_r(q)\gg \Gamma|\Omega-c_r k|
+\]
+up to order-one constants.  It fails when
+\[
+p\lesssim p_{\min},
+\qquad
+p_{\min}\sim \frac{\Gamma|\Omega-c_r k|}{2s_r}.
+\]
+The endpoint integral therefore has the structure
+\[
+\int_{p_{\min}}^{p_{\rm UV}}\frac{dp}{p}
+=
+\log\frac{p_{\rm UV}}{p_{\min}}
+=
+\log\frac{C_r}{\Gamma|\Omega-c_r k|},
+\]
+where the upper matching scale and all order-one constants have been absorbed
+into \(C_r\).  When \(\Omega\simeq c_r k\), the leading endpoint mismatch is
+tuned away and subleading terms in the external expansion regulate the kernel;
+along that direction one should use the unexpanded endpoint kernel rather than
+only \eqref{eq:generic-r-singular-kernel}.
+
+With this convention for \(C_r\), the remaining regular endpoint term is
+unambiguous and comes from the convergent difference
+\begin{equation}
+\label{eq:generic-r-regular-integral}
+\Delta_{r,\rm reg}^{(--)}(\Omega,k)
+=
+-\frac{1}{8\pi}
+\int_{-q_r}^{q_r}dq\,
+\frac{(\Omega-k\cos q)^2-(\Omega-c_r k)^2}{Z_r(q)}.
+\end{equation}
+Using
+\[
+Z_r(q)=(\cos q-c_r)(r+1-\cos q),
+\]
+the numerator of the subtracted expression factorizes as
+\[
+(\Omega-k\cos q)^2-(\Omega-c_r k)^2
+=
+(\cos q-c_r)\left[-2\Omega k+k^2(\cos q+c_r)\right].
+\]
+This cancels the endpoint zero in \(Z_r(q)\).  Therefore the integrand in
+\eqref{eq:generic-r-regular-integral} is nonsingular:
+\begin{equation}
+\frac{(\Omega-k\cos q)^2-(\Omega-c_r k)^2}{Z_r(q)}
+=
+\frac{-2\Omega k+k^2(\cos q+c_r)}{r+1-\cos q}.
+\end{equation}
+Define
+\begin{equation}
+\label{eq:Jr-def}
+J_r
+\equiv
+\int_{-q_r}^{q_r}\frac{dq}{r+1-\cos q}
+=
+\frac{4}{\sqrt{r(r+2)}}\arccos\frac{r}{2}.
+\end{equation}
+Then the regular endpoint contribution is
+\begin{equation}
+\label{eq:generic-r-regular-final}
+\Delta_{r,\rm reg}^{(--)}(\Omega,k)
+=
+B_{\Omega k}^{\rm reg}(r)\,\Omega k
+-A_k^{\rm reg}(r)\,k^2,
+\end{equation}
+with
+\begin{equation}
+\label{eq:generic-r-regular-coeffs}
+B_{\Omega k}^{\rm reg}(r)=\frac{J_r}{4\pi},
+\qquad
+A_k^{\rm reg}(r)=\frac{rJ_r-q_r}{4\pi}.
+\end{equation}
+There is no separate \(\Omega^2\) regular coefficient in this convention,
+because the finite analytic term proportional to \((\Omega-c_r k)^2\) has been
+absorbed into \(C_r\).  Choosing a different \(C_r\) shifts the coefficients of
+\(\Omega^2\), \(\Omega k\), and \(k^2\) in the fixed ratio carried by
+\((\Omega-c_r k)^2\), but it does not change
+\eqref{eq:generic-r-regular-integral}--\eqref{eq:generic-r-regular-coeffs}.
+
+Combining the singular and regular endpoint pieces in this reduced endpoint
+convention gives the local large-\(\Gamma\) result
+\begin{equation}
+\label{eq:generic-r-full-local-endpoint}
+\Delta_r^{(--)}(\Omega,k)
+=
+-\frac{(\Omega-c_r k)^2}{8\pi s_r}
+\log\!\frac{C_r^{\rm end}}{\Gamma|\Omega-c_r k|}
++B_{\Omega k}^{\rm reg}(r)\,\Omega k
+-A_k^{\rm reg}(r)\,k^2
++\cdots.
+\end{equation}
+The first term has been written with \(C_r^{\rm end}\) to emphasize that this
+constant belongs to the reduced endpoint model with
+\eqref{eq:generic-r-regular-final} kept separately.  It can be computed
+analytically.  The cleanest definition is obtained on the \(k=0\) line, where
+the unexpanded finite-\(\Gamma\) kernel is
+\begin{equation}
+\label{eq:Cr-end-kernel}
+\Delta_{\rm end}(\Omega,0)
+=
+-\frac{\Omega^2}{8\pi}
+\int_{-q_r}^{q_r}dq\,
+\frac{Z_r(q)}
+{Z_r(q)^2+a^2},
+\qquad
+a\equiv \frac{\Gamma|\Omega|}{4}.
+\end{equation}
+Define
+\begin{equation}
+\label{eq:Ia-def}
+I_r(a)\equiv
+\int_{-q_r}^{q_r}dq\,
+\frac{Z_r(q)}{Z_r(q)^2+a^2}.
+\end{equation}
+As \(a\to0\), the logarithm comes only from the two endpoints.  Excise a small
+distance \(\epsilon\) from both endpoints.  In the endpoint regions,
+\(Z_r\simeq 2s_r p\), so the two endpoint contributions give
+\begin{equation}
+\label{eq:Cr-endpoint-piece}
+2\int_0^\epsilon dp\,
+\frac{2s_r p}{(2s_r p)^2+a^2}
+=
+\frac{1}{s_r}\log\frac{2s_r\epsilon}{a}+O(a^2).
+\end{equation}
+On the remaining interval one may set \(a=0\).  Using
+\[
+\frac{1}{Z_r(q)}
+=
+\frac{1}{2}\left[
+\frac{1}{\cos q-c_r}
++\frac{1}{r+1-\cos q}
+\right],
+\]
+the finite bulk part is
+\begin{equation}
+\label{eq:Cr-bulk-piece}
+\int_{-q_r+\epsilon}^{q_r-\epsilon}\frac{dq}{Z_r(q)}
+=
+\frac{1}{s_r}\log\frac{2s_r}{\epsilon}
++\frac{J_r}{2}
++O(\epsilon),
+\end{equation}
+where \(J_r\) was defined in \eqref{eq:Jr-def}.  Adding
+\eqref{eq:Cr-endpoint-piece} and \eqref{eq:Cr-bulk-piece} cancels the auxiliary
+cutoff \(\epsilon\) and gives
+\begin{equation}
+\label{eq:Ia-asymptotic}
+I_r(a)
+=
+\frac{1}{s_r}\log\frac{4s_r^2}{a}
++\frac{J_r}{2}
++o(1)
+=
+\frac{1}{s_r}
+\log\frac{16s_r^2\exp(s_rJ_r/2)}{\Gamma|\Omega|}
++o(1).
+\end{equation}
+Thus, in the endpoint convention used above,
+\begin{equation}
+\label{eq:Cr-end-result}
+C_r^{\rm end}
+=
+16s_r^2\exp\!\left(\frac{s_rJ_r}{2}\right).
+\end{equation}
+This is not a one-parameter fit to the full lattice bubble.  It is the matching
+constant of the reduced endpoint kernel after the regular terms in
+\eqref{eq:generic-r-regular-final} are kept separately.
+
+The expansion \eqref{eq:generic-r-full-local-endpoint} is a small-external-
+argument expansion at fixed \(\Gamma\).  Its actual control parameters are
+\[
+\Gamma|\Omega-c_r k|,
+\qquad
+\Gamma|k|,
+\]
+not only \(|\Omega|\) and \(|k|\).  Thus the quadratic/logarithmic coefficients
+above describe the regime \(\Gamma Q\ll1\), where \(Q\) denotes a typical
+external scale.  If \(\Gamma\) is taken large first at fixed nonzero
+\((\Omega,k)\), the endpoint kernel crosses over to a different
+\(O(\Gamma^{-2})\) form.  This noncommutativity of limits is derived in
+Appendix~\ref{app:large-gamma-endpoint}.  For the full retarded-advanced
+Green's function, the endpoint saturation is supplemented by smooth analytic
+terms from the nonsingular components; the resulting complex kernel is given in
+\eqref{eq:full-largeGamma-KRA-app}.
+
+The same constant is obtained at nonzero \(k\).  Define
+\begin{equation}
+\delta\equiv \Omega-c_r k,
+\qquad
+D(q)\equiv \Omega-k\cos q
+=\delta-k(\cos q-c_r).
+\end{equation}
+The finite-\(\Gamma\) endpoint kernel can be written as
+\begin{equation}
+\label{eq:Cr-nonzero-k-kernel}
+\Delta_{\rm end}(\Omega,k)
+=
+-\int_{-q_r}^{q_r}\frac{dq}{2\pi}\,
+\frac{Z_r(q)D(q)^2}
+{4Z_r(q)^2+\Gamma^2D(q)^2/4}.
+\end{equation}
+Near either endpoint, \(Z_r\simeq2s_rp\) and
+\(\cos q-c_r=O(p)\), so \(D(q)=\delta+O(kp)\).  The logarithmic piece is
+therefore obtained by replacing \(D(q)\) by \(\delta\) inside the singular
+endpoint region.  Equivalently, split
+\[
+D(q)^2=\delta^2+\left[D(q)^2-\delta^2\right].
+\]
+The first term gives the same integral \(I_r(a)\), with
+\(a=\Gamma|\delta|/4\), and hence
+\begin{equation}
+-\frac{\delta^2}{8\pi}I_r\!\left(\frac{\Gamma|\delta|}{4}\right)
+=
+-\frac{\delta^2}{8\pi s_r}
+\log\frac{C_r^{\rm end}}{\Gamma|\delta|}
++o(Q^2).
+\end{equation}
+The second term is regular, since
+\begin{equation}
+D(q)^2-\delta^2
+=
+(\cos q-c_r)\left[-2\Omega k+k^2(\cos q+c_r)\right],
+\end{equation}
+and the factor \(\cos q-c_r\) cancels the endpoint zero in \(Z_r(q)\).  Thus
+the nonzero-\(k\) computation gives the same \(C_r^{\rm end}\) once
+\(\Delta_{r,\rm reg}^{(--)}\) is kept separately.  The only exception is the
+tangent direction \(\delta=\Omega-c_rk=0\): there the leading endpoint mismatch
+vanishes, the \(O(kp)\) part of \(D(q)\) regulates the endpoint, and one should
+use the unexpanded kernel \eqref{eq:Cr-nonzero-k-kernel} rather than extracting
+a matching constant from the logarithmic formula alone.
+
+Equivalently, if one extracts effective coefficients on a fixed small fitting
+window,
+\begin{align}
+\Delta_r(0,k)&\simeq -\widehat A_k(r,\Gamma)\,k^2,
+\\
+\Delta_r(\Omega,0)&\simeq -\widehat A_\Omega(r,\Gamma)\,\Omega^2,
+\\
+\Delta_{r,\rm odd\text{-}odd}(\Omega,k)&\simeq
+\widehat A_{\Omega k}(r,\Gamma)\,\Omega k,
+\end{align}
+then the logarithmic \(\Gamma\)-drifts are
+\begin{align}
+\frac{\partial \widehat A_k}{\partial\log\Gamma}
+&=-L_k(r),
+&
+L_k(r)&=\frac{c_r^2}{8\pi s_r},
+\label{eq:Lk-generic-r}
+\\
+\frac{\partial \widehat A_\Omega}{\partial\log\Gamma}
+&=-L_\Omega(r),
+&
+L_\Omega(r)&=\frac{1}{8\pi s_r},
+\label{eq:Lomega-generic-r}
+\\
+\frac{\partial \widehat A_{\Omega k}}{\partial\log\Gamma}
+&=-L_{\Omega k}(r),
+&
+L_{\Omega k}(r)&=\frac{c_r}{4\pi s_r}.
+\label{eq:Lomegak-generic-r}
+\end{align}
+The constants left after adding \(L_i(r)\log\Gamma\) are not universal: they
+depend on the fitting window and on regular parts of the full Green's function.
+The slopes \eqref{eq:Lk-generic-r}--\eqref{eq:Lomegak-generic-r}, however, are
+fixed by the edge-bulk endpoint.
+
+The \(r=1\) point is special because \(c_r=0\).  Then
+\begin{equation}
+L_k(1)=0,
+\qquad
+L_{\Omega k}(1)=0,
+\qquad
+L_\Omega(1)=\frac{1}{8\pi},
+\end{equation}
+and the finite endpoint-regular integrals reduce to
+\begin{equation}
+A_k^{\rm reg}(1)=\frac{1}{8\pi}\int_{-\pi/2}^{\pi/2}
+\frac{\cos q}{2-\cos q}\,dq
+=
+\frac{1}{3\sqrt3}-\frac18,
+\end{equation}
+\begin{equation}
+B_{\Omega k}^{\rm reg}(1)=\frac{1}{4\pi}\int_{-\pi/2}^{\pi/2}
+\frac{dq}{2-\cos q}
+=
+\frac{1}{3\sqrt3}.
+\end{equation}
+Thus the previously used constants are recovered only at the symmetric value
+\(r=1\).  For a generic value of \(r\), the leading singular kernel is instead
+organized by the single endpoint combination \(\Omega-(r-1)k\).
+
+\subsection{Finite-\texorpdfstring{$\Gamma$}{Gamma} infrared cutoffs}
+\label{subsec:finite-gamma-ir-cutoffs}
+
+There are two distinct infrared cutoffs at finite \(\Gamma\).  The first one is
+the endpoint boundary layer in the reduced edge-bulk bubble.  Write
+\[
+\delta\equiv \Omega-c_r k.
+\]
+The logarithm in \eqref{eq:generic-r-singular-kernel} comes from the interval
+where the distance \(p\) from an edge-bulk touching point obeys
+\[
+p_{\min}\ll p\ll1,
+\qquad
+p_{\min}\sim \frac{\Gamma|\delta|}{2s_r},
+\]
+up to order-one constants.  The on-shell residue approximation
+\(\Sigma_R(\omega,q)\simeq Z_r(q)/(\omega-\sin q+i0)\) is itself uniform only
+outside the narrower endpoint strip \(p\lesssim \Gamma^{-1}\).  Thus the clean
+logarithmic matching window is
+\begin{equation}
+\label{eq:clean-endpoint-window}
+\frac{1}{\Gamma^2}\ll |\delta|\ll \frac{1}{\Gamma}.
+\end{equation}
+In this window \(p_{\min}\gg\Gamma^{-1}\), and the singular term is controlled
+by
+\[
+-\frac{\delta^2}{8\pi s_r}\log\frac{C_r}{\Gamma|\delta|}.
+\]
+If instead
+\begin{equation}
+\label{eq:ultrasmall-delta-window}
+|\delta|\ll \Gamma^{-2},
+\end{equation}
+then the formal cutoff \(p_{\min}\) lies inside the strip where the edge pole is
+already too close to the bulk branch point.  In that ultra-small-\(\delta\)
+regime one should not extract the matching constant \(C_r\) from the
+on-shell-residue formula.  The logarithm is cut off by the branch-point strip at
+\(p\sim\Gamma^{-1}\), so the remaining \(\delta\)-dependence is analytic to this
+order, with a coefficient containing \(\log\Gamma\) rather than
+\(\log[1/(\Gamma|\delta|)]\).  A direct full-Green probe at \(r=1\) and
+\(\Gamma=20\) indeed shows that the extracted \(\log C\) drifts once
+\(\Gamma^2|\delta|=O(1)\), but this is a delicate boundary-layer effect rather
+than a robust way to determine \(C_r\).
+
+The second cutoff is the residual static bubble if the exact finite-\(\Gamma\)
+local saddle normalization is replaced by its asymptotic value.  Define
+\begin{equation}
+\label{eq:finite-gamma-mass-def}
+m_\Gamma(r)\equiv 2-\Gamma\Pi_{RA}(0,0;r,\Gamma).
+\end{equation}
+The exact quadratic NLSM kernel uses
+\(\Pi_{RA}(\Omega,k)-\Pi_{RA}(0,0)\), so this mass is absent when the finite
+\(\Gamma\) saddle cancellation is kept exactly.  If one instead substitutes
+\(\Gamma\Pi_{RA}(0,0)\to2\), the diagonal kernel contains the residual local
+piece
+\begin{equation}
+\Gamma\left[\Pi_{RA}(\Omega,k)-\frac{2}{\Gamma}\right]
+=
+-m_\Gamma(r)
++\Gamma\left[\Pi_{RA}(\Omega,k)-\Pi_{RA}(0,0)\right].
+\end{equation}
+The scaling of \(m_\Gamma\) is
+\begin{equation}
+\label{eq:finite-gamma-mass-scale}
+m_\Gamma(r)=\frac{\mu_r}{\Gamma^2}+O(\Gamma^{-3}),
+\qquad
+\mu_r=O(1).
+\end{equation}
+This follows from the spectral-leakage identity derived in
+\eqref{eq:pi00-mass-identity-app}: the defect of the monitored spectral sum
+rule is supported only on the finite bulk continuum, where
+\(G_R=O(\Gamma^{-1})\).  Numerically, for \(r=1\), evaluating the leakage
+integral gives
+\[
+\begin{array}{c|ccccc}
+\Gamma&20&40&80&160&320\\
+\hline
+\Gamma^2 m_\Gamma&1.83&2.11&2.27&2.36&2.41
+\end{array}
+\]
+which is consistent with \eqref{eq:finite-gamma-mass-scale}.
+
+This residual mass produces a correlation scale by comparison with the static
+stiffness:
+\[
+A_k(r)k^2\sim m_\Gamma(r)
+\qquad\Rightarrow\qquad
+k_m\sim \frac{1}{\Gamma}\sqrt{\frac{\mu_r}{A_k(r)}}.
+\]
+Thus, if \(m_\Gamma\) is physically retained, the mass cutoff enters at
+\(Q\sim\Gamma^{-1}\), whereas the ultra-small endpoint boundary layer begins
+only at \(|\delta|\sim\Gamma^{-2}\).  The mass therefore cuts off the long-
+wavelength physics parametrically earlier.  The regime
+\(|\delta|\ll\Gamma^{-2}\) is physically relevant only for an exactly massless
+kernel in which the finite-\(\Gamma\) local term has been subtracted, or tuned,
+with the same accuracy as \(\Pi_{RA}(0,0)\).
+
+\subsection{Numerical checks at representative \texorpdfstring{$r$}{r}}
+
+We checked the logarithmic slopes using the existing direct quadrature code.
+For the \(k\) and \(\Omega\) line cuts we used
+\texttt{src/collect\_small\_argument\_direct\_lines.jl} with
+\[
+N_\omega=8192,\qquad N_q=2048,\qquad \omega_{\max}=640,
+\]
+on the windows
+\[
+5\times10^{-4}\le k\le 2.5\times10^{-3},
+\qquad
+5\times10^{-4}\le \Omega\le 1.5\times10^{-3}.
+\]
+For the mixed term we used
+\texttt{src/estimate\_edge\_Aomegak.jl} at
+\(\Omega=k=10^{-3}\) with the same grid.  For \(r=0.5\) and \(r=1.5\),
+\[
+s_r=\frac{\sqrt3}{2},
+\qquad
+L_k=0.0114860,
+\qquad
+L_\Omega=0.0459441,
+\qquad
+L_{\Omega k}=\mp 0.0459441,
+\]
+with the minus sign for \(r=0.5\) and the plus sign for \(r=1.5\).
+
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+\(r\) & \(\Gamma\) &
+\(\widehat A_k+L_k\log\Gamma\) &
+\(\widehat A_\Omega+L_\Omega\log\Gamma\) &
+\(\widehat A_{\Omega k}+L_{\Omega k}\log\Gamma\) \\
+\midrule
+0.5 & 40 & 0.13754 & 0.51452 & -0.14710 \\
+0.5 & 80 & 0.12969 & 0.49590 & -0.14300 \\
+1.5 & 40 & 0.17189 & 0.44960 & 0.56720 \\
+1.5 & 80 & 0.17021 & 0.45363 & 0.56814 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The shifted combinations are approximately constant between
+\(\Gamma=40\) and \(80\), while the unshifted fitted coefficients drift with the
+sign and magnitude predicted by \eqref{eq:Lk-generic-r}--\eqref{eq:Lomegak-generic-r}.
+For example, at \(r=1.5\) the raw line-cut coefficients change as
+\[
+\widehat A_k: 0.12952\to0.11988,
+\qquad
+\widehat A_\Omega: 0.28012\to0.25230,
+\qquad
+\widehat A_{\Omega k}: 0.39772\to0.36681,
+\]
+when \(\Gamma\) is doubled from \(40\) to \(80\), consistent with a negative
+\(\log\Gamma\) drift.  The \(r=0.5\) mixed coefficient has the opposite
+logarithmic slope because \(L_{\Omega k}<0\), and the shifted values show the
+same stabilization.  These checks support the generic-\(r\) endpoint prediction
+while preserving the earlier \(r=1\) constants as a special case.
+
+We also verified the regular coefficients
+\eqref{eq:generic-r-regular-coeffs} directly in the reduced endpoint model using
+\texttt{src/verify\_generic\_r\_regular\_terms.jl}.  The numerical test
+integrates the finite-\(\Gamma\) endpoint kernel
+\[
+\Delta_{\rm end}(\Omega,k)
+=
+\int_{-q_r}^{q_r}\frac{dq}{2\pi}\,
+\frac{-Z_r(q)(\Omega-k\cos q)^2}
+{4Z_r(q)^2+\Gamma^2(\Omega-k\cos q)^2/4},
+\]
+subtracts the logarithmic term in \eqref{eq:generic-r-singular-kernel}, fixes
+the one remaining \((\Omega-c_r k)^2\) constant from the \(\Omega\)-line, and
+then extracts \(A_k^{\rm reg}\) and \(B_{\Omega k}^{\rm reg}\).  At
+\(\Gamma=80\) the comparison is
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+\(r\) &
+\(A_{k,\rm num}^{\rm reg}\) &
+\(A_k^{\rm reg}\) &
+\(B_{\Omega k,\rm num}^{\rm reg}\) &
+\(B_{\Omega k}^{\rm reg}\) \\
+\midrule
+0.5 & 0.02197 & 0.02097 & 0.37215 & 0.37527 \\
+1.0 & 0.06734 & 0.06745 & 0.19028 & 0.19245 \\
+1.5 & 0.06570 & 0.06727 & 0.09689 & 0.10040 \\
+\bottomrule
+\end{tabular}
+\end{center}
+The agreement is at the few-percent level on the finite fitting window used for
+the check.  The full Green's-function quadrature verifies the logarithmic slopes
+cleanly; its absolute regular constants also contain nonsingular lattice
+contributions, so the reduced endpoint table is the sharper test of the
+analytic regular terms in \eqref{eq:generic-r-regular-coeffs}.
+
+The analytical constant \(C_r^{\rm end}\) in \eqref{eq:Cr-end-result} is only
+the reduced endpoint matching constant.  It is not, by itself, a verification of
+the full lattice Green's function.  The full Green's function contains
+nonsingular regular terms that are also \(O(\Omega^2)\) on the \(k=0\) line, so
+the constant multiplying the logarithm should be extracted from the numerical
+full bubble after the logarithmic slope has been fixed.
+
+For this purpose it is better to work with the logarithm of the constant.  On
+the \(k=0\) line define
+\begin{equation}
+\label{eq:lnCr-full-estimator}
+\ell_r^{\rm full}(\Omega;\Gamma)
+\equiv
+\log C_{r,\rm est}^{\rm full}
+=
+\log(\Gamma|\Omega|)
+-
+\frac{
+\Delta_{\rm full}(\Omega,0)}
+{L_\Omega(r)\Omega^2},
+\qquad
+L_\Omega(r)=\frac{1}{8\pi s_r},
+\end{equation}
+where
+\[
+\Delta_{\rm full}(\Omega,0)
+=
+\Gamma\,\Re\!\left[
+\frac{\Pi_{RA}(\Omega,0)+\Pi_{RA}(-\Omega,0)}{2}
+-\Pi_{RA}(0,0)\right]
+\]
+is computed from the full orbital Green's function.  In this convention all
+regular \(O(\Omega^2)\) terms of the full bubble are absorbed into
+\(\ell_r^{\rm full}\).  Thus \(\ell_r^{\rm full}\) should be compared with
+\(\log C_r^{\rm end}\), not with \(C_r^{\rm end}\) itself.
+
+This extraction is numerically more delicate than the logarithmic-slope check,
+because it divides a small \(O(\Omega^2)\) difference by \(\Omega^2\).  In
+particular, the frequency mesh must resolve the external frequency itself.  A
+coarse dense-region spacing \(d\omega=1/(20\Gamma)\) gives an artificially low
+\(\ell_r^{\rm full}\) near \(r=1\).  We therefore use a refined spacing
+\(d\omega=1/(100\Gamma)\) for the quoted full-Green values.
+
+We performed this extraction with \texttt{src/estimate\_full\_Cr.jl}.  The
+script evaluates the full orbital trace and, in the same run, the \(\sigma_x\)
+\(--\) component.  The raw complex bubbles and grids are saved in
+\texttt{data/full\_green\_lnCr\_refined.jld2}.  The table uses
+\(\Gamma=80\), \(\Omega=1.5\times10^{-3}\), and hence
+\(\Gamma\Omega=0.12\):
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+\(r\) &
+\(\log C_r^{\rm end}\) &
+\(\ell_r^{\rm full}(1.5\times10^{-3})\) &
+\(\ell_r^{--}(1.5\times10^{-3})\) &
+\(\ell_r^{\rm full}-\log C_r^{\rm end}\) \\
+\midrule
+0.5 & 4.52692 & 4.52236 & 4.51515 & \(-0.00456\) \\
+1.0 & 3.98179 & 3.95438 & 3.94670 & \(-0.02740\) \\
+1.5 & 3.03124 & 3.00945 & 3.00178 & \(-0.02179\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+The full result is indeed dominated by the \(\sigma_x\) \({--}\) bubble: the
+middle columns differ only at the \(10^{-2}\) level in \(\log C\).  The
+residual difference from \(\log C_r^{\rm end}\) is much smaller than what one
+finds on the coarse frequency mesh, and is comparable to remaining
+finite-\(\Gamma\Omega\) and finite-mesh uncertainties.
+
+For reference, at the most sensitive point \(r=1\) the frequency convergence is
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+\(d\omega\) & \(N_\omega\) &
+\(\ell_{1}^{\rm full}(1.5\times10^{-3})\) &
+\(\ell_{1}^{--}(1.5\times10^{-3})\) \\
+\midrule
+\(1/(20\Gamma)\)  & 8952  & 3.86625 & 3.85870 \\
+\(1/(50\Gamma)\)  & 18552 & 3.94260 & 3.93495 \\
+\(1/(100\Gamma)\) & 34552 & 3.95438 & 3.94670 \\
+\(1/(200\Gamma)\) & 66552 & 3.95900 & 3.95134 \\
+\bottomrule
+\end{tabular}
+\end{center}
+This convergence data is saved in
+\texttt{data/full\_green\_lnCr\_r1\_frequency\_convergence.jld2}.  The main
+lesson is that the full integral is dominated by the \({--}\) bubble, but the
+matching constant is not a robust quantity unless the regular \(O(\Omega^2)\)
+terms and the numerical frequency resolution are controlled.  The logarithmic
+slopes are much more reliable than the absolute constant.
+
+\section{Trivial-\texorpdfstring{$r>2$}{r>2} Bubble}
+\label{sec:trivial-r-bubble}
+
+For \(r>2\), the boundary is in the trivial phase.  The condition
+\(|r-\cos q|<1\) has no solution, so the edge-pole interval
+\(\mathcal I_r\) is empty.  The endpoint mechanism responsible for
+\(\Omega^2\log|\Omega|\), \(k^2\log\Gamma\), and
+\(\Omega k\log\Gamma\) is therefore absent.  The full retarded-advanced bubble
+is analytic at small \((\Omega,k)\).
+
+It is convenient to fit the unsymmetrized full bubble as
+\begin{equation}
+\label{eq:trivial-fit-def}
+\Gamma\Pi_{RA}(\Omega,k)
+=
+C_0
++L_\Omega\Omega
++L_k k
++Q_{\Omega\Omega}\Omega^2
++Q_{\Omega k}\Omega k
++Q_{kk}k^2
++\cdots .
+\end{equation}
+The large-\(\Gamma\) expansion is controlled by the broadening-dominated Green's
+function.  Since the trivial bulk is gapped, the self-energy is analytic near
+zero frequency and obeys \(\Sigma_R(z,q)=1/z+O(z^{-2})\) at large \(|z|\).
+For \(\omega=\Gamma x/2\),
+\begin{equation}
+G_R\!\left(\frac{\Gamma x}{2}+\Omega,q+k\right)
+=
+\frac{2}{\Gamma}\frac{\mathbf{1}}{x+i+2\Omega/\Gamma}
++
+\frac{4}{\Gamma^2}\frac{h_r(q+k)}{(x+i)^2}
++O(\Gamma^{-3}),
+\end{equation}
+where
+\[
+h_r(q)=\sin q\,\sigma_x+(r-\cos q)\,\sigma_z.
+\]
+The scalar part gives
+\begin{equation}
+\label{eq:trivial-scalar-expansion}
+\Gamma\Pi_{RA}^{(0)}(\Omega,k)
+=
+\frac{2}{1-i\Omega/\Gamma}
+=
+2+\frac{2i\Omega}{\Gamma}
+-\frac{2\Omega^2}{\Gamma^2}
++O(\Gamma^{-3}Q^3).
+\end{equation}
+The first momentum-dependent term comes from \(h_r(q+k)h_r(q)\).  Subtracting
+the \(k=0\) value,
+\begin{align}
+\Gamma\left[\Pi_{RA}(0,k)-\Pi_{RA}(0,0)\right]_{h^2}
+&=
+\frac{2}{\Gamma^2}
+\int_{-\pi}^{\pi}\frac{dq}{2\pi}\,
+\tr\!\left[h_r(q+k)h_r(q)-h_r(q)^2\right]
+\notag\\
+&=
+\frac{4(\cos k-1)}{\Gamma^2}
+=
+-\frac{2k^2}{\Gamma^2}+O(k^4/\Gamma^2).
+\label{eq:trivial-k2-derivation}
+\end{align}
+The trace of \(h_r\) vanishes and the scalar denominator is independent of
+\(q\), so there is no linear \(k\) term and no \(\Omega k\) term at this order.
+
+The constant term is most cleanly obtained from the spectral-leakage identity
+\eqref{eq:pi00-mass-identity-app}.  In the trivial phase the continuum exhausts
+the self-energy spectral weight:
+\[
+\int\frac{d\omega}{2\pi}\,
+\left[-2\,\mathrm{Im}\,\Sigma_R(\omega,q)\right]=1
+\]
+for each \(q\).  Since
+\(\tr[G_RP_-G_A]=4/\Gamma^2+O(\Gamma^{-3})\) on the finite bulk continuum,
+\begin{equation}
+\label{eq:trivial-C0-result}
+C_0(r,\Gamma)
+=
+\Gamma\Pi_{RA}(0,0)
+=
+2-\frac{4}{\Gamma^2}+O(\Gamma^{-3}),
+\qquad r>2.
+\end{equation}
+Combining these pieces gives the leading trivial-phase coefficients
+\begin{equation}
+\label{eq:trivial-coeff-summary}
+\begin{gathered}
+C_0=2-\frac{4}{\Gamma^2}+O(\Gamma^{-3}),
+\qquad
+L_\Omega=\frac{2i}{\Gamma}+O(\Gamma^{-3}),
+\qquad
+L_k=O(\Gamma^{-3}),
+\\
+Q_{\Omega\Omega}=-\frac{2}{\Gamma^2}+O(\Gamma^{-3}),
+\qquad
+Q_{kk}=-\frac{2}{\Gamma^2}+O(\Gamma^{-3}),
+\qquad
+Q_{\Omega k}=O(\Gamma^{-3}).
+\end{gathered}
+\end{equation}
+The leading coefficients are independent of \(r\) as long as \(r>2\).  The
+\(r\)-dependence first enters through subleading corrections to the analytic
+large-\(\Gamma\) expansion.
+
+We checked these predictions at \(r=3\) by direct full-Green quadrature using
+\texttt{src/analyze\_trivial\_phase\_bubble.jl}.  The raw bubbles and fit
+outputs are saved in \texttt{data/trivial\_r3\_bubble\_scan.jld2}.  The table
+shows the scaled coefficients; the first four columns should approach
+\(4,2,-2,-2\), while the last two columns remain \(O(1)\) because the
+corresponding coefficients start only at \(O(\Gamma^{-3})\).
+\begin{center}
+\begin{tabular}{ccccccc}
+\toprule
+\(\Gamma\) &
+\(\Gamma^2m_{\rm leak}\) &
+\(\Gamma\,\Im L_\Omega\) &
+\(\Gamma^2\Re Q_{\Omega\Omega}\) &
+\(\Gamma^2\Re Q_{kk}\) &
+\(\Gamma^3\Im L_k\) &
+\(\Gamma^3\Re Q_{\Omega k}\) \\
+\midrule
+20  & 2.95290 & 2.00183 & -3.12290 & -2.63531 & -3.97411 & 15.15975 \\
+40  & 3.50134 & 2.00078 & -2.65491 & -2.47261 & -5.46633 & 21.94952 \\
+80  & 3.77522 & 2.00011 & -2.26667 & -2.28032 & -6.22272 & 24.90956 \\
+160 & 3.89637 & 1.99988 & -2.03910 & -2.15607 & -6.56212 & 25.80893 \\
+\bottomrule
+\end{tabular}
+\end{center}
+Here \(m_{\rm leak}\) denotes the positive residual
+\(2-\Gamma\Pi_{RA}(0,0)\) evaluated through
+\eqref{eq:pi00-mass-identity-app}, which is more stable than subtracting the
+tail-corrected constant at the largest \(\Gamma\).  The numerical trend confirms
+that the trivial phase has no separate \(\Gamma Q\ll1\) endpoint regime.  After
+the constant piece is subtracted, the small-\((\Omega,k)\) kernel decays
+algebraically with \(\Gamma\), with the leading terms shown in
+\eqref{eq:trivial-coeff-summary}.
+
+\section{One-loop RG of the replica sigma model}
+
+We now use the replica-sector kernel to identify the sigma-model stiffness and
+to derive its one-loop RG flow.  Since the full KK bubble is smooth and strongly
+suppressed at large \(\Gamma\), we keep only the retarded-advanced part in the
+replica sector.  From \eqref{eq:Y-sector-general}, \eqref{eq:Y-kernel-general},
+and \eqref{eq:Delta-summary-main}, the Euclidean quadratic action of the
+traceless replica mode is
+\begin{equation}\label{eq:SE-Y-quadratic}
+S_E^{(2)}[Y]
+=
+\frac{\Gamma}{4}\int_Q
+\left[
+A_k\,k^2
+-A_{\Omega k}\,\Omega k
++\frac{\Omega^2}{8\pi}\log\!\frac{C_\Omega}{\Gamma|\Omega|}
++\cdots
+\right]
+\Tr_R\!\left[Y(-Q)Y(Q)\right].
+\end{equation}
+Matching the spatial-gradient term to the standard normalization
+\(\frac{\lambda}{8}\int_Q k^2 \Tr_R[Y(-Q)Y(Q)]\), we identify
+\begin{equation}\label{eq:lambda-def}
+\frac{\lambda}{8}\equiv \frac{\Gamma A_k}{4},
+\qquad
+\lambda=2\Gamma A_k.
+\end{equation}
+Using the large-\(\Gamma\) value of \(A_k\),
+\begin{equation}\label{eq:lambda-micro}
+\lambda
+\xrightarrow[\Gamma\to\infty]{}
+\Gamma\left(\frac{2}{3\sqrt{3}}-\frac{1}{4}\right)
+=
+\Gamma\,\frac{8-3\sqrt{3}}{12\sqrt{3}}.
+\end{equation}
+
+It is also convenient to define
+\begin{equation}\label{eq:v-rho-def}
+v\equiv \frac{A_{\Omega k}}{A_k},
+\qquad
+\kappa\equiv \frac{1}{8\pi A_k},
+\qquad
+\rho(\Omega)\equiv \kappa\log\!\frac{C_\Omega}{\Gamma|\Omega|}.
+\end{equation}
+Then \eqref{eq:SE-Y-quadratic} becomes
+\begin{equation}\label{eq:SE-Y-kernel}
+S_E^{(2)}[Y]
+=
+\frac{\lambda}{8}\int_Q
+\left[
+k^2-v\,\Omega k+\rho(\Omega)\,\Omega^2+\cdots
+\right]
+\Tr_R\!\left[Y(-Q)Y(Q)\right].
+\end{equation}
+The mixed term can be removed by the shear
+\begin{equation}
+\tilde k = k-\frac{v}{2}\Omega,
+\end{equation}
+under which
+\begin{equation}\label{eq:kernel-sheared}
+k^2-v\,\Omega k+\rho(\Omega)\Omega^2
+=
+\tilde k^{\,2}
++\tilde\rho(\Omega)\,\Omega^2,
+\qquad
+\tilde\rho(\Omega)\equiv \rho(\Omega)-\frac{v^2}{4}.
+\end{equation}
+More generally, the omitted analytic \(\Omega^2\) terms in
+\eqref{eq:SE-Y-quadratic} can be absorbed into a regular constant \(r\), so the
+time kernel takes the form
+\begin{equation}\label{eq:rho-decomp}
+\tilde\rho(\Omega)=r+\kappa\log\!\frac{\Omega_0}{|\Omega|},
+\qquad
+\Omega_0\equiv \frac{C_\Omega}{\Gamma}.
+\end{equation}
+At asymptotically small \(|\Omega|\), the logarithm wins over the regular part,
+so \(\tilde\rho(\Omega)\) remains positive.  We therefore perform the RG in the
+sheared frame and drop the tilde on \(k\) from now on.
+
+The nonlinear completion of the replica sector is obtained by introducing
+\begin{equation}\label{eq:X-field-def}
+X(\tau,x)\in SU(R),
+\qquad
+J_\mu\equiv X^{-1}\partial_\mu X,
+\end{equation}
+so that \(J_\mu=i\partial_\mu Y+O(Y^2)\).  The replica sigma model is then
+\begin{equation}\label{eq:SE-X}
+S_E[X]
+=
+\frac{\lambda}{8}
+\left[
+\int d\tau\,dx\,\Tr_R\!\left(J_x^2\right)
++\int_Q \rho(\Omega)\,
+\Tr_R\!\left(J_\tau(-Q)J_\tau(Q)\right)
+\right].
+\end{equation}
+The logarithm therefore remains attached to the time-derivative current
+bilinear; it is not replaced by a local \((\partial_\tau X)^2\) term.
+
+To carry out Wilsonian RG, split
+\begin{equation}\label{eq:X-split}
+X=X_s X_f,
+\qquad
+X_f=e^{iY_f},
+\end{equation}
+where \(Y_f\) contains only shell modes.  Writing
+\begin{equation}
+J_\mu^{(s)}\equiv X_s^{-1}\partial_\mu X_s,
+\end{equation}
+we have
+\begin{equation}
+J_\mu
+=
+X_f^{-1}J_\mu^{(s)}X_f+X_f^{-1}\partial_\mu X_f.
+\end{equation}
+Expanding \(X_f=e^{iY_f}\) gives
+\begin{equation}\label{eq:J-expand-fast}
+J_\mu
+=
+J_\mu^{(s)}
++i\nabla_\mu Y_f
+-\frac{1}{2}[Y_f,\nabla_\mu Y_f]
+-\frac{1}{2}[Y_f,[Y_f,J_\mu^{(s)}]]
++O(Y_f^3),
+\end{equation}
+with the background covariant derivative
+\begin{equation}
+\nabla_\mu Y_f \equiv \partial_\mu Y_f + i[J_\mu^{(s)},Y_f].
+\end{equation}
+Substituting \eqref{eq:J-expand-fast} into \eqref{eq:SE-X}, the linear term in
+\(Y_f\) vanishes after integrating by parts.  The quadratic fast action is
+\begin{equation}\label{eq:S-fast}
+S_f[Y_f]
+=
+\frac{\lambda}{8}\int_Q
+\mathcal K(Q)\,
+\Tr_R\!\left[Y_f(-Q)Y_f(Q)\right],
+\qquad
+\mathcal K(Q)=k^2+\rho(\Omega)\Omega^2.
+\end{equation}
+The logarithm must therefore be kept inside the fast-mode propagator throughout
+the shell integration.
+
+Choose a basis \(T^a\) of \(su(R)\) with
+\begin{equation}
+\Tr_R(T^a T^b)=\frac{1}{2}\delta^{ab},
+\qquad
+Y_f = Y_f^a T^a .
+\end{equation}
+Then
+\begin{equation}\label{eq:Yf-prop}
+\left\langle
+Y_f^a(Q)Y_f^b(-Q)
+\right\rangle_>
+=
+\frac{8}{\lambda}\,\delta^{ab}\,\frac{1}{\mathcal K(Q)},
+\end{equation}
+because
+\begin{equation}
+\Tr_R\!\left[Y_f(-Q)Y_f(Q)\right]
+=
+\frac{1}{2}Y_f^a(-Q)Y_f^a(Q).
+\end{equation}
+This factor of \(1/2\) from the trace normalization is the source of the
+missing factor of two in the naive estimate.
+and the shell average at coincident points is
+\begin{equation}\label{eq:I-shell}
+I_>\equiv
+\int_>\frac{d\Omega\,dk}{(2\pi)^2}\,\frac{1}{\mathcal K(Q)}.
+\end{equation}
+For an infinitesimal Wilson shell defined by
+\(\Lambda e^{-d\ell}<\sqrt{\mathcal K(Q)}<\Lambda\), the logarithm varies only
+slowly across the shell.  Freezing it at the running shell value
+\begin{equation}
+\rho_\ell \equiv r+\kappa \ell,
+\end{equation}
+with \(|\Omega| \sim \Omega_0 e^{-\ell}\), we obtain
+\begin{equation}\label{eq:I-shell-dl}
+I_>
+\simeq
+\int_>\frac{d\Omega\,dk}{(2\pi)^2}\,\frac{1}{k^2+\rho_\ell \Omega^2}
+=
+\frac{d\ell}{2\pi\sqrt{\rho_\ell}}
++O(d\ell^2).
+\end{equation}
+So the logarithmic time kernel does affect the RG: it reduces the one-loop shell
+weight by the factor \(1/\sqrt{\rho_\ell}\), which slowly decreases with scale.
+
+The terms quadratic in both \(J_\mu^{(s)}\) and \(Y_f\) renormalize the slow
+action.  Using
+\begin{equation}
+\sum_a [T^a,[T^a,M]] = R\,M
+\qquad
+\text{for } M\in su(R),
+\end{equation}
+one finds
+\begin{equation}\label{eq:Seff-renorm}
+S_E^{\rm eff}[X_s]
+=
+\frac{\lambda-2RI_>}{8}
+\left[
+\int d\tau\,dx\,\Tr_R\!\left((J_x^{(s)})^2\right)
++\int_Q \rho(\Omega)\,
+\Tr_R\!\left(J_\tau^{(s)}(-Q)J_\tau^{(s)}(Q)\right)
+\right].
+\end{equation}
+Thus the spatial-gradient term and the logarithmic time-derivative term are
+renormalized by the same loop factor.  However, this does \emph{not} mean that
+the logarithmic kernel is inert.  It affects the RG in two ways.  First, it
+enters the shell integral through \eqref{eq:I-shell-dl}.  Second, under the
+rescaling \(\Omega\to e^{d\ell}\Omega\),
+\begin{equation}\label{eq:rho-rescale}
+\rho\!\left(\Omega e^{-d\ell}\right)
+=
+\rho(\Omega)+\kappa\,d\ell,
+\end{equation}
+so the regular \(\Omega^2\) coefficient shifts at tree level.  Equivalently, if
+\(\rho(\Omega)=r+\kappa\log(\Omega_0/|\Omega|)\), then
+\begin{equation}\label{eq:r-kappa-flow}
+\frac{d\kappa}{d\ell}=0+O(\lambda^2),
+\qquad
+\frac{dr}{d\ell}=\kappa+O(\lambda).
+\end{equation}
+At this order the loop correction does not generate a separate beta function for
+\(\kappa\); it only renormalizes the overall stiffness.
+
+Reading off the renormalized coupling from \eqref{eq:Seff-renorm},
+\begin{equation}
+\lambda(\ell+d\ell)
+=
+\lambda(\ell)-2R\,I_>,
+\end{equation}
+and using \eqref{eq:I-shell-dl}, we obtain
+\begin{equation}\label{eq:beta-lambda}
+\frac{d\lambda}{d\ell}
+=
+-\frac{R}{\pi\sqrt{\rho_\ell}}
++O(\lambda^{-1}).
+\end{equation}
+Thus the replica sector has the same one-loop algebraic structure as the
+principal chiral model, but with a scale-dependent shell weight set by the
+logarithmic time kernel.  In the replica continuation relevant here,
+\(R\to 1\), the one-loop flow is
+\begin{equation}
+\beta_\lambda
+=
+-\frac{1}{\pi\sqrt{\rho_\ell}}
++O(\lambda^{-1}),
+\end{equation}
+while \(\rho_\ell=r+\kappa\ell\) grows logarithmically with the RG scale.
+Consequently the logarithmic time kernel suppresses the growth of \(\lambda\) at
+long distances through the factor \(1/\sqrt{\rho_\ell}\).  In the present
+convention, \(\lambda\) is a true stiffness, so the negative sign of
+\eqref{eq:beta-lambda} means that the stiffness decreases under coarse graining.
+
+The one-loop flow can be integrated explicitly.  For general \(R\),
+\begin{equation}\label{eq:lambda-flow-integrated}
+\lambda(\ell)
+=
+\lambda_0
+-\frac{2R}{\pi\kappa}
+\left(
+\sqrt{r+\kappa\ell}-\sqrt{r}
+\right),
+\qquad
+\kappa>0.
+\end{equation}
+In the limit \(\kappa\to 0\), this reduces smoothly to the isotropic result
+\begin{equation}\label{eq:lambda-flow-nolog}
+\lambda(\ell)
+=
+\lambda_0-\frac{R}{\pi\sqrt{r}}\,\ell.
+\end{equation}
+For the standard isotropic normalization \(r=1\), one recovers
+\begin{equation}
+\frac{d\lambda}{d\ell}=-\frac{R}{\pi},
+\qquad
+\lambda(\ell)=\lambda_0-\frac{R}{\pi}\ell.
+\end{equation}
+
+The scale \(\ell_*\) at which the stiffness is driven to zero,
+\(\lambda(\ell_*)=0\), estimates the onset of the disordered regime.  Without
+the logarithmic term,
+\begin{equation}\label{eq:ellstar-nolog}
+\ell_*^{(0)}=\frac{\pi\sqrt{r}}{R}\,\lambda_0
+\qquad
+\left(\ell_*^{(0)}=\frac{\pi}{R}\lambda_0\ \text{for } r=1\right).
+\end{equation}
+With the logarithmic kernel present,
+\begin{equation}\label{eq:ellstar-log}
+\ell_*=
+\frac{\pi\sqrt{r}}{R}\,\lambda_0
++\frac{\pi^2\kappa}{4R^2}\,\lambda_0^2.
+\end{equation}
+Thus the logarithmic term slows the flow toward disorder.  Instead of a constant
+velocity \(d\lambda/d\ell=-R/\pi\), the magnitude of the beta function decays as
+\begin{equation}
+\left|\beta_\lambda\right|
+\sim
+\frac{R}{\pi\sqrt{\kappa\ell}}
+\qquad
+(\ell\gg r/\kappa),
+\end{equation}
+so the stiffness decreases only as \(\lambda(\ell)\sim \lambda_0-\text{const}
+\times\sqrt{\ell}\).  Equivalently, the disordering scale is parametrically
+larger:
+\begin{equation}
+\ell_*-\ell_*^{(0)}
+=
+\frac{\pi^2\kappa}{4R^2}\,\lambda_0^2.
+\end{equation}
+If one interprets \(\xi\sim e^{\ell_*}\) as the correlation length, then the
+correlation length is
+\begin{equation}\label{eq:xi-log}
+\xi
+\sim
+\xi_0\,e^{\ell_*}
+=
+\xi_0
+\exp\!\left[
+\frac{\pi\sqrt{r}}{R}\lambda_0
++\frac{\pi^2\kappa}{4R^2}\lambda_0^2
+\right],
+\end{equation}
+to be compared with the isotropic result without the logarithmic kernel,
+\begin{equation}\label{eq:xi-nolog}
+\xi^{(0)}
+\sim
+\xi_0
+\exp\!\left[
+\frac{\pi\sqrt{r}}{R}\lambda_0
+\right].
+\end{equation}
+Thus
+\begin{equation}\label{eq:xi-ratio}
+\frac{\xi}{\xi^{(0)}}
+=
+\exp\!\left[
+\frac{\pi^2\kappa}{4R^2}\lambda_0^2
+\right].
+\end{equation}
+The logarithmic \(\Omega^2\) term therefore produces a parametrically larger
+correlation length.  For moderate bare stiffness, where
+\(\kappa\lambda_0\ll 4R\sqrt{r}/\pi\), the extra term in the exponent is a small
+correction.  For sufficiently large \(\lambda_0\), however, the quadratic term
+dominates, and the correlation length crosses over from the usual
+\(\exp(\text{const}\times \lambda_0)\) behavior to the stronger form
+\(\exp(\text{const}\times \lambda_0^2)\).
+
+Using the microscopic large-\(\Gamma\) expressions
+\begin{equation}
+\lambda_0 \simeq 2\Gamma A_k,
+\qquad
+\kappa=\frac{1}{8\pi A_k},
+\end{equation}
+and taking \(R\to 1\), one obtains
+\begin{equation}\label{eq:xi-log-micro}
+\ell_*
+\simeq
+2\pi A_k\sqrt{r}\,\Gamma
++\frac{\pi A_k}{8}\Gamma^2,
+\end{equation}
+so that at large \(\Gamma\)
+\begin{equation}
+\xi
+\sim
+\xi_0\,
+\exp\!\left[
+2\pi A_k\sqrt{r}\,\Gamma
++\frac{\pi A_k}{8}\Gamma^2
+\right].
+\end{equation}
+At the one-loop level, this is the main physical consequence of the logarithmic
+time kernel: it does not stop the flow toward disorder, but it slows that flow
+enough to promote the correlation length from the usual exponential dependence
+to a super-exponential one in the microscopic stiffness.
+
+\section{Generic-\texorpdfstring{$r$}{r} One-loop RG in the Ballistic Frame}
+\label{sec:generic-r-rg}
+
+The RG discussion above was written in the symmetric case \(r=1\), where the
+nonanalytic piece sits on \(\Omega^2\).  For a generic topological value
+\(0<r<2\), Section~\ref{sec:generic-r-bubbles} showed that the singular bubble
+depends instead on the endpoint combination
+\begin{equation}
+\delta_r\equiv \Omega-c_r k,
+\qquad
+c_r=r-1,
+\qquad
+s_r=\sqrt{r(2-r)}.
+\end{equation}
+Therefore the natural low-energy frame is not the laboratory frame
+\((\Omega,k)\), but the ballistic frame aligned with the edge velocity \(c_r\).
+
+To avoid clashing with the microscopic mass parameter \(r\), in this section we
+denote the regular analytic coefficient of the time kernel by \(\rho_{0,r}\)
+rather than by \(r\).  The quadratic replica action consistent with
+\eqref{eq:generic-r-full-local-endpoint} can be written as
+\begin{equation}\label{eq:SE-Y-generic-r-lab}
+S_{E,r}^{(2)}[Y]
+=
+\frac{\Gamma}{4}\int_Q
+\left[
+A_{k,r}\,k^2
+-A_{\Omega k,r}\,\Omega k
++A_{\Omega,r}\,\Omega^2
++\frac{(\Omega-c_r k)^2}{8\pi s_r}
+\log\!\frac{\Omega_{0,r}}{|\Omega-c_r k|}
++\cdots
+\right]
+\Tr_R\!\left[Y(-Q)Y(Q)\right].
+\end{equation}
+Here \(\Omega_{0,r}\sim C_r/\Gamma\) is the matching scale, while
+\(A_{k,r}\), \(A_{\Omega k,r}\), and \(A_{\Omega,r}\) are finite analytic
+coefficients.  They depend on the convention used to separate the regular and
+logarithmic pieces.  In the reduced endpoint convention of
+\eqref{eq:generic-r-regular-coeffs} and \eqref{eq:Cr-end-result},
+\begin{equation}\label{eq:generic-r-endpoint-bare}
+A_{\Omega,r}^{\rm end}=0,
+\qquad
+A_{\Omega k,r}^{\rm end}=B_{\Omega k}^{\rm reg}(r)=\frac{J_r}{4\pi},
+\qquad
+A_{k,r}^{\rm end}=A_k^{\rm reg}(r)=\frac{rJ_r-q_r}{4\pi}.
+\end{equation}
+The full lattice Green's function shifts these coefficients by additional
+regular \(O(1)\) terms, but it does not change the universal logarithmic
+coefficient \(1/(8\pi s_r)\).
+
+The singular direction is made explicit by the unit-Jacobian change of
+variables
+\begin{equation}\label{eq:generic-r-ballistic-vars}
+\varpi\equiv \Omega-c_r k,
+\qquad
+p\equiv k.
+\end{equation}
+In real space this is the comoving coordinate system
+\begin{equation}
+\tau'=\tau,
+\qquad
+x'=x-c_r\tau,
+\end{equation}
+so \(\varpi\) is conjugate to \(\tau'\), and
+\begin{equation}
+\partial_{\tau'}=\partial_\tau+c_r\partial_x,
+\qquad
+\partial_{x'}=\partial_x.
+\end{equation}
+Thus the logarithmic kernel is attached to the convective derivative along the
+edge trajectory rather than to \(\partial_\tau\) alone.
+
+Substituting \(\Omega=\varpi+c_r p\) into \eqref{eq:SE-Y-generic-r-lab} gives
+\begin{equation}\label{eq:SE-Y-generic-r-ballistic}
+S_{E,r}^{(2)}[Y]
+=
+\frac{\Gamma}{4}\int_Q
+\left[
+\bar A_{k,r}\,p^2
+-\bar A_{\varpi p,r}\,\varpi p
++\left(
+\bar A_{\varpi,r}
++\frac{1}{8\pi s_r}\log\!\frac{\Omega_{0,r}}{|\varpi|}
+\right)\varpi^2
++\cdots
+\right]
+\Tr_R\!\left[Y(-Q)Y(Q)\right],
+\end{equation}
+with
+\begin{align}
+\bar A_{k,r}
+&=
+A_{k,r}-c_rA_{\Omega k,r}+c_r^2A_{\Omega,r},
+\label{eq:generic-r-Abar-k}
+\\
+\bar A_{\varpi p,r}
+&=
+A_{\Omega k,r}-2c_rA_{\Omega,r},
+\label{eq:generic-r-Abar-mix}
+\\
+\bar A_{\varpi,r}
+&=
+A_{\Omega,r}.
+\label{eq:generic-r-Abar-varpi}
+\end{align}
+In the reduced endpoint convention \eqref{eq:generic-r-endpoint-bare}, these
+become
+\begin{equation}\label{eq:generic-r-endpoint-ballistic-coeffs}
+\bar A_{k,r}^{\rm end}
+=
+A_k^{\rm reg}(r)-c_r B_{\Omega k}^{\rm reg}(r)
+=
+\frac{J_r-q_r}{4\pi},
+\qquad
+\bar A_{\varpi p,r}^{\rm end}
+=
+\frac{J_r}{4\pi},
+\qquad
+\bar A_{\varpi,r}^{\rm end}=0.
+\end{equation}
+Since \(J_r-q_r>0\) for \(0<r<2\), the ballistic spatial stiffness is positive
+throughout the topological phase.
+
+Matching the \(p^2\) term to the standard normalization gives
+\begin{equation}\label{eq:generic-r-lambda-def}
+\frac{\lambda_r}{8}\equiv \frac{\Gamma\bar A_{k,r}}{4},
+\qquad
+\lambda_r=2\Gamma\bar A_{k,r}.
+\end{equation}
+It is then natural to define
+\begin{equation}\label{eq:generic-r-rho-def}
+v_r\equiv \frac{\bar A_{\varpi p,r}}{\bar A_{k,r}},
+\qquad
+\kappa_r\equiv \frac{1}{8\pi s_r\bar A_{k,r}},
+\qquad
+\rho_r(\varpi)\equiv
+\rho_{0,r}
++\kappa_r\log\!\frac{\Omega_{0,r}}{|\varpi|},
+\qquad
+\rho_{0,r}\equiv \frac{\bar A_{\varpi,r}}{\bar A_{k,r}}.
+\end{equation}
+Then \eqref{eq:SE-Y-generic-r-ballistic} becomes
+\begin{equation}\label{eq:SE-Y-generic-r-kernel}
+S_{E,r}^{(2)}[Y]
+=
+\frac{\lambda_r}{8}\int_Q
+\left[
+p^2-v_r\varpi p+\rho_r(\varpi)\varpi^2+\cdots
+\right]
+\Tr_R\!\left[Y(-Q)Y(Q)\right].
+\end{equation}
+In the reduced endpoint convention,
+\begin{equation}\label{eq:generic-r-endpoint-rg-couplings}
+\lambda_r^{\rm end}
+=
+\Gamma\,\frac{J_r-q_r}{2\pi},
+\qquad
+v_r^{\rm end}
+=
+\frac{J_r}{J_r-q_r},
+\qquad
+\kappa_r^{\rm end}
+=
+\frac{1}{2s_r(J_r-q_r)}.
+\end{equation}
+At \(r=1\), where \(c_r=0\), \(q_r=\pi/2\), and \(J_r=4\pi/(3\sqrt3)\), these
+reduce to the \(r=1\) couplings used above.
+
+As in \eqref{eq:kernel-sheared}, the remaining analytic mixed term is removed by
+the shear
+\begin{equation}
+\tilde p=p-\frac{v_r}{2}\varpi,
+\end{equation}
+under which
+\begin{equation}\label{eq:generic-r-kernel-sheared}
+p^2-v_r\varpi p+\rho_r(\varpi)\varpi^2
+=
+\tilde p^{\,2}
++\tilde\rho_r(\varpi)\varpi^2,
+\qquad
+\tilde\rho_r(\varpi)
+\equiv
+\tilde\rho_{0,r}
++\kappa_r\log\!\frac{\Omega_{0,r}}{|\varpi|},
+\end{equation}
+with
+\begin{equation}
+\tilde\rho_{0,r}\equiv \rho_{0,r}-\frac{v_r^2}{4}.
+\end{equation}
+The omitted analytic \(O(\varpi^2)\) terms from the full Green's function only
+shift \(\tilde\rho_{0,r}\) by a finite amount.  The logarithmic coefficient
+\(\kappa_r\) is fixed by the endpoint data.  In the reduced endpoint
+convention, \(\rho_{0,r}^{\rm end}=0\), so
+\begin{equation}
+\tilde\rho_{0,r}^{\rm end}
+=
+-\frac{(v_r^{\rm end})^2}{4}
+=
+-\frac{J_r^2}{4(J_r-q_r)^2}.
+\end{equation}
+This negative \(O(1)\) offset is convention-dependent: the full lattice Green's
+function adds further analytic \(\varpi^2\) terms.  The RG below is therefore
+understood to start at scales where the logarithm has already made
+\(\tilde\rho_r(\varpi)\) positive.
+
+The nonlinear completion is therefore the same principal-chiral replica sigma
+model as before, but written in the comoving coordinates
+\((\tau',x')\):
+\begin{equation}\label{eq:SE-X-generic-r}
+S_{E,r}[X]
+=
+\frac{\lambda_r}{8}
+\left[
+\int d\tau'\,dx'\,\Tr_R\!\left(J_{x'}^2\right)
++\int_Q \tilde\rho_r(\varpi)\,
+\Tr_R\!\left(J_{\tau'}(-Q)J_{\tau'}(Q)\right)
+\right],
+\end{equation}
+where \(J_{\mu'}\equiv X^{-1}\partial_{\mu'}X\).  In other words, the generic
+\(0<r<2\) theory is not isotropic in the laboratory variables, but it becomes
+the same logarithmic sigma model after passing to the ballistic frame selected
+by the edge velocity \(c_r\).
+
+Because the derivation of the fast-mode expansion depends only on the quadratic
+kernel, the one-loop calculation goes through unchanged with
+\((\Omega,k)\) replaced by \((\varpi,\tilde p)\).  The fast propagator is
+\begin{equation}
+\left\langle
+Y_f^a(Q)Y_f^b(-Q)
+\right\rangle_>
+=
+\frac{8}{\lambda_r}\,\delta^{ab}\,
+\frac{1}{\tilde p^{\,2}+\tilde\rho_r(\varpi)\varpi^2},
+\end{equation}
+and the infinitesimal shell integral is
+\begin{equation}\label{eq:generic-r-shell}
+I_>^{(r)}
+\equiv
+\int_>\frac{d\varpi\,d\tilde p}{(2\pi)^2}\,
+\frac{1}{\tilde p^{\,2}+\tilde\rho_r(\varpi)\varpi^2}
+\simeq
+\frac{d\ell}{2\pi\sqrt{\tilde\rho_{r,\ell}}},
+\end{equation}
+with
+\begin{equation}
+\tilde\rho_{r,\ell}
+=
+\tilde\rho_{0,r}+\kappa_r\ell,
+\qquad
+|\varpi|\sim \Omega_{0,r}e^{-\ell}.
+\end{equation}
+Therefore the couplings obey
+\begin{equation}\label{eq:generic-r-rg-flows}
+\frac{d\kappa_r}{d\ell}=0,
+\qquad
+\frac{d\tilde\rho_{0,r}}{d\ell}=\kappa_r,
+\qquad
+\frac{d\lambda_r}{d\ell}
+=
+-\frac{R}{\pi\sqrt{\tilde\rho_{r,\ell}}}
++O(\lambda_r^{-1}).
+\end{equation}
+Thus the one-loop beta function has exactly the same algebraic form as in the
+\(r=1\) analysis.  The qualitative difference is purely kinematic: the shell is
+centered on the ballistic line \(\Omega=c_r k\), not on \(\Omega=0\).
+
+For any reference scale \(\ell_0\) at which \(\tilde\rho_{r,\ell_0}>0\), the
+flow integrates to
+\begin{equation}\label{eq:generic-r-lambda-integrated}
+\lambda_r(\ell)
+=
+\lambda_r(\ell_0)
+-\frac{2R}{\pi\kappa_r}
+\left[
+\sqrt{\tilde\rho_{r,\ell}}
+-\sqrt{\tilde\rho_{r,\ell_0}}
+\right].
+\end{equation}
+So once the logarithm dominates the analytic offset, the stiffness again
+decreases only as \(\lambda_r(\ell)\sim\lambda_r(\ell_0)-{\rm const}\times
+\sqrt{\ell}\).  The generic-\(r\) anisotropy therefore changes the bare
+stiffness, the effective velocity, and the direction of the soft mode, but it
+does not change the conclusion that the logarithmic kernel slows the flow
+toward disorder and enhances the correlation length parametrically.
+
+\subsection{Running of the aspect ratio}
+
+It is useful to separate three distinct notions of anisotropy.  First, the
+ballistic velocity \(c_r\) selects the singular direction
+\(\delta_r=\Omega-c_rk\).  This is fixed by the endpoint kinematics of the
+fermion bubble and is not a coupling of the sigma model itself.  Second, the
+analytic mixed term in the ballistic frame is encoded in the dimensionless ratio
+\(v_r\).  Because the one-loop shell integration renormalizes the whole bracket
+in \eqref{eq:SE-Y-generic-r-kernel} by the same factor, \(v_r\) is not
+renormalized at this order:
+\begin{equation}
+\frac{dv_r}{d\ell}=0+O(\lambda_r^{-1}).
+\end{equation}
+Thus the orientation of the soft ridge is fixed; in the original laboratory
+variables the shell remains centered on the ballistic line \(\Omega=c_rk\).
+
+The actual running anisotropy is the relative weight of \(\tilde p^2\) and
+\(\varpi^2\) after both shears have been performed.  At shell scale \(\ell\), the
+quadratic kernel is
+\[
+\tilde p^{\,2}+\tilde\rho_{r,\ell}\varpi^2,
+\qquad
+\tilde\rho_{r,\ell}=\tilde\rho_{0,r}+\kappa_r\ell.
+\]
+If one defines the momentum-space shell aspect ratio by
+\begin{equation}\label{eq:aspect-ratio-def}
+a_r(\ell)\equiv \sqrt{\tilde\rho_{r,\ell}},
+\end{equation}
+then typical shell momenta satisfy
+\begin{equation}\label{eq:aspect-ratio-shell}
+|\tilde p|_{\ell}\sim \Lambda e^{-\ell},
+\qquad
+|\varpi|_{\ell}\sim \frac{\Lambda e^{-\ell}}{a_r(\ell)}.
+\end{equation}
+Equivalently, in real space the characteristic coarse-grained scales obey
+\[
+\frac{L_{x'}}{L_{\tau'}}\sim a_r(\ell)=\sqrt{\tilde\rho_{r,\ell}}.
+\]
+Therefore the aspect ratio does flow:
+\begin{equation}\label{eq:aspect-ratio-flow}
+\frac{d\log a_r}{d\ell}
+=
+\frac{1}{2}\frac{d\log\tilde\rho_{r,\ell}}{d\ell}
+=
+\frac{\kappa_r}{2\tilde\rho_{r,\ell}},
+\end{equation}
+so at large scales
+\begin{equation}
+a_r(\ell)\sim \sqrt{\kappa_r\ell}
+\qquad
+(\ell\gg |\tilde\rho_{0,r}|/\kappa_r).
+\end{equation}
+The anisotropy therefore grows only logarithmically.
+
+This logarithmic running is not the same as flowing to a new fixed dynamical
+exponent.  At any given shell one can isotropize the quadratic form by the
+scale-dependent rescaling
+\[
+\hat\varpi = a_r(\ell)\,\varpi,
+\]
+but there is no single scale-independent transformation that removes
+\(\tilde\rho_r(\varpi)\) at all scales.  The soft dispersion is
+\begin{equation}\label{eq:generic-r-soft-dispersion}
+|\varpi|_\ell
+\sim
+\frac{|\tilde p|_\ell}{\sqrt{\tilde\rho_{r,\ell}}}
+\sim
+\frac{|\tilde p|_\ell}{\sqrt{\kappa_r\ell}}
+\sim
+\frac{|\tilde p|_\ell}
+{\sqrt{\kappa_r\log(\Lambda/|\tilde p|_\ell)}}.
+\end{equation}
+Thus the leading scaling remains \(z=1\), but with a multiplicative logarithmic
+correction rather than a pure power law.  If one insists on defining a local
+effective exponent from \(|\varpi|_\ell\propto |\tilde p|_\ell^{\,z_{\rm eff}}\),
+then
+\begin{equation}
+z_{\rm eff}(\ell)
+=
+1+\frac{\kappa_r}{2\tilde\rho_{r,\ell}}
+\xrightarrow[\ell\to\infty]{}1.
+\end{equation}
+So the correct statement is that the aspect ratio runs, but there is no
+separate one-loop flow of the ballistic velocity or of a universal anisotropic
+critical exponent.
+
+\appendix
+
+\section{Fermion-Bubble Input to the NLSM}
+\label{app:bubble-appendix}
+
+\subsection{Retarded-advanced bubble}
+\label{app:ra-bubble}
+
+The retarded Green's function on the semi-infinite geometry is
+\begin{equation}
+G_R^{-1}(\omega,q)
+=
+(\omega+i\Gamma/2)\,\mathbf{1}
+-\sin q\,\sigma_x
+-(1-\cos q)\,\sigma_z
+-\Sigma_R(\omega,q)\,P_-,
+\end{equation}
+with
+\begin{equation}
+\Sigma_R(\omega,q)
+=
+\frac{
+\omega^2+2\cos q-1
+-\sqrt{\omega^2-1+i0}\,\sqrt{\omega^2-(5-4\cos q)+i0}
+}{
+2(\omega-\sin q+i0)
+}.
+\end{equation}
+The retarded-advanced bubble entering the quadratic NLSM is
+\begin{equation}
+\Pi_{RA}(\Omega,k)
+=
+\int\frac{d\omega\,dq}{(2\pi)^2}\,
+\tr_{\rm orb}\!\left[
+G_R(\omega+\Omega,q+k)\,G_A(\omega,q)
+\right].
+\end{equation}
+\begin{equation}\label{eq:Delta-appendix-main}
+\Delta(\Omega,k)
+=
+\Gamma\,\Re\!\left[
+\frac{\Pi_{RA}(\Omega,k)+\Pi_{RA}(-\Omega,-k)}{2}-\Pi_{RA}(0,0)
+\right].
+\end{equation}
+For the line-cut benchmarks below we use direct midpoint quadrature on the
+trusted small windows
+\[
+5\times10^{-4}\le k\le 2.5\times10^{-3},
+\qquad
+5\times10^{-4}\le \Omega\le 1.5\times10^{-3},
+\]
+with datasets
+\texttt{data/smallk\_direct\_lines\_Nw16384\_Nq4096\_wmax320} and
+\texttt{data/smallomega\_direct\_lines\_Nw32768\_Nq2048\_wmax640}.  The largest
+damping used in these fits is \(\Gamma=80\), so the numerical frequency
+bandwidth always exceeds \(\Gamma\).
+
+It is also useful to resolve the bubble in the basis where \(\sigma_x\) is
+diagonal:
+\begin{equation}
+G'(\omega,q)=
+\begin{pmatrix}
+G_{++}(\omega,q) & G_{+-}(\omega,q)\\
+G_{-+}(\omega,q) & G_{--}(\omega,q)
+\end{pmatrix}.
+\end{equation}
+Because the Frobenius overlap is basis-invariant, the RA bubble splits into
+component-wise contributions of \(G_{++}\), \(G_{+-}\), \(G_{-+}\), and
+\(G_{--}\).  The exact numerical decomposition shows that the low-energy
+coefficients are dominated by the \(--\) channel.
+
+\subsubsection{Zero-momentum bubble}
+
+At zero external arguments,
+\begin{equation}\label{eq:pi00-app}
+\Pi_{RA}(0,0)
+=
+\int\frac{d\omega}{2\pi}
+\int_{-\pi}^{\pi}\frac{dq}{2\pi}
+\sum_{a,b=1}^2
+|G_{R,ab}(\omega,q)|^2.
+\end{equation}
+This was evaluated directly with adaptive bandwidth
+\[
+\omega_{\max}=\max(320,8\Gamma).
+\]
+The raw result has the universal high-frequency tail
+\[
+\Pi_{RA}(0,0)
+=
+\Pi_{\mathrm{finite}\;\omega_{\max}}(0,0)
++\frac{2}{\pi\omega_{\max}}
++o(\omega_{\max}^{-1}),
+\]
+so after tail correction the data collapse rapidly to
+\begin{equation}\label{eq:pi00-limit-app}
+\Gamma\Pi_{RA}(0,0)\to 2.
+\end{equation}
+Numerically, the corrected totals are
+\[
+1.98597,\quad 1.99545,\quad 1.99878,\quad 1.99975,\quad 2.00001
+\]
+for \(\Gamma=10,20,40,80,160\).
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=\textwidth]{output/pi00_direct_analysis.pdf}
+    \caption{Direct numerical evaluation of \(\Gamma\Pi_{RA}(0,0)\).  Top: raw and tail-corrected totals.  Middle: decomposition in the \(\sigma_x\)-diagonal basis.  Bottom: bandwidth dependence and the corresponding tail correction.}
+    \label{fig:pi00-app}
+\end{figure}
+
+The same limit follows analytically from the large-\(\Gamma\) expansion
+\[
+G_R(\omega,q)
+=
+\frac{2}{\Gamma(x+i)}\,\mathbf{1} + O(\Gamma^{-2}),
+\qquad
+\omega=\frac{\Gamma x}{2},
+\]
+which gives
+\begin{equation}
+\Gamma\Pi_{RA}(0,0)
+=
+\int\frac{dq}{2\pi}\int\frac{dx}{\pi}\frac{2}{x^2+1}
++O(\Gamma^{-1})
+=
+2+O(\Gamma^{-1}).
+\end{equation}
+It is useful to spell out this limit more explicitly.  Write
+\[
+G_R^{-1}(\omega,q)
+=
+\bigl(\omega+i\Gamma/2\bigr)\mathbf{1}-\mathcal M(\omega,q),
+\]
+where
+\[
+\mathcal M(\omega,q)=
+\begin{pmatrix}
+\sin q & 1-\cos q\\
+1-\cos q & -\sin q+\Sigma_R(\omega,q)
+\end{pmatrix}.
+\]
+For fixed \(q\) and scaled frequency \(\omega=\Gamma x/2\), the exact bulk
+self-energy satisfies \(\Sigma_R(\Gamma x/2,q)=O(\Gamma^{-1})\) at fixed \(x\),
+so \(\mathcal M(\Gamma x/2,q)=O(1)\) uniformly in \(q\).  Therefore
+\[
+G_R(\Gamma x/2,q)
+=
+\frac{2}{\Gamma}
+\left[
+(x+i)\mathbf{1}-\frac{2}{\Gamma}\mathcal M(\Gamma x/2,q)
+\right]^{-1}
+=
+\frac{2}{\Gamma(x+i)}\,\mathbf{1}+O(\Gamma^{-2}).
+\]
+Substituting into \eqref{eq:pi00-app} yields
+\begin{align}
+\Gamma\Pi_{RA}(0,0)
+&=
+\Gamma\int\frac{dq}{2\pi}\int\frac{d\omega}{2\pi}\,
+\mathrm{Tr}\!\left[G_R(\omega,q)G_R(\omega,q)^\dagger\right]
+\notag\\
+&=
+\Gamma\int\frac{dq}{2\pi}\int\frac{\Gamma\,dx}{4\pi}\,
+\mathrm{Tr}\!\left[
+\frac{4}{\Gamma^2(x^2+1)}\,\mathbf{1}+O(\Gamma^{-3})
+\right]
+\notag\\
+&=
+\int\frac{dq}{2\pi}\int\frac{dx}{\pi}\,\frac{2}{x^2+1}
++O(\Gamma^{-1})
+=
+2+O(\Gamma^{-1}).
+\end{align}
+
+The \(O(\Gamma^{-1})\) remainder above is only a bound from the broad
+frequency-scaling expansion.  The defect in the exact sum rule is smaller.  The
+retarded and advanced Green's functions obey
+\[
+G_R-G_A
+=
+G_R\Bigl[(\Sigma_R-\Sigma_A)P_- - i\Gamma\,\mathbf{1}\Bigr]G_A,
+\]
+so
+\[
+i(G_R-G_A)
+=
+\Gamma G_RG_A
++i\,G_R(\Sigma_R-\Sigma_A)P_-G_A.
+\]
+After integrating over frequency and momentum, the spectral sum rule on the
+left gives \(2\).  Therefore
+\begin{equation}
+\label{eq:pi00-mass-identity-app}
+2-\Gamma\Pi_{RA}(0,0)
+=
+\int\frac{d\omega\,dq}{(2\pi)^2}\,
+\bigl[-2\,\mathrm{Im}\,\Sigma_R(\omega,q)\bigr]\,
+\tr_{\rm orb}\!\left[
+G_R(\omega,q)P_-G_A(\omega,q)
+\right].
+\end{equation}
+The factor \(-2\,\mathrm{Im}\,\Sigma_R\) is supported only on the finite bulk
+continuum.  On that support, \(G_R=O(\Gamma^{-1})\), and hence
+\begin{equation}
+\label{eq:pi00-mass-scale-app}
+2-\Gamma\Pi_{RA}(0,0)=O(\Gamma^{-2}).
+\end{equation}
+
+There is also a stronger exact statement for the pole-only approximation.  Let
+\[
+Z_+(q)=
+\begin{cases}
+\cos q\,(2-\cos q), & \cos q>0,\\
+0, & \cos q<0,
+\end{cases}
+\qquad
+\Sigma_{\mathrm{pole}}(z,q)=\frac{Z_+(q)}{z-\sin q},
+\]
+and denote by \(G_R^{\mathrm{pole}}(z,q)\) the Green's function obtained by
+replacing \(\Sigma_R\) with \(\Sigma_{\mathrm{pole}}\).  This pole-only
+Green's function is the physical \(2\times2\) block of the Hermitian
+\(3\times3\) resolvent
+\[
+\mathcal G^{\mathrm{pole}}(z,q)
+=
+\left[
+z\mathbf{1}_3
+-
+\begin{pmatrix}
+\sin q & 1-\cos q & 0\\
+1-\cos q & -\sin q & \sqrt{Z_+(q)}\\
+0 & \sqrt{Z_+(q)} & \sin q
+\end{pmatrix}
++
+\frac{i\Gamma}{2}
+\begin{pmatrix}
+1&0&0\\
+0&1&0\\
+0&0&0
+\end{pmatrix}
+\right]^{-1},
+\]
+namely \(G_R^{\mathrm{pole}}=P\,\mathcal G^{\mathrm{pole}}P\) with
+\[
+P=
+\begin{pmatrix}
+1&0&0\\
+0&1&0\\
+0&0&0
+\end{pmatrix}.
+\]
+Because the \(3\times3\) Hamiltonian is Hermitian, its resolvent obeys
+\[
+i\bigl(\mathcal G^{\mathrm{pole}}-\mathcal G^{\mathrm{pole}\,\dagger}\bigr)
+=
+\Gamma\,\mathcal G^{\mathrm{pole}}P\mathcal G^{\mathrm{pole}\,\dagger}.
+\]
+Projecting onto the physical block gives
+\[
+i\bigl(G_R^{\mathrm{pole}}-G_R^{\mathrm{pole}\,\dagger}\bigr)
+=
+\Gamma\,G_R^{\mathrm{pole}}G_R^{\mathrm{pole}\,\dagger}.
+\]
+Therefore
+\[
+\Gamma\,\mathrm{Tr}\!\left[
+G_R^{\mathrm{pole}}(\omega,q)G_R^{\mathrm{pole}}(\omega,q)^\dagger
+\right]
+=
+-2\,\mathrm{Im}\,\mathrm{Tr}\,G_R^{\mathrm{pole}}(\omega,q).
+\]
+Since \(G_R^{\mathrm{pole}}(z,q)=\mathbf{1}_2/z+O(z^{-2})\) as \(|z|\to\infty\),
+the spectral sum rule gives
+\[
+\int_{-\infty}^{\infty}\frac{d\omega}{\pi}\,
+\bigl[-\mathrm{Im}\,\mathrm{Tr}\,G_R^{\mathrm{pole}}(\omega,q)\bigr]=2
+\]
+for every \(q\).  Hence the pole-only zero-momentum bubble is exact:
+\begin{equation}
+\Gamma\Pi_{RA}^{\mathrm{pole}}(0,0)=2.
+\end{equation}
+
+\subsubsection{Purely imaginary linear terms}
+\label{app:ra-bubble-odd-linear}
+
+The appendix results used so far concern the symmetrized real part
+\eqref{eq:Delta-appendix-main}.  For the \((\theta,\phi)\) sector one also needs
+the odd analytic part of the full complex bubble.  Expanding the retarded-
+advanced bubble at small external arguments gives
+\begin{equation}\label{eq:Pi-linear-expansion-app}
+\Pi_{RA}(\Omega,k)-\Pi_{RA}(0,0)
+=
+\Omega\,\mathcal I_\Omega
++k\,\mathcal I_k
++O(\Omega^2,\Omega k,k^2),
+\end{equation}
+with
+\begin{equation}\label{eq:Iomega-Ik-def-app}
+\mathcal I_\Omega
+\equiv
+\int\frac{d\omega\,dq}{(2\pi)^2}\,
+\tr_{\rm orb}\!\left[(\partial_\omega G_R)(\omega,q)\,G_A(\omega,q)\right],
+\qquad
+\mathcal I_k
+\equiv
+\int\frac{d\omega\,dq}{(2\pi)^2}\,
+\tr_{\rm orb}\!\left[(\partial_q G_R)(\omega,q)\,G_A(\omega,q)\right].
+\end{equation}
+Because \(G_A(\omega,q)=G_R(\omega,q)^\dagger\) on the real axis,
+\begin{align}
+\Re\,\mathcal I_\Omega
+&=
+\frac{1}{2}
+\int\frac{d\omega\,dq}{(2\pi)^2}\,
+\partial_\omega\,
+\tr_{\rm orb}\!\left[G_R(\omega,q)G_A(\omega,q)\right]
+=0,
+\label{eq:Iomega-real-zero-app}
+\\
+\Re\,\mathcal I_k
+&=
+\frac{1}{2}
+\int\frac{d\omega\,dq}{(2\pi)^2}\,
+\partial_q\,
+\tr_{\rm orb}\!\left[G_R(\omega,q)G_A(\omega,q)\right]
+=0,
+\label{eq:Ik-real-zero-app}
+\end{align}
+where the \(\omega\) total derivative vanishes because \(G_R\sim \omega^{-1}\)
+at large frequency, while the \(q\) total derivative vanishes by periodicity.
+Therefore the linear terms are necessarily pure imaginary:
+\begin{equation}\label{eq:Pi-linear-imag-app}
+\Pi_{RA}(\Omega,k)-\Pi_{RA}(0,0)
+=
+i\,\beta_\Omega(\Gamma)\,\Omega
+-i\,\beta_k(\Gamma)\,k
++O(\Omega^2,\Omega k,k^2),
+\end{equation}
+with real coefficients \(\beta_\Omega(\Gamma)\) and \(\beta_k(\Gamma)\).
+
+The large-\(\Gamma\) scaling of the \(\Omega\) term can be obtained directly
+from the leading broadening-dominated Green's function.  Writing
+\(\omega=\Gamma x/2\), one has
+\[
+G_R(\omega,q)=\frac{2}{\Gamma(x+i)}\,\mathbf{1}+O(\Gamma^{-2}),
+\qquad
+G_A(\omega,q)=\frac{2}{\Gamma(x-i)}\,\mathbf{1}+O(\Gamma^{-2}).
+\]
+Keeping only this universal leading piece gives
+\begin{equation}\label{eq:PiOmega-leading-app}
+\Pi_{RA}(\Omega,0)
+=
+\frac{2}{\Gamma}
+\int\frac{dx}{\pi}\,
+\frac{1}{(x+2\Omega/\Gamma+i)(x-i)}
++O(\Gamma^{-2})
+=
+\frac{2}{\Gamma}\,
+\frac{1}{1-i\Omega/\Gamma}
++O(\Gamma^{-2}),
+\end{equation}
+hence
+\begin{equation}\label{eq:Omega-linear-leading-app}
+\Gamma\bigl[\Pi_{RA}(\Omega,0)-\Pi_{RA}(0,0)\bigr]
+=
+\frac{2i\,\Omega/\Gamma}{1-i\Omega/\Gamma}
++O(\Gamma^{-2})
+=
+\frac{2i\,\Omega}{\Gamma}
++O\!\left(\frac{\Omega^2}{\Gamma^2},\Gamma^{-2}\right).
+\end{equation}
+So the odd frequency term is analytic and scales as \(1/\Gamma\) in
+\(\Gamma\Pi_{RA}\).
+
+For the momentum term, the same leading broadening-only approximation gives no
+\(k\) dependence at all, because the leading Green's function is proportional to
+the identity and independent of \(q\).  The linear \(k\) term therefore first
+appears through the subleading \(q\)-dependent corrections to \(G_R\), so
+\begin{equation}\label{eq:k-linear-scaling-app}
+\Gamma\,\Im\!\left[\Pi_{RA}(0,k)-\Pi_{RA}(0,0)\right]
+=
+O\!\left(\frac{k}{\Gamma}\right).
+\end{equation}
+Thus both odd linear terms decay with \(\Gamma\), although the \(k\) term is
+absent in the leading broadening approximation.
+
+A direct recomputation of the full complex line cuts using
+\texttt{src/collect\_small\_argument\_direct\_lines.jl} on a moderate grid
+\[
+N_\omega=4096,\qquad N_q=1024,\qquad \omega_{\max}=320,\qquad \eta=10^{-4},
+\]
+confirms this scaling.  At \(\Omega=\pm 5\times10^{-4},\pm 10^{-3}\) and
+\(k=\pm 5\times10^{-4},\pm 10^{-3}\), one finds
+\begin{equation}\label{eq:odd-linear-numerics-app}
+\frac{\Gamma\,\Im[\Pi_{RA}(\Omega,0)-\Pi_{RA}(0,0)]}{\Omega}
+\approx
+\frac{2.379}{\Gamma},\quad
+\frac{2.377}{\Gamma},\quad
+\frac{2.374}{\Gamma},
+\end{equation}
+\begin{equation}\label{eq:k-linear-numerics-app}
+\frac{\Gamma\,\Im[\Pi_{RA}(0,k)-\Pi_{RA}(0,0)]}{k}
+\approx
+-\frac{0.313}{\Gamma},\quad
+-\frac{0.304}{\Gamma},\quad
+-\frac{0.299}{\Gamma},
+\end{equation}
+for \(\Gamma=20,40,80\), respectively.  The numerical prefactors are therefore
+small and decrease approximately as \(1/\Gamma\), in agreement with the
+large-\(\Gamma\) analytic estimate above.
+
+\subsubsection{Small-\texorpdfstring{$k$}{k} behavior}
+
+On the trusted small-\(k\) window, the line cut is already very close to a pure
+quadratic:
+\[
+\Re[\Gamma(\Pi_{RA}(0,k)-\Pi_{RA}(0,0))]
+\approx
+-A_k(\Gamma)\,k^2.
+\]
+The fitted coefficients are
+\[
+A_k(20)\approx 0.07322,\qquad
+A_k(40)\approx 0.06882,\qquad
+A_k(80)\approx 0.06730,
+\]
+with sub-\(10^{-3}\) relative RMS errors.  Figure~\ref{fig:Ak-app} shows the
+channel decomposition.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=\textwidth]{output/edge_Ak_model_comparison.pdf}
+    \caption{Decomposition of the small-\(k\) line in the \(\sigma_x\)-diagonal basis.  The pole-only \(++\) edge estimate fails badly, while the exact \(--\) channel nearly saturates the full direct result.}
+    \label{fig:Ak-app}
+\end{figure}
+
+Numerically, the corresponding quadratic coefficients are
+\begin{center}
+\begin{tabular}{crrrrr}
+\toprule
+\(\Gamma\) & full & pole-only edge & exact \(++\) & off-diagonal & exact \(--\) \\
+\midrule
+20 & 0.07322 & 1.03780 & 0.00126 & 0.00249 & 0.06947 \\
+40 & 0.06882 & 1.03729 & 0.00031 & 0.00064 & 0.06786 \\
+80 & 0.06730 & 1.03717 & 0.00008 & 0.00016 & 0.06706 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+To derive the coefficient analytically, define for any single component
+\begin{equation}
+\Pi_g(0,k)=
+\int\frac{d\omega\,dq}{(2\pi)^2}\,
+g(\omega,q)\,\overline{g(\omega,q-k)}.
+\end{equation}
+Then
+\begin{equation}\label{eq:Ak-gradient-app}
+\frac{\Pi_g(0,k)+\Pi_g(0,-k)}{2}-\Pi_g(0,0)
+=
+-\frac{k^2}{2}\int\frac{d\omega\,dq}{(2\pi)^2}\,
+|\partial_q g(\omega,q)|^2
++O(k^4),
+\end{equation}
+so
+\begin{equation}
+A_k^{(g)}(\Gamma)
+=
+\frac{\Gamma}{2}\int\frac{d\omega\,dq}{(2\pi)^2}
+|\partial_q g(\omega,q)|^2.
+\end{equation}
+For the dominant \(g=G_{--}\) channel, define
+\[
+Z(q)=\cos q\,(2-\cos q).
+\]
+Inside the edge interval \(\cos q>0\), the bulk self-energy has the pole
+\[
+\Sigma_R(\omega,q)=\frac{Z(q)}{\omega-\sin q}+\Sigma_{\rm reg}(\omega,q).
+\]
+Here ``edge interval'' means \(q\in(-\pi/2,\pi/2)\).  For \(\cos q<0\), the
+numerator of the exact self-energy vanishes at \(\omega=\sin q\), so the
+would-be \(1/x\) pole is absent and the leading resonance-strip contribution
+does not arise.  From the matrix in the \(\sigma_x\)-diagonal basis,
+\[
+G_R^{-1}(\omega,q)=
+\begin{pmatrix}
+A & -m\\
+-m & B
+\end{pmatrix},
+\qquad
+A=\omega-\sin q+i\Gamma/2,
+\qquad
+m=1-\cos q,
+\]
+with
+\[
+B=\omega+\sin q-\Sigma_R(\omega,q)+i\Gamma/2,
+\]
+we have
+\[
+G_{--}(\omega,q)=\frac{1}{B-m^2/A}.
+\]
+At large \(\Gamma\), \(m^2/A=O(\Gamma^{-1})\), so
+\[
+G_{--}(\omega,q)
+=
+\frac{1}{\omega+\sin q-\Sigma_R(\omega,q)+i\Gamma/2}
++O(\Gamma^{-2}),
+\]
+which is the starting point of the asymptotic analysis.
+
+The full derivative at fixed \(\omega\) is
+\[
+\partial_q G_{--}
+=
+\frac{\partial_q\Sigma_R(\omega,q)-\cos q}
+{\bigl(\omega+\sin q-\Sigma_R(\omega,q)+i\Gamma/2\bigr)^2}
++O(\Gamma^{-1}),
+\]
+and for the pole part of the self-energy,
+\[
+\partial_q\Sigma_R
+=
+\frac{Z'(q)}{\omega-\sin q}
++
+\frac{Z(q)\cos q}{(\omega-\sin q)^2}
++
+\partial_q\Sigma_{\rm reg}.
+\]
+On the resonance strip
+\[
+\omega-\sin q = O\!\left(\frac{Z(q)}{\Gamma}\right),
+\qquad
+\omega+\sin q-\Sigma_R(\omega,q)+i\Gamma/2 = O(\Gamma).
+\]
+The four numerator terms then scale as
+\[
+\cos q=O(1),\qquad
+\partial_q\Sigma_{\rm reg}=O(1),\qquad
+\frac{Z'(q)}{\omega-\sin q}=O(\Gamma),\qquad
+\frac{Z(q)\cos q}{(\omega-\sin q)^2}=O(\Gamma^2).
+\]
+After division by the \(O(\Gamma^2)\) denominator in \(\partial_q G_{--}\),
+only the last term survives at leading order.  This is why the explicit
+derivative of \(+\sin q\) and the regular part of the self-energy are
+subleading in the large-\(\Gamma\) asymptotics.
+
+Therefore the leading contribution to the gradient formula can be written
+directly in the original variables as
+\begin{equation}
+\label{eq:Ak-omegaq-app-detailed}
+A_k^{(--)}(\Gamma)
+\sim
+\frac{\Gamma}{2}
+\int_{-\pi/2}^{\pi/2}\frac{dq}{2\pi}
+\int\frac{d\omega}{2\pi}\;
+\frac{Z(q)^2\cos^2 q}
+{(\omega-\sin q)^4\,
+\left|\omega+\sin q-\frac{Z(q)}{\omega-\sin q}+i\Gamma/2\right|^4}.
+\end{equation}
+This integral is concentrated on the narrow strip
+\[
+\omega-\sin q = O\!\left(\frac{Z(q)}{\Gamma}\right),
+\]
+so it is convenient only at this stage to set
+\[
+\omega-\sin q=\frac{Z(q)}{\Gamma}u.
+\]
+Then
+\[
+\omega+\sin q-\frac{Z(q)}{\omega-\sin q}+i\Gamma/2
+=
+\Gamma\left(\frac{i}{2}-\frac{1}{u}\right)+O(1),
+\]
+and
+\[
+\partial_q G_{--}
+=
+\frac{4\cos q}{Z(q)(iu-2)^2}+O(\Gamma^{-1}).
+\]
+Substituting back into the gradient formula yields
+\begin{equation}\label{eq:Ak-final-app}
+A_k^{(--)}(\infty)
+=
+\frac{1}{8\pi}\int_{-\pi/2}^{\pi/2}\frac{\cos q}{2-\cos q}\,dq
+=
+\frac{1}{3\sqrt{3}}-\frac{1}{8}
+\approx 0.06745009.
+\end{equation}
+This agrees very well with the extracted exact-\(--\) coefficients above, so the
+full small-\(k\) coefficient inherits the same limit.
+
+\subsubsection{Small-\texorpdfstring{$\Omega$}{Omega} behavior}
+
+On the trusted small-\(\Omega\) window,
+\[
+\Re[\Gamma(\Pi_{RA}(\Omega,0)-\Pi_{RA}(0,0))]
+\approx
+-\widehat A_\Omega(\Gamma)\,\Omega^2.
+\]
+The fitted full coefficients are
+\[
+\widehat A_\Omega(20)\approx 0.38406,\qquad
+\widehat A_\Omega(40)\approx 0.35505,\qquad
+\widehat A_\Omega(80)\approx 0.33140.
+\]
+Again the exact \(--\) channel dominates, as shown in
+Fig.~\ref{fig:Aomega-app}.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=\textwidth]{output/edge_Aomega_model_comparison.pdf}
+    \caption{Decomposition of the small-\(\Omega\) line in the \(\sigma_x\)-diagonal basis.  The exact \(--\) contribution already saturates the full direct line for \(\Gamma=40\) and \(80\).}
+    \label{fig:Aomega-app}
+\end{figure}
+
+The fitted coefficients are
+\begin{center}
+\begin{tabular}{crrrrr}
+\toprule
+\(\Gamma\) & full & exact \(++\) & exact \(+-\) & exact \(-+\) & exact \(--\) \\
+\midrule
+20 & 0.38406 & -0.00173 & 0.00419 & 0.00419 & 0.37742 \\
+40 & 0.35505 & 0.00032 & 0.00066 & 0.00066 & 0.35341 \\
+80 & 0.33140 & 0.00014 & 0.00013 & 0.00013 & 0.33101 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+For a single component,
+\begin{equation}
+\frac{\Pi_g(\Omega,0)+\Pi_g(-\Omega,0)}{2}-\Pi_g(0,0)
+=
+-\frac{\Omega^2}{2}\int\frac{d\omega\,dq}{(2\pi)^2}\,
+|\partial_\omega g(\omega,q)|^2
++O(\Omega^4),
+\end{equation}
+so
+\begin{equation}
+A_\Omega^{(g)}(\Gamma)
+=
+\frac{\Gamma}{2}\int\frac{d\omega\,dq}{(2\pi)^2}
+|\partial_\omega g(\omega,q)|^2.
+\end{equation}
+For \(g=G_{--}\), the same large-\(\Gamma\) form
+\[
+G_{--}(\omega,q)
+=
+\frac{1}{\omega+\sin q-\Sigma_R(\omega,q)+i\Gamma/2}
++O(\Gamma^{-2})
+\]
+still applies.  On the resonance strip
+\[
+\omega-\sin q=\frac{Z(q)}{\Gamma}u,
+\]
+the pole part of the self-energy gives
+\[
+\partial_\omega\Sigma_R \sim -\frac{Z(q)}{(\omega-\sin q)^2},
+\qquad
+\partial_\omega G_{--}
+=
+\frac{4}{Z(q)(iu-2)^2}+O(\Gamma^{-1}).
+\]
+Substituting into the gradient formula gives the formal density
+\[
+A_\Omega^{(--)}(\Gamma)\sim \frac{1}{8\pi}\int_{-\pi/2}^{\pi/2}\frac{dq}{Z(q)},
+\]
+which diverges logarithmically at the touching points because \(Z(q)\to 0\) as
+\(q\to\pm\pi/2\).  Keeping \(\Omega\neq 0\) as the infrared regulator yields
+\begin{equation}\label{eq:Aomega-final-app}
+\Re[\Gamma(\Pi_{RA,--}(\Omega,0)-\Pi_{RA,--}(0,0))]_{\rm sing}
+=
+-\frac{\Omega^2}{8\pi}\log\!\frac{C_\Omega}{\Gamma|\Omega|}
++O(\Omega^2).
+\end{equation}
+This does not directly predict the finite-window fitted coefficient
+\(\widehat A_\Omega(\Gamma)\), but it does imply the drift
+\[
+\widehat A_{\Omega,--}(\Gamma)
+=
+B_\Omega-\frac{1}{8\pi}\log\Gamma+o(1).
+\]
+Numerically, the shifted combination
+\[
+\widehat A_{\Omega,--}(\Gamma)+\frac{1}{8\pi}\log\Gamma
+\]
+is nearly constant:
+\[
+0.49661,\qquad 0.50018,\qquad 0.50536
+\qquad
+(\Gamma=20,40,80),
+\]
+which is the appropriate benchmark of the logarithmic prediction.
+
+\subsubsection{Mixed \texorpdfstring{$\Omega k$}{Omega k} term}
+
+To isolate the bilinear term, define the odd-odd projection
+\begin{equation}\label{eq:Aomegak-oddodd-app}
+\Delta_{\mathrm{odd\text{-}odd}}(\Omega,k)
+=
+\frac{
+\Gamma\,\Re\Pi_{RA}(\Omega,k)
+-\Gamma\,\Re\Pi_{RA}(\Omega,-k)
+-\Gamma\,\Re\Pi_{RA}(-\Omega,k)
++\Gamma\,\Re\Pi_{RA}(-\Omega,-k)
+}{4}.
+\end{equation}
+For small arguments,
+\[
+\Delta_{\mathrm{odd\text{-}odd}}(\Omega,k)
+=
+A_{\Omega k}(\Gamma)\,\Omega k+o(\Omega k).
+\]
+The direct decomposition shows that this coefficient is also overwhelmingly the
+exact \(--\) channel.  At the small point
+\[
+\Omega=k=5\times10^{-4},
+\qquad
+N_\omega=16384,
+\qquad
+N_q=4096,
+\qquad
+\omega_{\max}=640,
+\]
+the odd-odd quotient gives
+\begin{center}
+\begin{tabular}{crrrr}
+\toprule
+\(\Gamma\) & full & exact \(++\) & off-diagonal & exact \(--\) \\
+\midrule
+20 & 0.19760 & 0.00011 & 0.00074 & 0.19675 \\
+40 & 0.19283 & 0.00001 & 0.00016 & 0.19266 \\
+80 & 0.19038 & 0.00000 & 0.00004 & 0.19034 \\
+\bottomrule
+\end{tabular}
+\end{center}
+At the still smaller point \(\Omega=k=2.5\times10^{-4}\), one finds
+\[
+A_{\Omega k}^{\rm full}(80)\approx 0.19130,
+\qquad
+A_{\Omega k}^{(--)}(80)\approx 0.19126.
+\]
+
+For a single component,
+\begin{equation}
+A_{\Omega k}^{(g)}(\Gamma)
+=
+-\Gamma\,\Re\!\int\frac{d\omega\,dq}{(2\pi)^2}\,
+(\partial_\omega g)(\partial_q \overline g).
+\end{equation}
+Applying this to \(g=G_{--}\), and using
+\[
+\partial_\omega G_{--}
+=
+-\frac{4}{Z(q)(iu-2)^2}+O(\Gamma^{-1}),
+\qquad
+\partial_q G_{--}
+=
+\frac{4\cos q}{Z(q)(iu-2)^2}+O(\Gamma^{-1}),
+\]
+on the same resonance strip, one obtains
+\begin{equation}\label{eq:Aomegak-final-app}
+A_{\Omega k}^{(--)}(\infty)
+=
+\frac{1}{4\pi}\int_{-\pi/2}^{\pi/2}\frac{dq}{2-\cos q}
+=
+\frac{1}{3\sqrt3}
+\approx 0.19245009.
+\end{equation}
+This matches the direct high-resolution values above very well.
+
+Collecting the results,
+\begin{equation}\label{eq:Delta-summary-app}
+\Delta(\Omega,k)
+=
+-A_k\,k^2
++A_{\Omega k}\,\Omega k
+-\frac{\Omega^2}{8\pi}\log\!\frac{C_\Omega}{\Gamma|\Omega|}
++\cdots,
+\end{equation}
+with
+\begin{equation}
+A_k\xrightarrow[\Gamma\to\infty]{}\frac{1}{3\sqrt3}-\frac18,
+\qquad
+A_{\Omega k}\xrightarrow[\Gamma\to\infty]{}\frac{1}{3\sqrt3},
+\qquad
+\Gamma\Pi_{RA}(0,0)\xrightarrow[\Gamma\to\infty]{}2.
+\end{equation}
+These are precisely the coefficients used in the main text.
+
+\subsubsection{Reduced \texorpdfstring{$G_{--}$}{G--} bubble and direct kernel expansion}
+
+Within the leading large-\(\Gamma\) resonance-strip approximation, the
+\(--\) Green's function can be replaced by the local model
+\begin{equation}
+\label{eq:Gmm-local-app}
+G_{--}^{\mathrm{loc}}(\omega,q)
+=
+\frac{\omega-\sin q}{i\Gamma(\omega-\sin q)/2-Z(q)},
+\qquad
+Z(q)=\cos q\,(2-\cos q),
+\end{equation}
+for \(q\in(-\pi/2,\pi/2)\).  This is not the full lattice Green's function; it
+is the leading edge-strip model that keeps only the pole part of the bulk
+self-energy.
+
+Whenever both \(q\) and \(q-k\) remain inside the edge interval, the local
+\(--\) bubble is
+\[
+\Pi_{RA,--}^{\mathrm{loc}}(\Omega,k)
+=
+\int_{-\pi/2}^{\pi/2}\frac{dq}{2\pi}
+\int\frac{d\omega}{2\pi}\,
+G_{--}^{\mathrm{loc}}(\omega+\Omega,q+k)\,
+\overline{G_{--}^{\mathrm{loc}}(\omega,q)}.
+\]
+The \(\omega\) integral can be done explicitly by residues.  Closing the
+contour in the upper half-plane picks the pole of the advanced factor and gives
+\begin{equation}
+\label{eq:Gmm-local-kernel-app}
+\Pi_{RA,--}^{\mathrm{loc}}(\Omega,k)
+=
+\int_{-\pi/2}^{\pi/2}\frac{dq}{2\pi}\;
+\mathcal I_\Gamma(q;\Omega,k),
+\end{equation}
+with
+\begin{equation}
+\label{eq:Gmm-local-kernel-density-app}
+\mathcal I_\Gamma(q;\Omega,k)
+=
+\frac{4 Z(q)}{\Gamma^2}\,
+\frac{i\bigl(\Omega+\sin q-\sin(q+k)\bigr)-2Z(q)/\Gamma}
+{Z(q)+Z(q+k)-i\Gamma\bigl(\Omega+\sin q-\sin(q+k)\bigr)/2}.
+\end{equation}
+This is a useful one-dimensional summary of the reduced \((--)\) bubble.
+
+To expand it directly, first take its real part.  One finds
+\begin{equation}
+\label{eq:Gmm-local-expansion-app}
+\Gamma\,\Re \mathcal I_\Gamma(q;\Omega,k)
+=
+-\frac{
+2 Z(q)\bigl(\Omega+\sin q-\sin(q+k)\bigr)^2
+\;+\;
+\dfrac{8}{\Gamma^2}\,Z(q)^2\bigl(Z(q)+Z(q+k)\bigr)}
+{\bigl(Z(q)+Z(q+k)\bigr)^2+\dfrac{\Gamma^2}{4}\bigl(\Omega+\sin q-\sin(q+k)\bigr)^2}.
+\end{equation}
+For small arguments,
+\[
+Z(q+k)=Z(q)+O(k),
+\qquad
+\Omega+\sin q-\sin(q+k)=\Omega-k\cos q+O(k^2),
+\]
+so
+\[
+\Gamma\,\Re \mathcal I_\Gamma(q;\Omega,k)
+=
+-\frac{4Z(q)}{\Gamma^2}
+-\frac{\bigl(\Omega-k\cos q\bigr)^2}{4Z(q)}
++ O\!\left(\frac{k}{\Gamma^2},\frac{\Omega^2+k^2}{\Gamma^2},
+|\Omega|^3,|\Omega|^2|k|,|\Omega|k^2,|k|^3\right).
+\]
+Therefore,
+\begin{align}
+\frac{\Gamma\,\Re \mathcal I_\Gamma(q;0,k)+
+\Gamma\,\Re \mathcal I_\Gamma(q;0,-k)}{2}
+-\Gamma\,\Re \mathcal I_\Gamma(q;0,0)
+&=
+-\frac{\cos^2 q}{4Z(q)}\,k^2
++O\!\left(k^4,\frac{k^2}{\Gamma^2}\right),
+\notag\\
+\frac{
+\Gamma\,\Re \mathcal I_\Gamma(q;\Omega,k)
+-\Gamma\,\Re \mathcal I_\Gamma(q;\Omega,-k)
+-\Gamma\,\Re \mathcal I_\Gamma(q;-\Omega,k)
++\Gamma\,\Re \mathcal I_\Gamma(q;-\Omega,-k)}{4}
+&=
+\frac{\cos q}{2Z(q)}\,\Omega k
++o(\Omega k),
+\notag\\
+\frac{\Gamma\,\Re \mathcal I_\Gamma(q;\Omega,0)+
+\Gamma\,\Re \mathcal I_\Gamma(q;-\Omega,0)}{2}
+-\Gamma\,\Re \mathcal I_\Gamma(q;0,0)
+&=
+-\frac{\Omega^2}{4Z(q)}
++O\!\left(\Omega^4,\frac{\Omega^2}{\Gamma^2}\right).
+\label{eq:Gmm-local-densities-app}
+\end{align}
+After integrating over \(q\) with measure \(dq/(2\pi)\), these direct kernel
+expansions reproduce exactly the coefficient densities used above:
+\[
+\frac{\cos^2 q}{8\pi Z(q)}
+=
+\frac{\cos q}{8\pi(2-\cos q)},
+\qquad
+\frac{\cos q}{4\pi Z(q)}
+=
+\frac{1}{4\pi(2-\cos q)},
+\qquad
+\frac{1}{8\pi Z(q)}.
+\]
+The first two integrate to \eqref{eq:Ak-final-app} and
+\eqref{eq:Aomegak-final-app}.  The third is not integrable at
+\(q=\pm\pi/2\), which is the direct kernel-level origin of the logarithm in
+\eqref{eq:Aomega-final-app}.
+
+\subsection{Large-\texorpdfstring{$\Gamma Q$}{Gamma Q} endpoint crossover}
+\label{app:large-gamma-endpoint}
+
+The coefficient extraction in Sec.~\ref{sec:generic-r-bubbles} is a
+small-\((\Omega,k)\) expansion at fixed \(\Gamma\).  The same reduced endpoint
+kernel has a different leading form when \(\Gamma\) is taken large while the
+external arguments are held fixed relative to \(1/\Gamma\).  This is the origin
+of the nonuniformity discussed in the main text.
+
+For generic \(0<r<2\), write
+\[
+q_r=\arccos(r-1),
+\qquad
+c_r=r-1,
+\qquad
+s_r=\sqrt{r(2-r)},
+\]
+\[
+Z_r(q)=1-(r-\cos q)^2,
+\qquad
+D(q)=\Omega-k\cos q.
+\]
+The reduced endpoint kernel is
+\begin{equation}
+\label{eq:largeGamma-endpoint-kernel-app}
+\Delta_{\rm end}(\Omega,k)
+=
+-\int_{-q_r}^{q_r}\frac{dq}{2\pi}\,
+\frac{Z_r(q)D(q)^2}
+{4Z_r(q)^2+\Gamma^2D(q)^2/4}.
+\end{equation}
+The Taylor/log regime follows by expanding this expression when
+\(\Gamma|D(q)|\ll Z_r(q)\) away from the endpoint, with the endpoint itself
+regulated by \(\Gamma|\Omega-c_rk|\).  In contrast, when
+\(\Gamma Q\gg1\) and \(D(q)\) is not parametrically small over a finite interval,
+the broadening term dominates the denominator over almost all \(q\).  Then
+\begin{equation}
+\frac{Z_r(q)D(q)^2}
+{4Z_r(q)^2+\Gamma^2D(q)^2/4}
+=
+\frac{4Z_r(q)}{\Gamma^2}
++\cdots,
+\end{equation}
+and the leading endpoint contribution saturates to
+\begin{equation}
+\label{eq:largeGamma-saturation-app}
+\Delta_{\rm end}(\Omega,k)
+=
+-\frac{2}{\pi\Gamma^2}I_Z(r)+\cdots,
+\qquad
+I_Z(r)\equiv\int_{-q_r}^{q_r}dq\,Z_r(q).
+\end{equation}
+The remaining integral is elementary:
+\begin{equation}
+\label{eq:Iz-generic-r-app}
+I_Z(r)
+=
+(1-2r^2)q_r+(3r+1)s_r.
+\end{equation}
+Thus the leading \(\Gamma Q\gg1\) endpoint term is independent of the direction
+from which \((\Omega,k)\) approaches the origin, as long as the approach is
+kept outside parametrically small crossover regions.  If \(D(q)\) has an
+interior zero, the zero only produces a subleading correction because the
+numerator also contains \(D(q)^2\).
+
+The tangent direction \(\Omega=c_rk\) is the most delicate case because the
+endpoint mismatch itself vanishes.  It is nevertheless described by the same
+large-\(\Gamma Q\) saturation.  Setting \(x(q)=\cos q-c_r\) and
+\(A(q)=r+1-\cos q\), so that \(Z_r(q)=x(q)A(q)\), one has
+\[
+D(q)=-kx(q)
+\qquad
+(\Omega=c_rk).
+\]
+Substituting this into \eqref{eq:largeGamma-endpoint-kernel-app} gives the
+exact reduced endpoint expression
+\begin{equation}
+\label{eq:tangent-crossover-app}
+\Delta_{\rm tan}(k;\Gamma)
+=
+-\frac{k^2}{2\pi}
+\int_{-q_r}^{q_r}dq\,
+\frac{x(q)A(q)}
+{4A(q)^2+\Gamma^2k^2/4}.
+\end{equation}
+For \(\Gamma|k|\ll1\), this reduces to the regular Taylor result,
+\begin{equation}
+\Delta_{\rm tan}(k;\Gamma)
+=
+\frac{q_r-J_r}{4\pi}k^2+\cdots,
+\end{equation}
+which is the value obtained from
+\(\Delta_{r,\rm reg}^{(--)}(c_rk,k)\).  For \(\Gamma|k|\gg1\), however,
+\eqref{eq:tangent-crossover-app} gives
+\begin{equation}
+\label{eq:tangent-largeGamma-app}
+\Delta_{\rm tan}(k;\Gamma)
+=
+-\frac{2}{\pi\Gamma^2}I_Z(r)
++O\!\left(\frac{1}{\Gamma^4k^2}\right).
+\end{equation}
+Therefore the limits do not commute:
+\[
+\lim_{\Gamma\to\infty}\lim_{Q\to0}
+\Delta_{\rm end}(\Omega,k)
+\neq
+\lim_{Q\to0}\lim_{\Gamma\to\infty}
+\Delta_{\rm end}(\Omega,k).
+\]
+The coefficient formulas in Sec.~\ref{sec:generic-r-bubbles} refer to the
+first ordering, or equivalently to the regime \(\Gamma Q\ll1\).  The
+saturation formula \eqref{eq:largeGamma-saturation-app} describes the opposite
+regime \(\Gamma Q\gg1\).
+
+We verified this crossover numerically using
+\texttt{src/verify\_generic\_r\_regular\_terms.jl}, which directly integrates
+\eqref{eq:largeGamma-endpoint-kernel-app}.  The table uses
+\(\Gamma=2000\) and \(k=0.02\).  The tangent column sets
+\(\Omega=c_rk\), while the off-tangent column uses \(\Omega=0.03\) and
+\(k=0.02\).  The ratios compare the numerical integral to
+\(\Delta_{\rm sat}=-2I_Z(r)/(\pi\Gamma^2)\).
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+\(r\) &
+\(\Delta_{\rm sat}\) &
+\(\Delta_{\rm tan}/\Delta_{\rm sat}\) &
+\(\Delta_{\rm off}/\Delta_{\rm sat}\) \\
+\midrule
+0.5 & \(-5.11247\times10^{-7}\) & 0.98900 & 0.98831 \\
+1.0 & \(-3.86620\times10^{-7}\) & 0.98395 & 0.98000 \\
+1.5 & \(-1.74744\times10^{-7}\) & 0.97461 & 0.98717 \\
+\bottomrule
+\end{tabular}
+\end{center}
+The percent-level deviations are the expected finite-\(\Gamma Q\) corrections;
+they decrease as \(\Gamma Q\) is increased.
+
+\subsubsection{Full retarded-advanced Green's function}
+
+The preceding computation isolates the nonuniform endpoint part of the
+\(--\) channel.  For the full retarded-advanced bubble, the remaining
+\(++\), \(+-\), \(-+\), and regular \(--\) pieces also contribute analytic
+large-\(\Gamma\) terms.  It is useful to keep the complex, unsymmetrized
+subtracted kernel
+\begin{equation}
+\label{eq:KRA-full-def-app}
+K_{RA}(\Omega,k)
+\equiv
+\Gamma\left[\Pi_{RA}(\Omega,k)-\Pi_{RA}(0,0)\right].
+\end{equation}
+The diagonal real kernel used in \eqref{eq:Delta-appendix-main} is
+\(\Re[K_{RA}(\Omega,k)+K_{RA}(-\Omega,-k)]/2\), while the odd
+\(\theta\)-\(\phi\) kernel is controlled by the odd imaginary part.  Therefore
+the linear terms in \(K_{RA}\) should be kept even though they drop out of
+\(\Delta\).
+
+Let
+\begin{equation}
+h_r(q)=\sin q\,\sigma_x+(r-\cos q)\,\sigma_z.
+\end{equation}
+The monitored self-energy is \(O(\Gamma^{-1})\) for
+\(\omega=\Gamma x/2\), so to the order needed here
+\begin{equation}
+G_R\!\left(\frac{\Gamma x}{2}+\Omega,q+k\right)
+=
+\frac{2}{\Gamma}\frac{\mathbf{1}}{x+i+2\Omega/\Gamma}
++
+\frac{4}{\Gamma^2}\frac{h_r(q+k)}{(x+i)^2}
++O(\Gamma^{-3}),
+\end{equation}
+and similarly for \(G_A\).  The scalar part gives exactly
+\begin{equation}
+\label{eq:full-scalar-largeGamma-app}
+K_0(\Omega)
+=
+\frac{2}{1-i\Omega/\Gamma}-2
+=
+\frac{2i\Omega}{\Gamma}
+-\frac{2\Omega^2}{\Gamma^2}
++O\!\left(\frac{\Omega^3}{\Gamma^3}\right).
+\end{equation}
+The \(h_r h_r\) term is the first part with momentum dependence.  At
+\(\Omega=0\),
+\begin{align}
+K_h(0,k)
+&=
+\frac{2}{\Gamma^2}
+\int_{-\pi}^{\pi}\frac{dq}{2\pi}\,
+\tr\!\left[
+h_r(q+k)h_r(q)-h_r(q)^2
+\right]
++O(\Gamma^{-3})
+\notag\\
+&=
+\frac{4(\cos k-1)}{\Gamma^2}
++O(\Gamma^{-3})
+=
+-\frac{2k^2}{\Gamma^2}
++O\!\left(\frac{k^4}{\Gamma^2},\Gamma^{-3}\right).
+\label{eq:full-hh-largeGamma-app}
+\end{align}
+The trace average has no term linear in \(k\).  Since the scalar denominator is
+independent of \(q\), this also implies that no \(\Omega k\) term is produced
+at the displayed order.  Possible odd-in-\(k\) pieces of the full numerical
+kernel are therefore subleading endpoint or self-energy corrections, not
+second-order coefficients of the broadening-dominated full Green's function.
+
+Combining the smooth full-Green contribution with the endpoint saturation
+\eqref{eq:largeGamma-saturation-app}, the full complex RA kernel in the regime
+\[
+Q\ll1,
+\qquad
+\Gamma Q\gg1,
+\]
+is
+\begin{equation}
+\label{eq:full-largeGamma-KRA-app}
+K_{RA}(\Omega,k)
+=
+\frac{2i\Omega}{\Gamma}
+-
+\frac{
+2I_Z(r)/\pi+2\Omega^2+2k^2
+}{\Gamma^2}
++R_{\rm ep}(\Omega,k;\Gamma)
++\cdots .
+\end{equation}
+Here \(R_{\rm ep}\) denotes the direction-dependent boundary-layer correction
+left after subtracting the endpoint saturation.  If \(D(q)=\Omega-k\cos q\) is
+bounded away from zero on the endpoint interval, then
+\(R_{\rm ep}=O(\Gamma^{-4}Q^{-2})\).  A simple interior zero of \(D\) gives a
+larger but still subleading \(O(\Gamma^{-3}Q^{-1})\) correction, and the
+tangent endpoint case gives the \(O(\Gamma^{-4}k^{-2})\) correction in
+\eqref{eq:tangent-largeGamma-app}.  These terms can be larger than the smooth
+\(Q^2/\Gamma^2\) correction for some paths to the origin, but they are smaller
+than the leading \(\Gamma^{-2}\) saturation whenever \(\Gamma Q\gg1\).
+
+Equation \eqref{eq:full-largeGamma-KRA-app} contains the requested polynomial
+terms through second order in the external arguments: a linear imaginary
+\(\Omega\) term, no leading linear \(k\) term, quadratic
+\(\Omega^2\) and \(k^2\) terms, and no \(\Omega k\) term at this order.
+
+We verified \eqref{eq:full-largeGamma-KRA-app} by direct quadrature of the full
+orbital trace in \eqref{eq:Pi-RA-def}, using
+\path{src/verify_full_large_gammaQ.jl}.  The script uses a composite frequency
+grid, dense near the edge band and coarse in the high-frequency tails.  The
+table compares the numerical value of \(K_{RA}\) to the displayed asymptote.
+\begin{center}
+\scriptsize
+\begin{tabular}{cccccccc}
+\toprule
+\(r\) & \(\Gamma\) & \(\Omega\) & \(k\) &
+\(\Re K_{\rm num}\) & \(\Re K_{\rm asy}\) &
+\(\Im K_{\rm num}\) & \(\Im K_{\rm asy}\) \\
+\midrule
+0.5 & 200 & 0.100 & 0     & \(-4.93431\times10^{-5}\) & \(-5.16247\times10^{-5}\) & \(1.00794\times10^{-3}\) & \(1.00000\times10^{-3}\) \\
+1.0 & 200 & 0.100 & 0     & \(-3.73623\times10^{-5}\) & \(-3.91620\times10^{-5}\) & \(1.00622\times10^{-3}\) & \(1.00000\times10^{-3}\) \\
+1.5 & 200 & 0.100 & 0     & \(-1.73166\times10^{-5}\) & \(-1.79744\times10^{-5}\) & \(1.00186\times10^{-3}\) & \(1.00000\times10^{-3}\) \\
+1.0 & 200 & 0     & 0.100 & \(-3.63248\times10^{-5}\) & \(-3.91620\times10^{-5}\) & \(-9.23737\times10^{-6}\) & 0 \\
+1.0 & 400 & 0     & 0.100 & \(-9.39823\times10^{-6}\) & \(-9.79049\times10^{-6}\) & \(-1.21641\times10^{-6}\) & 0 \\
+1.5 & 200 & 0.100 & 0.050 & \(-1.67254\times10^{-5}\) & \(-1.80994\times10^{-5}\) & \(1.00337\times10^{-3}\) & \(1.00000\times10^{-3}\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+The pure-\(\Omega\) rows confirm the leading imaginary term
+\(2\Omega/\Gamma\) and the real \(\Omega^2/\Gamma^2\) correction.  The pure
+\(k\) rows test the real \(k^2/\Gamma^2\) correction together with the endpoint
+saturation.  The small residual imaginary value in those rows is odd in \(k\)
+and falls by nearly a factor of eight when \(\Gamma\) is doubled from \(200\)
+to \(400\), consistent with a subleading remainder rather than a leading linear
+\(k\) term.  The mixed row checks that no \(\Omega k\) coefficient is needed at
+this order.
+
+\subsection{Full Keldysh-Keldysh bubble}
+\label{app:kk-bubble}
+
+For the full Green's function used in the numerics, the Keldysh component is not
+obtained from a pole-only ansatz.  Instead, the upper-triangular Dyson
+construction gives
+\begin{equation}\label{eq:GK-dyson-appendix}
+G_K(\omega,q)
+=
+\sgn(\omega)\Bigl[
+G_R(\omega,q)-G_A(\omega,q)+i\Gamma\,G_R(\omega,q)G_A(\omega,q)
+\Bigr].
+\end{equation}
+Using
+\begin{equation}
+G_R-G_A
+=
+G_R\Bigl[(\Sigma_R-\Sigma_A)P_- - i\Gamma\,\mathbf{1}\Bigr]G_A,
+\end{equation}
+this can be rewritten exactly as
+\begin{equation}\label{eq:GK-spectral-appendix}
+G_K(\omega,q)
+=
+\sgn(\omega)\,G_R(\omega,q)\,(\Sigma_R-\Sigma_A)(\omega,q)\,P_-\,G_A(\omega,q).
+\end{equation}
+This form makes the large-\(\Gamma\) behavior transparent.  Since
+\begin{equation}
+G_R(\omega,q)= -\frac{2i}{\Gamma}\,\mathbf{1}+O(\Gamma^{-2}),
+\qquad
+G_A(\omega,q)= \frac{2i}{\Gamma}\,\mathbf{1}+O(\Gamma^{-2}),
+\end{equation}
+we obtain
+\begin{equation}\label{eq:GK-largeGamma-appendix}
+G_K(\omega,q)
+=
+\frac{4}{\Gamma^2}\,\sgn(\omega)\,(\Sigma_R-\Sigma_A)(\omega,q)\,P_-
++O(\Gamma^{-3}).
+\end{equation}
+Therefore
+\begin{equation}\label{eq:PiKK-largeGamma-appendix}
+\Pi_{KK}(\Omega,k)
+=
+\frac{16}{\Gamma^4}
+\int\frac{d\omega\,dq}{(2\pi)^2}\,
+\sgn(\omega+\Omega)\sgn(\omega)\,
+\bigl[\Sigma_R-\Sigma_A\bigr](\omega+\Omega,q+k)\,
+\bigl[\Sigma_R-\Sigma_A\bigr](\omega,q)
++O(\Gamma^{-5}).
+\end{equation}
+
+At \(r=1\), the bulk continuum starts at \(|\omega|=1\), so
+\(\Sigma_R-\Sigma_A\) has no support near \(\omega=0\).  Hence the full KK
+bubble is smooth near \((\Omega,k)=(0,0)\).  The singular shell found in the
+strict pole-only, zero-temperature approximation is therefore absent once the
+continuum part of the self-energy is kept.
+
+This conclusion is confirmed numerically.  Using direct midpoint quadrature with
+\begin{equation}
+N_\omega=8192,\qquad N_q=512,\qquad \omega_{\max}=640,
+\end{equation}
+we find
+\begin{equation}
+\Re \Pi_{KK}(0,0)
+\approx
+-8.38\times 10^{-5},\quad
+-8.08\times 10^{-6},\quad
+-6.70\times 10^{-7}
+\qquad
+\text{for}\quad
+\Gamma=20,40,80.
+\end{equation}
+On the window \(0\le \Omega,k\le 0.04\), the largest resolved line-cut
+deviations are
+\begin{equation}
+\max |\Re[\Pi_{KK}(\Omega,0)-\Pi_{KK}(0,0)]|
+\approx
+5.23\times 10^{-6},\quad
+9.62\times 10^{-7},\quad
+1.21\times 10^{-7},
+\end{equation}
+\begin{equation}
+\max |\Re[\Pi_{KK}(0,k)-\Pi_{KK}(0,0)]|
+\approx
+1.24\times 10^{-7},\quad
+1.71\times 10^{-8},\quad
+2.21\times 10^{-9}.
+\end{equation}
+The line cuts and two-dimensional low-energy maps are shown in
+Figs.~\ref{fig:KK-full-linecuts} and \ref{fig:KK-full-heatmaps}.  They are
+smooth at the origin and decay rapidly with \(\Gamma\), consistent with
+\eqref{eq:PiKK-largeGamma-appendix}.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{output/full_KK_bubble_dyson_sign_linecuts.pdf}
+    \caption{Direct numerical line cuts of the full KK bubble for
+    \(\Gamma=20,40,80\).  Left:
+    \(\Pi_{KK}(\Omega,0)-\Pi_{KK}(0,0)\).  Right:
+    \(\Pi_{KK}(0,k)-\Pi_{KK}(0,0)\).}
+    \label{fig:KK-full-linecuts}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{output/full_KK_bubble_dyson_sign_heatmaps.pdf}
+    \caption{Direct numerical low-energy maps of
+    \(\Re[\Pi_{KK}(\Omega,k)-\Pi_{KK}(0,0)]\) for the full Green's function.
+    The origin is smooth, and no wedge-like singular support remains.}
+    \label{fig:KK-full-heatmaps}
+\end{figure}
+ 
+\begin{comment}
+\section{Edge monitoring}
+
+\subsection{Quadratic order}
+
+Now we specify to edge monitoring, where we consider only $\alpha=\ket{+}$, and $\{\mathbb{P}_\alpha\}=\{\mathbb{P}_+\}$. With that, the fluctuation of interest becomes a single scalar field $\delta \Sigma=\mathbb{P}_+ \tau^y F$. The fluctuation action takes the form 
+  \begin{equation}\label{}
+  iS = -\frac{1}{2} \Tr\left(\delta \Sigma\left(W_\Sigma-W_G^{-1}\right)[\delta \Sigma]\right)-\frac{1}{3} \Tr\left(\delta \Sigma G \delta \Sigma G \delta \Sigma G\right)+\dots
+\end{equation} For the ansatz of $\delta \Sigma$ specified above, the kernel $W_G$ has eigenvalue $\gamma^2=\Gamma$. The kernel $W_\Sigma$ is given by 
+\begin{equation}\label{}
+  \Tr(\delta \Sigma W_\Sigma[\delta \Sigma])=\int_{q,\Omega} F(-\Omega,-q) W_\Sigma(\Omega,q) F(\Omega,q)\,,
+\end{equation} where 
+\begin{equation}\label{}
+  W_\Sigma(\Omega,q)=\int\frac{\rd \omega}{2\pi}\int\frac{\rd k}{2\pi} G^+_R(\omega+\Omega,k+q)G^+_A(\omega,k)+G^+_A(\omega+\Omega,k+q)G^+_R(\omega,k)-G^+_K(\omega+\Omega,k+q)G^+_K(\omega,k)
+\end{equation} Here $G^+$ means projecting to the $\mathbb{P}_+$ basis, i.e. $G^+=\frac{1}{2}\Tr_\text{orbital}(\mathbb{P}_+ G \mathbb{P}_+)$.
+
+We numerically compute $W_\Sigma(\Omega,q)$ using the relation 
+\begin{equation}\label{}
+  G^{-1}=G_0^{-1}-\Sigma_M\,.
+\end{equation}
+\end{comment}
+
+
+
+
+\end{document} 

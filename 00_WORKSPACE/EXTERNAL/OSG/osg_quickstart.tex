@@ -1,0 +1,577 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{titlesec}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+}
+
+\definecolor{codebg}{rgb}{0.95,0.95,0.95}
+\definecolor{codeframe}{rgb}{0.7,0.7,0.7}
+\definecolor{kwcolor}{rgb}{0.0,0.3,0.7}
+\definecolor{commentcolor}{rgb}{0.4,0.4,0.4}
+\definecolor{stringcolor}{rgb}{0.1,0.5,0.1}
+
+\lstset{
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{kwcolor}\bfseries,
+    commentstyle=\color{commentcolor}\itshape,
+    stringstyle=\color{stringcolor},
+    breaklines=true,
+    breakatwhitespace=true,
+    showstringspaces=false,
+    tabsize=4,
+    xleftmargin=6pt,
+    xrightmargin=6pt,
+}
+
+\title{\textbf{OSG/OSPool Quickstart Guide}\\
+\large A100 GPU Job Submission for Fermionic Adaptive Circuit Simulations}
+\author{Asadullah Bhuiyan \\ \small\texttt{ab2398@cornell.edu}}
+\date{April 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Account Setup and Login}
+% ============================================================
+
+After your OSG account is approved (within one business day of request), you
+will be assigned to one of the UW access points. SSH in with:
+
+\begin{lstlisting}[language=bash]
+ssh asad.bhuiyan@ap40.uw.osg-htc.org
+# alternates: ap41.uw.osg-htc.org
+\end{lstlisting}
+
+If SSH fails, upload your public key via the OSG portal web interface first,
+then retry. To generate a key if you do not have one:
+
+\begin{lstlisting}[language=bash]
+ssh-keygen -t ed25519 -C "ab2398@cornell.edu"
+# public key lives at ~/.ssh/id_ed25519.pub -- paste into portal
+\end{lstlisting}
+
+Check which project you belong to (needed for resource accounting):
+\begin{lstlisting}[language=bash]
+grep $USER /etc/condor/UserToProjectMap.txt
+\end{lstlisting}
+
+% ============================================================
+\section{HTCondor Basics}
+% ============================================================
+
+OSPool uses HTCondor for job scheduling. The core workflow is:
+
+\begin{enumerate}[leftmargin=*]
+    \item Write an \textbf{executable} script (\texttt{run.sh} or \texttt{run.py}).
+    \item Write a \textbf{submit file} (\texttt{*.submit}) declaring resources and
+          pointing to the executable.
+    \item Run \texttt{condor\_submit job.submit}.
+    \item Monitor with \texttt{condor\_q} or \texttt{condor\_watch\_q}.
+\end{enumerate}
+
+\subsection{Minimal Submit File Structure}
+
+\begin{lstlisting}
+universe = container
+container_image = /cvmfs/singularity.opensciencegrid.org/...
+
+executable = run.sh
+arguments  = $(Process)
+
+log    = logs/job_$(Cluster)_$(Process).log
+error  = logs/job_$(Cluster)_$(Process).err
+output = logs/job_$(Cluster)_$(Process).out
+
+transfer_input_files = run.sh
+
++JobDurationCategory = "Medium"
+
+request_gpus   = 1
+request_cpus   = 4
+request_memory = 16 GB
+request_disk   = 10 GB
+
+queue 1
+\end{lstlisting}
+
+\textbf{Important:} \texttt{+JobDurationCategory} is \emph{required} on all
+OSPool access points. Missing it causes the job to be held immediately.
+
+\subsection{Job Duration Categories}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Category & Wall time \\
+\midrule
+\texttt{"Short"}  & $< 1$ hour \\
+\texttt{"Medium"} & $1$--$10$ hours \\
+\texttt{"Long"}   & $10$--$20$ hours \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Jobs exceeding 20 hours require HTCondor checkpointing or they will be evicted.
+
+\subsection{Monitoring Commands}
+
+\begin{lstlisting}[language=bash]
+condor_q                          # queue summary
+condor_watch_q                    # live update (Ctrl+C to exit)
+condor_q -hold                    # see why held jobs are held
+condor_q -format "%d\n" JobStatus | sort | uniq -c
+# status codes: 1=Idle, 2=Running, 4=Complete, 5=Held
+
+condor_rm <cluster-id>            # remove entire cluster
+condor_rm <cluster-id>.<process>  # remove single job
+condor_rm $USER                   # remove all your jobs
+\end{lstlisting}
+
+% ============================================================
+\section{Targeting A100 GPUs}
+% ============================================================
+
+A100 GPUs have CUDA Compute Capability 8.0. Use these HTCondor ClassAd
+attributes to target them:
+
+\begin{lstlisting}
+# Pin exactly to A100 (CC = 8.0):
+gpus_minimum_capability = 8.0
+gpus_maximum_capability = 8.0
+
+# Require at least 40 GB GPU RAM (A100-40GB variant):
+gpus_minimum_memory = 40000
+
+# For the 80 GB variant:
+gpus_minimum_memory = 80000
+\end{lstlisting}
+
+\subsection{GPU Availability vs.\ Specificity Trade-off}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Constraint & Hits & Notes \\
+\midrule
+\texttt{capability = 8.0..8.0} & A100 only & Most restrictive, may queue longer \\
+\texttt{capability $\geq$ 8.0} & A100 + A10 (22 GB) & Good throughput \\
+\texttt{capability $\geq$ 7.0} & + V100 (16 GB) & Widest pool \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+For \texttt{classA\_U1FGTN\_gpu} runs with \texttt{complex128} covariance
+matrices at $N_x{=}20$, $N_y{\leq}120$, the A100-40GB is recommended.
+The V100 (16 GB) may be insufficient for large $N_y$.
+
+% ============================================================
+\section{Container Setup for Your Environment}
+% ============================================================
+
+Your code requires packages not present in any pre-built OSPool container
+(\texttt{pfapack}, \texttt{polars}, \texttt{h5py}, \texttt{torch 2.8},
+\texttt{scipy}, etc.). You must build a custom container.
+
+\subsection{Pre-Built Containers (Reference)}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+CVMFS Path & Contents \\
+\midrule
+\texttt{.../htc/pytorch:2.3.1-cuda11.8} & PyTorch 2.3.1, CUDA 11.8 \\
+\texttt{.../htc/tensorflow:2.15}         & TensorFlow 2.15 \\
+\texttt{.../htc/rocky:9-cuda-12.6.0}     & Rocky 9 + CUDA 12.6 (bare) \\
+\texttt{.../htc/rocky:8-cuda-11.0.3}     & Rocky 8 + CUDA 11.0 (bare) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Full CVMFS prefix: \texttt{/cvmfs/singularity.opensciencegrid.org/}
+
+\subsection{Building a Custom Container (Local Machine)}
+
+Docker is \emph{not} available on OSPool access points. Build locally, push
+to Docker Hub, then pull on the access point.
+
+\textbf{Step 1 --- Dockerfile} (save as \texttt{Dockerfile}):
+
+\begin{lstlisting}[language=bash]
+FROM hub.opensciencegrid.org/htc/rocky:9-cuda-12.6.0
+
+# system deps
+RUN dnf install -y python3 python3-pip && dnf clean all
+
+# install your exact pinned environment
+RUN pip install --no-cache-dir \
+    torch==2.8.0 \
+    numpy \
+    scipy \
+    matplotlib \
+    h5py \
+    pfapack \
+    tqdm \
+    pandas \
+    polars \
+    seaborn \
+    fastparquet \
+    pyarrow \
+    opt-einsum \
+    joblib \
+    cloudpickle \
+    networkx \
+    sympy
+\end{lstlisting}
+
+\textbf{Step 2 --- Build and push:}
+
+\begin{lstlisting}[language=bash]
+docker build -t <dockerhub-username>/fermionic-env:latest .
+docker push <dockerhub-username>/fermionic-env:latest
+\end{lstlisting}
+
+\textbf{Step 3 --- Convert to \texttt{.sif} on the access point:}
+
+\begin{lstlisting}[language=bash]
+# On ap40 (or ap41):
+mkdir -p $HOME/tmp
+export TMPDIR=$HOME/tmp
+export APPTAINER_TMPDIR=$HOME/tmp
+export APPTAINER_CACHEDIR=$HOME/tmp
+
+apptainer build fermionic-env.sif \
+    docker://<dockerhub-username>/fermionic-env:latest
+\end{lstlisting}
+
+For images $>1$ GB, stage through OSDF rather than \texttt{transfer\_input\_files}.
+For quick iteration, reference the Docker Hub image directly in the submit file:
+
+\begin{lstlisting}
+container_image = docker://<dockerhub-username>/fermionic-env:latest
+\end{lstlisting}
+
+% ============================================================
+\section{Submitting 100 A100 Jobs}
+% ============================================================
+
+\subsection{Submit File: \texttt{batch\_gpu.submit}}
+
+\begin{lstlisting}
+universe = container
+container_image = fermionic-env.sif
+
+executable = run.sh
+arguments  = $(Process)
+
+transfer_input_files = run.sh, fermionic-env.sif
+
+log    = logs/job_$(Cluster)_$(Process).log
+error  = logs/job_$(Cluster)_$(Process).err
+output = logs/job_$(Cluster)_$(Process).out
+
++JobDurationCategory = "Medium"
+
+# Target A100 (Compute Capability 8.0, 40+ GB VRAM)
+gpus_minimum_capability = 8.0
+gpus_maximum_capability = 8.0
+gpus_minimum_memory     = 40000
+
+request_gpus   = 1
+request_cpus   = 4
+request_memory = 16 GB
+request_disk   = 10 GB
+
+queue 100
+\end{lstlisting}
+
+\textbf{Note:} If you use a CVMFS path or a \texttt{docker://} URI for
+\texttt{container\_image}, remove it from \texttt{transfer\_input\_files}.
+Only include local \texttt{.sif} files there.
+
+\subsection{Executable: \texttt{run.sh}}
+
+\texttt{\$(Process)} runs 0--99. Use it to shard your parameter sweep or
+sample range:
+
+\begin{lstlisting}[language=bash]
+#!/bin/bash
+JOB_ID=$1
+
+echo "Job ${JOB_ID} starting on $(hostname)"
+echo "GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader)"
+
+python3 run_job.py --job-id ${JOB_ID}
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash]
+chmod +x run.sh
+mkdir -p logs
+condor_submit batch_gpu.submit
+\end{lstlisting}
+
+\subsection{Important Batch Submission Notes}
+
+\begin{itemize}[leftmargin=*]
+    \item 100 jobs is well under the per-user 10,000-job queue limit.
+    \item Jobs start as slots open across the pool, not simultaneously.
+    \item Always use both \texttt{\$(Cluster)} and \texttt{\$(Process)} in
+          log/output paths or files will overwrite each other.
+    \item To cap how many run at once (e.g.\ to avoid storage contention):
+          \texttt{max\_idle = 20} in the submit file.
+\end{itemize}
+
+% ============================================================
+\section{Mapping Your Workflows to OSPool Jobs}
+% ============================================================
+
+\subsection{Pure-State Markov Snapshot Runs (\texttt{colab\_small\_system\_testing})}
+
+These notebooks call \texttt{classA\_U1FGTN\_gpu.run\_markov\_circuit()} for
+configurations like $N_x{=}16$, $N_y{\in}\{30,40\}$, \texttt{nshell}$\in\{1,2\}$,
+10 samples, 50 cycles. Each configuration is independent---natural to
+parallelize as separate HTCondor jobs.
+
+A parameter sweep over \texttt{(Ny, nshell)} might look like:
+
+\begin{lstlisting}[language=python]
+# generate_params.py  -- run locally to create params.json
+import json
+params = []
+for Ny in [30, 40]:
+    for nshell in [1, 2]:
+        params.append({"Ny": Ny, "nshell": nshell})
+with open("params.json", "w") as f:
+    json.dump(params, f)
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash]
+#!/bin/bash
+# run.sh -- receives job index as $1
+JOB_ID=$1
+python3 -c "
+import json, sys
+params = json.load(open('params.json'))
+p = params[int('${JOB_ID}')]
+print(p)
+# call classA_U1FGTN_gpu with p['Ny'], p['nshell'], etc.
+"
+\end{lstlisting}
+
+\subsection{Large $N{=}20$ Entanglement Scaling (\texttt{colab\_large\_entanglement\_scaling\_N20})}
+
+These notebooks run $N_x{=}20$, \texttt{samples=100}, $N_y\in\{30,40,50,60,80,100,120\}$,
+\texttt{nshell=1}, 50 cycles. Each $N_y$ is independent. With 100 samples per
+$N_y$, you can shard samples across jobs:
+
+\begin{lstlisting}
+# Submit 7 jobs, one per Ny value:
+queue 7
+
+# Or shard 100 samples as 10 jobs x 10 samples per Ny:
+queue 70   # 7 Ny values * 10 jobs each
+\end{lstlisting}
+
+The GPU driver uses \texttt{complex128} by default. For $N_x{=}20$, $N_y{=}120$,
+the covariance matrix is $4 N_x N_y / 2 = 4800$ dimensional---comfortably
+within A100-40GB RAM.
+
+\subsection{Strip Entanglement Post-Processing}
+
+\texttt{strip\_entropy\_contours\_gpu.py} and
+\texttt{strip\_entropy\_streaming\_gpu.py} perform observable post-processing
+on saved covariance snapshots. These are also GPU-bound (matrix diagonalization
+via CUDA) and can be submitted as separate jobs after the snapshot runs
+complete, using DAGMan for dependency tracking:
+
+\begin{lstlisting}
+# simple.dag
+JOB  SNAPSHOTS  snapshot_jobs.submit
+JOB  STRIPS     strip_jobs.submit
+PARENT SNAPSHOTS CHILD STRIPS
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash]
+condor_submit_dag simple.dag
+\end{lstlisting}
+
+% ============================================================
+\section{Data Transfer}
+% ============================================================
+
+\subsection{Small Files ($<$100 MB): \texttt{transfer\_input\_files}}
+
+\begin{lstlisting}
+transfer_input_files = run.sh, params.json, src/classA_U1FGTN_gpu.py
+transfer_output_files = output_$(Process).npz
+\end{lstlisting}
+
+\subsection{Larger Files: OSDF}
+
+For \texttt{.sif} containers, large \texttt{.npy}/\texttt{.npz} snapshots, or
+output data $>$100 MB, use the Open Science Data Federation (OSDF):
+
+\begin{lstlisting}[language=bash]
+# Upload to OSDF staging area from access point:
+osdf object put fermionic-env.sif \
+    /osdf/users/asad.bhuiyan/fermionic-env.sif
+
+# Reference in submit file:
+container_image = osdf:///osdf/users/asad.bhuiyan/fermionic-env.sif
+\end{lstlisting}
+
+\subsection{Transferring Results Back}
+
+\begin{lstlisting}[language=bash]
+# From your local machine or access point after jobs finish:
+scp asad.bhuiyan@ap40.uw.osg-htc.org:~/results/ ./results/ -r
+\end{lstlisting}
+
+% ============================================================
+\section{Common Pitfalls and Fixes}
+% ============================================================
+
+\begin{center}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}}
+\toprule
+Problem & Fix \\
+\midrule
+Job held immediately & Missing \texttt{+JobDurationCategory}. Add it. \\
+Job runs on CPU node & Missing \texttt{request\_gpus = 1}. \\
+No A100s available & Remove \texttt{gpus\_maximum\_capability} to open up A10s too, or lower \texttt{gpus\_minimum\_capability} to 7.0 for V100s. \\
+Output files overwrite each other & Use \texttt{\$(Cluster)\_\$(Process)} in all output paths. \\
+Job evicted after 20 hours & Implement HTCondor checkpointing or split into shorter segments. \\
+\texttt{.sif} too large to transfer & Stage via OSDF instead of \texttt{transfer\_input\_files}. \\
+\texttt{torch.cuda.is\_available()} returns \texttt{False} & The container must be GPU-capable and \texttt{request\_gpus $\geq$ 1}. \\
+\texttt{pfapack} not found & Must build custom container; not in any pre-built OSPool image. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Full Working Example}
+% ============================================================
+
+This is a self-contained example for running 100 A100 jobs with your
+\texttt{fermionic\_env} container.
+
+\textbf{\texttt{run.sh}:}
+\begin{lstlisting}[language=bash]
+#!/bin/bash
+set -euo pipefail
+JOB_ID=$1
+
+echo "=== Job ${JOB_ID} on $(hostname) ==="
+nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+
+python3 - <<'EOF'
+import sys, os, torch
+import numpy as np
+
+job_id = int(os.environ.get("JOB_ID", sys.argv[1] if len(sys.argv) > 1 else "0"))
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Job {job_id} | device: {device} | GPU: {torch.cuda.get_device_name(0)}")
+
+# --- your actual work here ---
+# e.g.: import classA_U1FGTN_gpu; run_markov_circuit(...)
+# save outputs to output_{job_id}.npz
+
+np.savez_compressed(f"output_{job_id}.npz", job_id=job_id)
+print(f"Job {job_id} done.")
+EOF
+\end{lstlisting}
+
+\textbf{\texttt{batch\_gpu.submit}:}
+\begin{lstlisting}
+universe = container
+container_image = docker://<dockerhub-username>/fermionic-env:latest
+
+executable = run.sh
+arguments  = $(Process)
+
+environment = "JOB_ID=$(Process)"
+
+transfer_input_files = run.sh
+
+log    = logs/job_$(Cluster)_$(Process).log
+error  = logs/job_$(Cluster)_$(Process).err
+output = logs/job_$(Cluster)_$(Process).out
+
++JobDurationCategory = "Medium"
+
+gpus_minimum_capability = 8.0
+gpus_maximum_capability = 8.0
+gpus_minimum_memory     = 40000
+
+request_gpus   = 1
+request_cpus   = 4
+request_memory = 16 GB
+request_disk   = 10 GB
+
+queue 100
+\end{lstlisting}
+
+\textbf{Submit:}
+\begin{lstlisting}[language=bash]
+chmod +x run.sh
+mkdir -p logs
+condor_submit batch_gpu.submit
+condor_watch_q
+\end{lstlisting}
+
+% ============================================================
+\section{Quick Reference Card}
+% ============================================================
+
+\begin{lstlisting}[language=bash]
+# Login
+ssh asad.bhuiyan@ap40.uw.osg-htc.org
+
+# Submit
+condor_submit job.submit
+
+# Monitor
+condor_q
+condor_watch_q
+condor_q -hold               # why are jobs held?
+
+# Cancel
+condor_rm <cluster-id>
+condor_rm $USER              # cancel everything
+
+# GPU ClassAds (A100)
+gpus_minimum_capability = 8.0
+gpus_maximum_capability = 8.0
+gpus_minimum_memory     = 40000
+
+# Required tag
++JobDurationCategory = "Medium"   # Short / Medium / Long
+
+# Pre-built GPU containers (CVMFS, no transfer needed)
+# /cvmfs/singularity.opensciencegrid.org/htc/pytorch:2.3.1-cuda11.8
+# /cvmfs/singularity.opensciencegrid.org/htc/rocky:9-cuda-12.6.0
+
+# Build custom .sif
+export TMPDIR=$HOME/tmp APPTAINER_TMPDIR=$HOME/tmp APPTAINER_CACHEDIR=$HOME/tmp
+apptainer build myenv.sif docker://<user>/<image>:tag
+
+# Help
+support@osg-htc.org
+\end{lstlisting}
+
+\end{document}

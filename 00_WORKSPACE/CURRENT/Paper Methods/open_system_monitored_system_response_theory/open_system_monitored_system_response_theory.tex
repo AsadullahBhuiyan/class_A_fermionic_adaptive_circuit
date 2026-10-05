@@ -1,0 +1,2070 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\hypersetup{
+  pdftitle={Open-System / Monitored-System Response Theory for a Class-A Adaptive Fermion Circuit},
+  pdfauthor={Class-A fermionic adaptive-circuit project}
+}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\cE}{\mathcal{E}}
+\newcommand{\cK}{\mathcal{K}}
+\newcommand{\cT}{\mathcal{T}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\cJ}{\mathcal{J}}
+\newcommand{\cO}{\mathcal{O}}
+\newcommand{\bxi}{\bm{\xi}}
+\newcommand{\br}{\bm r}
+\newcommand{\bk}{\bm k}
+\newcommand{\avg}[1]{\overline{#1}}
+\newcommand{\cond}{\mathrm{cond}}
+\newcommand{\Born}{\mathrm{B}}
+\newcommand{\fixed}{\mathrm{fix}}
+\newcommand{\ssub}{\mathrm{ss}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+
+\title{\texorpdfstring{Open-System / Monitored-System Response Theory\\
+for a Class-A Adaptive Fermion Circuit}%
+{Open-System / Monitored-System Response Theory for a Class-A Adaptive Fermion Circuit}}
+\author{Internal theory and methods note}
+\affiliation{Class-A fermionic adaptive-circuit project}
+\date{August 18, 2026}
+
+\begin{abstract}
+This note consolidates the response-theory discussion surrounding chirality at
+the monitored class-A domain wall.  Its first conclusion is economical: a local
+number-phase impulse followed by a wall-resolved density measurement is already
+sufficient to test directed propagation.  Fourier transformation along the
+wall and in monitored circuit time should reveal a low-energy ridge near
+$\omega=v_w k_y$, with the sign of $v_w$ reversing between the two oppositely
+oriented walls.  This diagnoses chirality but is not, by itself, a quantized
+Hall coefficient.  Its second conclusion is constructive and numerical.  For
+perfect correction the Born-mean covariance obeys an exact affine replacement
+map, so a time-dependent-flux pump can first be propagated deterministically,
+with no outcome Monte Carlo, score estimator, or Keldysh calculation.  Physical
+Born trajectories are then sampled only to measure record-to-record
+fluctuations.  Event transfers and regional controller weights define an
+inexpensive source-subtracted monitored-channel pump.  Because the reduced
+circuit exchanges charge with feedback ancillas, a conventional electrical
+Hall conductance requires one additional microscopic specification: compile
+each local controller measurement into charge-conserving Givens gates, a local
+system--ancilla reset, and the inverse gates, then count charge crossing a cut
+gate by gate.  This produces a direct no-postselection numerical experiment in
+the genuinely space--time-disordered circuit.  Generating-functional language
+is retained only as optional analytic context.  Finally, we record the current
+implementation status: the exact tangent formulas are already derived in the
+manuscript appendix, whereas the present H2 production runner still uses
+batched central $\pm\epsilon$ replays and should regard an analytic tangent as
+a future upgrade.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Purpose, scope, and bottom line}
+\label{sec:purpose}
+
+The original question was how a record-wise pattern can prove chirality, and
+what a density-response theory means in a monitored trajectory ensemble.  The
+discussion subsequently touched five related but inequivalent constructions:
+individual trajectory response, trajectory-averaged response, Born-ensemble
+response, density spectroscopy, and flux insertion.  Parts of the answer were
+already distributed through the current manuscript and campaign documents, but
+the complete logical chain was not available in one place.  This note is that
+source of truth.
+
+The minimum defensible program is:
+\begin{enumerate}
+  \item draw a physical stationary record $\bxi$ from the unperturbed Born
+  process;
+  \item apply an infinitesimal, charge-preserving local number-phase impulse at
+  a source on one wall;
+  \item propagate the exact covariance tangent along the same ordered record;
+  \item retain both the conditional density derivative and the chronological
+  derivative of the log Born probability;
+  \item construct the fixed-record trajectory average and the full Born
+  response separately;
+  \item window the two walls separately and Fourier transform in the coordinate
+  parallel to the wall and in physical circuit time;
+  \item require an oriented low-energy ridge, opposite ridge slopes on opposite
+  walls, wall localization, and a bulk or matched-trivial null result.
+\end{enumerate}
+
+No current operator is required for this claim.  A current-current response,
+counting field, or adiabatic pump becomes necessary only for a stronger
+transport or quantization statement.  The density susceptibility is a direct
+chirality diagnostic because a one-dimensional chiral density mode has a
+single signed dispersion at low energy.
+
+\subsection{Where the material already lives}
+
+Table~\ref{tab:repository-map} separates the compact manuscript statements,
+the campaign authority, the current executable implementation, and the present
+consolidation.  The older file
+\path{00_WORKSPACE/CURRENT/prxq_draft/numerical_campaign.tex} contains
+superseded H2/H3 sample counts and is not used as the operational authority.
+
+\begin{table}[b]
+\caption{Repository map.  Paths are relative to the current-workspace root.
+``Formal'' means an exact derivation;
+``executable'' means that the current production source actually evaluates the
+stated estimator.}
+\label{tab:repository-map}
+\small
+\begin{tabularx}{\textwidth}{@{}L{0.23\textwidth}Y L{0.16\textwidth}@{}}
+\toprule
+Location & Role & Status \\
+\midrule
+\path{prxq_draft/main.tex}, Sec.~``Chiral dynamics''
+& Compact paper narrative for modular drift, full Born density response, and
+fixed-record twist flow. & Formal, condensed \\
+\path{prxq_draft/appendices.tex}
+& Microscopic instrument, exact normalized tangent, chronological score,
+Born-response identity, fixed-record holonomy, and ensemble distinctions. &
+Formal \\
+\path{experiment_review/numerical_campaign_legacy_working.tex}
+& Audited H1--H3 run matrix, controls, acceptance gates, and legacy-evidence
+classification. & Campaign authority \\
+\path{final_production_ready_figure_scripts/_shared_src/fused_chirality_observables.py}
+& H2 live-parent implementation; central differences the density and log
+likelihood under common frozen records. & Executable, finite difference \\
+\path{final_production_ready_figure_scripts/prior_designs/03_chirality_replay/}
+& H3 representative frozen-record twist circle. & Executable \\
+\path{Paper Campaign Summaries/mean_channel_lindblad_cpu_v2_hybrid_response/}
+& Deterministic Gaussian mean-channel/Lindblad response with no Born records. &
+Completed special case \\
+This directory & Detailed synthesis, literature comparison, and exact-tangent
+upgrade specification. & Canonical methods note \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{The objects that must not be conflated}
+\label{sec:taxonomy}
+
+\subsection{Quantum instrument, record, and conditioned state}
+
+Let a complete ordered record be
+\begin{equation}
+  \bxi=(e_1,m_1;e_2,m_2;\ldots;e_D,m_D),
+\end{equation}
+where $e_t$ includes the selected controller orbital, target occupation,
+schedule information, and any exogenous random choice, while $m_t$ is the
+intrinsic Born outcome.  The unnormalized branch map is
+\begin{equation}
+  \cK_{\bxi,u}(\rho_0)
+  =K_{D,u}\cdots K_{1,u}\rho_0
+   K_{1,u}^{\dagger}\cdots K_{D,u}^{\dagger} .
+\end{equation}
+For perturbation parameter $u$, its trace and normalized state are
+\begin{align}
+  p_u(\bxi)&=\Tr\cK_{\bxi,u}(\rho_0),\label{eq:path-probability}\\
+  \rho_{u,\bxi}&=\frac{\cK_{\bxi,u}(\rho_0)}{p_u(\bxi)} .
+  \label{eq:conditional-state}
+\end{align}
+Equation~\eqref{eq:path-probability} is the many-body Born probability of the
+entire record.  A Born-sampled Monte Carlo ensemble already draws each $\bxi$
+with this probability.  Its trajectories therefore enter ordinary sample
+means with equal numerical weight; multiplying each sample by its stored
+$p(\bxi)$ a second time would double-weight the ensemble.
+
+Quantum-trajectory unravelings and their equivalence to master-equation
+averages for linear observables are standard
+\cite{DalibardCastinMolmer1992,CarischRomitoZilberberg2023}.  What matters here
+is that the adaptive record also changes the future normalized state and hence
+all later conditional probabilities.
+
+\subsection{Three meanings of response}
+
+Let
+\begin{equation}
+  O_{u,\bxi}=\Tr[O\rho_{u,\bxi}]
+\end{equation}
+be a trajectory observable.  There are three useful response objects.
+
+First, the \emph{trajectory-conditioned response} holds the complete record
+fixed:
+\begin{equation}
+  \chi_{\bxi}^{\cond}
+  =\left.\partial_u O_{u,\bxi}\right|_{u=0}.
+  \label{eq:conditional-response}
+\end{equation}
+This is a counterfactual branch derivative.  It asks what the normalized state
+would do under a weak perturbation if precisely the same sequence of outcomes
+were imposed.
+
+Second, the \emph{fixed-record trajectory average} is
+\begin{equation}
+  \chi^{\fixed}
+  =\E_{p_0}\!\left[\chi_{\bxi}^{\cond}\right].
+  \label{eq:fixed-average}
+\end{equation}
+It samples ordinary unperturbed records but does not differentiate their
+probabilities.  We use ``fixed-record'' or ``quenched conditional average'' to
+remove the ambiguity in the informal phrase ``trajectory-averaged response.''
+
+Third, the \emph{Born-ensemble response} differentiates the operational mean
+of the perturbed experiment:
+\begin{equation}
+  \chi^{\Born}
+  =\left.\partial_u\sum_{\bxi}p_u(\bxi)O_{u,\bxi}\right|_{u=0}.
+  \label{eq:born-response-definition}
+\end{equation}
+Defining the path score
+\begin{equation}
+  S_{\bxi}=\left.\partial_u\log p_u(\bxi)\right|_{u=0},
+  \label{eq:path-score}
+\end{equation}
+ordinary differentiation gives the exact identity
+\begin{equation}
+  \boxed{
+  \chi^{\Born}
+  =\E_{p_0}\!\left[
+       \chi_{\bxi}^{\cond}+O_{0,\bxi}S_{\bxi}
+    \right].}
+  \label{eq:score-identity}
+\end{equation}
+Normalization implies $\E_{p_0}[S_{\bxi}]=0$, so a variance-reduced form is
+\begin{equation}
+  \chi^{\Born}
+  =\chi^{\fixed}
+   +\operatorname{Cov}_{p_0}(O_{0,\bxi},S_{\bxi}).
+  \label{eq:score-covariance}
+\end{equation}
+The score is familiar from inference on continuously monitored systems
+\cite{GammelmarkMolmer2013}, and recent work derives response bounds for quantum
+trajectory observables \cite{Vu2025}.  Equations~\eqref{eq:score-identity} and
+\eqref{eq:score-covariance} are nevertheless elementary likelihood-ratio
+identities: their role here is to identify the physical estimator unambiguously.
+
+If separate experiments are run at $u=+\epsilon$ and $u=-\epsilon$, with
+records resampled from $p_{+\epsilon}$ and $p_{-\epsilon}$, the derivative of
+those two sample means estimates $\chi^{\Born}$.  By contrast, replaying the
+same baseline records at both signs estimates the two terms of
+Eq.~\eqref{eq:score-identity} and exposes their decomposition.
+
+\subsection{Born ensemble versus unconditional state}
+
+The unconditional state is
+\begin{equation}
+  \bar\rho_u=\sum_{\bxi}p_u(\bxi)\rho_{u,\bxi}.
+  \label{eq:unconditional-state}
+\end{equation}
+For any linear quantum observable,
+\begin{equation}
+  \sum_{\bxi}p_u(\bxi)O_{u,\bxi}
+  =\Tr(O\bar\rho_u).
+  \label{eq:linear-equivalence}
+\end{equation}
+Consequently the full Born density response can, in principle, be calculated
+from the differentiated unconditional instrument.  Equation~\eqref{eq:score-identity}
+is an unraveling of that same derivative.  It is valuable because it separates
+what happens to a typical conditional state from what happens because the
+record distribution is reweighted.
+
+This equivalence fails for nonlinear trajectory observables:
+\begin{equation}
+  \E[S(\rho_{\bxi})]\ne S(\bar\rho),\qquad
+  \E[|C_{ij,\bxi}|^2]\ne|\bar C_{ij}|^2.
+\end{equation}
+Entanglement, trajectory topology, purity, and a per-record fitted velocity must
+therefore be formed trajectory by trajectory before averaging.  An adaptive
+schedule with finite classical memory may also require an enlarged
+classical--quantum channel rather than a system-only one; recent feedback full
+counting statistics makes this construction explicit
+\cite{RosalFiusaPottsLandi2026}.
+
+\begin{table}[t]
+\caption{Response taxonomy used throughout this note.}
+\label{tab:response-taxonomy}
+\small
+\begin{tabularx}{\textwidth}{@{}L{0.20\textwidth}L{0.28\textwidth}Y@{}}
+\toprule
+Object & Formula & Operational statement \\
+\midrule
+Conditional response & $\chi_{\bxi}^{\cond}=\partial_uO_{u,\bxi}|_0$ &
+Same complete record is imposed before and after the perturbation. \\
+Fixed-record average & $\chi^{\fixed}=\E_{p_0}[\chi_{\bxi}^{\cond}]$ &
+Average conditional sensitivity of ordinary unperturbed trajectories. \\
+Score contribution & $\E_{p_0}[(O-\bar O)S]$ &
+Correction from the perturbation-induced redistribution of records. \\
+Born response & $\partial_u\E_{p_u}[O_u]|_0$ &
+Repeated perturbed experiment with outcomes sampled from their perturbed Born
+probabilities. \\
+Unconditional response & $\partial_u\Tr(O\bar\rho_u)|_0$ &
+Identical to the Born response for a linear $O$, provided the complete
+instrument and classical feedback state are included. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Exact Gaussian trajectory response}
+\label{sec:exact-tangent}
+
+\subsection{Covariance and sign convention}
+
+For the canonical engine we use
+\begin{equation}
+  C_{ij}=\langle c_i^\dagger c_j\rangle,
+  \qquad G=2C-\Id,
+  \label{eq:covariance-convention}
+\end{equation}
+so $G$ is Hermitian with spectrum in $[-1,1]$.  There is a persistent transpose
+convention hazard in the wider repository: the alternative one-particle density
+matrix $\widetilde C_{ij}=\langle c_j^\dagger c_i\rangle=C_{ji}$ transforms by
+the adjoint single-particle convention.  All derivative signs must therefore be
+checked against the implemented matrix transformation, rather than inferred
+from a shorthand phrase such as $C=\langle c^\dagger c\rangle$.
+
+The current H2 code implements the source as
+\begin{equation}
+  G_\epsilon=D_\epsilon G D_\epsilon^\dagger,
+  \qquad D_\epsilon=e^{-\ii\epsilon P_0},
+  \label{eq:implemented-kick}
+\end{equation}
+and hence
+\begin{equation}
+  X_0\equiv\left.\partial_\epsilon G_\epsilon\right|_0
+  =-\ii[P_0,G].
+  \label{eq:initial-tangent}
+\end{equation}
+Under Eq.~\eqref{eq:covariance-convention}, the many-body unitary producing
+Eq.~\eqref{eq:implemented-kick} is $U_\epsilon=e^{+\ii\epsilon n_0}$.
+Writing instead the conventional pulse $e^{-\ii\epsilon n_0}$ replaces
+$\epsilon\mapsto-\epsilon$ and flips the overall response sign.  It does not
+change the signed slope of the $(k,\omega)$ ridge or the reversal between wall
+orientations.  Equation~\eqref{eq:implemented-kick} is the authoritative
+convention for comparisons with the executable H2 product.
+
+The impulse preserves total particle number and initially changes only
+coherences.  Since all local number projectors commute, the instantaneous
+density response vanishes at the source time; the subsequent monitored
+dynamics converts the coherence tangent into a signed density pattern.  This
+is fundamentally different from resetting a cell from empty to occupied,
+which injects a finite charge and is not a linear-response estimator.
+
+\subsection{One normalized measurement-and-reset event}
+
+Let $P=|\chi\rangle\langle\chi|$ be a normalized measured orbital,
+$Q=\Id-P$, $m\in\{0,1\}$ its outcome, and
+$\eta_m=2m-1$.  Let $s\in\{0,1\}$ denote the controller's target occupation.
+The Born probability is
+\begin{equation}
+  p_m(G)=\frac{1+\eta_m g}{2},
+  \qquad g=\Tr(PG)=\langle\chi|G|\chi\rangle.
+  \label{eq:binary-born}
+\end{equation}
+For a nonzero-probability branch, projective measurement followed by perfect
+reset acts as
+\begin{equation}
+  \boxed{
+  \Phi_{m|s}(G)
+  =Q(\Id+\eta_m GP)^{-1}GQ+\eta_sP.}
+  \label{eq:conditional-map}
+\end{equation}
+The apparent inverse is only a rank-one resolvent.  Define
+\begin{equation}
+  L_m(G)=Q(\Id+\eta_m GP)^{-1}
+  =Q-\frac{\eta_m QGP}{1+\eta_m g}.
+  \label{eq:left-jacobian}
+\end{equation}
+At fixed $P,m,s$, exact differentiation gives the congruence
+\begin{equation}
+  \boxed{
+  D_G\Phi_{m|s}\big|_G[X]
+  =L_m(G)X L_m(G)^\dagger.}
+  \label{eq:event-tangent}
+\end{equation}
+The target $s$ does not enter the derivative because the reset covariance is a
+constant.  Exact projectors make $L_m$ singular: $L_mP=0$.  This rank loss is a
+physical part of the normalized response and must not be replaced by a
+pseudoinverse.
+
+The current manuscript appendix uses the equivalent right-factor convention
+$J_m=L_m^\dagger$ and writes $D\Phi[X]=J_m^\dagger XJ_m$.  We use the left
+factor because chronological propagation then has its familiar order.
+
+\subsection{Chronological tangent and general parameter dependence}
+
+Along a fixed record, let $L_e$ be Eq.~\eqref{eq:left-jacobian} evaluated on
+the state immediately before event $e$.  If the perturbation is only the
+initial impulse and does not change later projectors, then
+\begin{align}
+  X_{e+1}&=L_eX_eL_e^\dagger,\label{eq:tangent-recursion}\\
+  X_D&=A_{D:0}X_0A_{D:0}^\dagger,
+  \qquad A_{D:0}=L_{D-1}\cdots L_1L_0.
+  \label{eq:tangent-product}
+\end{align}
+This is an exact derivative of the normalized conditioned trajectory, not a
+derivative of an unnormalized Kraus product and not a finite difference.
+
+For a parameter that also changes the measured orbital, write
+$P=P(u)$, $Q=\Id-P$, $A=\Id+\eta_m GP$, and $X=\partial_uG$.  Direct
+Fr\'echet differentiation of Eq.~\eqref{eq:conditional-map} gives
+\begin{multline}
+  \partial_u\Phi_{m|s}
+  =\dot Q A^{-1}GQ
+   +Q\left[-A^{-1}\dot A A^{-1}G+A^{-1}X\right]Q\\
+   +QA^{-1}G\dot Q+\eta_s\dot P,
+  \qquad
+  \dot A=\eta_m(XP+G\dot P).
+  \label{eq:general-frechet}
+\end{multline}
+Equation~\eqref{eq:general-frechet} is the appropriate starting point for a
+gauge-field or twist tangent, where the controller orbitals themselves carry
+Peierls phases.  H2 needs only the simpler homogeneous recursion
+Eq.~\eqref{eq:tangent-recursion}.
+
+\subsection{Exact chronological score}
+
+The record probability factorizes conditionally:
+\begin{equation}
+  p_u(\bxi)=\prod_e p_{m_e}\!\left(G_e(u),P_e(u)\right).
+  \label{eq:record-product}
+\end{equation}
+The score is therefore accumulated event by event,
+\begin{align}
+  S_{e+1}&=S_e+s_e,\qquad S_0=0,\label{eq:score-recursion}\\
+  s_e&=\frac{\eta_{m_e}\dot g_e}{1+\eta_{m_e}g_e},
+  \label{eq:binary-score}\\
+  \dot g_e&=\Tr(P_eX_e)+\Tr(\dot P_eG_e).
+  \label{eq:g-derivative}
+\end{align}
+For the H2 initial density impulse, $\dot P_e=0$ after the kick.  The tangent
+$X_e$ contains the complete effect of all earlier nonlinear normalized
+updates.  The score cannot be obtained by differentiating every probability
+at the initial covariance.
+
+For a probe cell $r$ with two-orbital projector $P_r$, the density and its
+conditional derivative are
+\begin{align}
+  n_{r,\bxi}(t)&=\Tr(P_rC_{\bxi}(t)),\label{eq:cell-density}\\
+  \chi_{r,\bxi}^{\cond}(t;t_0)
+  &=\frac12\Tr[P_rX_{\bxi}(t;t_0)].
+  \label{eq:density-tangent}
+\end{align}
+The full wall-density response is then
+\begin{multline}
+  \chi_{r}^{\Born}(t;t_0)
+  =\E_{p_0}\!\left[\frac12\Tr(P_rX_{\bxi}(t;t_0))\right]\\
+  +\E_{p_0}\!\left[
+  \bigl(n_{r,\bxi}(t)-\bar n_r(t)\bigr)S_{\bxi}(t;t_0)
+  \right].
+  \label{eq:full-density-response}
+\end{multline}
+Equation~\eqref{eq:full-density-response} is the central H2 formula.  Its first
+line is the fixed-record trajectory average; its second is the Born-score
+correction.
+
+\subsection{Finite differences as validation, not definition}
+
+The current production runner forms
+\begin{align}
+  \partial_\epsilon n_{\bxi}
+  &\simeq\frac{n_{+\epsilon,\bxi}-n_{-\epsilon,\bxi}}{2\epsilon},\nonumber\\
+  S_{\bxi}
+  &\simeq\frac{\log p_{+\epsilon}(\bxi)-
+                  \log p_{-\epsilon}(\bxi)}{2\epsilon},
+  \label{eq:current-finite-difference}
+\end{align}
+using common frozen schedules and outcomes.  It uses $\epsilon=10^{-3}$ and
+retains $5\times10^{-4}$ and $2\times10^{-3}$ as validation scales.  This is a
+legitimate central-difference estimator and its GPU batching is efficient, but
+it is not the analytic tangent of Eqs.~\eqref{eq:tangent-recursion} and
+\eqref{eq:score-recursion}.  The exact tangent removes step-size bias,
+cancellation error, and the need for two full replays per source.  The central
+difference should remain as a small-system parity test over an $\epsilon$
+convergence window.
+
+\section{Density response as a chirality diagnostic}
+\label{sec:density-chirality}
+
+\subsection{Response, correlation, and fluctuation--dissipation}
+
+Three density objects are often called a ``density correlator'' in informal
+discussion:
+\begin{align}
+  C_{nn}(r,t)&=\langle n(r,t)n(0,0)\rangle_c,
+  &&\text{spontaneous correlation},\nonumber\\
+  \chi^R_{nn}(r,t)&=-\ii\theta(t)
+  \langle[n(r,t),n(0,0)]\rangle,
+  &&\text{closed equilibrium response},\nonumber\\
+  \chi_{nn}(r,t)&=\left.\frac{\delta\langle n(r,t)\rangle_V}
+  {\delta V(0,0)}\right|_{V=0},
+  &&\text{operational susceptibility}.
+  \label{eq:three-density-objects}
+\end{align}
+In a closed equilibrium system, Kubo theory relates the last two objects
+\cite{Kubo1957}.  A monitored nonequilibrium trajectory generally does not obey
+the equilibrium fluctuation--dissipation theorem.  The dissipator, normalized
+backaction, and record probabilities all respond.  Open-system NESS response
+theory explicitly warns that the answer need not reduce to a simple
+system-only two-point correlator
+\cite{KonopikLutz2019,LevyRabaniLimmer2021}.  For this project the safest
+definition is therefore the operational derivative in the last line of
+Eq.~\eqref{eq:three-density-objects}, evaluated exactly by
+Eq.~\eqref{eq:full-density-response}.
+
+Static density correlations can demonstrate a critical wall and determine a
+scaling exponent, but they do not determine the propagation direction.  The
+retarded density response contains that missing arrow of motion.
+
+\subsection{Real-space pattern}
+
+Let $x_w$ denote one domain wall and let $f_w(x)$ be a narrow, preregistered
+transverse window.  For a source at $(x_w,y_0)$ define
+\begin{equation}
+  \chi_w(r,t)
+  =\sum_x f_w(x)\,
+  \chi^{\Born}_{(x,y_0+r),(x_w,y_0)}(t;t_0),
+  \qquad r=y-y_0\pmod{N_y}.
+  \label{eq:wall-window-response}
+\end{equation}
+A chiral response should satisfy the following conjunction:
+\begin{enumerate}
+  \item the response remains concentrated in $x$ near the chosen wall;
+  \item its signed or squared weight moves predominantly in one $y$ direction;
+  \item the propagation direction reverses on the oppositely oriented wall;
+  \item a source in the bulk lacks the isolated directional wall feature;
+  \item a matched trivial or wall-off circuit lacks the same low-energy ridge;
+  \item the sign is stable against the source, late time origin, wall-window
+  width, and fit window.
+\end{enumerate}
+The density-phase impulse has zero net injected charge, so $\sum_r\chi_w(r,t)$
+can be small or vanish and the response can be a signed dipole.  A centroid
+must therefore use a declared nonnegative weight such as $|\chi|$ or
+$|\chi|^2$, while the signed response itself is retained for physics.  A useful
+real-space directional statistic is
+\begin{equation}
+  \mathcal C_w(t)=
+  \frac{W_{w,+}(t)-W_{w,-}(t)}{W_{w,+}(t)+W_{w,-}(t)},
+  \label{eq:real-space-chirality}
+\end{equation}
+where $W_{w,\pm}$ are response weights on the two directed arcs before
+wraparound.
+
+\subsection{Why a Fourier ridge is chiral}
+
+For a single low-energy chiral density branch, chiral Luttinger theory gives,
+up to normalization and Fourier conventions,
+\begin{equation}
+  \chi^R_{nn}(k,\omega)
+  \propto\frac{k}{\omega-vk+\ii0^+}.
+  \label{eq:chiral-pole}
+\end{equation}
+This is the equilibrium reference prediction
+\cite{Wen1990}.  Density-coupled spectroscopy and real-time charge propagation
+have been used to expose chiral edge dispersions in closed lattice models
+\cite{GoldmanBeugnonGerbier2012,DongGrushinMotrukPollmann2018}.
+
+Monitoring replaces an infinitely sharp pole by a generally broadened mode,
+\begin{equation}
+  \chi_w(k,\omega)
+  \sim\frac{Z_w(k)}{\omega-v_wk+\ii\Gamma_w(k)}
+       +\chi_w^{\mathrm{reg}}(k,\omega),
+  \label{eq:broadened-pole}
+\end{equation}
+or, for a stroboscopic channel eigenmode,
+\begin{equation}
+  \lambda_w(k)=e^{-\gamma_w(k)+\ii\omega_w(k)}.
+  \label{eq:channel-dispersion}
+\end{equation}
+The peak location measures $\omega_w(k)$, while its linewidth reflects
+$\gamma_w(k)$.  At low momentum one expects
+\begin{equation}
+  \omega_w(k)\simeq v_w k,
+  \qquad v_{w_1}v_{w_2}<0.
+  \label{eq:opposite-velocities}
+\end{equation}
+The density operator probes particle--hole density excitations, not the bare
+single-particle edge band.  For a nearly linear edge they share the same
+characteristic velocity; band curvature, monitoring, and bulk leakage broaden
+the response into a continuum.
+
+The lattice edge spectrum remains periodic over the Brillouin zone.  Its
+topological feature is spectral flow connecting bulk continua, not literal
+nonperiodicity of an edge energy function.  Equation~\eqref{eq:chiral-pole} is
+a low-energy description near the crossing.
+
+\subsection{Discrete Fourier protocol and symmetry}
+
+After translating every source to $r=0$ within its parent trajectory, use
+\begin{equation}
+  \chi_w(k_j,\omega_\ell)
+  =\sum_{t=0}^{T_R}\sum_{r=0}^{N_y-1}
+  w_t\,e^{\ii\omega_\ell t-\ii k_jr}\chi_w(r,t),
+  \label{eq:discrete-fourier}
+\end{equation}
+with $k_j=2\pi j/N_y$ and a declared causal time taper $w_t$.  Ridge fitting
+uses the native frequency resolution; zero padding is a visualization choice.
+Because circuit time is discrete, quasifrequency is periodic modulo $2\pi$ per
+cycle, so the fit must remain inside a low-frequency window away from aliasing
+and short-time lattice structure.
+
+For a real time-domain response,
+\begin{equation}
+  \chi_w(-k,-\omega)=\chi_w(k,\omega)^*.
+  \label{eq:reality-symmetry}
+\end{equation}
+The unavoidable $(-k,-\omega)$ image is not a counterpropagating partner.  One
+may restrict to $\omega>0$ and compare the two momentum signs, or use a wedge
+asymmetry
+\begin{equation}
+  \mathcal A_w=
+  \frac{\sum_{(k,\omega)\in\mathcal W_+}W_w(k,\omega)
+       -\sum_{(k,\omega)\in\mathcal W_-}W_w(k,\omega)}
+       {\sum_{(k,\omega)\in\mathcal W_+}W_w(k,\omega)
+       +\sum_{(k,\omega)\in\mathcal W_-}W_w(k,\omega)},
+  \label{eq:wedge-asymmetry}
+\end{equation}
+where $\mathcal W_\pm$ are matched low-energy regions with
+$\operatorname{sgn}(\omega k)=\pm1$.  $W_w$ may be $|\chi_w|^2$ for robust
+ridge localization, but it must not be called the retarded spectral function.
+When phase information and conventions are controlled,
+$-\operatorname{Im}\chi^R$ carries the sharper signed spectral meaning.
+
+The two physical walls must never be summed before this analysis: their
+opposite velocities can cancel.  Source positions and time origins are
+correlated variance-reduction samples inside a trajectory.  They do not
+increase the number of statistically independent trajectories.
+
+\section{What record-wise evidence can and cannot prove}
+\label{sec:recordwise}
+
+\subsection{Distribution of conditioned responses}
+
+For every parent trajectory, H2 can report a record-conditioned real-space
+map, Fourier ridge velocity $v_{w,\bxi}$, and asymmetry
+$\mathcal A_{w,\bxi}$.  The scientifically meaningful questions are then:
+\begin{itemize}
+  \item Does the distribution concentrate at a nonzero sign?
+  \item Does the sign reverse between the paired wall orientations?
+  \item How large is the score correction relative to the fixed-record mean?
+  \item Does the wrong-chirality tail shrink with $N_y$?
+  \item Are outliers associated with small Born denominators, leakage, or
+  nonstationarity?
+\end{itemize}
+
+Finite Monte Carlo data cannot prove that \emph{every} possible record is
+chiral.  A complete record space is exponentially large and can include rare
+branches with anomalous response.  The defensible trajectory-level statement
+is an almost-sure or high-probability claim supported by the distribution,
+quantiles, sign fraction, finite-size evolution, and preregistered failure
+counts.  The Born mean can be chiral even if some conditioned records are not;
+conversely, a chiral fixed-record mean can be altered or canceled by the score
+term.
+
+\subsection{H3 frozen-record flux flow is a different record-wise question}
+
+H3 freezes one complete physical record sampled at zero twist and replays that
+same record for $0\le\phi\le2\pi$.  Conceptually one seeks a wall-resolved
+entanglement flow.  The current executable restricts $C=(G+\Id)/2$ to one
+half-torus containing all $x$ and $0\le y<N_y/2$, selects the eigenmodes nearest
+occupation $1/2$, and assigns them to nominal wall windows by their $x$ weight.
+Let $\nu_a(\phi)$ be the resulting overlap-tracked covariance eigenvalues and
+define the entanglement levels
+\begin{equation}
+  \varepsilon_a(\phi)=\log\frac{1-\nu_a(\phi)}{\nu_a(\phi)}.
+  \label{eq:entanglement-level}
+\end{equation}
+Oriented crossings of $\varepsilon=0$ diagnose branchwise spectral flow.  The
+equilibrium analogy is Laughlin flux insertion on a cylinder
+\cite{Laughlin1981}: a $2\pi$ twist shifts allowed $k_y$ values by one momentum
+step.  Bulk bands return to themselves as sets, while a chiral edge branch
+undergoes a level permutation through the gap.  Oppositely oriented interfaces
+carry opposite permutations, so the total flow of the periodic two-wall
+sample vanishes.
+
+The record must remain fixed because Berry holonomy or spectral flow requires
+a continuous family.  Independently resampling $\bxi(\phi)$ at every twist
+produces unrelated states, and no amount of eigenvalue sorting creates a
+physical eigenbundle.  The family is defined only where its branch probability
+$p_{\bxi}(\phi)$ remains nonzero and its relevant rank is constant.
+
+The approved production H3 scope is one preregistered interface record and one
+matched-trivial record at $20\times24$, each on a 65-point closed circle.  The
+seam gauge places the nontrivial link between $y=23$ and $y=0$.  H3 is therefore
+a representative branch-level diagnostic.  It cannot establish
+the fraction of Born records with spectral flow, typicality, or ensemble
+quantization.  H3 complements H2 but does not replace it.
+
+\section{Three clocks for chirality}
+\label{sec:three-clocks}
+
+The project now has three primary chirality routes.  Their agreement would be
+powerful precisely because their clocks and claims differ.
+
+\begin{table}[t]
+\caption{Three chirality clocks and their claim boundaries.}
+\label{tab:three-clocks}
+\small
+\begin{tabularx}{\textwidth}{@{}L{0.12\textwidth}L{0.18\textwidth}L{0.27\textwidth}Y@{}}
+\toprule
+Route & Clock & Positive signature & Does not establish \\
+\midrule
+H1 modular drift & Modular time generated by $K_A=-\log\rho_A$ & Opposite
+packet drifts on opposite walls, formed trajectory by trajectory & Physical
+circuit-time transport or a Hall coefficient \\
+H2 density response & Monitored circuit time & Wall-localized one-way
+$\chi(k,\omega)$ ridge; conditional and score pieces; orientation reversal &
+Quantized transport by itself \\
+H3 frozen twist & Auxiliary twist angle $\phi$ & Continuous wall-resolved
+entanglement spectral flow for the same record & Born-ensemble frequency,
+typicality, or a measured DC current \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+H1 asks whether the prepared state has a handed modular generator.  H2 asks
+whether the physical monitored dynamics carries a causal density disturbance
+in one direction.  H3 asks whether a continuous conditional branch has
+oriented flux spectral flow.  Static entanglement scaling fixes critical
+content such as $c_L+c_R$, but it does not determine the propagation
+orientation $c_R-c_L$; at least one orientation-sensitive route is necessary.
+
+\section{Steady-state and open-system response}
+\label{sec:open-response}
+
+\subsection{A steady state is not a response theory}
+
+It is tempting to ``take the steady state and look at it.''  A stationary
+covariance can reveal an occupation or purity gap and a topological marker, but
+it does not determine how the system responds.  The same $\rho_{\ssub}$ can be
+stationary under distinct generators with different relaxation poles,
+currents, and susceptibilities.  One needs the steady state \emph{and} the
+dynamical generator or quantum instrument, including how the perturbation
+couples to it.  This distinction is central in classifications of quadratic
+Lindbladians, where steady-state topology and damping-spectrum topology are
+not interchangeable \cite{LieuMcGinleyCooper2020}.
+
+For a differentiable discrete unconditional channel
+\begin{equation}
+  \rho_{n+1}=\cE_u(\rho_n),
+  \qquad \cE_0(\rho_{\ssub})=\rho_{\ssub},
+\end{equation}
+the tangent obeys
+\begin{equation}
+  X_{n+1}=\cE_0(X_n)+(\partial_u\cE_u)_0(\rho_{\ssub})u_n.
+  \label{eq:channel-linearization}
+\end{equation}
+For harmonic $u_n=u_\omega z^n$, the stationary response contains the channel
+resolvent
+\begin{equation}
+  X(\omega)=
+  \left(z\Id-\cE_0\right)^{-1}
+  (\partial_u\cE_u)_0(\rho_{\ssub})u_\omega,
+  \qquad z=e^{-\ii\omega}.
+  \label{eq:discrete-resolvent}
+\end{equation}
+The eigenvalues of $\cE_0$ determine resonance positions and damping.
+
+For a continuous Markovian generator,
+\begin{equation}
+  \dot\rho=\cL_u\rho,
+\end{equation}
+one analogously obtains
+\begin{equation}
+  \dot X=\cL_0X+(\partial_u\cL_u)_0\rho_{\ssub}\,u(t),
+  \qquad
+  X(\omega)=(\ii\omega-\cL_0)^{-1}
+  (\partial_u\cL_u)_0\rho_{\ssub}\,u(\omega),
+  \label{eq:lindblad-resolvent}
+\end{equation}
+for the stated Fourier convention.  Lindblad and NESS response theories are
+well established
+\cite{AvronFraasGraf2012,VenutiZanardi2016,AlbertBradlynFraasJiang2016,KonopikLutz2019}.
+Gaussian-channel response can also close at the covariance level
+\cite{MehboudiParrondoAcin2019}.  These are unconditional theories; the exact
+trajectory tangent plus score is their record-resolved realization for the
+present instrument.
+
+\subsection{Deterministic mean-channel special case}
+
+The completed CPU mean-channel campaign studies
+\begin{equation}
+  \dot C=-DC-CD+S,
+  \qquad D C_{\ssub}+C_{\ssub}D=S.
+  \label{eq:mean-channel}
+\end{equation}
+For a density-phase impulse with
+$\delta C(0)=-\ii[P_0,C_{\ssub}]$, its exact response is
+\begin{equation}
+  \delta C(t)=-\ii e^{-Dt}[P_0,C_{\ssub}]e^{-Dt}.
+  \label{eq:mean-channel-response}
+\end{equation}
+This supplies a useful analytic calibration and a controlled special case of
+Eqs.~\eqref{eq:lindblad-resolvent} and \eqref{eq:broadened-pole}.  It contains
+no sampled measurement records, no nonlinear normalized branch, and no score
+term.  It must not be presented as an H2 Born-trajectory result.  Conversely,
+a gapped deterministic mean channel does not rule out slow or chiral
+conditioned trajectory structure.
+
+\section{No-postselection Hall transport in the space--time-disordered circuit}
+\label{sec:quantization}
+
+\subsection{Density chirality is already a coherent target}
+
+H2's immediate claim is directionality: a localized, charge-preserving
+perturbation produces a wall-confined response whose dispersion has only one
+low-energy velocity sign, reversed on the other wall.  This is sufficient to
+show a chiral domain-wall mode.  It does not assign a quantized transport
+coefficient.
+
+Open-system topology and transport are not generically locked.  A topological
+steady covariance can coexist with nonquantized Hall response, and special
+conditions are required for quantization
+\cite{ShavitGoldstein2020,AlbertBradlynFraasJiang2016}.  Finite-range
+dissipative state preparation also obeys nontrivial locality constraints
+\cite{Goldstein2019}.  The manuscript should therefore keep ``state
+topology,'' ``chiral density response,'' and ``quantized transport'' as three
+separate claims.
+
+\subsection{Primary microscopic numerical definition}
+
+No field theory is needed to define or estimate the response.  The basic data
+are only the covariance trajectory, the ordered measurement record, and the
+controller orbitals already used by the simulator.
+
+Partition the periodic $x$ direction into two complementary regions $R_L$ and
+$R_R$, each containing one interface, with the two artificial partition cuts
+placed deep in the topological and trivial bulks.  For the production
+$N_x=20$ explicit-interface geometry, a convenient preregistered choice is
+\begin{equation}
+  R_L:\ x=0,\ldots,9,
+  \qquad
+  R_R:\ x=10,\ldots,19.
+  \label{eq:hall-regions}
+\end{equation}
+The physical interfaces lie on bonds $(4,5)$ and $(15,16)$, whereas the
+partition cuts lie near the midpoints of the topological and trivial sectors.
+For any one-particle region projector $R_a$, $a=L,R$, define the trajectory
+particle number
+\begin{equation}
+  N_{a,\bxi}(c)
+  =\frac12\Tr\!\left[R_a(\Id+G_{\bxi}(c))\right].
+  \label{eq:regional-particle-number}
+\end{equation}
+
+At event $e$, the normalized controller orbital at the instantaneous twist is
+$|\chi_e(\phi_e)\rangle$, with
+$P_e(\phi_e)=|\chi_e(\phi_e)\rangle\langle\chi_e(\phi_e)|$.  If the Born
+outcome is $m_e\in\{0,1\}$ and the perfect-correction target is
+$s_e\in\{0,1\}$, the feedback ancilla changes the physical covariance by
+$(s_e-m_e)P_e$.  Its contribution to region $a$ is therefore the exactly
+known number
+\begin{equation}
+  A_{a,\bxi}(c)
+  =\sum_{e\le c}(s_e-m_e)
+    \Tr\!\left[R_aP_e(\phi_e)\right].
+  \label{eq:microscopic-ancilla-source}
+\end{equation}
+The source-subtracted regional balance is
+\begin{equation}
+  q_{a,\bxi}(c)
+  =N_{a,\bxi}(c)-N_{a,\bxi}(0)-A_{a,\bxi}(c),
+  \label{eq:microscopic-region-flow}
+\end{equation}
+in units of electron number.  Finally define the oriented reduced transverse transfer
+between the two walls by
+\begin{equation}
+  q_{x,\bxi}(c)
+  =\frac12\left[q_{R,\bxi}(c)-q_{L,\bxi}(c)\right].
+  \label{eq:microscopic-transverse-transfer}
+\end{equation}
+Because $R_L+R_R=\Id$, exact perfect-correction arithmetic requires
+$q_L+q_R=0$ up to numerical roundoff.  Equation
+\eqref{eq:microscopic-transverse-transfer} consequently uses both regions as
+an internal continuity check rather than relying on an assumed current
+operator.  Record by record, this reduced quantity also contains the
+measurement-innovation change of a conditioned regional expectation.  It is
+therefore a precise and inexpensive monitored-channel pump estimator, but not
+yet a literal electrical current.  This innovation cancels in the ordinary
+Born mean of a local compiled measurement; it matters critically for
+record-level current distributions.
+
+Everything in Eqs.~\eqref{eq:regional-particle-number}--
+\eqref{eq:microscopic-transverse-transfer} is available microscopically.  The
+cycle observer supplies $G(c)$; the record observer supplies $s_e-m_e$, the
+site, and the channel; and the twisted controller spinors supply
+\begin{equation}
+  w_a(j,\nu;\phi)
+  =\Tr\!\left[R_aP_{j,\nu}(\phi)\right]
+  =\sum_{i\in R_a}|\chi_{j,\nu,i}(\phi)|^2.
+  \label{eq:regional-controller-weight}
+\end{equation}
+Thus the observable can be streamed as two scalar arrays per trajectory and
+cycle.  No covariance history, Keldysh functional, or guessed bond-current
+operator is required.
+
+\subsection{Exact deterministic Born mean}
+
+For the canonical perfect-correction instrument, the Born mean of every linear
+covariance observable closes exactly.  This removes even the need for
+trajectory Monte Carlo when the first target is the ensemble-mean Hall
+coefficient.
+
+For one normalized rank-one mode $P_e$, let $Q_e=\Id-P_e$ and let its target
+occupation be $s_e\in\{0,1\}$.  Averaging the two normalized measurement and
+reset branches with their actual Born probabilities gives
+\begin{equation}
+  \overline C_{e+1}
+  =Q_e(\phi_e)\overline C_eQ_e(\phi_e)
+   +s_eP_e(\phi_e).
+  \label{eq:exact-born-mean-replacement}
+\end{equation}
+The nonlinear branch denominators cancel in the weighted sum.  In the
+$G=2C-\Id$ convention this is
+\begin{equation}
+  \overline G_{e+1}
+  =Q_e\overline G_eQ_e+(2s_e-1)P_e.
+  \label{eq:exact-born-mean-G}
+\end{equation}
+Equation~\eqref{eq:exact-born-mean-G} is already the public
+\code{mean\_replacement=True} path of the canonical GPU engine.  For a fixed
+exogenous site schedule it is the exact Born average over all intrinsic
+measurement words, not an approximation.  Random schedules can be sampled in
+parallel; each GPU batch member then represents one schedule realization with
+its Born outcomes summed analytically.
+
+The expected feedback source is equally microscopic.  Immediately before
+event $e$,
+\begin{equation}
+  \overline y_e
+  =\E[s_e-m_e]
+  =s_e-\Tr(P_e\overline C_e),
+  \label{eq:exact-mean-transfer}
+\end{equation}
+so that
+\begin{equation}
+  \overline A_a(c)
+  =\sum_{e\le c}
+  \left[s_e-\Tr(P_e\overline C_e)\right]
+  \Tr(R_aP_e).
+  \label{eq:exact-mean-regional-source}
+\end{equation}
+Propagating Eqs.~\eqref{eq:exact-born-mean-replacement} and
+\eqref{eq:exact-mean-regional-source} therefore gives the exact Born-mean
+version of Eqs.~\eqref{eq:microscopic-region-flow} and
+\eqref{eq:microscopic-transverse-transfer}.  The only sampling error is from an
+optional random schedule ensemble, not from Born outcomes.
+
+An analytic microscopic tangent is also finite-dimensional.  With dots
+denoting differentiation with respect to the applied flux,
+\begin{equation}
+  \dot{\overline C}_{e+1}
+  =\dot Q_e\overline C_eQ_e
+   +Q_e\dot{\overline C}_eQ_e
+   +Q_e\overline C_e\dot Q_e
+   +s_e\dot P_e,
+  \qquad \dot Q_e=-\dot P_e.
+  \label{eq:exact-mean-flux-tangent}
+\end{equation}
+This is a purely numerical matrix recursion through the microscopic event
+sequence.  It computes the linear Born response without a finite difference,
+without a likelihood score, and without a correlation function.  The score is
+needed only when one insists on resolving the derivative trajectory by
+trajectory before averaging; Eq.~\eqref{eq:exact-born-mean-replacement} has
+already performed that average exactly.
+
+The most efficient campaign hierarchy is consequently:
+\begin{enumerate}
+  \item propagate Eq.~\eqref{eq:exact-born-mean-replacement} under the flux
+  protocol to establish whether the Born mean has a plateau;
+  \item validate its flux derivative either by
+  Eq.~\eqref{eq:exact-mean-flux-tangent} or paired finite differences;
+  \item only if the mean result is promising, run physical Born trajectories
+  to measure variance, quantiles, and record concentration.
+\end{enumerate}
+The current mean-replacement path needs one lightweight event observer to emit
+Eq.~\eqref{eq:exact-mean-transfer}; this is smaller than implementing a new
+response formalism.
+
+\subsection{Microscopic electrical current from a local gate compilation}
+
+A literal current can also be calculated numerically, but the measurement must
+first be given a spatial implementation.  For $n_{\rm shell}=1$, every
+controller orbital has support on at most $3\times3$ cells and two microscopic
+orbitals per cell.  Choose a fixed nearest-neighbor complex-Givens tree
+$W_e(\phi)$ that rotates $|\chi_e(\phi)\rangle$ onto an anchor orbital at the
+controller center.  One exact event is then compiled as
+\begin{equation}
+  C_e\xrightarrow{W_e(\phi_e)}C_{e,1}
+  \xrightarrow{\text{local number measurement and fSWAP reset}}C_{e,2}
+  \xrightarrow{W_e(\phi_e)^\dagger}C_{e+1}.
+  \label{eq:local-measurement-compilation}
+\end{equation}
+The local readout and its collocated fresh ancilla exchange charge with the
+reservoir but do not define transverse motion.  Spatial transport occurs
+during the explicitly routed charge-conserving Givens gates.
+
+For every elementary one-particle gate $u_g$ and half-system cut projector
+$R$, accumulate
+\begin{equation}
+  \frac{q_{x,g}}{e}
+  =\Tr\!\left[
+    R\left(u_gC_gu_g^\dagger-C_g\right)
+  \right].
+  \label{eq:gate-resolved-current}
+\end{equation}
+Only gates whose declared spatial path crosses the cut contribute.  The
+trajectory current is
+\begin{equation}
+  Q^{\rm gate}_{x,\bxi}=\sum_{g\in\bxi}q_{x,g}.
+  \label{eq:compiled-trajectory-current}
+\end{equation}
+Unlike the reduced balance Eq.~\eqref{eq:microscopic-transverse-transfer},
+Eq.~\eqref{eq:compiled-trajectory-current} does not count a Bayesian
+measurement innovation as transported charge.  The same gate contractions on
+the deterministic covariance Eq.~\eqref{eq:exact-born-mean-replacement} give
+the exact Born-mean electrical current.
+
+The compilation is part of the microscopic model.  Two local Givens trees can
+realize the same reduced rank-one update while distributing short-distance
+currents differently.  A quantized large-scale coefficient should agree
+between reasonable local trees and under cut deformation.  Required
+validation is eventwise equality with the current rank-one engine at zero
+field---identical outcome probability and final covariance to numerical
+tolerance---together with gate-resolved continuity on the enlarged
+system--ancilla circuit.  The reduced source-subtracted pump is the inexpensive
+discovery calculation; the compiled gate current is the decisive calculation
+for the phrase ``electrical Hall conductance'' and for a strong
+record-concentration claim.
+
+\subsection{Immediately runnable sampled finite-step estimator}
+
+The current engine can already measure a microscopic linear impulse response
+without any dynamics modification.  First draw a Born batch at zero twist and
+burn it in to $G_{0,\bxi}$.  From every same baseline covariance, launch two
+ordinary continuations with static seam twists $+\epsilon$ and $-\epsilon$.
+The outcomes in both continuations are newly Born sampled under their own
+twisted covariances; they must never be frozen to the zero-twist word.
+
+A sudden twist step is an impulse of the circumferential electric field.  With
+an orientation sign $\varsigma=\pm1$ fixed once from the coordinate and flux
+conventions, the direct central estimator is
+\begin{equation}
+  \widehat C_{\rm step}(c;\epsilon)
+  =\varsigma\frac{\pi}{\epsilon}
+  \left[
+    \overline{q_x^{(+\epsilon)}(c)}
+    -\overline{q_x^{(-\epsilon)}(c)}
+  \right].
+  \label{eq:microscopic-step-estimator}
+\end{equation}
+The sign $\varsigma$ is not chosen after seeing the data.  Reversing the twist
+must reverse the unscaled transfer, while reversing the programmed Chern
+orientation must reverse the inferred integer.  A linear-response result
+requires an $\epsilon^2$ extrapolation of the central estimate,
+\begin{equation}
+  \widehat C_{\rm step}(\epsilon)
+  =C_0+b\epsilon^2+O(\epsilon^4),
+  \label{eq:step-extrapolation}
+\end{equation}
+and a time window in which the integrated response has converged before finite
+size recurrence or uncontrolled late-time relaxation.
+
+The executable sequence is:
+\begin{enumerate}
+  \item run \code{run\_markov\_circuit} at $\phi=0$ with
+  \code{G\_history=False}, \code{save=False}, and
+  \code{return\_data=True}; retain only \code{G\_final};
+  \item snapshot the GPU and NumPy random states immediately before the
+  continuation;
+  \item build the $+\epsilon$ model, call
+  \code{set\_controller\_twist}, restore the snapshot, and continue from
+  \code{G\_init=G\_final} with random schedules and ordinary Born outcomes;
+  \item repeat from the identical baseline and random-state snapshot at
+  $-\epsilon$;
+  \item use the cycle observer for Eq.~\eqref{eq:regional-particle-number} and
+  the record observer with a precomputed table
+  Eq.~\eqref{eq:regional-controller-weight} for
+  Eq.~\eqref{eq:microscopic-ancilla-source};
+  \item construct Eq.~\eqref{eq:microscopic-step-estimator} separately for
+  every independent parent trajectory, then average and bootstrap whole
+  trajectory blocks.
+\end{enumerate}
+Restoring the same random stream is a common-random-number variance reduction,
+not postselection.  Each marginal run still compares its shared uniform random
+number with its own Born probability.  Branches may and should diverge between
+$+\epsilon$ and $-\epsilon$.  Perfect correction has a fixed number of random
+draws per event, making this coupling particularly clean.
+
+A sensible first grid is
+\begin{equation}
+  \epsilon\in\{\pi/8,\pi/16,\pi/32\},
+  \qquad c\le 2N_y,
+  \label{eq:step-pilot-grid}
+\end{equation}
+rather than $\epsilon=10^{-3}$.  For $C=1$, the raw one-sided signal is only
+$|q_x|\simeq\epsilon/(2\pi)$; an unnecessarily tiny step converts ordinary
+trajectory noise into an impossible sample requirement.  The three finite
+steps allow the linear limit to be tested rather than assumed.
+
+\subsection{Direct quantized pump: the stronger numerical experiment}
+
+The clearest quantization test avoids dividing a small noisy signal by
+$\epsilon$.  After zero-twist burn-in, ramp the microscopic controller
+holonomy through one full circle,
+\begin{equation}
+  \phi_c=2\pi f(c/T_\phi),
+  \qquad
+  f(u)=u-\frac{\sin(2\pi u)}{2\pi},
+  \qquad c=0,\ldots,T_\phi,
+  \label{eq:smooth-flux-ramp}
+\end{equation}
+where the smooth profile has zero endpoint velocity.  At the beginning of
+each cycle, twist the controller orbitals to $\phi_c$, visit a newly random
+site schedule, sample the actual Born outcomes, perform feedback, and update
+Eqs.~\eqref{eq:microscopic-ancilla-source}--
+\eqref{eq:microscopic-transverse-transfer}.  The provisional reduced-channel
+per-record pump estimator is
+\begin{equation}
+  \widehat C_{{\rm pump},\bxi}
+  =\varsigma q_{x,\bxi}(T_\phi),
+  \label{eq:microscopic-pump-estimator}
+\end{equation}
+because a $2\pi$ cycle transfers $C$ particles in the ideal orientation.
+This is an order-one signal and is the recommended discovery observable.  For
+the final electrical claim, replace $q_x$ by
+$Q^{\rm gate}_{x,\bxi}/e$ from
+Eq.~\eqref{eq:compiled-trajectory-current}.
+
+The current static-twist method already supplies all projector phases.  A
+zero-engine-change pilot can run the entire ramp in one uninterrupted call to
+\code{run\_markov\_circuit}: the cycle observer records the state at cycle
+$c$ and then calls
+\code{set\_controller\_twist(phi[c+1], gauge="seam")} so the next cycle uses
+the next absolute flux.  The initial $c=0$ observer call installs the first
+ramp value.  This preserves the canonical cycle loop, newly random schedules,
+and live Born draws.  It also avoids the initialization overhead and semantic
+ambiguity of repeated one-cycle runs.
+
+For production provenance, the minimal canonical-engine extension is still a
+validated \code{controller\_twist\_schedule} argument, applied at the start of
+each cycle before its measurement updates.  A seam-gauge ramp is the primary
+protocol.  A time-dependent uniform-gauge comparison must not be advertised
+until the associated temporal gauge/frame kick has been implemented.  In seam
+gauge, the weights $\Tr(R_aP_e)$ are independent of $\phi$ because the twist
+changes component phases but not their magnitudes; they can be precomputed
+once.  H3 cannot be repurposed: H3 rebuilds a static model at each flux and
+forces one zero-flux record, whereas Eq.~\eqref{eq:smooth-flux-ramp} is one
+continuous physical trajectory with fresh Born outcomes.
+
+Run both orientations of the flux cycle and form the flux-odd estimator
+\begin{equation}
+  \widehat C^{\rm odd}_{\rm pump}(T_\phi)
+  =\frac{\varsigma}{2}
+  \left[
+    \overline{q_x^{(+2\pi)}(T_\phi)}
+    -\overline{q_x^{(-2\pi)}(T_\phi)}
+  \right].
+  \label{eq:microscopic-odd-pump-estimator}
+\end{equation}
+It cancels flux-even stochastic drift and is the primary reduced-channel
+plateau estimator.  The individual forward and reverse distributions remain
+mandatory outputs.
+
+For each $N_y$ and $T_\phi$, report
+\begin{align}
+  \bar C_{\rm pump}
+  &=\frac1S\sum_{a=1}^{S}\widehat C_{{\rm pump},a},\nonumber\\
+  V_C
+  &=\frac1{S-1}\sum_{a=1}^{S}
+    (\widehat C_{{\rm pump},a}-\bar C_{\rm pump})^2,\nonumber\\
+  f_{\rm bad}(\delta)
+  &=\frac1S\sum_{a=1}^{S}
+    \mathbf{1}\!\left(
+      |\widehat C_{{\rm pump},a}-C_{\rm target}|>\delta
+    \right).
+  \label{eq:microscopic-pump-statistics}
+\end{align}
+The indicator in Eq.~\eqref{eq:microscopic-pump-statistics} is an ordinary
+classical indicator, not an identity operator.  The Born sample mean tests a
+no-postselection plateau; decreasing $V_C$ and $f_{\rm bad}$ with size and
+ramp time test record typicality.
+
+\subsection{Concrete pilot and production ladders}
+
+The first calculation is an exact Born-mean screen using
+\code{mean\_replacement=True}, with a fixed random schedule per batch member.
+It requires only a lightweight event observer that emits
+Eq.~\eqref{eq:exact-mean-transfer}; the flux itself can be advanced by the
+cycle callback just described.  If this deterministic mean has no plateau,
+large trajectory sampling is not justified.
+
+The first sampled no-engine-change pilot is:
+\begin{itemize}
+  \item explicit interface, $N_x\times N_y=20\times24$,
+  $n_{\rm shell}=1$, perfect correction, random schedule;
+  \item $S=10$ independent baseline trajectories and $2N_y$ burn-in cycles;
+  \item paired $\pm\epsilon$ continuations for
+  $\epsilon=\pi/8,\pi/16$, each observed for $2N_y$ cycles;
+  \item the matched-trivial controller and reversed twist as mandatory
+  controls.
+\end{itemize}
+This costs one burn-in plus four continuations, approximately five ordinary
+$2N_y$ parent runs, but they remain sample-batched on the A100.  It stores only
+regional charge, source, continuity residuals, and compact record diagnostics;
+no covariance histories are needed.
+
+If the signal and signs pass, add $\epsilon=\pi/32$, use $S=25$, and repeat at
+$N_y=24,32$ before the full size ladder.  The ramp discovery run should start
+at $20\times24$, $S=5$, and $T_\phi=4N_y,8N_y$, followed by a pilot with
+$S=10$ and $T_\phi=4N_y,8N_y,16N_y$.  Production uses $S=25$ in shards of
+five, the interface forward ramp at all three rates, the interface reverse
+ramp at $8N_y$, and matched-trivial forward/reverse controls at $8N_y$.  A
+$20\times32$ size check is promoted only after the measured timing and
+variance are acceptable.  The required extrapolations are
+\begin{equation}
+  T_\phi^{-1}\to0,
+  \qquad N_y^{-1}\to0,
+  \qquad S^{-1/2}\to0\ \text{statistically},
+  \label{eq:pump-limits}
+\end{equation}
+with burn-in convergence checked separately.  A finite set of 25 records can
+support a plateau and an initial distributional statement, not a theorem about
+every record.
+
+The numerical acceptance checks are:
+\begin{enumerate}
+  \item $q_L+q_R=0$ and
+  $\Delta N_{\rm total}=\sum_e(s_e-m_e)$ within floating-point tolerance;
+  \item odd response under flux reversal and Chern-orientation reversal;
+  \item a matched-trivial result converging to zero;
+  \item stability under moving both the twist seam and the two regional cuts;
+  \item agreement of seam and properly transformed uniform gauges;
+  \item convergence in step size or ramp rate, circumference, burn-in, and
+  sample count;
+  \item retention of the complete per-record distribution rather than only
+  its mean.
+\end{enumerate}
+
+This microscopic program is sufficient by itself.  The generating-functional
+language below is retained only as an optional analytic consistency check and
+is not part of the proposed numerical implementation.
+
+\subsection{Why the microscopic derivative is legitimate outside equilibrium}
+
+Linear response is a functional derivative around a reference dynamics, not
+an equilibrium privilege.  Equilibrium supplies the Kubo--Martin--Schwinger
+condition, fluctuation--dissipation relations, and familiar spectral proofs of
+quantization.  A causal response around a transient, periodic state, or
+nonequilibrium stationary path ensemble remains well defined without any of
+those simplifications
+\cite{VenutiZanardi2016,KonopikLutz2019,TalkingtonClaassen2024}.
+
+For one explicit space--time realization the kernel
+\begin{equation}
+  K^R_{xy}(n,n')
+  =\left.
+  \frac{\delta\langle I_x(n)\rangle}{\delta A_y(n')}
+  \right|_{A=0},
+  \qquad n>n',
+  \label{eq:two-time-hall-kernel}
+\end{equation}
+depends on both times separately.  After burn-in, stationarity of the Born path
+measure permits an ensemble Fourier transform in $n-n'$.  Statistical
+stationarity is sufficient; an individual measurement word need not repeat.
+The random schedule and intrinsic Born outcomes therefore act as genuine
+exogenous and endogenous space--time disorder, respectively.
+
+\subsection{Optional generating-functional check}
+
+Let $K_{\bxi}[A]$ be the complete history-dependent branch operator, including
+feedback conditioned on earlier entries of $\bxi$.  Couple the forward and
+backward branches to independent gauge fields $A_+$ and $A_-$, and insert a
+counting field $\chi_x$ into every elementary operation that transports charge
+through a declared $x$ cut.  The exact instrument generating functional is
+\begin{equation}
+  \mathcal Z[A_+,A_-;\chi_x]
+  =\sum_{\bxi}q(\bxi_{\rm ext})
+  \Tr\!\left[
+    K_{\bxi}[A_+;+\chi_x/2]\rho_{\ssub}
+    K_{\bxi}[A_-;-\chi_x/2]^\dagger
+  \right],
+  \label{eq:instrument-keldysh-functional}
+\end{equation}
+where $q(\bxi_{\rm ext})$ is the field-independent probability of any
+exogenous schedule choices.  The same classical record labels join the two
+contour branches, while all intrinsic outcomes are summed.  Trace preservation
+gives the unitarity identity
+\begin{equation}
+  \mathcal Z[A,A;0]=1.
+  \label{eq:keldysh-normalization}
+\end{equation}
+Thus Eq.~\eqref{eq:instrument-keldysh-functional} is a literal discrete-time
+Schwinger--Keldysh construction for the adaptive instrument.  It is not a
+postselected or representative-record object.  Replica Keldysh formulations
+for monitored jump processes and hybrid classical--quantum full counting
+statistics provide closely related precedents
+\cite{KloiberTollingerSieberer2026,RosalFiusaPottsLandi2026}.
+
+Define
+\begin{equation}
+  A_c=\frac{A_++A_-}{2},
+  \qquad A_q=A_+-A_-,
+  \qquad W=-\ii\log\mathcal Z.
+\end{equation}
+Up to the declared sign and charge normalization, the physical current and
+retarded response are
+\begin{align}
+  \bar j_x(n)
+  &=\left.\frac{\delta W}{\delta A_{x,q}(n)}\right|_{A_q=0},
+  \label{eq:keldysh-current}\\
+  K^R_{xy}(n,n')
+  &=\left.
+  \frac{\delta^2W}
+  {\delta A_{x,q}(n)\delta A_{y,c}(n')}
+  \right|_{A_q=0}.
+  \label{eq:keldysh-retarded-response}
+\end{align}
+If $A_y$ enters only through a Hamiltonian term $-A_yJ_y$, this reduces to a
+retarded current--current correlator plus the diamagnetic/contact term.  In the
+present circuit the field also changes controller orbitals, projectors, Kraus
+maps, and feedback operations.  The exact insertion is therefore an
+instrument vertex $\partial_{A_y}\cE$, not generically a second current
+operator.  A symmetrized current autocorrelation measures noise; outside
+equilibrium no fluctuation--dissipation theorem converts it into
+Eq.~\eqref{eq:keldysh-retarded-response}.
+
+\subsection{The Born score inside the Keldysh functional}
+
+At equal physical fields,
+\begin{equation}
+  \bar I_x[A]=\sum_{\bxi}p_A(\bxi)I_{x,\bxi}[A].
+\end{equation}
+Differentiating gives
+\begin{equation}
+  \left.\frac{\delta\bar I_x}{\delta A_y}\right|_0
+  =\E_0\!\left[ K^{\cond}_{xy,\bxi}\right]
+   +\E_0\!\left[
+     (I_{x,\bxi}-\bar I_x)S_{y,\bxi}
+   \right],
+  \label{eq:hall-score-decomposition}
+\end{equation}
+with
+\begin{align}
+  K^{\cond}_{xy,\bxi}
+  &=D_GI_x[X_y]+\partial_{A_y}I_x,
+  \label{eq:current-response}\\
+  S_{y,\bxi}
+  &=\left.\delta_{A_y}\log p_A(\bxi)\right|_0.
+\end{align}
+The gauge tangent has the inhomogeneous recursion
+\begin{equation}
+  X_{y,e+1}=D_G\Phi_e[X_{y,e}]+\partial_{A_y}\Phi_e.
+  \label{eq:gauge-tangent}
+\end{equation}
+When the controller projector also depends on $A_y$, both the map tangent and
+the score contain the corresponding $\dot P$ terms.  Equation
+\eqref{eq:hall-score-decomposition} is exactly what the doubled functional
+produces: the first term moves the normalized state along a fixed word, while
+the second differentiates that word's Born weight.  The score is therefore not
+an optional correction.  It is the classical record-sector part of the
+physical no-postselection response.
+
+For Monte Carlo analysis one can retain the single-record influence estimator
+\begin{equation}
+  \widehat K_{xy,\bxi}
+  =K^{\cond}_{xy,\bxi}
+   +(I_{x,\bxi}-\bar I_x)S_{y,\bxi},
+  \qquad
+  \E[\widehat K_{xy,\bxi}]=K^{\Born}_{xy}.
+  \label{eq:hall-influence-estimator}
+\end{equation}
+Its distribution is meaningful for diagnosing typicality, but its score term
+is an influence-function contribution, not the response of a postselected
+branch.
+
+\subsection{The model-specific conservation obstruction}
+
+The reduced physical fermion system is not charge conserving.  When a
+measurement outcome disagrees with its controller target, perfect correction
+uses a fresh filled or empty ancilla and an fSWAP.  Total $U(1)$ charge is
+conserved only in the enlarged system--ancilla implementation.  The physical
+system obeys a sourced circuit-time continuity equation,
+\begin{equation}
+  \Delta n_{\br}+(\nabla_{\rm lat}\!\cdot j)_{\br}
+  =s^{\rm anc}_{\br},
+  \label{eq:sourced-continuity}
+\end{equation}
+not a source-free one.  Consequently the current reduced covariance engine and
+its controller twist do not, by themselves, define a conventional
+electromagnetic Hall current.
+
+There are two honest observables:
+\begin{enumerate}
+  \item \emph{Electrical Hall response of a specified dilation.}  Assign
+  physical paths to every basis-rotation gate and ancilla port, Peierls-dress
+  every charge-moving gate and fSWAP, and insert the counting field across all
+  paths crossing the cut.  Equation~\eqref{eq:sourced-continuity} then becomes
+  source free on the enlarged space.
+  \item \emph{Generalized monitored-circuit pump.}  Use the controller
+  holonomy as a parameter and explicitly subtract the known ancilla source.
+  This is immediately useful, but should not be called electrical Hall
+  conductance until its electromagnetic dilation is fixed.
+\end{enumerate}
+This distinction is physical: inequivalent local Stinespring compilations can
+realize the same reduced Kraus map while routing microscopic charge along
+different paths.  An electrical current is therefore not an intrinsic property
+of the reduced instrument alone.  Independence of the quantized coefficient
+from reasonable local compilations would itself be a nontrivial robustness
+test.
+
+At perfect correction the source subtraction is especially simple.  If the
+measured occupation is $m\in\{0,1\}$ and the reset target is $s\in\{0,1\}$,
+then
+\begin{equation}
+  C_{\rm after}-C_{\rm meas}=(s-m)P.
+\end{equation}
+For a one-particle region projector $R$, the exact injected charge is
+\begin{equation}
+  S^{\rm anc}_{R,e}=e(s_e-m_e)\Tr(RP_e).
+  \label{eq:regional-ancilla-source}
+\end{equation}
+The executable already records $s_e-m_e$ as the event transfer.  With inward
+current positive, a practical source-subtracted regional transfer is
+\begin{equation}
+  Q^{\rm sub}_{\partial R}
+  =e\,\Delta N_R-\sum_{e\in\mathrm{ramp}}S^{\rm anc}_{R,e}.
+  \label{eq:source-subtracted-current}
+\end{equation}
+Equation~\eqref{eq:regional-ancilla-source} is exact for perfect correction.
+If feedback can fail, the code must archive the actual reset transfer rather
+than merely the requested target minus outcome.
+
+\subsection{What quantization would mean in Keldysh language}
+
+In units $e=\hbar=1$, the desired parity-odd long-distance functional is
+\begin{align}
+  W_{\rm top}
+  &=\frac{C}{4\pi}\int\!\dd^3x\,
+    \epsilon^{\mu\nu\lambda}
+    \left(
+      A_{\mu,q}\partial_\nu A_{\lambda,c}
+      +A_{\mu,c}\partial_\nu A_{\lambda,q}
+    \right)\nonumber\\
+  &=\frac{C}{2\pi}\int\!\dd^3x\,
+    \epsilon^{\mu\nu\lambda}
+    A_{\mu,q}\partial_\nu A_{\lambda,c}
+    +\text{boundary term}.
+  \label{eq:keldysh-chern-simons}
+\end{align}
+It yields
+\begin{equation}
+  j_x=\frac{C}{2\pi}E_y,
+  \qquad \sigma_{xy}=C\frac{e^2}{h}.
+  \label{eq:quantized-hall-response}
+\end{equation}
+Additional causal dissipative kernels and terms quadratic in $A_q$ encode
+relaxation and noise.  They do not by themselves forbid the topological term.
+Keldysh Chern--Simons response has been established for specially structured
+number-conserving open systems with a pure stationary state
+\cite{TonielliBudichAltlandDiehl2020}.  That result is a template, not a theorem
+for the present circuit: pure conditioned trajectories generally average to a
+mixed Born state unless all positive-probability branches lie on the same ray.
+
+For this adaptive process integer $C$ is therefore a conjectural response
+coefficient that must be demonstrated under explicit hypotheses:
+\begin{enumerate}
+  \item exact $U(1)$ gauge covariance of the full local dilation;
+  \item locality or controlled quasilocality of all charge-moving operations;
+  \item a stationary, ergodic late-time Born process;
+  \item a bulk dynamical, mobility, or rapid-mixing gap that remains controlled
+  throughout the twist cycle;
+  \item vanishing longitudinal DC response in the scaling limit;
+  \item large-gauge closure and invariance under seam and cut deformation;
+  \item a stated order of transient, field, slow-ramp, thermodynamic, and
+  statistical limits.
+\end{enumerate}
+Static disorder can coexist with almost-sure quantized Hall response under
+mobility-gap hypotheses
+\cite{NiuThoulessWu1985,BellissardVanElstSchulzBaldes1994}.  Quantized Floquet
+pumping can survive spatial disorder and, over a controlled regime, temporal
+noise
+\cite{TitumBergRudnerRefaelLindner2016,TimmsSiebererKolodrubetz2021}.
+These are important precedents, but their disorder is not the endogenous,
+state-dependent Born record of an adaptive instrument.
+
+The caution is equally important.  A conserved state Chern number after a
+quench need not imply quantized Hall response, and dissipatively prepared
+topology and transport can separate
+\cite{CaioCooperBhaseen2016,ShavitGoldstein2020}.  Thus the proposed experiment
+would not merely remeasure the known trajectory invariant.
+
+\subsection{Three meanings of record-independent quantization}
+
+The following claims have strictly increasing strength:
+\begin{enumerate}
+  \item \emph{Born-mean plateau:}
+  \begin{equation}
+    \frac{\E_{\Born}[Q_{x,\bxi}]}{e}\longrightarrow C.
+    \label{eq:born-mean-pump}
+  \end{equation}
+  This is already a physical no-postselection result, but it can hide a broad
+  or bimodal record distribution.
+  \item \emph{Born-typical concentration:}
+  \begin{equation}
+    \Pr_{\Born}\!\left(
+      \left|Q_{x,\bxi}/e-C\right|>\delta
+    \right)\longrightarrow0
+    \quad\text{for every fixed }\delta>0.
+    \label{eq:record-concentration}
+  \end{equation}
+  This is the natural analogue of an almost-sure disorder statement and the
+  strongest realistic meaning of ``record independent.''
+  \item \emph{Uniform every-word quantization:} every allowed finite record,
+  including arbitrarily rare words, gives exactly the same integer.  This
+  would require a uniform gap and is neither needed nor currently plausible.
+\end{enumerate}
+A quantized linear-response coefficient does not logically require the entire
+finite-time counting distribution to collapse to a delta function; irreducible
+shot noise can remain.  The full counting statistics should therefore report
+the mean response, response variance, higher cumulants, quantiles, and
+bad-record fraction separately.  Exact claims concern specified asymptotic
+limits, never a finite sample of 25 trajectories.
+
+\subsection{Dynamical bulk--boundary correspondence}
+
+Suppose two bulk regions have Born Keldysh coefficients $C_L$ and $C_R$.  At
+their interface, the gauge variation of Eq.~\eqref{eq:keldysh-chern-simons}
+has an uncancelled boundary term proportional to
+\begin{equation}
+  \Delta C=C_L-C_R.
+\end{equation}
+Gauge invariance of the full dilation then requires a wall anomaly with net
+chirality $\Delta C$.  This is the anomaly-inflow statement of
+bulk--boundary correspondence, formulated for the Born-summed dynamical
+functional rather than a ground-state Hamiltonian.
+
+H2 tests one side of this relation: wall-localized, signed propagation.  It
+does not measure the coefficient $C$.  H3 tests branchwise auxiliary
+entanglement spectral flow under a frozen record.  It is not a physical flux
+ramp and does not sum the flux-dependent Born process.  A quantized bulk pump
+or Kubo coefficient agreeing with the H2 wall chirality would supply the
+missing side.  If Eq.~\eqref{eq:record-concentration} also holds, the result
+would be genuinely stronger: dynamical bulk--boundary correspondence would
+survive endogenous space--time measurement disorder without postselection.
+
+\subsection{Two operational protocols}
+
+\subsubsection{Protocol A: full-dilation retarded Hall kernel}
+
+Use a homogeneous topological torus or cylinder first, rather than the
+two-wall geometry.  Burn in to the stationary Born process, apply a weak
+time-dependent $A_y$ to every affected operation of the local dilation, and
+count the full charge crossing an $x$ cut.  Evaluate
+Eq.~\eqref{eq:keldysh-retarded-response} either from the exact inhomogeneous
+state tangent plus score or from common-schedule $\pm A$ replays as a
+validation.  After testing stationarity, extract the antisymmetric response,
+take the thermodynamic or mobility limit before the DC limit, and verify
+$\sigma_{xx}\to0$.
+
+For a stationary augmented channel $\mathbb E_0$, the discrete causal kernel
+has the transparent form
+\begin{equation}
+  K^R_{O,A}(\ell)
+  =\Theta(\ell)
+  \left\langle\!\left\langle O\middle|
+    \mathbb E_0^{\ell-1}(\partial_A\mathbb E)_0
+    \middle|\varrho_{\ssub}\right\rangle\!\right\rangle
+  +K_{\rm contact}.
+  \label{eq:augmented-channel-kubo}
+\end{equation}
+Classical feedback memory can be included in the augmented state.  This is the
+discrete NESS analogue of a Lindblad resolvent, not an equilibrium fluctuation
+formula.
+
+\subsubsection{Protocol B: no-postselection Laughlin pump}
+
+The numerically cleaner quantization test is a physical $y$-flux ramp
+\begin{equation}
+  \phi_y:0\longrightarrow2\pi,
+  \qquad A_y=\phi_y/N_y.
+\end{equation}
+Outcomes must be newly sampled from the instantaneous flux-dependent Born
+process; freezing them would convert the experiment back into H3.  Count the
+full-dilation charge, or provisionally the source-subtracted charge
+Eq.~\eqref{eq:source-subtracted-current}, crossing an $x$ cut.  With orientation
+sign fixed in advance, the target is
+\begin{equation}
+  Q_x/e\longrightarrow\pm C.
+  \label{eq:laughlin-pump-target}
+\end{equation}
+The associated full counting statistics can be generated by the tilted
+instrument
+\begin{equation}
+  \cE_{A,\chi}(\rho)
+  =\sum_m K_m[A;+\chi/2]\rho K_m[A;-\chi/2]^\dagger,
+  \label{eq:tilted-instrument}
+\end{equation}
+with
+\begin{align}
+  \langle Q_x\rangle
+  &=\left.\partial_{\ii\chi}\log\mathcal Z\right|_{\chi=0},\nonumber\\
+  \partial_A\langle Q_x\rangle
+  &=\left.\partial_A\partial_{\ii\chi}
+    \log\mathcal Z\right|_{A=\chi=0}.
+  \label{eq:fcs-derivatives}
+\end{align}
+Tilted generators and trajectory large deviations are established tools
+\cite{GarrahanLesanovsky2010,FlindtNovotnyBraggioSassettiJauho2008}.
+
+A discovery pilot can use the current $20\times24$ or $20\times32$ explicit
+interface, $n_{\rm shell}=1$, perfect correction, random schedules, five to ten
+Born trajectories, and ramp times $T_\phi=4N_y,8N_y,16N_y$ after a burn-in of
+order $2N_y$.  It should stream wall/strip charge, total system charge, and
+spatially resolved ancilla source rather than covariance histories.  This
+pilot can establish feasibility and sign conventions; it cannot establish a
+quantized thermodynamic coefficient.
+
+\subsection{Controls and implementation consequences}
+
+The minimum controls are:
+\begin{enumerate}
+  \item trivial controller, reversed Chern orientation, and reversed ramp;
+  \item seam versus uniform gauge, seam translation, and cut deformation;
+  \item a discrete Ward identity including the ancilla source, together with
+  Eq.~\eqref{eq:keldysh-normalization} and $\E[S]=0$;
+  \item random versus raster schedules and controlled measurement noise;
+  \item probe-amplitude, frequency or ramp-rate, size, and wall-separation
+  scaling;
+  \item longitudinal response and full counting noise;
+  \item at least two local physical compilations of the dilation if the result
+  is called electrical Hall conductance.
+\end{enumerate}
+
+The existing static method \code{set\_controller\_twist} is useful but
+insufficient.  A new versioned campaign would need a time-dependent twist
+schedule inside the canonical GPU engine, ordinary Born sampling at each
+instantaneous twist, a cut/source observer, and the $\dot P$ terms in the gauge
+tangent and score.  A time-dependent uniform gauge also requires the proper
+inter-cycle gauge or scalar-potential transformation; repeatedly rebuilding
+static H3 models is not a physical ramp.  The implementation should validate
+eventwise gauge derivatives against $\pm\delta\phi$, $2\pi$ closure,
+seam/uniform equivalence, source-subtracted continuity, and exact small-system
+branch enumeration before production.
+
+Quantized response need not always be framed as conventional DC transport.
+Frequency-integrated circular dichroism and certain pulse-to-density protocols
+can also tie responses to topological invariants in closed systems
+\cite{RepellinGoldman2019,Zhang2023}.  Those alternatives do not make the H2
+density ridge quantized, nor do they remove the dilation issue for electrical
+transport.
+
+\section{Relation to the literature and novelty boundary}
+\label{sec:literature}
+
+Table~\ref{tab:literature} positions the construction without claiming that
+monitored-system response theory itself is new.
+
+\begin{table}[t]
+\caption{Literature map and project-specific distinction.}
+\label{tab:literature}
+\small
+\begin{tabularx}{\textwidth}{@{}L{0.21\textwidth}L{0.32\textwidth}Y@{}}
+\toprule
+Established framework & What is established & What remains specific here \\
+\midrule
+Closed Kubo and chiral edge theory
+\cite{Kubo1957,Wen1990} & Retarded density response and a one-way pole
+$\omega=vk$ for a chiral edge. & Adaptive normalized backaction, record
+dependence, and the Born score. \\
+Lindblad/NESS response
+\cite{AvronFraasGraf2012,VenutiZanardi2016,AlbertBradlynFraasJiang2016,KonopikLutz2019,LevyRabaniLimmer2021}
+& Generator linearization, resolvents, geometric response, and conditions under
+which open Hall response can remain quantized. & Discrete rank-losing
+record-conditioned Gaussian instrument and branch distribution. \\
+Keldysh topology and monitored field theory
+\cite{TonielliBudichAltlandDiehl2020,TalkingtonClaassen2024,KloiberTollingerSieberer2026}
+& Nonequilibrium response functionals, Chern--Simons response in structured
+open systems, and Keldysh representations of monitored processes. & A doubled,
+history-dependent feedback instrument whose Born score and physical dilation
+are kept explicit. \\
+Gaussian process response \cite{MehboudiParrondoAcin2019} & Covariance-level
+response of Gaussian channels. & Fermionic projective normalized map with
+exact outcome conditioning and feedback. \\
+Quantum trajectory likelihood and response
+\cite{GammelmarkMolmer2013,Vu2025} & Record likelihoods, tangent inference,
+Fisher information, and bounds on trajectory-observable response. & Local
+density impulse, exact branch congruence, and score-completed wall
+susceptibility in this circuit. \\
+Trajectory large deviations
+\cite{GarrahanLesanovsky2010} & Tilted generators and statistics of record
+observables. & Spatially resolved class-A domain-wall response and its
+conditional/Born comparison. \\
+Feedback and monitored topology
+\cite{NakagawaUeda2025,OshimaMochizukiHamazakiFuji2025,XiaoKawabata2026} &
+Topological quantum channels, monitored Lyapunov spectra, and boundary modes. &
+Density-response spectroscopy of finite-range adaptive Gaussian Born
+trajectories, including rank loss and score reweighting. \\
+Dissipative topology
+\cite{Goldstein2019,ShavitGoldstein2020,GneitingKoottandavidaRozhkovNori2022}
+& Constraints on dissipative preparation and examples of trajectory/open-system
+topology. & Direct comparison among fixed-record, Born, mean-channel, and
+frozen-holonomy diagnostics on the same programmed wall. \\
+Disordered topological transport
+\cite{NiuThoulessWu1985,BellissardVanElstSchulzBaldes1994,TitumBergRudnerRefaelLindner2016,TimmsSiebererKolodrubetz2021}
+& Almost-sure static-disorder quantization and dynamical pumping robust to
+spatial or temporal disorder under controlled hypotheses. & Endogenous Born
+space--time disorder, score-completed response, and record-concentration tests
+in an adaptive circuit. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The plausible project-specific contribution is therefore a synthesis:
+\begin{quote}
+An exact, record-conditioned tangent response for a normalized, rank-losing
+adaptive fermionic Gaussian instrument, completed by the many-body Born
+likelihood score and analyzed as a wall-resolved momentum--frequency density
+susceptibility across a topological trajectory ensemble.
+\end{quote}
+The more ambitious follow-on contribution would be a separate statement:
+\begin{quote}
+A gauge-covariant, no-postselection adaptive fermion instrument has a Born Hall
+coefficient locked to an integer, with its response distribution concentrating
+over endogenous space--time measurement records and matching the chiral wall
+anomaly.
+\end{quote}
+Nothing in the present trajectory Chern data, H2 ridge, or H3 frozen holonomy
+already proves this second statement.
+The individual ingredients are not new.  A formal novelty claim should use
+``to our knowledge'' only after a broader systematic search.  In particular,
+recent topology of discrete quantum feedback
+\cite{NakagawaUeda2025} is a close neighboring field that must be discussed,
+while monitored free-fermion classifications
+\cite{XiaoKawabata2026} supply the appropriate tangent/Lyapunov comparison.
+
+\section{Current implementation and exact-tangent upgrade}
+\label{sec:implementation}
+
+\subsection{Current production contract}
+
+The current H2 production choices are listed in
+Table~\ref{tab:h2-contract}.  They are taken from the audited working campaign
+and executable configuration, not from the superseded numerical-campaign copy
+inside the draft directory.
+
+\begin{table}[t]
+\caption{Current H2/H3 contract as of August 18, 2026.}
+\label{tab:h2-contract}
+\small
+\begin{tabularx}{\textwidth}{@{}L{0.24\textwidth}Y@{}}
+\toprule
+Quantity & Current choice \\
+\midrule
+H2 geometry & $N_x=20$; $\alpha_{\rm top}=1$,
+$\alpha_{\rm triv}=30$; $n_{\rm shell}=1$; topological columns
+$x=5,\ldots,15$; interfaces on bonds $(4,5)$ and $(15,16)$; periodic $y$ \\
+H2 circumference & $N_y=32,48,64$ \\
+Independent trajectories & $S=25$, in five shards of five \\
+Schedule law & Random serial only \\
+Physical duration & $2N_y$ cycles from independent product-state starts \\
+Sources & Eight translated $y_0$ positions on each of two wall orientations \\
+Time origins & Four late origins per parent trajectory \\
+Response horizon & $N_y/2$ \\
+Wall window & Half-width one cell in current executable config \\
+Saved decomposition & Conditional derivative, likelihood-score contribution,
+total Born response, and within-trajectory source variance.  The cumulative
+scalar score itself is not currently archived. \\
+Current derivative & Central $\pm\epsilon$ replay with
+$\epsilon=10^{-3}$; validation at $5\times10^{-4}$ and $2\times10^{-3}$ \\
+Statistics & Whole parent trajectory is the bootstrap unit \\
+H3 & One interface and one matched-trivial record at $20\times24$; 65 twist
+points per closed circle; seam $y=23\to0$; half-torus entanglement spectrum with
+wall-weight classification \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The H2 runner already preserves the essential estimator order: it freezes each
+baseline schedule and outcome record, central differences the conditional
+density and its chronological log likelihood, multiplies the latter by the
+baseline density, translates sources within each trajectory, and retains the
+trajectory axis for later bootstrapping.  It does not yet propagate
+Eqs.~\eqref{eq:tangent-recursion}--\eqref{eq:score-recursion}.  The repository
+also does not yet contain the final downstream H2 Fourier/ridge merger; the
+current compact product is the real-space input to that analysis.  A separate
+geometry caveat is also recorded here: the canonical CPU class currently uses
+an $N_x/3$ default wall width, whereas the production GPU H2/H3 geometry uses
+$N_x/4$.  Production-response claims must use the GPU geometry stated in
+Table~\ref{tab:h2-contract}, or explicitly reconcile the defaults before
+combining CPU and GPU results.
+
+\subsection{Recommended exact-tangent implementation}
+
+The upgrade should preserve the immutable finite-difference campaign rather
+than silently changing its schema.  A new versioned H2 product should:
+\begin{enumerate}
+  \item initialize a batched tangent $X_0=-\ii[P_0,G]$ for every live source;
+  \item propagate the base covariance once through the canonical GPU engine;
+  \item update all source tangents with the exact local or dense rank-one
+  Jacobian inside the canonical GPU class, respecting repository policy;
+  \item accumulate the scalar score increment
+  Eq.~\eqref{eq:binary-score} on the same device;
+  \item stream only $\Tr(P_rX)/2$, the baseline density, score, wall leakage,
+  denominator minima, and compact diagnostics;
+  \item archive an explicit schema/version and the exact engine hash;
+  \item compare against the existing $\pm\epsilon$ implementation without
+  overwriting either result.
+\end{enumerate}
+This removes two full continuations per source and should materially reduce H2
+runtime, although the realized speedup depends on how many source tangents fit
+in the A100 batch and must be benchmarked rather than assumed.
+
+\subsection{Validation gates}
+
+Before the analytic tangent replaces the finite difference as the primary
+estimator, require:
+\begin{enumerate}
+  \item event-level agreement of Eq.~\eqref{eq:event-tangent} with central
+  differences for occupied and empty outcomes, mixed and nearly pure states,
+  local and dense backends, and gain and loss targets;
+  \item complete frozen-record agreement over a convergent $\epsilon$ window;
+  \item agreement of the accumulated score with central differences of the
+  complete chronological log probability;
+  \item exact small-system branch enumeration of
+  Eq.~\eqref{eq:score-identity};
+  \item $\E[S]=0$ within whole-trajectory uncertainty, with the centered score
+  estimator used in production analysis;
+  \item CPU/GPU parity for identical frozen words;
+  \item explicit counts of zero-probability/censored branches and minimum Born
+  denominators;
+  \item sign-convention parity with Eq.~\eqref{eq:implemented-kick}.
+\end{enumerate}
+
+\section{Analysis and claim protocol}
+\label{sec:claim-protocol}
+
+\subsection{Per-trajectory construction before averaging}
+
+For each independent parent trajectory and each wall:
+\begin{enumerate}
+  \item average translated sources and permitted late origins only as correlated
+  variance reduction inside that trajectory;
+  \item retain $\chi^{\cond}_{w,\bxi}(r,t)$,
+  $\chi^{\mathrm{score}}_{w,\bxi}(r,t)$, and their sum;
+  \item record transverse wall retention and bulk leakage;
+  \item Fourier transform each component with identical conventions;
+  \item extract ridge slope, linewidth, wedge asymmetry, and fit quality;
+  \item only then form ensemble means and bootstrap intervals over complete
+  parent trajectories.
+\end{enumerate}
+Spatial sites, sources, time origins, and the two walls are not independent
+Monte Carlo samples.
+
+\subsection{Primary figures}
+
+A compact but complete H2 presentation contains:
+\begin{enumerate}
+  \item real-space $\chi_w(r,t)$ heatmaps for both wall orientations;
+  \item the full Born $\chi_w(k,\omega)$ for both walls, with common axes;
+  \item an inset decomposing conditional and score contributions;
+  \item the distribution of $v_{w,\bxi}$ or $\mathcal A_{w,\bxi}$;
+  \item a matched trivial or bulk-source control;
+  \item a size panel for signed velocity, wrong-chirality weight, and wall
+  retention.
+\end{enumerate}
+
+\subsection{Acceptance and downgrade language}
+
+The strong H2 statement requires a low-energy ridge whose velocity sign is
+stable, reverses between the paired walls, remains wall localized, survives
+whole-trajectory uncertainty and size scaling, and is absent in the matched
+control.  Both terms in Eq.~\eqref{eq:full-density-response} belong in the
+headline Born response.
+
+If only $\chi^{\fixed}$ is chiral, report a chiral fixed-record conditional
+response and state that the physical Born response is unresolved or different.
+If only the mean is chiral while per-record signs are broad, do not claim that
+typical individual trajectories share the same response.  If real-space drift
+is visible but the Fourier ridge is unresolved, report directional spreading,
+not a measured dispersion.  If a ridge exists without wall reversal or a
+control null, report schedule-induced directional response rather than
+topological chirality.  At no point should the H2 ridge be called a quantized
+Hall conductance.
+
+\section{Coherent research questions exposed by the framework}
+\label{sec:questions}
+
+The discussion suggests several questions that are logically independent and
+could support a later paper beyond the immediate H2 analysis.
+
+\subsection{Conditional versus Born chirality}
+
+How large is
+\begin{equation}
+  \Delta\chi=\chi^{\Born}-\chi^{\fixed}
+  =\operatorname{Cov}(n,S),
+\end{equation}
+and can the score change the direction, velocity, or only the spectral weight?
+The answer measures how strongly the local perturbation reshapes the record
+distribution rather than merely changing conditional states.
+
+\subsection{Self-averaging and trajectory typicality}
+
+Does the distribution of $v_{w,\bxi}$ narrow with $N_y$ and observation time,
+or does a broad record-dependent chiral response survive?  A narrow
+distribution would connect the Born response to an almost-sure trajectory
+statement; a broad distribution would make the mean insufficient as a
+description of typical monitored runs.
+
+\subsection{Response poles versus tangent Lyapunov modes}
+
+Does the linewidth $\gamma_w(k)$ extracted from
+$\chi(k,\omega)$ agree with decay rates in the wall-localized tangent cocycle?
+The two use the same normalized derivative but different source and projection
+protocols.  Agreement would connect observed chiral propagation to the slow
+mechanism responsible for purification; disagreement would identify distinct
+sectors.
+
+\subsection{Trajectory, mean-channel, and feedback-channel topology}
+
+Which wall features survive after discarding the record?  Monitored Lyapunov
+topology, dissipative topology, and discrete feedback-channel topology are
+active neighboring subjects
+\cite{GneitingKoottandavidaRozhkovNori2022,NakagawaUeda2025,OshimaMochizukiHamazakiFuji2025,XiaoKawabata2026}.
+The present circuit can compare all three descriptions on the same microscopic
+controller instead of assuming their equivalence.
+
+\subsection{Record Fisher information and response cost}
+
+The same derivatives entering the score determine the Fisher information
+carried by the record.  One may ask whether a robust wall response requires the
+record to learn the injected perturbation, and whether trajectory-response
+bounds \cite{Vu2025} become tight near the wall.  This is a question about the
+classical information channel of monitoring, not a substitute for the density
+susceptibility.
+
+\subsection{Gauge response and quantized pumping}
+
+Can a gauge-covariant extension of the adaptive instrument support a robust
+integer Born pump, and how is it related to the representative fixed-record
+H3 flow?  This requires the full program of Sec.~\ref{sec:quantization}.  It is
+a plausible separate work, not a prerequisite for demonstrating chirality in
+the current manuscript.
+
+\section{Recommended paper-level statement}
+\label{sec:recommendation}
+
+If the planned data pass their controls, the clean central statement is:
+\begin{quote}
+A local number-phase impulse produces a wall-localized density response with a
+single low-energy propagation direction.  The momentum--frequency ridge
+reverses between the two oppositely oriented domain walls.  This directionality
+is visible in the distribution of fixed-record trajectory responses and
+survives the Born likelihood-score completion required for the physical
+ensemble.
+\end{quote}
+This statement is stronger than static criticality and more operational than
+modular-time motion, while remaining narrower and safer than a quantized
+transport claim.  H1 modular drift and H3 frozen-record spectral flow can be
+presented as complementary state-level and branch-topology evidence.  The
+conditional, fixed-record averaged, Born, and unconditional objects should be
+named explicitly every time; ``trajectory average'' without a definition is no
+longer adequate.
+
+\appendix
+
+\section{Derivation of the fixed-projector covariance congruence}
+\label{app:derivative}
+
+Let
+\begin{equation}
+  A=\Id+\eta GP,
+  \qquad \Phi(G)=QA^{-1}GQ+\eta_sP.
+\end{equation}
+At fixed $P$, $\delta A=\eta XP$ and
+\begin{align}
+  D\Phi[X]
+  &=Q\left[-A^{-1}(\eta XP)A^{-1}G+A^{-1}X\right]Q\nonumber\\
+  &=QA^{-1}X\left[\Id-\eta PA^{-1}G\right]Q.
+  \label{eq:raw-derivative}
+\end{align}
+The rank-one identities
+\begin{align}
+  QA^{-1}&=Q-\frac{\eta QGP}{1+\eta g}=L,\nonumber\\
+  \left[\Id-\eta PA^{-1}G\right]Q
+  &=Q-\frac{\eta PGQ}{1+\eta g}=L^\dagger
+\end{align}
+give
+\begin{equation}
+  D\Phi[X]=LXL^\dagger,
+\end{equation}
+which proves Eq.~\eqref{eq:event-tangent}.  The derivation assumes
+$1+\eta g>0$, exactly the condition that the selected branch has nonzero Born
+probability.
+
+\section{Monte Carlo form of the Born identity}
+\label{app:monte-carlo}
+
+For $S$ independent baseline trajectories $\bxi_a\sim p_0$, the direct
+unbiased estimator is
+\begin{equation}
+  \widehat\chi^{\Born}_{\rm direct}
+  =\frac1S\sum_{a=1}^S
+  \left[\chi_{\bxi_a}^{\cond}
+  +O_{\bxi_a}S_{\bxi_a}\right].
+  \label{eq:mc-estimator}
+\end{equation}
+Because $\E[S]=0$, an exactly unbiased, sample-centered form uses the ordinary
+sample covariance,
+\begin{equation}
+  \widehat\chi^{\Born}_{\rm cov}
+  =\overline{\chi^{\cond}}
+   +\frac{1}{S-1}\sum_{a=1}^S
+    (O_{\bxi_a}-\bar O)(S_{\bxi_a}-\bar S).
+  \label{eq:mc-covariance-estimator}
+\end{equation}
+Centering only $O$ but retaining the prefactor $1/S$ introduces an
+$O(1/S)$ bias; Eq.~\eqref{eq:mc-covariance-estimator}, or an equivalent
+leave-one-out construction, removes it.  The direct estimator
+Eq.~\eqref{eq:mc-estimator} can have larger variance because a finite sample
+generally has $\bar S\ne0$.
+
+Sources and late origins inside trajectory $a$ should first be combined into a
+single vector-valued observation $Y_a$.  Bootstrap resampling acts on the
+$S$ complete $Y_a$ blocks, preserving all within-trajectory correlations and
+the paired two-wall structure.
+
+\section{Checklist for reading an H2 archive}
+\label{app:archive-checklist}
+
+Before interpreting a saved response product, verify:
+\begin{enumerate}
+  \item engine hash, covariance convention, source-kick sign, and schema;
+  \item physical geometry, explicit wall bonds, wall windows, and orientation
+  labels;
+  \item independent trajectory count and shard/sample indices;
+  \item initialization, total duration, origin cycles, and response horizon;
+  \item random schedule law and whether schedules/outcomes were frozen in the
+  derivative;
+  \item derivative method: finite difference or exact tangent;
+  \item finite-difference $\epsilon$ audit, if applicable;
+  \item conditional, score, and total-response arrays separately;
+  \item minimum Born denominator, replay residual, and censored branch counts;
+  \item wall retention, bulk leakage, and total-charge drift;
+  \item native Fourier resolution, time window, zero padding, and wedge
+  definition;
+  \item whole-trajectory bootstrap and paired-wall reversal test.
+\end{enumerate}
+
+\bibliographystyle{apsrev4-2}
+\bibliography{references}
+
+\end{document}

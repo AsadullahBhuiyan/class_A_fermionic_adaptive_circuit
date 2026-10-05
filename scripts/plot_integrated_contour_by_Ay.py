@@ -44,7 +44,7 @@ data_path = (
     "cache/G_history_samples/"
     "N12x31/"
     "N12x31_C20_S250_nshNone_DW1_init-default_n_a0.5_seq-dw_symmetric_random_"
-    "exclNone_pm1.00_tbtf1_tbtflm0_markov_circuit_slope_drift_testing.npz"
+    "exclNone_markov_circuit_slope_drift_testing.npz"
 )
 
 Nx, Ny = 12, 31
@@ -67,7 +67,7 @@ n_jobs = cpu_use
 # output
 pdf_path = (
     "figs/N12x31_C20_S250_nshNone_DW1_init-default_n_a0.5_seq-dw_symmetric_random_"
-    "exclNone_pm1.00_tbtf1_tbtflm0_markov_circuit_slope_drift_testing_plots_summary_only.pdf"
+    "exclNone_markov_circuit_slope_drift_testing_plots_summary_only.pdf"
 )
 
 # if True, only write the final slope-vs-time page (skip per-time-step pages)
@@ -233,11 +233,9 @@ def main():
     sample_idx = sample_indices(S, max_samples)
 
     # Two y-cut ranges (as in run_markov_p_sweep)
-    y_cut_list_1 = np.arange(2, Ny // 2)
-    y_cut_list_2 = np.arange(Ny // 2, Ny - 1)
-    n = min(len(y_cut_list_1), len(y_cut_list_2))
-    y_cut_list_1 = y_cut_list_1[:n]
-    y_cut_list_2 = y_cut_list_2[:n]
+    y_cut_base = np.arange(2, Ny // 2)
+    y_cut_list_1 = y_cut_base.copy()
+    y_cut_list_2 = np.sort(Ny - y_cut_base)
     Ay_list_1 = Ny - y_cut_list_1
     Ay_list_2 = Ny - y_cut_list_2
 

@@ -1,0 +1,19 @@
+{
+  "revision": "flattened_imaginary_time_density_nx20_ny30_hard_v1",
+  "Nx": 20,
+  "Ny": 30,
+  "alpha_1": 1.0,
+  "alpha_2": 30.0,
+  "nshell": 1,
+  "DW": true,
+  "dw_truncation": true,
+  "trial_orbitals": "X",
+  "filling_fraction": 0.5,
+  "dtype": "complex128",
+  "occupation_twist": 1e-07,
+  "tau_min": 0.001,
+  "tau_max": 1000.0,
+  "tau_points": 240,
+  "tau_chunk": 8,
+  "normalization_tolerance": 1e-12
+}

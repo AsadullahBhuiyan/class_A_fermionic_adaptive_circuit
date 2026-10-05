@@ -1,0 +1,67 @@
+{
+  "sampling_revision": "hard_wall_full_measurement_nx20_ny30_alpha1-3_s100_2ny_v1",
+  "root_seed": 2026092521,
+  "Nx": 20,
+  "Ny_values": [
+    30
+  ],
+  "samples_per_case": 100,
+  "cycles_multiplier": 2,
+  "nshell": 1,
+  "alpha_1_values": [
+    1.0,
+    3.0
+  ],
+  "alpha_2": 30.0,
+  "trial_orbitals": "X",
+  "filling_fraction": 0.5,
+  "n_a": 0.5,
+  "init_mode": "maxmix",
+  "sequence": "raster_y",
+  "perfect_correction": true,
+  "postselect": false,
+  "dtype": "complex128",
+  "device": "cuda:0",
+  "backend": "local",
+  "state_representation": "covariance",
+  "result_shard_size": 5,
+  "segment_cycles": 10,
+  "gpu_memory_budget_bytes": 38000000000,
+  "gpu_allocator_limit_bytes": 35000000000,
+  "resume_initial_purity_tolerance": 0.50000001,
+  "execution_batch_size_by_Ny": {
+    "30": 100
+  },
+  "observer_sample_chunk_by_Ny": {
+    "30": 10
+  },
+  "constructions": {
+    "hard": {
+      "DW": true,
+      "dw_truncation": true,
+      "meas_slab_only": false
+    }
+  },
+  "observables": {
+    "cycles": "0..2Ny inclusive",
+    "occupation_spectrum": true,
+    "cell_entropy_contour_alpha1": [
+      1.0
+    ],
+    "cell_charge_variance_contour_alpha1": [
+      1.0
+    ],
+    "endpoint_slowest_mode_alpha1": [
+      1.0
+    ],
+    "slowest_mode_definition": "argmin_j abs(log((1-nu_j)/nu_j)/(2T)) at T=2Ny",
+    "slowest_mode_occupation_cutoff": 1e-09,
+    "slowest_mode_degeneracy_atol": 1e-10,
+    "final_centered_covariance": true,
+    "measurement_log_probability": true,
+    "cumulative_log_probability": true,
+    "log_probability_dtype": "float64",
+    "log_probability_origin": "global_maxmix_cycle_zero_no_exterior_preparation",
+    "entropy_log_base": "natural"
+  }
+}

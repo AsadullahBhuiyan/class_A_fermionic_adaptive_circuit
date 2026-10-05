@@ -85,10 +85,8 @@ def main():
             G_init=G_init,
             save=True,
             samples=samples,
-            p_meas=1,
             parallelize_samples=True,
-            sequence="dw_symmetric",
-            top_triv_back_forth=True,
+            sequence="dw_symmetric_random",
         )
 
         G_finals = res["G_final"]

@@ -1,0 +1,169 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\Ch}{\operatorname{Ch}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\op}{\mathrm{op}}
+\newcommand{\br}{\boldsymbol r}
+\newcommand{\bk}{\boldsymbol k}
+\newcommand{\ket}[1]{\lvert#1\rangle}
+\newcommand{\bra}[1]{\langle#1\rvert}
+\newcommand{\kett}[1]{\lvert#1\rangle\!\rangle}
+\begin{document}
+\title{Bulk topology from truncated overcomplete Wannier modes}
+\author{Asadullah Bhuiyan}
+\noaffiliation
+\date{September 29, 2026}
+\begin{abstract}
+We construct a half-filled reference state from truncated overcomplete Wannier
+modes and give a sufficient, volume-independent condition for its Chern number
+to remain one. We then distinguish this static statement from a possible
+deformation between imaginary-time filtering and monitored trajectories.
+\end{abstract}
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{The untruncated projector}
+We consider the translation-invariant bulk, with two orbitals per unit cell,
+and the parent Hamiltonian of Ref.~\cite{BPJ}. Its lower-band projector is
+\begin{equation}
+ P_-(\bk)=\tfrac12[\Id-\widehat{\boldsymbol n}(\bk)\cdot\boldsymbol\sigma],
+ \qquad \boldsymbol n=(\sin k_x,\sin k_y,\alpha-\cos k_x-\cos k_y),
+ \quad 0<\alpha<2 . \label{eq:parent}
+\end{equation}
+Here $\widehat{\boldsymbol n}=\boldsymbol n/|\boldsymbol n|$ is a unit vector,
+not an operator. The half-filled ground state occupies $P_-$, with
+$\Ch(P_-)=1$ in our orientation convention. Choose
+$\tau_{A/B}=(1,\pm1)^{\mathsf T}/\sqrt2$ and write
+$\ket{w_{\br\nu}}=P_-\ket{\br,\tau_\nu}$.
+Completeness of the local trial states gives
+\begin{equation}
+ \sum_{\br,\nu}\ket{w_{\br\nu}}\bra{w_{\br\nu}}=P_-^2=P_-.
+ \qquad
+ \|w_{\br\nu}\|^2=\int_{\mathrm{BZ}}\frac{d^2k}{(2\pi)^2}
+ \tau_\nu^\dagger P_-(\bk)\tau_\nu=\tfrac12 . \label{eq:tight}
+\end{equation}
+The last equality follows from oddness of $n_x/|\boldsymbol n|$.
+Thus the normalized overcomplete Wannier (OW) columns
+$W_{\br\nu}=\sqrt2\,w_{\br\nu}$ satisfy
+$P_-=\frac12\sum_{\br,\nu}W_{\br\nu}W_{\br\nu}^\dagger$.
+The factor $1/2$ is essential: this is a tight frame, not an orthonormal basis.
+In the report's two-point ordering,
+$C_{ij}=\operatorname{Tr}(\hat\rho\hat c_i^\dagger\hat c_j)$ and
+$\Gamma=C^{\mathsf T}$; the ground state has $\Gamma=P_-$.
+
+\section{Truncation and quantization}
+Let $g_\ell(\br)$ be the indicator of $|x|,|y|\le\ell$, where
+$\ell=n_{\rm shell}$, and normalize
+$W^{(\ell)}_{\br\nu}=g_{\ell,\br}W_{\br\nu}/\|g_{\ell,\br}W_{\br\nu}\|$.
+Introduce the synthesis matrices
+$S_0=(W_{\br\nu})/\sqrt2$, $S_\ell=(W^{(\ell)}_{\br\nu})/\sqrt2$.
+Since $S_0S_0^\dagger=P_-$, $\|S_0\|_\op=1$. Setting
+$E_\ell=S_\ell-S_0$, $\epsilon_\ell=\|E_\ell\|_\op$, we obtain
+\begin{align}
+ F_\ell&=S_\ell S_\ell^\dagger,
+ &F_\ell-P_-&=S_0E_\ell^\dagger+E_\ell S_0^\dagger+E_\ell E_\ell^\dagger,
+ \nonumber\\[-2pt]
+ \|F_\ell-P_-\|_\op&\le\delta_\ell,
+ &\delta_\ell&=2\epsilon_\ell+\epsilon_\ell^2. \label{eq:bound}
+\end{align}
+Small column errors alone would not give a volume-independent bound.
+Here translation symmetry does: write $W_\nu=W_{\boldsymbol0\nu}$,
+$M=\max_\nu\|W_\nu\|_1$ and
+$a_p=\max_\nu\|(1-g_\ell)W_\nu\|_p$, where the norms include both orbitals.
+For $a_2<1$, normalization and the Fourier triangle inequality imply
+\begin{equation}
+ \epsilon_\ell=\sup_{\bk}\|E_\ell(\bk)\|_\op
+ \le b_\ell:=a_1+
+ \left[(1-a_2^2)^{-1/2}-1\right]M\longrightarrow0 . \label{eq:tail}
+\end{equation}
+Indeed, each normalized-column difference has $\ell^1$ norm at most
+$b_\ell$; the two Bloch columns, each divided by $\sqrt2$, have combined
+Frobenius norm at most $b_\ell$. Exponential OW localization makes both tails
+vanish as $\ell\to\infty$, while $M$ is finite.
+
+Assume $\delta_\ell<1/2$. Along $F(u)=P_-+u(F_\ell-P_-)$, spectral stability gives
+\begin{equation}
+ \operatorname{spec}F(u)\subset[-u\delta_\ell,u\delta_\ell]
+ \cup[1-u\delta_\ell,1+u\delta_\ell],\qquad
+ \Pi(u)=\mathbf1_{(1/2,\infty)}(F(u)),\quad 0\le u\le1. \label{eq:path}
+\end{equation}
+The occupation gap stays open. Equivalently,
+$\Pi(u,\bk)=(2\pi i)^{-1}\oint_{|z-1|=1/2}(z\Id-F(u,\bk))^{-1}dz$,
+with positive contour orientation. This defines a smooth, periodic rank-one
+projector. Its invariant is
+\begin{equation}
+ \Ch(\Pi(u))=\frac1{2\pi i}\int_{\mathrm{BZ}}d^2k\,
+ \tr\!\left(\Pi(u)[\partial_{k_x}\Pi(u),\partial_{k_y}\Pi(u)]\right).
+ \label{eq:chern}
+\end{equation}
+On overlapping momentum patches, $\ket{v_a}=e^{i\theta_{ab}}\ket{v_b}$ and
+$\bra{v_a}d v_a\rangle=\bra{v_b}d v_b\rangle+i\,d\theta_{ab}$.
+Stokes' theorem identifies Eq.~\eqref{eq:chern} with the integer winding
+$(2\pi)^{-1}\oint d\theta_{ab}$, summed over oriented patch boundaries.
+It is also continuous in $u$, hence constant:
+\begin{equation}
+ \boxed{\epsilon_\ell<\sqrt{3/2}-1\quad\Longrightarrow\quad
+ \Ch(\Pi_\ell)=\Ch(P_-)=1,\qquad \Pi_\ell=\Pi(1).} \label{eq:claim}
+\end{equation}
+Uniform truncation preserves momentum diagonality. The real-space projector
+is exponentially local because it is the gapped spectral projection of a
+finite-range operator. Its infinite-bulk three-sector invariant is the same
+integer~\cite{Kitaev}; a finite disk still has finite-radius corrections.
+This proves the claim for sufficiently large finite $\ell$, not specifically
+for $\ell=1$. Nor is $F_\ell$ itself a projector or an occupation matrix:
+its eigenvalues can exceed one. The reference Hamiltonian
+$h_\ell=\Id-2F_\ell$ has half-filled ground-state projector $\Pi_\ell$.
+
+\section{Imaginary time and the monitored circuit}
+For a finite system, normalized $e^{-\beta\hat H_\ell}\kett{\psi_0}$ approaches
+this ground state as $\beta\to\infty$, provided the initial half-filled state
+has nonzero ground-state overlap; here
+$\hat H_\ell=\sum_{ij}(h_\ell)_{ij}\hat c_i^\dagger\hat c_j$.
+There is a useful connection to occupation measurements. With
+$\hat N_{j,\pm}=\hat\chi_{j,\pm}^\dagger\hat\chi_{j,\pm}$ for normalized truncated modes,
+the penalties $\hat q_{j,-}=\hat{\mathbf{1}}-\hat N_{j,-}$ and
+$\hat q_{j,+}=\hat N_{j,+}$ are projectors, so
+\begin{equation}
+ e^{-\lambda\hat q}=\hat{\mathbf{1}}+(e^{-\lambda}-1)\hat q,
+ \qquad e^{-\lambda\hat q_{j,-}}\xrightarrow{\lambda\to\infty}\hat N_{j,-},
+ \qquad e^{-\lambda\hat q_{j,+}}\xrightarrow{\lambda\to\infty}
+ \hat{\mathbf{1}}-\hat N_{j,+}. \label{eq:filter}
+\end{equation}
+These are precisely the desired-outcome, no-correction branches. Trotterizing
+the positive penalty $\hat H_{\rm pen}=\sum_{j,\sigma}\hat q_{j,\sigma}$
+gives $e^{-\beta\hat H_{\rm pen}}=\lim_{M\to\infty}
+(\prod_{j,\sigma}e^{-\beta\hat q_{j,\sigma}/M})^M$ at fixed finite volume
+and $\beta$. Its one-body matrix is
+$2(F_+^{(\ell)}-F_-^{(\ell)})$, not generally $h_\ell$.
+Here $F_-^{(\ell)}=F_\ell$ and $F_+^{(\ell)}$ is the analogous upper-band frame
+operator. If $\|F_\pm^{(\ell)}-P_\pm\|_\op\le\delta_\pm$ and
+$\delta_++\delta_-<1$, its ground-state projector is likewise connected to
+$P_-$ without closing the gap. This is a static spectral argument, distinct
+from dissipative preparation~\cite{Goldstein}.
+
+We may therefore conjecture that typical late-time trajectories remain in
+this deformed topological sector. However, weak-filter Trotterization does
+not justify the strong-filter limit at fixed step size: the penalties do
+not commute. An arbitrary record also contains the correction branches
+$\hat\chi_{j,-}^\dagger$ and $\hat\chi_{j,+}$, which change physical charge;
+projective branches are singular. Imaginary time under $\hat H_\ell$ preserves
+charge. A deformation to an arbitrary record is consequently not automatic.
+It would require control of bulk locality and a spectral or mobility gap
+along a record-dependent interpolation, with any charge-changing localized
+defects treated explicitly. Equation~\eqref{eq:claim} proves topology of the
+reference state; extending it to the conditional ensemble is the open step.
+
+\begin{thebibliography}{3}
+\bibitem{BPJ} A. Bhuiyan, H. Pan, and C.-M. Jian,
+\href{https://doi.org/10.1103/nk38-ygyq}{Phys. Rev. Research \textbf{8}, 023147 (2026)}.
+\bibitem{Kitaev} A. Kitaev,
+\href{https://doi.org/10.1016/j.aop.2005.10.005}{Ann. Phys. \textbf{321}, 2 (2006)}, Appendix C.3.
+\bibitem{Goldstein} M. Goldstein,
+\href{https://doi.org/10.21468/SciPostPhys.7.5.067}{SciPost Phys. \textbf{7}, 067 (2019)}.
+\end{thebibliography}
+\end{document}

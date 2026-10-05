@@ -40,7 +40,7 @@ CACHE_PATH = (
     "cache/G_history_samples/"
     "N12x31/"
     "N12x31_C20_S250_nshNone_DW1_init-default_n_a0.5_seq-dw_symmetric_random_"
-    "exclNone_pm1.00_tbtf1_tbtflm0_markov_circuit.npz"
+    "exclNone_markov_circuit.npz"
 )
 PDF_PATH = "figs/dw_modular_current_comparison.pdf"
 

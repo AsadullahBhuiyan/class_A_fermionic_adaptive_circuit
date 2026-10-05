@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "bundle": "04_maxmix_operator_cft",
+  "campaign_revision": "maxmix_operator_cft_v1",
+  "root_seed": 2026082604,
+  "production_output_collection": "classA_final_production_outputs/maxmix_operator_cft_v1",
+  "pilot_output_collection": "classA_pilot_outputs/maxmix_operator_cft_v1",
+  "contract": {
+    "Nx": 20,
+    "Ny_values": [20, 30, 40, 50, 60],
+    "samples_per_case": 25,
+    "samples_per_shard": 5,
+    "cycles_rule": "2*Ny",
+    "physical_burn_in_cycles": 0,
+    "nshell": 1,
+    "filling_fraction": 0.5,
+    "sequence": "random",
+    "perfect_correction": true,
+    "postselection": false,
+    "ancilla_occupation": 0.5,
+    "dtype": "complex128",
+    "canonical_entry_point": "classA_U1FGTN_gpu.run_markov_circuit",
+    "initialization": "maxmix",
+    "choi_tracked": false,
+    "tangent_tracked": false,
+    "trajectory_record_saved": false
+  },
+  "protocols": {
+    "wall": {"DW": true, "alpha_1": 1.0, "alpha_2": 30.0, "dw_truncation": false, "meas_slab_only": false},
+    "matched_trivial": {"DW": false, "alpha_1": 30.0, "alpha_2": 30.0, "dw_truncation": false, "meas_slab_only": false}
+  },
+  "observations": {
+    "early_cycles_through": "min(16,Ny/2)",
+    "log_checkpoint_count": 16,
+    "mandatory_prefixes": ["Ny", "3*Ny/2", "2*Ny"],
+    "strip_cycles": ["Ny", "3*Ny/2", "2*Ny"],
+    "soft_mode_count": 16,
+    "charge_sectors": [-3, -2, -1, 0, 1, 2, 3],
+    "levels_per_charge_sector": 128,
+    "eigenpair_residual_tolerance": 1e-8,
+    "eigenvector_gram_tolerance": 1e-8,
+    "probability_storage": "cumulative_log_probability_per_cycle_only"
+  },
+  "analysis": {
+    "bootstrap_replicates": 2000,
+    "bootstrap_seed": 2026082644,
+    "interface_weight_minimum": 0.7,
+    "two_wall_balance_minimum": 0.25,
+    "soft_impurity_fraction_minimum": 0.7,
+    "aicc_preference_minimum": 4.0,
+    "k_target": 1.0,
+    "k_relative_tolerance": 0.1,
+    "charge_asymmetry_tolerance": 0.1,
+    "descendant_rms_tolerance": 0.15,
+    "prefix_delete_relative_tolerance": 0.1,
+    "c_eff_target": 1.0,
+    "c_eff_relative_tolerance": 0.2,
+    "casimir_sensitivity_tolerance": 0.2
+  },
+  "pilot": {"Ny_values": [20], "samples_per_case": 2},
+  "storage": {"production_case_count": 10, "production_shard_count": 50, "atomic_writes": true, "checksum": "sha256"}
+}

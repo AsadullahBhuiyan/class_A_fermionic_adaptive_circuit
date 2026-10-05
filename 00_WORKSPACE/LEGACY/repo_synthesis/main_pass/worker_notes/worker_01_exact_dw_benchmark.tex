@@ -1,0 +1,185 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\begin{document}
+
+\title{Worker 01 Notes: Exact Domain-Wall Benchmark}
+\author{Worker 01}
+\date{\today}
+
+\begin{abstract}
+I inspected only \texttt{exact\_DW\_benchmark\_notes/} and
+\texttt{notebooks/exact\_DW\_GS\_benchmark.ipynb}, excluding paths containing
+\texttt{haining}, \texttt{haoyu}, or \texttt{erroneous}, and without reading
+repo-synthesis worker, supervisor, or boss notes.  The exact domain-wall
+benchmark supports the main repository message that the domain-wall Chern
+insulator realizes sharply localized chiral edge physics whose entanglement and
+correlation diagnostics are well captured by exact Gaussian ground-state
+methods and, for several observables, by the overcomplete-Wannier flattened
+Hamiltonian surrogate.  The strongest evidence is the near-perfect
+$\ell_y^{-2}$ fixed-wall squared-correlation scaling, the additive
+domain-wall contributions to strip-integrated contour slopes, the local Chern
+marker localization, and the very close agreement of $X/Y$ trial-orbital
+flattened-Hamiltonian entanglement-contour fits with the exact covariance.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+The inspected source set was restricted to
+\texttt{exact\_DW\_benchmark\_notes/} and
+\texttt{notebooks/exact\_DW\_GS\_benchmark.ipynb}.  I read the benchmark
+RevTeX note, file inventory, notebook source cells, and stored notebook textual
+outputs.  I did not execute the notebook and did not load numerical arrays.
+Notebook line references below are raw JSON-line references from the notebook
+file; RevTeX references are ordinary file line numbers.
+
+\section{Findings}
+The benchmark constructs an exact Gaussian ground state for a real-space
+domain-wall Chern-insulator Hamiltonian.  The model uses two orbitals per unit
+cell and the flattening convention
+$i(\mu,x,y)=\mu+2x+2N_x y$; the domain-wall slab is implemented by switching
+the mass parameter from $\alpha_{\rm triv}$ to $\alpha_{\rm top}$ between two
+stored wall locations.  The real-space hopping blocks correspond to the usual
+lattice Dirac-Chern Bloch Hamiltonian
+\begin{equation}
+h(\bm{k})=\sin k_x\,\sigma_x+\sin k_y\,\sigma_y+
+(\alpha-\cos k_x-\cos k_y)\sigma_z .
+\end{equation}
+The notebook default benchmark uses $N_x=20$, $N_y=40$,
+$\alpha_{\rm triv}=30$, $\alpha_{\rm top}=1$, periodic boundary conditions,
+and domain walls at $x=6,14$.
+
+The exact state is obtained by diagonalizing the one-body Hamiltonian, forming
+the negative-energy projector $P_-$, and setting
+\begin{equation}
+G=2P_- - \mathbf{1}.
+\end{equation}
+For the default periodic benchmark, the stored notebook output reports
+$800$ negative and $800$ positive modes and a near-zero finite-size minimum
+$|E|=7.313048\times 10^{-15}$, consistent with domain-wall spectral crossings.
+
+The strongest universal edge diagnostic is the fixed-$x$ squared correlator.
+The benchmark expects a chiral free fermion edge field to give
+$|\langle \psi^\dagger(y)\psi(0)\rangle|^2\sim
+\sin^{-2}(\pi y/L)$, hence slope $-2$ versus log chord length.  The exact
+domain-wall slices give slopes $-2.02464139$ at $x=6,14$ with
+$R^2=0.99983525$; the trivial-side neighbors give slopes $-2.06888554$ at
+$x=5,15$ with $R^2=0.99877589$.  Interior neighbors $x=7,13$ instead fall with
+slope about $-13.13363802$, showing that the algebraic edge signal is spatially
+localized.
+
+The integrated entanglement-contour analysis is also consistent with two
+domain-wall edge contributions.  The full-width strip contour has fitted
+log-chord slope $m=0.343924$ on both lower and upper branches, while each
+three-site wall-centered window has slope $m\simeq 0.1686$.  The near equality
+$0.3439 \simeq 2\times 0.1686$ is the cleanest quantitative statement that the
+full-width signal is approximately the sum of two equal wall contributions.
+
+The notebook and note emphasize an important convention: when scanning an
+$x$ interval, the subsystem is usually not redefined in $x$.  One first computes
+the entanglement contour on a full-width strip in $x$, then restricts only the
+final contour sum to a diagnostic $x$ window.  This convention applies both to
+integrated contour fits and contour-restricted mutual-information diagnostics.
+
+The overcomplete-Wannier flattened Hamiltonian benchmark supports the same
+message at a surrogate level.  The note reports that $X$ and $Y$ trial orbitals
+produce nearly identical flattened spectra and reproduce exact integrated
+contour slopes extremely well: full-width exact $m\approx 0.3439$ versus
+$X/Y$ $m\approx 0.3448$, and wall-window exact $m\approx 0.1686$ versus
+$X/Y$ $m\approx 0.1691$.  The $Z$ trial orbital remains qualitatively correct
+but has larger quantitative shifts.
+
+\section{Interpretation}
+These sources support the main repo narrative that the domain-wall geometry is
+a controlled exact benchmark for chiral Chern-edge physics.  The exact
+Gaussian ground state produces edge-localized algebraic correlations, local
+topological response, and conformal log-chord entanglement scaling.  The
+contour diagnostics further show that the observable edge signal can be
+localized after the full subsystem contour is computed, giving a physically
+clean way to assign full-strip entanglement to the two domain walls.
+
+The benchmark also gives evidence for the repository's broader flattened-H or
+post-selected-generator picture: the overcomplete-Wannier flattened
+Hamiltonian, especially with $X/Y$ trial orbitals, reproduces the exact
+entanglement-contour scaling closely enough to be a credible surrogate for
+long-time or slow-purification structure.  This is strongest for integrated
+entanglement observables and weaker for trial-orbital-dependent spectral
+details.
+
+\section{Evidence Table}
+\begin{ruledtabular}
+\begin{tabular}{p{0.27\linewidth}p{0.19\linewidth}p{0.47\linewidth}}
+Source & Lines & Evidence \\
+\hline
+\texttt{exact\_DW\_benchmark\_notes/exact\_DW\_GS\_benchmark\_revtex.tex}
+& 41--120
+& Defines the two-orbital domain-wall Chern-insulator Hamiltonian, mass slab,
+flattening convention, and Bloch Dirac-Chern form. \\
+Same & 161--179
+& Defines exact Gaussian benchmark covariance via occupied projector
+$G=2P_- - \mathbf{1}$. \\
+Same & 123--152
+& States chiral free-fermion expectation: squared correlator should scale with
+log-chord slope $-2$. \\
+Same & 346--357
+& Reports wall slopes $m\approx -2.025$, exterior-neighbor slopes
+$m\approx -2.069$, and steep interior-neighbor decay. \\
+Same & 394--412
+& Shows the $x$-averaged squared correlator still fits near $m\approx -2.069$,
+indicating edge-dominated averaged behavior. \\
+Same & 549--583
+& Defines and captions the local Chern marker, localized in the domain-wall
+slab. \\
+Same & 586--610, 925--932
+& States the full-width-subsystem, post-contour $x$-window convention. \\
+Same & 648--770
+& Defines flattened-Hamiltonian OW surrogate and reports strong exact-vs-$X/Y$
+agreement in integrated contour slopes. \\
+\texttt{notebooks/exact\_DW\_GS\_benchmark.ipynb}
+& 339--352
+& Notebook default: $N_x=20$, $N_y=40$, $\alpha_1=30$, $\alpha_2=1$,
+periodic, standard domain-wall mode, and call to \texttt{G\_CI\_domain\_wall}. \\
+Same & 1649--1656
+& Stored output gives wall-neighbor slope summary, including $x=6,14$ slope
+$-2.02464139$ and $x=5,15$ slope $-2.06888554$. \\
+Same & 1970
+& Stored output gives $x$-averaged squared-correlator slope $-2.069104$ with
+$R^2=0.998981$. \\
+Same & 2100--2106
+& Stored output gives integrated-contour slopes: full width $0.343924$ and
+wall windows $0.168642$. \\
+Same & 2377, 2627
+& Notebook explicitly states that subsystems are full width in $x$ and
+\texttt{x\_interval} restricts only the final contour sum. \\
+Same & 2750--2764
+& Final validation cell is designed to compare direct strip entropy with
+contour-summed entropy and test lower-branch fit-window sensitivity, though I
+did not execute it. \\
+\end{tabular}
+\end{ruledtabular}
+
+\section{Caveats}
+The notebook contains executed textual outputs, but I did not rerun it, so I
+treat the stored results as source evidence rather than independently
+recomputed facts.  I did not inspect image pixels or load arrays; figure
+content is inferred from captions, code, and stored text outputs.  Some
+flattened-Hamiltonian details in the live notebook include both truncated and
+untruncated branches, while the polished note emphasizes the simpler trial
+orbital comparison; this does not change the main conclusion but should be
+tracked if the synthesis discusses truncation specifically.
+
+\section{Confidence}
+Confidence is high for the exact benchmark's qualitative message and for the
+quoted stored numerical slopes, because the RevTeX note, notebook source, and
+notebook outputs agree.  Confidence is moderate for broader implications about
+adaptive dynamics or post-selected relaxation, because those are interpretive
+links made by the benchmark note rather than directly established by the exact
+ground-state calculation alone.
+
+\end{document}

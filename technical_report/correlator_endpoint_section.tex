@@ -1,0 +1,163 @@
+\subsubsection{Boundary and Bulk Correlation Scaling}
+We next resolve the correlations along the wall without first averaging over
+the transverse direction.  For a single trajectory $\xi$, define
+\begin{align}
+ C_{G,\xi}(x,r_y)
+ &=\frac{1}{2N_y}\sum_{y,\mu,\nu}
+ \left|C^{(\xi)}_{(x,y,\mu),(x,y+r_y,\nu)}\right|^2,
+ \nonumber\\
+ C_{G,\xi}^{\mathrm{av}}(r_y)
+ &=\frac{1}{N_x}\sum_{x=0}^{N_x-1}C_{G,\xi}(x,r_y).
+ \label{eq:EndpointSquaredCorrelator}
+\end{align}
+Here $C^{(\xi)}_{ij}=\operatorname{Tr}(\hat\rho_\xi\hat c_i^\dagger\hat c_j)$,
+the $y$ coordinate is periodic, and both orbital indices are summed.  The
+overline below denotes an arithmetic average over the independent
+trajectories, after forming the squared correlator.  Thus we do not square
+the averaged two-point function or average its logarithm.
+
+This positive squared correlator has a direct density interpretation.
+Write $\hat n_i=\hat c_i^\dagger\hat c_i$ and
+$\langle\delta\hat n_i\delta\hat n_j\rangle_\xi
+=\langle\hat n_i\hat n_j\rangle_\xi
+-\langle\hat n_i\rangle_\xi\langle\hat n_j\rangle_\xi$.
+Wick's theorem for a charge-conserving Gaussian trajectory gives
+\begin{equation}
+ \langle\delta\hat n_i\delta\hat n_j\rangle_\xi
+ =\delta_{ij}C^{(\xi)}_{ii}-|C^{(\xi)}_{ij}|^2.
+ \label{eq:EndpointDensityWickIdentity}
+\end{equation}
+For distinct modes, the connected density correlator is therefore the
+negative of the squared two-point function.  With the total cell density
+$\hat n_{x,y}=\sum_\mu\hat n_{x,y,\mu}$, the precise normalization of
+our observable is
+\begin{align}
+ C_{G,\xi}(x,r_y)=-\frac{1}{2N_y}\sum_y
+ \langle\delta\hat n_{x,y}\delta\hat n_{x,y+r_y}\rangle_\xi,
+ \nonumber\\[-2pt]
+ r_y\not\equiv0\pmod{N_y}.
+ \label{eq:EndpointCellDensityCorrelator}
+\end{align}
+The factor $1/2$ is our per-orbital normalization.  At coincident cells the
+contact term in Eq.~\eqref{eq:EndpointDensityWickIdentity} must be retained.
+The connected subtraction is made inside each trajectory before the
+ensemble average.  Forming a connected correlator of the mixed ensemble
+instead adds the classical trajectory covariance of the local mean
+densities, which is not included in the plotted quantity.
+
+For a free chiral fermion, the fermion field has scaling dimension $1/2$,
+so its two-point function decays as $d_{N_y}^{-1}$ and the squared
+correlator has the critical prediction
+\begin{equation}
+ \overline{C_G^{\mathrm{av}}(r_y)}\sim A\,d_{N_y}(r_y)^{-\beta},
+ \qquad \beta_{\mathrm{crit}}=2,
+ \label{eq:EndpointCorrelatorCriticalPrediction}
+\end{equation}
+provided the long-distance signal is boundary dominated.  The chord is
+$d_{N_y}(r_y)=(N_y/\pi)\sin(\pi r_y/N_y)$.  Figure~\ref{fig:HardWallCorrelatorSummary}
+shows the distinction directly: at $\alpha_1=1$ the long-distance signal
+survives the average over $x$, whereas at $\alpha_1=3$ it drops rapidly.
+At $N_y=60$, the exact wall columns carry the largest long-distance
+correlations.  The neighboring columns and the slab center have much
+smaller amplitudes.  For this dataset we use the saved array coordinates
+$x=0,\ldots,19$, with $x_L=5$ and $x_R=15$.
+
+For the size collapse, we remove each circumference's amplitude using its
+measured antipodal value.  With $r_\star=N_y/2$, set
+\begin{align}
+ X_N(r_y)&=\log\frac{d_{N_y}(r_y)}{d_{N_y}(r_\star)},
+ \nonumber\\
+ Y_N(r_y)&=\log\frac{\overline{C_G^{\mathrm{av}}(r_y)}}
+                         {\overline{C_G^{\mathrm{av}}(r_\star)}}.
+ \label{eq:EndpointCorrelatorCollapse}
+\end{align}
+Both coordinates vanish at the measured anchor; no fitted vertical shift
+is introduced.  We fit $Y_N=-\beta X_N$ on
+$8\leq r_y\leq N_y/2$, assigning equal total weight to each
+circumference.  Explicitly, if $\mathcal W_N$ contains the $n_N$ selected
+separations,
+\begin{equation}
+ \beta=-\frac{\sum_N n_N^{-1}\sum_{r_y\in\mathcal W_N}X_NY_N}
+                  {\sum_N n_N^{-1}\sum_{r_y\in\mathcal W_N}X_N^2}.
+ \label{eq:EndpointCorrelatorJointFit}
+\end{equation}
+The six-size fit gives $\beta=2.1903$, without constraining the power to
+two.  We use $r_y\geq8$ to separate this fit from the short-distance
+transient, while retaining the full independent interval through $N_y/2$.
+The selected windows contain 5, 7, 9, 13, 18, and 23 separation values for
+the six circumferences; $N_y=60$ does not supply 60 independent distances.
+Moving the lower endpoint to five gives $\beta=2.2016$.
+The earlier $2,\ldots,\lfloor N_y/4\rfloor$ window gave $2.2291$;
+extending that same lower cutoff to $N_y/2$ gave $2.2282$.
+Thus the lower cutoff, rather than the upper one, accounts for most of
+the shift.  The antipodal normalization is the same in all these checks.
+The collapse supports an
+algebraic boundary contribution, but these finite-size effective exponents
+remain above the ideal prediction.  This varies the circumference at
+fixed $N_x=20$, not both dimensions of the system.  The fit is to logarithms
+of ensemble-mean curves, not an average of sample-wise exponents.
+
+\begin{figure}[!htbp]
+ \centering
+ \includegraphics[width=\columnwidth]{hard_wall_correlator_summary_3x1.pdf}
+ \caption{\textbf{Endpoint correlation scaling.}
+ Hard walls, $N_x=20$, $\alpha_2=30$, $n_{\rm shell}=1$, $t=2N_y$;
+ $S=100$ independent pure half-filled initial states per ensemble,
+ Born-conditioned exterior preparation, raster-$y$ perfect correction,
+ and complex128 arithmetic.
+ (a) Full-$x$ average at $N_y=60$, comparing $\alpha_1=1$ and $3$.
+ (b) $\alpha_1=1$, $N_y=60$: walls $x=5,15$, adjacent cells $x=6,14$,
+ and slab center $x=10$.
+ (c) Antipodally normalized collapse of the $\alpha_1=1$ means for
+ $N_y=24,28,32,40,50,60$.  The black dashed line is the equal-size-weighted
+ fit $Y_N=-\beta X_N$ on $8\leq r_y\leq N_y/2$, giving $\beta=2.1903$.
+ Light gray covers the union of the size-specific fit ranges; darker gray
+ marks their common interval.  Each size retains its color and open symbol
+ at every separation, including points outside its fit window.
+ The dashed continuation outside the fit ranges is an extrapolation.
+ All means precede logarithms; no uncertainty bands are shown.
+ Only $1\leq r_y\leq N_y/2$ is used.  The $10^{-8}$ cutoff in (a,b)
+ is for display, not a certified numerical floor; it excludes no fitted
+ points in (c).  Colored lines in (a,b) guide the eye.}
+ \label{fig:HardWallCorrelatorSummary}
+\end{figure}
+
+The boundary and bulk contributions need not be disentangled by subtracting
+entropies.  For this particular observable, the spatial bookkeeping is
+exactly additive.  Partition the columns into
+$B=\{5,6,14,15\}$ and its complement $U$.  Let $\overline C_B$ and
+$\overline C_U$ be the correlators averaged within their respective
+sets and over trajectories.  Then
+\begin{equation}
+ \overline{C_G^{\mathrm{av}}}
+ =\frac{|B|}{N_x}\overline C_B
+ +\frac{|U|}{N_x}\overline C_U.
+ \label{eq:EndpointCorrelatorSpatialSum}
+\end{equation}
+No independence assumption is needed: Eq.~\eqref{eq:EndpointSquaredCorrelator}
+only samples pairs at the same $x$.  Correlations between different columns
+would belong to a different observable.  The complement $U$ includes the
+slab interior and exterior, and is not assumed to be a pure bulk sector.
+For $N_y=60$, the four selected boundary columns contribute $99.35\%$ of
+the full-$x$ average at $r_y=5$ and $99.95\%$ at $r_y=30$.
+
+If the regional curves can be approximated by algebraic and exponential
+pieces, this sum has the form
+\begin{equation}
+ \overline{C_G^{\mathrm{av}}(r_y)}
+ \simeq A_{\mathrm e}d_{N_y}(r_y)^{-\beta}
+ +A_{\mathrm b}\left[e^{-r_y/\xi_C}+e^{-(N_y-r_y)/\xi_C}\right].
+ \label{eq:EndpointCorrelatorMixedDecay}
+\end{equation}
+The coefficients include the spatial weights.  This is a phenomenological
+description of the squared correlators, not an exact decomposition of the
+single-particle amplitudes: splitting $C=C_{\mathrm e}+C_{\mathrm b}$
+inside one matrix element would generate an interference term in $|C|^2$.
+At $x=10$, the observed short-distance curve is well described by
+$\log\overline{C_G(10,r_y)}=b-r_y/\xi_C$ on $r_y=2,\ldots,6$, with
+$\xi_C=0.6552$ unit cells.  This is the decay length of the squared
+correlator over that window, not a claim of purely exponential behavior
+at every separation.  A small algebraic tail can coexist in the interior
+at finite slab width.  Once the exponential contribution has decayed,
+the positive boundary contribution controls the full-$x$ average even
+though only a few columns carry most of its weight.

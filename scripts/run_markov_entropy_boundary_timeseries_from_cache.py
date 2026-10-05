@@ -61,7 +61,7 @@ def main():
     t0 = time.time()
 
     data_path = (
-        "/home/abhuiyan/class_A_fermionic_adaptive_circuit/cache/G_history_samples/N12x31/N12x31_C20_S250_nshNone_DW1_init-default_n_a0.5_seq-dw_symmetric_random_exclNone_pm1.00_tbtf1_tbtflm0_markov_circuit.npz"
+        "/home/abhuiyan/class_A_fermionic_adaptive_circuit/cache/G_history_samples/N12x31/N12x31_C20_S250_nshNone_DW1_init-default_n_a0.5_seq-dw_symmetric_random_exclNone_markov_circuit.npz"
     )
 
     with tqdm(total=1, desc="load") as pbar:

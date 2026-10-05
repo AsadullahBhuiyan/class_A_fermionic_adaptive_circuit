@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "campaign": "trajectory_independence_validation",
+  "root_seed": 2026082301,
+  "geometry": {
+    "Nx": 16,
+    "Ny": 16,
+    "cycles": 32,
+    "samples": 10,
+    "nshell": 1,
+    "filling_frac": 0.5,
+    "DW": false,
+    "alpha_1": 1.0,
+    "alpha_2": 1.0,
+    "trial_orbitals": "X",
+    "dw_truncation": false,
+    "meas_slab_only": false
+  },
+  "protocol": {
+    "sequence": "random",
+    "perfect_correction": true,
+    "postselect": false,
+    "postselect_probability": 0.0,
+    "dtype": "complex128",
+    "state_representation": "physical_frame",
+    "physical_covariance_update": "rank1"
+  },
+  "half_region": {
+    "y_start": 0,
+    "y_stop_exclusive": 8
+  },
+  "terminal_window": {
+    "start_cycle": 24,
+    "stop_cycle_inclusive": 32
+  },
+  "parallel": {
+    "workers": 10,
+    "blas_threads": 1,
+    "same_numa_node": true,
+    "idle_cpu_threshold_percent": 15.0,
+    "wait_seconds": 60
+  },
+  "acceptance": {
+    "gram_hard": 1e-9,
+    "covariance_audit_hard": 1e-8,
+    "exact_projector_distance_hard": 1e-8,
+    "exact_local_occupation_hard": 1e-8,
+    "chern_per_trajectory_hard": 0.02,
+    "chern_terminal_window_hard": 0.02,
+    "chern_final_standard_deviation_hard": 0.01,
+    "replay_probability_tolerance": 1e-14
+  },
+  "analysis": {
+    "bootstrap_repetitions": 10000,
+    "bootstrap_seed": 2026082399,
+    "figure_width_inches": 7.05,
+    "dpi": 300
+  },
+  "canonical_dynamics_entry_point": "classA_U1FGTN.run_markov_circuit"
+}

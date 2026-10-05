@@ -1,0 +1,1245 @@
+\documentclass[
+  aps,prx,twocolumn,superscriptaddress,longbibliography,
+  nofootinbib,floatfix
+]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cE}{\mathcal{E}}
+\newcommand{\cK}{\mathcal{K}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cT}{\mathcal{T}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\cZ}{\mathcal{Z}}
+\newcommand{\ket}[1]{\lvert #1\rangle}
+\newcommand{\bra}[1]{\langle #1\rvert}
+\newcommand{\proj}[1]{\lvert #1\rangle\!\langle #1\rvert}
+\newcommand{\avg}[1]{\overline{#1}}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\begin{document}
+
+\title{Mismatch-Click Defects and Replicated Update Maps in an Adaptive
+Class-A Fermion Circuit: A Working Technical Note}
+\author{Asadullah Bhuiyan}
+\affiliation{Department of Physics, Cornell University, Ithaca, New York 14853, USA}
+\date{\today}
+
+\begin{abstract}
+We investigate whether the binary signs in the perfect-correction covariance
+map admit a useful dynamical-defect or statistical-mechanics description.  The
+target sign is fixed by the controller band, while the Born sign defines a
+binary mismatch click
+\(d=(1-\eta_m\eta_s)/2\).  We show that this click is an exact centered
+Bernoulli innovation driving a rank-at-most-one covariance kick.  The measured orbital
+is healed after either outcome; for a pure Slater trajectory, the branch label
+instead flips one state-dependent partner orbital.  This yields an exact
+positive Perron--Frobenius transfer operator on the full covariance manifold, a
+Gaussian-closed tilted channel for the full counting statistics of mismatch
+activity, and a local replicated density-operator transfer whose trace is
+\(\sum_\xi p_\xi^n\).  Two marked replicas represent the Born-averaged squared
+correlator and intrinsic charge variance.  The one-copy covariance average
+closes affinely, whereas its exact fluctuation equation contains a nonlinear
+shot-noise source and generates an infinite moment hierarchy.  In contrast to
+the classical cellular automaton of O'Dea \emph{et al.}, overlapping
+noncommuting controller projectors do not preserve a common diagonal algebra;
+the click record alone is therefore not generically an autonomous local
+Markov process.  We finish with a testable narrow-distribution closure and a
+retarded effective click action whose kernel is a linearized covariance Green
+function.  This is a working note: exact
+identities, proposed approximations, and conjectural wall physics are labeled
+separately.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Question, answer, and status of the construction}
+\label{sec:question}
+
+The microscopic covariance update in the current class-A circuit
+contains two signs~\cite{BhuiyanPanJian2026},
+\begin{equation}
+ \Phi_{m|s}^{(j)}(G)
+ =Q_j\bigl(\Id+\eta_mGP_j\bigr)^{-1}GQ_j+\eta_sP_j.
+ \label{eq:starting-map}
+\end{equation}
+Here \(\eta_m=2m-1\) is the sampled occupation sign and
+\(\eta_s=2s-1\) is the target sign.  For the controller convention of the
+main manuscript, the lower-band mode has \(s=1\), hence \(\eta_s=+1\), and
+the upper-band mode has \(s=0\), hence \(\eta_s=-1\).  Thus \(\eta_s\) is a
+fixed background attached to the scheduled projector, while \(\eta_m\) is the
+physical Born-random variable.
+
+The natural binary field is their relative sign,
+\begin{equation}
+ d=\frac{1-\eta_m\eta_s}{2}\in\{0,1\}.
+ \label{eq:defect-definition-intro}
+\end{equation}
+It records whether the measurement disagrees with the target and therefore
+whether the fresh-ancilla correction fires.  The provisional answer developed
+in this note has four levels.
+\begin{enumerate}
+ \item \emph{Exact classical hidden-state process.}  The covariance \(G\) is a
+ classical continuous state, and \(d\) is a binary emission from a positive
+ Markov kernel on the covariance manifold.
+ \item \emph{Exact one-copy closure.}  After Born averaging, \(G\) obeys a
+ deterministic affine reset map.  The mean mismatch rate is consequently
+ one-copy closed.
+ \item \emph{Exact replica transfer.}  Shared outcomes couple density-operator
+ replicas.  The resulting local transfer gives record R\'enyi sums and marked
+ formulas for squared correlators and quantum density fluctuations.
+ \item \emph{No generic click-only cellular automaton.}  The click is healed at
+ the measured orbital, and its effect propagates through a state-dependent
+ partner mode.  Eliminating \(G\) produces retarded many-body interactions
+ among clicks rather than a finite-range autonomous bit rule.
+\end{enumerate}
+The fourth point is not a failure of the statistical-mechanics idea.  It says
+that the exact theory is either a positive infinite-dimensional classical
+transfer problem or a local interacting replicated-fermion tensor network.
+A local scalar defect theory, if present at the wall, must emerge after a
+controlled coarse graining.
+
+\begin{table*}[t]
+\caption{Claim ledger and roadmap for the mismatch-defect construction.}
+\label{tab:claim-ledger}
+\begin{ruledtabular}
+\begin{tabular}{p{0.19\textwidth}p{0.34\textwidth}p{0.37\textwidth}}
+Status & Statement & Required qualification or test \\
+\hline
+Exact & \(d=(1-\eta_m\eta_s)/2\) is a Bernoulli innovation and drives the
+rank-at-most-one covariance kick in Eq.~\eqref{eq:innovation-map}. & Only
+nonzero-probability normalized branches are defined; the realized endpoint
+update and Born-weighted moment identities are regular. \\
+Exact & The physical covariance mean closes affinely, and the covariance
+fluctuation obeys Eq.~\eqref{eq:exact-Sigma-update}. & The second equation is
+not a finite moment closure because its source depends on the full covariance
+law. \\
+Exact & Click activity has the Gaussian tilted recursion
+Eq.~\eqref{eq:tilted-gaussian-recursion}; record R\'enyi sums have the shared
+replica transfer Eq.~\eqref{eq:replicated-local-transfer}. & These are
+different tilted objects and must not be interchanged. \\
+Formal & Two marked replicas followed by \(n\to1\) produce physical squared
+conditional observables. & Continuing an integer-replica transfer, especially
+after a large-size limit, must be fixed by a transfer theory or checked against
+an independent estimator. \\
+Conditional & A common-basis classical automaton exists if
+\(\Delta\cE=\Delta\cE\Delta\), preferably instrument by instrument. & Generic
+overlapping projectors violate the natural local diagonal closure. \\
+Approximate & Freezing the nonlinear noise source gives a discrete Lyapunov
+equation; a separate weak-noise linearization gives the retarded action in
+Eq.~\eqref{eq:retarded-click-action}. & Validate both against direct source and
+conditional-rate measurements; retain higher-body residuals. \\
+Conjectural & Slow wall modes mediate a long-ranged, possibly directional
+defect interaction. & Requires wall/bulk Green-function comparison, size
+scaling, and successful prediction of click correlations. \\
+\end{tabular}
+\end{ruledtabular}
+\end{table*}
+
+\section{Microscopic instrument and sign dictionary}
+\label{sec:instrument}
+
+Consider a parity-even, number-conserving Gaussian state of \(N\) complex
+fermion modes.  We use
+\begin{equation}
+ C_{ij}=\Tr(\rho c_i^\dagger c_j),
+ \qquad G=2C-\Id,
+ \qquad -\Id\leq G\leq\Id.
+ \label{eq:covariance-definition}
+\end{equation}
+For a normalized controller orbital
+\(a_\chi=\sum_i\chi_i c_i\), define
+\begin{equation}
+ n_\chi=a_\chi^\dagger a_\chi,
+ \quad P=\chi\chi^\dagger,
+ \quad Q=\Id-P,
+ \quad g=\chi^\dagger G\chi.
+ \label{eq:local-definitions}
+\end{equation}
+The measurement projectors are \(\Pi_1=n_\chi\) and
+\(\Pi_0=\Id-n_\chi\).  For a target \(s\in\{0,1\}\), write
+\begin{equation}
+ \tau\equiv\eta_s=2s-1.
+ \label{eq:tau-definition}
+\end{equation}
+The perfect-correction Kraus operators can then be organized by the mismatch
+click rather than by the raw outcome:
+\begin{align}
+ K_{0|s}&=\Pi_s,
+ &K_{1|s}&=(a_\chi^\dagger)^s a_\chi^{1-s},
+ \label{eq:defect-kraus}\\
+ K_{d|s}^\dagger K_{d|s}&=\Pi_{s\oplus d}.
+ \nonumber
+\end{align}
+The raw measurement sign is recovered from
+\begin{equation}
+ \eta_m=\tau(-1)^d.
+ \label{eq:eta-from-defect}
+\end{equation}
+The two branch probabilities are
+\begin{equation}
+ p_0(G)=\frac{1+\tau g}{2},
+ \qquad
+ p_1(G)=\frac{1-\tau g}{2}.
+ \label{eq:defect-probabilities}
+\end{equation}
+We will repeatedly use the \emph{soft mismatch propensity}
+\begin{equation}
+ q_s(G)\equiv p_1(G)=\frac{1-\tau\chi^\dagger G\chi}{2}.
+ \label{eq:soft-defect}
+\end{equation}
+The hard click is a Bernoulli sample \(d\sim\mathrm{Bernoulli}(q_s(G))\).
+
+The correction has a signed charge.  With \(\hat N=\sum_i c_i^\dagger c_i\),
+\begin{equation}
+ [\hat N,K_{d|s}]=\tau d\,K_{d|s}.
+ \label{eq:kraus-charge}
+\end{equation}
+Consequently, for an input branch of definite particle number,
+\begin{equation}
+ N_T-N_0=\sum_{t=1}^{D}\tau_t d_t.
+ \label{eq:charge-accounting}
+\end{equation}
+A lower-band mismatch is a particle injection and an upper-band mismatch is a
+hole injection.  For number-indefinite mixed inputs, Eq.~\eqref{eq:kraus-charge}
+remains the operator statement, but conditioning can also change the mean
+charge of the unmeasured sector; Eq.~\eqref{eq:charge-accounting} should then
+not be applied as a branchwise expectation-value identity.
+
+\section{The mismatch click as an exact covariance innovation}
+\label{sec:innovation}
+
+Define two matrices built from the incoming covariance,
+\begin{align}
+ B(G)&=QGQ+\tau P,
+ \nonumber\\
+ R(G)&=QGPGQ=(QG\chi)(QG\chi)^\dagger.
+ \label{eq:B-R-definitions}
+\end{align}
+For \(|g|<1\), the rank-one resolvent in
+Eq.~\eqref{eq:starting-map} gives
+\begin{align}
+ \Phi_0(G)&=B(G)-\frac{\tau R(G)}{1+\tau g},
+ \nonumber\\
+ \Phi_1(G)&=B(G)+\frac{\tau R(G)}{1-\tau g}.
+ \label{eq:two-defect-branches}
+\end{align}
+Equivalently,
+\begin{equation}
+ \boxed{
+ \Phi_d(G)=B(G)
+ +\frac{2\tau\,[d-q_s(G)]}{1-g^2}R(G).}
+ \label{eq:innovation-map}
+\end{equation}
+Thus
+\begin{equation}
+ \xi_d\equiv d-q_s(G),
+ \qquad
+ \E[\xi_d|G]=0,
+ \qquad
+ \E[\xi_d^2|G]=\frac{1-g^2}{4}
+ \label{eq:martingale-innovation}
+\end{equation}
+is an exact martingale innovation.  For every physical covariance,
+\begin{equation}
+ \Tr R=\chi^\dagger GQG\chi\leq1-g^2.
+ \label{eq:R-bound}
+\end{equation}
+At \(|g|=1\), one branch has zero probability, \(R=0\), and the unique
+realized update is \(\Phi=B\).  The normalized counterfactual branch is not
+defined.  Born-weighted expressions containing
+\(R^{\otimes2}/(1-g^2)\) have the unique zero limit by
+Eq.~\eqref{eq:R-bound}, whereas \(R/(1-g^2)\) and its orientation need not
+have a path-independent limit.
+
+The click is not a persistent defect of the just-measured mode.  Every
+nonzero-probability branch satisfies
+\begin{equation}
+ \Phi_d(G)\chi=\tau\chi,
+ \qquad
+ \chi^\dagger\Phi_d(G)\chi=\tau.
+ \label{eq:measured-mode-healed}
+\end{equation}
+The mode \(\chi\) factorizes with its target occupation immediately after the
+event.  Away from the deterministic endpoints, the record survives in the
+orthogonal complement through the rank-at-most-one matrix \(R\).
+
+\subsection{Pure-state partner orbital}
+
+For a pure Slater trajectory, \(G^2=\Id\), Eq.~\eqref{eq:R-bound} is saturated.
+Whenever \(|g|<1\), define
+\begin{equation}
+ u=\frac{QG\chi}{\sqrt{1-g^2}},
+ \qquad U=uu^\dagger.
+ \label{eq:partner-orbital}
+\end{equation}
+Then \(u\) is normalized, orthogonal to \(\chi\), and
+\begin{equation}
+ R=(1-g^2)U,
+ \qquad QGQ\,u=-g\,u.
+ \label{eq:pure-R}
+\end{equation}
+Equation~\eqref{eq:innovation-map} becomes
+\begin{equation}
+ \Phi_d(G)=B(G)+2\tau[d-q_s(G)]U.
+ \label{eq:pure-innovation-map}
+\end{equation}
+On the two-dimensional active subspace,
+\begin{equation}
+ \Phi_d(G)\chi=\tau\chi,
+ \qquad
+ \Phi_d(G)u=\tau(2d-1)u.
+ \label{eq:partner-eigenvalues}
+\end{equation}
+All one-particle directions outside this active plane are identical in the two
+branches.  Therefore
+\begin{equation}
+ \boxed{\Phi_1(G)-\Phi_0(G)=2\tau U.}
+ \label{eq:branch-difference}
+\end{equation}
+Microscopically, the correction heals \(\chi\), while \(d=1\) flips exactly one
+state-dependent Schmidt-partner orbital relative to the matched branch.  This
+is the most literal meaning of a dynamical particle/hole defect available at
+the Gaussian level.  A worldline description would have to track the evolving
+orientation \(u_t\), not only the bits \(d_t\).
+
+\section{How a click influences the next controller}
+\label{sec:propagation}
+
+Assume \(|g|<1\), and let the next measured orbital be \(\psi\), with target
+sign \(\tau'\).  Its
+mismatch propensity after the present event is
+\begin{equation}
+ q'_{d}=\frac{1-\tau'\psi^\dagger\Phi_d(G)\psi}{2}.
+ \label{eq:next-q-definition}
+\end{equation}
+Set
+\begin{align}
+ q'_B&=\frac{1-\tau'\psi^\dagger B(G)\psi}{2},
+ \nonumber\\
+ w_{\psi\leftarrow\chi}(G)
+ &=\frac{\psi^\dagger R(G)\psi}{1-g^2}
+ =\frac{|\psi^\dagger QG\chi|^2}{1-g^2}.
+ \label{eq:propagation-weight}
+\end{align}
+The bound in Eq.~\eqref{eq:R-bound} implies \(0\leq w\leq1\).  Direct
+substitution gives the exact propagation law
+\begin{equation}
+ \boxed{
+ q'_d=q'_B-\tau\tau'[d-q_s(G)]w_{\psi\leftarrow\chi}(G).}
+ \label{eq:next-defect-rule}
+\end{equation}
+In particular,
+\begin{equation}
+ q'_1-q'_0=-\tau\tau'w_{\psi\leftarrow\chi}(G).
+ \label{eq:branching-sign}
+\end{equation}
+A mismatch suppresses the next mismatch for equal target signs and enhances it
+for opposite target signs.  For a pure incoming state,
+\(w=|\langle\psi|u\rangle|^2\).  Equation~\eqref{eq:next-defect-rule} looks
+like a two-state branching rule, but its rate depends on the full incoming
+covariance through both \(u\) and \(g\).  After marginalizing over \(G\), the
+click string is therefore generally non-Markovian.
+
+\subsection{A geometric frustration floor}
+
+The nonorthogonality of opposite-target orbitals provides an outcome-independent
+source of future clicks.
+
+\begin{proposition}[Consecutive opposite-target bound]
+Suppose an update has just reset \(\chi\) to sign \(\tau\), so that
+\(G\chi=\tau\chi\).  Let the immediately following controller orbital
+\(\psi\) have target \(\tau'=-\tau\).  Then
+\begin{equation}
+ q_{\psi,\tau'}(G)\geq|\langle\chi|\psi\rangle|^2.
+ \label{eq:overlap-floor}
+\end{equation}
+\end{proposition}
+
+The proof is given in Appendix~\ref{app:geometric-bound}.  This bound suggests a
+direct controller diagnostic: construct the directed conflict graph of the
+actual chronological word, weight an edge \(j\to k\) by
+\(|\langle\chi_j|\chi_k\rangle|^2\) when \(\tau_j\tau_k=-1\), and compare its
+large weights with the observed mismatch-click profile.  The theorem supplies
+a lower bound for consecutive updates; it does not assert that every
+nonconsecutive pair contributes additively.
+
+A covariance with zero mismatch propensity for every controller would have to
+satisfy
+\begin{equation}
+ G_\star\chi_j=\tau_j\chi_j
+ \quad\text{for every }j.
+ \label{eq:common-dark-condition}
+\end{equation}
+Since eigenvectors of a Hermitian matrix with eigenvalues \(+1\) and \(-1\)
+are orthogonal, Eq.~\eqref{eq:common-dark-condition} is impossible whenever
+two nonorthogonal controller modes carry opposite targets.  Thus cross-target
+overlap is a precise obstruction to a common zero-click state.  Whether this
+obstruction is present, and where it is localized, must be evaluated for the
+actual finite-support controller; it is not inferred here from topology alone.
+
+\section[Positive covariance-manifold transfer]
+{Exact positive transfer on the covariance manifold}
+\label{sec:covariance-transfer}
+
+Fix the complete chronological schedule
+\((\chi_t,\tau_t)_{t=1}^{D}\).  The covariance is a classical hidden state and
+the mismatch click is its binary emission:
+\begin{equation}
+ d_t\sim p_{t,d}(G_{t-1}),
+ \qquad
+ G_t=\Phi_{t,d_t}(G_{t-1}).
+ \label{eq:hidden-Markov-process}
+\end{equation}
+The corresponding Markov kernel is
+\begin{equation}
+ \cL_{t,1}(G',G)
+ =\sum_{d=0,1}p_{t,d}(G)
+ \delta\!\left(G'-\Phi_{t,d}(G)\right).
+ \label{eq:physical-PF-kernel}
+\end{equation}
+It is normalized in \(G'\) and defines an exact Perron--Frobenius pushforward
+on probability measures over the admissible covariance manifold \(\cX\).
+The dual Koopman operator acts on an observable \(f(G)\) as
+\begin{equation}
+ (\cK_t f)(G)
+ =\sum_{d=0,1}p_{t,d}(G)f\!\left(\Phi_{t,d}(G)\right).
+ \label{eq:Koopman-map}
+\end{equation}
+
+The complete click-string probability is
+\begin{equation}
+ p[\bm d]
+ =\prod_{t=1}^{D}p_{t,d_t}\!\left(G_{t-1}[d_1,\ldots,d_{t-1}]\right).
+ \label{eq:defect-string-probability}
+\end{equation}
+This already defines a positive classical statistical weight.  A particularly
+transparent Ising form follows from
+\begin{equation}
+ \sigma_t=(-1)^{d_t}=\eta_{m_t}\tau_t,
+ \qquad
+ h_t=\operatorname{arctanh}(\tau_t g_t).
+ \label{eq:ising-variables}
+\end{equation}
+Then
+\begin{equation}
+ p(d_t|G_{t-1})
+ =\frac{e^{h_t\sigma_t}}{2\cosh h_t},
+ \label{eq:causal-Ising-weight}
+\end{equation}
+and
+\begin{equation}
+ -\log p[\bm d]
+ =\sum_t\left\{\log[2\cosh h_t[\bm d_{<t}]]
+ -h_t[\bm d_{<t}]\sigma_t\right\}.
+ \label{eq:causal-Ising-action}
+\end{equation}
+It is literally an Ising history in a causal self-consistent field.  The price
+of eliminating \(G\) is that \(h_t\) is a nonlinear functional of all earlier
+spins.  The band signs \(\tau_t\) form a fixed, generally staggered spacetime
+background.
+
+For real \(n>0\), define the positive replica-tilted covariance kernel
+\begin{equation}
+ \cL_{t,n}(G',G)
+ =\sum_{d=0,1}p_{t,d}(G)^n
+ \delta\!\left(G'-\Phi_{t,d}(G)\right).
+ \label{eq:replica-PF-kernel}
+\end{equation}
+Its total mass after the full word is
+\begin{equation}
+ \boxed{
+ \cZ_n=\langle 1|\cL_{D,n}\cdots\cL_{1,n}|G_0\rangle
+ =\sum_{\bm d}p[\bm d]^n.}
+ \label{eq:PF-Zn}
+\end{equation}
+At \(n=1\), Eq.~\eqref{eq:replica-PF-kernel} is stochastic.  At
+\(n\neq1\), it is positive but not mass preserving.  Normalizing
+\(p_d(G)^n\) independently at each time does \emph{not} produce the global
+replica-biased process, because the future weight depends on the present
+covariance.  A normalized dynamics requires the usual backward harmonic
+function or Doob transform of the complete tilted transfer.
+
+For a causal record the Shannon entropy also obeys the exact chain rule
+\begin{equation}
+ H_{\rm rec}
+ =-\left.\partial_n\log\cZ_n\right|_{n=1}
+ =\sum_t\E\!\left[h_2(q_t)\right],
+ \label{eq:shannon-chain-rule}
+\end{equation}
+where \(h_2(q)=-q\log q-(1-q)\log(1-q)\).  Since \(h_2\) is nonlinear,
+\(H_{\rm rec}\) requires the distribution of the propensities, not merely
+their mean.
+
+\section{What closes after physical Born averaging}
+\label{sec:mean-and-fluctuation}
+
+The innovation form makes the exceptional simplicity of \(n=1\) explicit:
+\begin{equation}
+ \boxed{\E_d[\Phi_d(G)|G]=B(G)=QGQ+\tau P.}
+ \label{eq:one-copy-closure}
+\end{equation}
+The averaged density-matrix channel is the fermionic replacement channel
+\begin{equation}
+ \cE_s(\rho)
+ =\sum_dK_{d|s}\rho K_{d|s}^\dagger
+ =\proj{s}_\chi\widehat\otimes\Tr_\chi\rho,
+ \label{eq:replacement-channel}
+\end{equation}
+and its covariance action is Eq.~\eqref{eq:one-copy-closure}.  Because \(B\)
+is affine,
+\begin{equation}
+ \avg G_t=Q_t\avg G_{t-1}Q_t+\tau_tP_t
+ \label{eq:mean-covariance-recursion}
+\end{equation}
+for a fixed schedule.  In particular, the mean mismatch rate is one-copy
+closed:
+\begin{equation}
+ \boxed{
+ \E d_t
+ =\frac{1-\tau_t\chi_t^\dagger\avg G_{t-1}\chi_t}{2}.}
+ \label{eq:mean-defect-rate}
+\end{equation}
+The mean signed correction rate is
+\begin{equation}
+ \E(\tau_td_t)
+ =\frac{\tau_t-\chi_t^\dagger\avg G_{t-1}\chi_t}{2}
+ =\frac{\Tr\avg G_t-\Tr\avg G_{t-1}}{2}.
+ \label{eq:mean-signed-rate}
+\end{equation}
+Hence its sum over a stationary complete cycle vanishes, even though the
+unsigned activity can remain finite.
+
+\subsection{Exact covariance-fluctuation equation}
+
+The conditional second moment is
+\begin{equation}
+ \boxed{\begin{aligned}
+ \E_d[\Phi_d(G)^{\otimes2}|G]
+ &=B(G)^{\otimes2}\\
+ &\quad+\frac{R(G)^{\otimes2}}{1-g^2}.
+ \end{aligned}}
+ \label{eq:two-copy-covariance-identity}
+\end{equation}
+Thus a mismatch click is a rank-at-most-one shot-noise source.  To write a
+positive matrix covariance, use column-stacking vectorization of one-body
+operators and define
+\begin{equation}
+ \Sigma_t
+ =\E\!\left[
+ |\delta G_t\rangle\!\rangle
+ \langle\!\langle\delta G_t|
+ \right],
+ \qquad
+ \delta G_t=G_t-\avg G_t.
+ \label{eq:Sigma-definition}
+\end{equation}
+Let \(\mathcal A_t(H)=Q_tHQ_t\) and
+\(\widehat{\mathcal A}_t=Q_t^*\otimes Q_t\).  Since the innovation has zero
+conditional mean, all cross terms with the past vanish and one obtains
+\begin{equation}
+ \boxed{
+ \Sigma_t
+ =\widehat{\mathcal A}_t\Sigma_{t-1}
+  \widehat{\mathcal A}_t^\dagger
+ +\E\!\left[
+ \frac{|R_t\rangle\!\rangle\langle\!\langle R_t|}{1-g_t^2}
+ \right].}
+ \label{eq:exact-Sigma-update}
+\end{equation}
+Equation~\eqref{eq:exact-Sigma-update} is the exact averaged replica-like
+update sought for density fluctuations.  It is not a finite closure: the
+source is quartic and rational in the random incoming covariance.  On any
+interior domain \(|g|\leq1-\epsilon\), expanding
+\((1-g^2)^{-1}=\sum_{k\geq0}g^{2k}\) displays dependence on moments of
+arbitrarily high order.  The expansion is not uniform at the endpoints, but
+the source itself has the regular zero limit because
+\(\|R\|_{\rm HS}^2/(1-g^2)\leq1-g^2\).  Special twirls or large-flavor limits
+may close this hierarchy, but generic Gaussian purity does not.
+
+For a region \(A\), the within-trajectory quantum charge variance is
+\begin{equation}
+ F_{A,\xi}^{(q)}
+ =\tr[C_{\xi,A}(\Id_A-C_{\xi,A})]
+ =\frac{|A|-\tr G_{\xi,A}^2}{4}.
+ \label{eq:charge-variance-G}
+\end{equation}
+It is therefore fixed by a contraction of the second covariance moment, not
+by \(\avg G\).  Likewise, for \(i\neq j\),
+\begin{equation}
+ \avg{\langle\delta n_i\delta n_j\rangle_\xi}
+ =-\avg{|C_{\xi,ij}|^2}.
+ \label{eq:density-correlation-square}
+\end{equation}
+The distinction between \(\avg{|C_{ij}|^2}\) and
+\(|\avg C_{ij}|^2\) is precisely the trajectory-fluctuation contribution.
+Charge cumulants and free-fermion fluctuation--entanglement relations provide
+the broader context for these observables~\cite{KlichLevitov2009,SongFlindtRachel2011}.
+
+\section[Tilted channel for click activity]
+{A Gaussian-closed tilted channel for click activity}
+\label{sec:activity-tilt}
+
+The full counting statistics of the mismatch clicks has a simpler exact
+construction than same-record nonlinear state observables.  Give a click a
+fugacity \(x\) and define
+\begin{equation}
+ \cE_{s,x}(\rho)
+ =\sum_{d=0,1}x^dK_{d|s}\rho K_{d|s}^\dagger.
+ \label{eq:tilted-channel-definition}
+\end{equation}
+In the Fock factorization associated with \(\chi\),
+\begin{equation}
+ \boxed{\begin{aligned}
+ \cE_{s,x}(\rho)
+ &=\proj{s}_\chi\widehat\otimes
+ \Tr_\chi\!\left[W_s(x)\rho\right],\\
+ W_s(x)&=\Pi_s+x\Pi_{1-s}=x^{\Pi_{1-s}}.
+ \end{aligned}}
+ \label{eq:tilted-block-identity}
+\end{equation}
+For \(x>0\), \(W_s(x)\) is the exponential of a quadratic number operator.
+Products and partial traces of fermionic Gaussian operators remain Gaussian;
+therefore the normalized version of Eq.~\eqref{eq:tilted-channel-definition}
+closes exactly on a covariance, despite being non-trace-preserving before
+normalization.
+
+For a normalized incoming Gaussian state, the one-step normalization is
+\begin{equation}
+ z_x(G)=p_0(G)+xp_1(G)
+ =\frac{1+\tau g+x(1-\tau g)}{2}.
+ \label{eq:tilted-normalization}
+\end{equation}
+The normalized tilted covariance is
+\begin{equation}
+ \boxed{
+ \Psi_{s,x}(G)
+ =B(G)+\tau
+ \frac{x-1}{1+\tau g+x(1-\tau g)}R(G).}
+ \label{eq:tilted-covariance-map}
+\end{equation}
+The limits provide useful checks:
+\(x=1\) gives the unconditional mean map, \(x=0\) gives the matched branch,
+and \(x\to\infty\) gives the mismatch branch, provided the selected branch
+has nonzero Born weight.  A normalized zero-probability branch is undefined.
+
+For event-dependent sources \(x_t\), initialize \(Z_0=1\) and the physical
+\(G_0\), then iterate
+\begin{equation}
+ Z_t=Z_{t-1}z_{x_t}(G_{t-1}^{\bm x}),
+ \qquad
+ G_t^{\bm x}=\Psi_{s_t,x_t}(G_{t-1}^{\bm x}).
+ \label{eq:tilted-gaussian-recursion}
+\end{equation}
+This gives exactly
+\begin{equation}
+ Z_D(\bm x)=\sum_{\bm d}p[\bm d]\prod_tx_t^{d_t}.
+ \label{eq:defect-generating-function}
+\end{equation}
+Taking \(x_t=e^{\lambda_t}\) generates all multitime click cumulants.  Taking
+\(x_t=e^{\lambda+\ii\theta\tau_t}\) jointly counts unsigned activity and
+signed correction charge.  This is the natural dynamical-activity ensemble of
+quantum-trajectory large-deviation theory~\cite{GarrahanLesanovsky2010,Landi2024}.
+For complex sources the tilted Gaussian operator and its covariance are
+generally complex; the normalized recursion is an analytic continuation valid
+away from zeros of the intermediate normalization, while the unnormalized
+generating polynomial remains the primary object.
+For a periodically repeated autonomous cycle, the leading eigenvalue of the
+unnormalized cycle superoperator gives the scaled cumulant-generating
+function.  A randomly changing schedule requires a separate quenched or
+annealed convention.
+
+\section{Replicated density transfer and marked observables}
+\label{sec:replica-transfer}
+
+The activity tilt weights a physical record by \(p_\xi\).  Record R\'enyi sums
+and squared conditional observables require shared-record replicas.  Define
+the unnormalized branch state
+\begin{equation}
+ \widetilde\rho_\xi=K_\xi\rho_0K_\xi^\dagger,
+ \qquad
+ p_\xi=\Tr\widetilde\rho_\xi,
+ \qquad
+ \rho_\xi=\frac{\widetilde\rho_\xi}{p_\xi}.
+ \label{eq:unnormalized-branch}
+\end{equation}
+For integer \(n\), introduce
+\begin{equation}
+ \Omega_n(\bm x)
+ =\sum_\xi\left(\prod_tx_t^{d_t(\xi)}\right)
+ \widetilde\rho_\xi^{\otimes n}.
+ \label{eq:Omega-n-definition}
+\end{equation}
+Here replica Hilbert spaces are distinguishable and use the ordinary tensor
+product; \(\widehat\otimes\) is reserved for fermionic mode factorizations
+within one replica.
+Let \(\cK_{t,d}(X)=K_{t,d}XK_{t,d}^\dagger\).  The exact local replicated
+update is
+\begin{equation}
+ \boxed{
+ \cT_{t}^{(n)}(x_t)
+ =\cK_{t,0}^{\otimes n}+x_t\cK_{t,1}^{\otimes n},
+ \qquad
+ \Omega_{n,t}=\cT_t^{(n)}(x_t)\Omega_{n,t-1}.}
+ \label{eq:replicated-local-transfer}
+\end{equation}
+The same click \(d_t\) is shared by every replica.  Summing the outcome
+independently in each replica would instead construct powers of the
+unconditional state and would erase the same-record correlations.  The trace
+is
+\begin{equation}
+ \boxed{
+ \cZ_n(\bm x)=\Tr\Omega_n(\bm x)
+ =\sum_\xi p_\xi^n\prod_tx_t^{d_t(\xi)}.}
+ \label{eq:replicated-partition-function}
+\end{equation}
+At \(\bm x=1\), this is the record partition function used in transfer-matrix
+studies of monitored criticality~\cite{JianYouVasseur2020,BaoChoiAltman2020,
+Zabalo2022}.  In vectorized form, each event is a local tensor
+\begin{equation}
+ T_t^{(n)}(x)
+ =\sum_{d=0,1}x^d
+ \left(K_{t,d}^*\otimes K_{t,d}\right)^{\otimes n}.
+ \label{eq:vectorized-replica-tensor}
+\end{equation}
+Thus \(d_t\) is a spacetime Ising variable coupled to replicated fermions.
+Integrating out the fermions gives the positive weight \(p[\bm d]^n\), but
+generically produces a nonlocal many-body action for \(\bm d\).
+
+The special cancellation at \(n=1\) can be seen locally for one normalized
+incoming Gaussian state.  Let
+\(a=p_0=(1+\tau g)/2\) and \(b=p_1=(1-\tau g)/2\).  Then
+\begin{align}
+ \sum_dp_d^n\Phi_d
+ &=(a^n+b^n)B
+ +\frac{\tau}{2}(b^{n-1}-a^{n-1})R,
+ \label{eq:n-local-first}\\
+ \sum_dp_d^n\Phi_d^{\otimes2}
+ &=(a^n+b^n)B^{\otimes2}
+ \nonumber\\
+ &\quad
+ +\frac{\tau}{2}(b^{n-1}-a^{n-1})
+ (B\otimes R+R\otimes B)
+ \nonumber\\
+ &\quad+\frac14(a^{n-2}+b^{n-2})R^{\otimes2}.
+ \label{eq:n-local-second}
+\end{align}
+Only at \(n=1\) does the first-moment \(R\) term vanish.  These are local
+conditional sums, not an update rule for a general correlated
+\(\Omega_{n,t-1}\) produced by earlier shared outcomes; future tilted weights
+still enter the normalized global \(n\)-ensemble.  When \(a\) or \(b\)
+vanishes, the complete Born-weighted expressions---not their individual
+negative-power factors---are taken to the endpoint.
+
+\subsection{Two marked replicas}
+
+Set \(\bm x=\mathbf{1}\) in this subsection and abbreviate
+\(\Omega_n=\Omega_n(\mathbf{1})\).
+For integer \(n\geq k\), insert observables on \(k\) distinguished replicas
+and leave the remaining replicas unmarked.  One obtains
+\begin{equation}
+ \frac{\Tr[(O_1^{(1)}\cdots O_k^{(k)})\Omega_n]}{\cZ_n}
+ =\frac{\sum_\xi p_\xi^n\prod_{a=1}^{k}\langle O_a\rangle_\xi}
+ {\sum_\xi p_\xi^n}.
+ \label{eq:marked-replica-master}
+\end{equation}
+For a finite record space, the right-hand side defines a canonical real-\(n\)
+function near \(n=1\).  The replica prescription recovers the physical Born
+ensemble by continuing the integer-replica transfer to \(n\to1\).  In
+particular,
+\begin{equation}
+ \boxed{
+ \avg{|C_{\xi,ij}|^2}
+ =\lim_{n\to1}
+ \frac{\Tr[(c_i^\dagger c_j)^{(1)}
+ (c_j^\dagger c_i)^{(2)}\Omega_n]}{\cZ_n}.}
+ \label{eq:marked-squared-correlator}
+\end{equation}
+The within-trajectory quantum charge variance is
+\begin{equation}
+ \boxed{
+ \avg{F_{A,\xi}^{(q)}}
+ =\lim_{n\to1}
+ \frac{\Tr\!\left[
+ \bigl((N_A^2)^{(1)}-N_A^{(1)}N_A^{(2)}\bigr)\Omega_n
+ \right]}{\cZ_n}.}
+ \label{eq:marked-charge-variance}
+\end{equation}
+Likewise,
+\begin{equation}
+ \avg{\langle\delta n_i\delta n_j\rangle_\xi}
+ =\lim_{n\to1}
+ \frac{\Tr\!\left[
+ \bigl((n_in_j)^{(1)}-n_i^{(1)}n_j^{(2)}\bigr)\Omega_n
+ \right]}{\cZ_n}.
+ \label{eq:marked-density-correlation}
+\end{equation}
+What is formal is reconstructing that continuation from integer-replica data,
+especially after taking a large-depth or thermodynamic limit; a transfer
+spectrum, field theory, or independent estimator must fix it.  Also note that
+\(\Omega_2\) carries \(p_\xi^2\), not \(p_\xi\): simply simulating two replicas
+at \(n=2\) does not directly give the physical Born-averaged squared
+correlator.
+
+\section{Why the O'Dea classical automaton does not transfer directly}
+\label{sec:odea-comparison}
+
+O'Dea, Morningstar, Gopalakrishnan, and Khemani obtain a classical stochastic
+process for diagonal elements of the trajectory-averaged density matrix in
+their adaptive spin circuits~\cite{ODeaMorningstarGopalakrishnan2024}.  Their
+doubled Hilbert space is the bra/ket vectorization of an \(n=1\) channel, not
+the same-record replica in Eq.~\eqref{eq:Omega-n-definition}.  A constrained
+Haar average preserves a common diagonal algebra and kills the off-diagonal
+block after a unitary layer.  The surviving populations are therefore genuine
+classical bitstrings whose down spins are time-slice configuration defects
+carried between updates.  In their
+cluster-state construction, a finite-depth Clifford transformation first maps
+commuting stabilizer violations to onsite bits.
+
+There is a concise general criterion.  Let \(\Delta\) dephase in a proposed
+product basis and let \(\cE\) be a quantum channel.  Its diagonal populations
+obey an autonomous classical update exactly when
+\begin{equation}
+ \boxed{\Delta\cE=\Delta\cE\Delta.}
+ \label{eq:classical-criterion}
+\end{equation}
+If \(\{K_a\}\) are Kraus operators, Eq.~\eqref{eq:classical-criterion} is
+equivalent to
+\begin{equation}
+ \sum_a(K_a)_{xy}(K_a)_{xz}^*=0
+ \quad\text{for every }x\text{ and }y\neq z.
+ \label{eq:coherence-feed-criterion}
+\end{equation}
+Then
+\begin{equation}
+ T_{xy}=\sum_a|(K_a)_{xy}|^2\geq0,
+ \qquad \sum_xT_{xy}=1
+ \label{eq:classical-transition-matrix}
+\end{equation}
+is a stochastic matrix.  A record-resolved classical instrument needs the
+stronger condition \(\Delta\cE_d=\Delta\cE_d\Delta\) for every outcome \(d\).
+
+The natural target-violation operators of the fermion controller are
+\begin{equation}
+ \widehat D_j
+ =\frac{\Id-\tau_j(2n_{\chi_j}-\Id)}{2}.
+ \label{eq:violation-operators}
+\end{equation}
+They do not define simultaneous bits because
+\begin{equation}
+ [n_{\chi_j},n_{\chi_k}]
+ =c^\dagger[P_j,P_k]c.
+ \label{eq:number-commutator}
+\end{equation}
+Two rank-one projectors commute only when their orbitals are orthogonal or
+collinear.  The finite-support controller is built from overlapping,
+nonorthogonal modes, so successive resets are classical in different bases.
+Coherences in one basis feed populations in the next.
+
+A two-mode counterexample makes the problem explicit.  Let
+\begin{equation}
+ \chi=\frac{a+b}{\sqrt2},
+ \qquad
+ \varphi=\frac{a-b}{\sqrt2}.
+ \label{eq:two-mode-counterexample}
+\end{equation}
+The one-particle states \(\proj{\chi}\) and \(\proj{\varphi}\) have the same
+diagonal in the site basis.  Resetting \(\chi\) empty sends the first state to
+vacuum but leaves the second state occupied in \(\varphi\).  Therefore the
+site-basis diagonal does not determine the future diagonal.  A delocalized
+exact band basis may diagonalize the target, but it forfeits the local
+cellular-automaton structure.  For a nonzero Chern band, the absence of a
+translation-covariant exponentially localized orthonormal Wannier basis makes
+this locality--diagonality tension structural; it is not by itself a no-go
+theorem for every possible invariant diagonal algebra.
+
+The conclusion is narrower than a no-go theorem for every conceivable
+classical representation.  It rules out the direct O'Dea reduction to a local
+common-basis bitstring for the generic overlapping controller.  The exact
+positive covariance-manifold transfer in Eq.~\eqref{eq:replica-PF-kernel}
+remains valid.
+
+\section{Toward an effective wall defect theory}
+\label{sec:effective-theory}
+
+This section deliberately changes status from exact identities to candidate
+approximations.  The purpose is to identify calculations that could turn the
+formal defect field into a useful low-energy theory.
+
+\subsection{Narrow-distribution closure}
+
+The simplest closure replaces the nonlinear noise source in
+Eq.~\eqref{eq:exact-Sigma-update} by its value on the deterministic mean orbit.
+Here and below,
+\begin{equation}
+ \bar g_t=\chi_t^\dagger\bar G_{t-1}\chi_t,
+ \qquad
+ \bar R_t=R_t(\bar G_{t-1}).
+ \label{eq:mean-orbit-local-data}
+\end{equation}
+Thus the candidate closure is
+\begin{equation}
+ \E\!\left[
+ \frac{|R_t\rangle\!\rangle\langle\!\langle R_t|}{1-g_t^2}
+ \right]
+ \simeq
+ \frac{|\bar R_t\rangle\!\rangle
+ \langle\!\langle\bar R_t|}{1-\bar g_t^2}.
+ \label{eq:narrow-source-closure}
+\end{equation}
+The result is a closed discrete Lyapunov equation for \(\Sigma_t\).  It is not
+controlled merely because the incoming state is Gaussian.  It becomes
+plausible when the trajectory distribution is demonstrably narrow, or in a
+modified many-flavor model with a saddle suppressing collective fluctuations.
+The approximation can be tested directly by measuring both sides of
+Eq.~\eqref{eq:narrow-source-closure}.
+
+\subsection[Retarded click interaction]
+{Retarded click interaction from linearized covariance response}
+
+Assume \(|\bar g_t|<1\) and define
+\(\bar W_t=\bar R_t/(1-\bar g_t^2)\).  We now make a distinct weak-noise
+closure: freeze the nonlinear kick matrix \(W_t(G)=R_t(G)/(1-g_t^2)\) on the
+mean orbit and neglect its derivative.  Retaining the first-order state
+dependence of the propensity gives
+\begin{equation}
+ \mathcal J_t(H)
+ =Q_tHQ_t+\bar W_t\bigl(\chi_t^\dagger H\chi_t\bigr),
+ \quad
+ \bar q_t=\frac{1-\tau_t\bar g_t}{2}.
+ \label{eq:linearized-definitions}
+\end{equation}
+Indeed,
+\(d_t-q_t=d_t-\bar q_t
++(\tau_t/2)\chi_t^\dagger\delta G_{t-1}\chi_t\), so the fluctuation recursion
+in this closure is
+\begin{equation}
+ \delta G_t\simeq\mathcal J_t(\delta G_{t-1})
+ +2\tau_t(d_t-\bar q_t)\bar W_t.
+ \label{eq:linearized-shot-noise}
+\end{equation}
+For a single Bernoulli click, the discarded derivative of \(W_t\) is not
+parametrically small; Eq.~\eqref{eq:linearized-shot-noise} becomes controlled
+only if coarse graining, weak overlap, or a large-flavor construction supplies
+a small-noise parameter.
+
+Let \(\mathcal J_{t-1:u+1}\) denote the chronological product propagating a
+matrix from just after event \(u\) to just before event \(t\), and define
+\begin{equation}
+ \Gamma_{tu}
+ =\chi_t^\dagger
+ \mathcal J_{t-1:u+1}(\bar W_u)\chi_t\geq0.
+ \label{eq:retarded-kernel}
+\end{equation}
+The inequality follows because \(\mathcal J_t\) maps positive matrices to
+positive matrices.  Within the stated closure, the first-order response is
+\begin{equation}
+ q_t\simeq\bar q_t
+ -\sum_{u<t}\tau_t\tau_u\Gamma_{tu}(d_u-\bar q_u).
+ \label{eq:q-retarded-response}
+\end{equation}
+If \(\bar q_t\) stays bounded away from \(0\) and \(1\), and the induced
+propensity shifts are small, expanding the Bernoulli log likelihood around
+\(\bar q_t\) gives
+\begin{align}
+ \log p[\bm d]
+ &\simeq\sum_t\left[d_t\log\bar q_t
+ +(1-d_t)\log(1-\bar q_t)\right]
+ \nonumber\\
+ &\quad-\sum_{t>u}
+ \frac{\tau_t\tau_u\Gamma_{tu}}
+ {\bar q_t(1-\bar q_t)}
+ (d_t-\bar q_t)(d_u-\bar q_u)+\cdots .
+ \label{eq:retarded-click-action}
+\end{align}
+The complete-history quadratic form can be symmetrized algebraically over
+unordered spacetime pairs.  Its ``retarded'' character refers instead to its
+causal construction, temporal anisotropy, and generic lack of time-reversal
+symmetry.  Near \(\bar q_t=0\) or \(1\), a separate rare-click expansion is
+required.  Nonlinear kick dependence and partner-orientation fluctuations
+generate higher-body terms.
+
+Equation~\eqref{eq:retarded-click-action} suggests a concrete wall mechanism.
+If the homogeneous linearized response map contracts rapidly in the bulk,
+\(\Gamma_{tu}\) is short ranged there.  A near-marginal wall mode makes the
+kernel long lived and possibly directional along the interface.  A defect
+statistical mechanics could then emerge on the wall even though no local
+click-only rule exists microscopically.  This is a conjecture until
+\(\Gamma_{tu}\) is measured and shown to predict click correlations.
+
+\subsection{Weak-overlap kinetics and deliberate twirls}
+
+There is also a geometric weak-overlap expansion.  Suppose \(\chi_j\) has just
+been reset to \(\tau_j\), and then the \emph{unconditional} reset of
+\(\chi_k\) to \(\tau_k\) is applied.  With
+\(\alpha=\langle\chi_k|\chi_j\rangle\) and
+\(h=\chi_k^\dagger G\chi_k\), the mean re-created mismatch propensity at
+\(j\) is
+\begin{equation}
+ q'_j
+ =|\alpha|^2\left[1-\frac{\tau_j}{2}(h+\tau_k)\right].
+ \label{eq:recontamination-rate}
+\end{equation}
+Thus nonorthogonality can re-create mismatch propensity at order
+\(|\alpha|^2\), while the
+coefficient still remembers the hidden covariance.  This identity motivates a
+kinetic approximation but also displays exactly why overlap weights alone do
+not close it.
+
+An exact finite classical process can be manufactured by imposing a common
+dephasing channel, an appropriate Haar twirl, or a commuting/orthogonal
+controller limit.  Those are modified models.  They may destroy the coherent
+class-A wall and must not be presented as derivations of the original circuit.
+A large-flavor generalization is another possible route: replica interactions
+can admit a saddle and organize corrections in inverse flavor number, but
+independent uncoupled copies do not by themselves control the single-flavor
+problem.
+
+\section{Concrete diagnostics and falsification tests}
+\label{sec:tests}
+
+The defect proposal becomes useful only if it produces tests beyond a relabeling
+of the measurement record.
+\begin{enumerate}
+ \item \emph{Exact small-system enumeration.}  Enumerate every click string for
+ small Fock-space systems.  Compare \(\cZ_n\), the activity generating
+ function, and integer-replica insertions with
+ Eqs.~\eqref{eq:defect-generating-function} and
+ \eqref{eq:replicated-partition-function}.
+ \item \emph{Controller conflict graph.}  Measure
+ \([P_j,P_k]\), cross-target overlaps, and the directed weights relevant to
+ the chronological BPJ word.  Test the floor in Eq.~\eqref{eq:overlap-floor}
+ event by event.
+ \item \emph{Partner-mode propagation.}  On pure trajectories, construct
+ \(u_t\) and test Eq.~\eqref{eq:next-defect-rule} without fitted parameters.
+ This directly asks whether click correlations follow the state-dependent
+ partner overlap.
+ \item \emph{Exact fluctuation source.}  Measure the source term in
+ Eq.~\eqref{eq:exact-Sigma-update} and compare it with the mean-orbit closure
+ in Eq.~\eqref{eq:narrow-source-closure}.  This quantifies rather than assumes
+ moment closure.
+ \item \emph{Retarded kernel.}  Compute \(\Gamma_{tu}\) from the linearized
+ response map and compare Eq.~\eqref{eq:q-retarded-response} with conditional
+ click rates.  Separate wall-on, wall-off, and homogeneous controls.
+ \item \emph{Dynamical activity.}  Use the exact tilted Gaussian recursion to
+ obtain the activity SCGF, susceptibility, and signed-charge cumulants.  Look
+ for wall-excess finite-size structure only after subtracting matched bulk
+ update counts.
+ \item \emph{Replica fluctuation check.}  Reconstruct the full second moment
+ \(M=\Sigma+|\bar G\rangle\!\rangle\langle\!\langle\bar G|\), and compare its
+ contractions with direct trajectory estimates of \(\avg{|C_{ij}|^2}\) and
+ \(\avg{F_A^{(q)}}\).  Keep these distinct from quantities evaluated on
+ \(\avg C\).
+\end{enumerate}
+
+Directed-percolation language is not justified by the existence of a binary
+click alone.  It would require a genuine absorbing configuration, a closed
+short-range scalar defect kinetics, and the absence of a relevant conservation
+law or symmetry.  The generic compact noncommuting controller may instead have
+intrinsic mismatch activity.  Its signed activity obeys the exact charge
+accounting in Eq.~\eqref{eq:charge-accounting} and has zero mean over a
+stationary cycle, but this is not itself a conservation law for the reduced
+system or the click kinetics.  The appropriate starting hypothesis is
+therefore a driven shot-noise field coupled to slow wall covariance modes, not
+directed percolation by default.
+
+\section{Discussion}
+\label{sec:discussion}
+
+The mismatch-click variable does organize the physics, but in a more nuanced
+way than a classical occupation defect.  At one event it is an exact binary
+innovation.  In a pure trajectory it flips one state-dependent partner mode,
+giving a precise particle/hole interpretation and exact signed-charge
+accounting.  Across events it is emitted by a hidden Markov process whose state
+is the covariance matrix.  The corresponding positive transfer operator
+already supplies a legitimate classical statistical mechanics, while the
+replicated density transfer supplies a local fermionic tensor-network version.
+
+The one-copy Born average is unusually simple because the nonlinear recoil
+cancels between the two branches.  That cancellation does not survive generic
+replica tilts or same-record nonlinear observables.  The exact fluctuation
+equation identifies the missing piece as rank-at-most-one covariance shot
+noise.  This
+is why the averaged covariance can look smooth or gapped while squared
+trajectory correlators retain substantial wall structure.
+
+The comparison with O'Dea \emph{et al.} isolates the structural question.
+Their averaged dynamics preserves a common diagonal defect algebra, so a local
+classical cellular automaton is exact.  Here the compact class-A controller
+uses overlapping noncommuting orbitals.  A local common diagonal algebra is not
+available generically, and the correction event is immediately healed at its
+own orbital.  The plausible emergent theory is consequently a wall-localized
+activity field with retarded interactions mediated by covariance modes, or an
+interacting replicated fermion theory with a defect insertion, rather than a
+microscopic reaction--diffusion process assumed from the outset.
+
+The next decisive calculation is therefore not to fit an arbitrary classical
+model to click rasters.  It is to evaluate the controller conflict graph, the
+exact partner-mode propagation weights, the nonlinear fluctuation source, and
+the linearized response Green function on the same wall and wall-off
+geometries.  Those
+objects determine whether the retarded action truncates to a useful local wall
+theory or whether the full replicated fermionic transfer must be retained.
+
+\appendix
+
+\section{One-event algebra}
+\label{app:one-event-algebra}
+
+For a branch with nonzero Born probability, the Sherman--Morrison identity
+gives
+\begin{equation}
+ (\Id+\eta_mGP)^{-1}
+ =\Id-\frac{\eta_mGP}{1+\eta_mg}.
+ \label{eq:app-SM}
+\end{equation}
+Multiplication by \(Q\) on both sides yields
+\begin{equation}
+ \Phi_{m|s}(G)
+ =QGQ+\tau P-\frac{\eta_m}{1+\eta_mg}R.
+ \label{eq:app-branch-map}
+\end{equation}
+For \(|g|<1\), using \(\eta_m=\tau(-1)^d\) and
+\begin{equation}
+ -\frac{\eta_m}{1+\eta_mg}
+ =\frac{g-\eta_m}{1-g^2}
+ =\frac{2\tau[d-q_s(G)]}{1-g^2}
+ \label{eq:app-innovation-coefficient}
+\end{equation}
+proves Eq.~\eqref{eq:innovation-map}.
+
+The first conditional moment follows from \(\E(d-q|G)=0\).  For the second,
+\begin{align}
+ \E_d[(\Phi_d-B)\otimes(\Phi_d-B)|G]
+ &=\frac{4R\otimes R}{(1-g^2)^2}\E[(d-q)^2|G]
+ \nonumber\\
+ &=\frac{R\otimes R}{1-g^2},
+ \label{eq:app-second-moment-proof}
+\end{align}
+which proves Eq.~\eqref{eq:two-copy-covariance-identity}.
+
+For a pure covariance, \(G^2=\Id\) gives
+\begin{equation}
+ \|QG\chi\|^2
+ =\chi^\dagger GQG\chi=1-g^2.
+ \label{eq:app-pure-norm}
+\end{equation}
+The relation \(QGQ\,u=-gu\) follows by applying \(QG\) to
+\(G\chi=g\chi+\sqrt{1-g^2}u\).  Substitution into
+Eq.~\eqref{eq:pure-innovation-map} proves
+Eq.~\eqref{eq:partner-eigenvalues}.
+
+\section{Tilted block identity and covariance}
+\label{app:tilted-derivation}
+
+Write the density operator in blocks of the \(\chi\)-mode occupation.  The
+projective measurement removes off-diagonal blocks, and the conditional
+correction resets the exposed mode to \(s\):
+\begin{equation}
+ K_{d|s}\rho K_{d|s}^\dagger
+ =\proj{s}_\chi\widehat\otimes
+ {}_\chi\!\bra{s\oplus d}\rho
+ \ket{s\oplus d}_\chi.
+ \label{eq:app-block-branch}
+\end{equation}
+Multiplying by \(x^d\) and summing proves
+Eq.~\eqref{eq:tilted-block-identity}.  The normalized covariance is the
+weighted branch average
+\begin{equation}
+ \Psi_{s,x}(G)
+ =\frac{p_0\Phi_0+xp_1\Phi_1}{p_0+xp_1}.
+ \label{eq:app-weighted-covariance}
+\end{equation}
+Since
+\begin{equation}
+ p_0\frac{-\tau}{1+\tau g}=-\frac{\tau}{2},
+ \qquad
+ p_1\frac{\tau}{1-\tau g}=\frac{\tau}{2},
+ \label{eq:app-weight-cancellation}
+\end{equation}
+Eq.~\eqref{eq:tilted-covariance-map} follows immediately.
+
+\section{Proof of the consecutive overlap bound}
+\label{app:geometric-bound}
+
+Suppose \(G\chi=\tau\chi\) and decompose
+\begin{equation}
+ \psi=\alpha\chi+w,
+ \qquad \langle\chi|w\rangle=0,
+ \qquad \|w\|^2=1-|\alpha|^2.
+ \label{eq:app-psi-decomposition}
+\end{equation}
+Hermiticity gives \(\langle\chi|Gw\rangle=0\), so
+\begin{equation}
+ \psi^\dagger G\psi
+ =\tau|\alpha|^2+w^\dagger Gw.
+ \label{eq:app-gpsi}
+\end{equation}
+For \(\tau'=-\tau\) and \(-\Id\leq G\leq\Id\),
+\begin{equation}
+ \tau'\psi^\dagger G\psi
+ \leq-|\alpha|^2+(1-|\alpha|^2)
+ =1-2|\alpha|^2.
+ \label{eq:app-alignment-bound}
+\end{equation}
+Therefore
+\begin{equation}
+ q_{\psi,\tau'}(G)
+ =\frac{1-\tau'\psi^\dagger G\psi}{2}
+ \geq|\alpha|^2,
+ \end{equation}
+which proves Eq.~\eqref{eq:overlap-floor}.
+
+\section{Marked-replica bookkeeping}
+\label{app:marked-replicas}
+
+For a single marked observable,
+\begin{align}
+ \Tr[O^{(1)}\Omega_n]
+ &=\sum_\xi
+ \Tr(O\widetilde\rho_\xi)
+ (\Tr\widetilde\rho_\xi)^{n-1}
+ \nonumber\\
+ &=\sum_\xi p_\xi^n\langle O\rangle_\xi.
+ \label{eq:app-one-mark}
+\end{align}
+For two marks,
+\begin{align}
+ \Tr[O_1^{(1)}O_2^{(2)}\Omega_n]
+ &=\sum_\xi
+ \Tr(O_1\widetilde\rho_\xi)
+ \Tr(O_2\widetilde\rho_\xi)
+ (\Tr\widetilde\rho_\xi)^{n-2}
+ \nonumber\\
+ &=\sum_\xi p_\xi^n
+ \langle O_1\rangle_\xi\langle O_2\rangle_\xi.
+ \label{eq:app-two-marks}
+\end{align}
+Equations~\eqref{eq:marked-squared-correlator}--
+\eqref{eq:marked-density-correlation} follow by choosing the marked
+operators and continuing the normalized ratio to \(n=1\).
+
+\bibliographystyle{apsrev4-2}
+\bibliography{../../LEGACY/topological_dynamics_introduction/references,references}
+
+\end{document}

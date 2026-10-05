@@ -1,0 +1,480 @@
+\documentclass[aps,preprint,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\I}{\mathbf{1}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cK}{\mathcal{K}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\PF}{\mathfrak{P}}
+\newcommand{\Koop}{\mathfrak{K}}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+
+\begin{document}
+
+\title{Markov Transfer Operators for Covariance-Matrix Dynamics}
+\author{}
+\date{\today}
+
+\begin{abstract}
+This note records a precise formulation of the stochastic Gaussian
+covariance update as a discrete-time Markov process on covariance matrices.
+Each elementary circuit event is a state-dependent random rational map
+\(G\mapsto F_\alpha(G)\), where the branch label \(\alpha\) contains the local
+operation and measurement outcome. The corresponding Markov kernel pushes
+forward probability distributions on the covariance manifold, while its
+adjoint acts on observables by the usual Koopman transfer operator. Linearizing
+the same random maps gives a multiplicative tangent cocycle
+\(\delta G_{t+1}=T_{\alpha_t}(G_t)^\dagger\delta G_t T_{\alpha_t}(G_t)\).
+The Lyapunov spectrum is the quenched singular-value spectrum of this cocycle,
+not the spectrum of an outcome-averaged transfer matrix.
+\end{abstract}
+
+\maketitle
+
+\section{Covariance state space}
+
+Let \(G\in\mathbb{C}^{N\times N}\) denote the complex covariance matrix of the
+top-layer Gaussian state. In the convention used here,
+\begin{equation}
+  G_{ij}=2\langle c_i^\dagger c_j\rangle-\delta_{ij}.
+\end{equation}
+Thus the one-body occupation matrix is
+\begin{equation}
+  C=\frac{1}{2}(G+\I).
+\end{equation}
+The natural state space is a real manifold, or a stratified real analytic set,
+of admissible covariance matrices,
+\begin{equation}
+  \cX=\{G:\,G=G^\dagger,\,-\I\leq G\leq \I,\text{ plus the imposed symmetry
+  constraints}\}.
+\end{equation}
+Pure Gaussian states lie on the boundary component satisfying
+\begin{equation}
+  G^2=\I.
+\end{equation}
+A perturbation away from a pure state obeys
+\begin{equation}
+  (G+\delta G)^2
+  =
+  \I+\{G,\delta G\}+O(\delta G^2).
+\end{equation}
+Therefore a first-order tangent perturbation along the pure-state manifold
+satisfies \(\{G,\delta G\}=0\), whereas first-order mixedness is encoded by the
+normal component for which \(\{G,\delta G\}\neq0\).
+
+\section{Elementary branch maps}
+
+An elementary realized Gaussian channel branch acts on \(G\) by a fractional
+linear covariance map
+\begin{equation}
+  F_\alpha(G)
+  =
+  C_\alpha
+  -
+  B_\alpha^\dagger
+  \left(A_\alpha-G^{-1}\right)^{-1}
+  B_\alpha,
+  \label{eq:branch-map}
+\end{equation}
+where \(\alpha\) labels the operation, site or mode, direction, and measurement
+outcome. The domain of this formula is the open subset of \(\cX\) on which the
+inverse exists. Singular events should be understood either by restricting to
+the nonsingular support block or by taking the appropriate Schur-complement
+limit.
+
+For a filling or deletion operation at mode \((r,\nu)\), a useful branch label is
+\begin{equation}
+  \alpha=(r,\nu,\sigma,s),
+  \qquad
+  \sigma\in\{\mathrm{fill},\mathrm{del}\},
+  \qquad
+  s\in\{0,1\}.
+\end{equation}
+Let
+\begin{equation}
+  P_{r,\nu}=W_{r,\nu}W_{r,\nu}^\dagger,
+  \qquad
+  Q_{r,\nu}=\I-P_{r,\nu}.
+\end{equation}
+The branch probability is state dependent. For instance, for an occupation
+measurement of the mode \(W_{r,\nu}\),
+\begin{equation}
+  p_{r,\nu}(s=1\mid G)
+  =
+  \Tr\!\left(P_{r,\nu}\frac{G+\I}{2}\right),
+  \qquad
+  p_{r,\nu}(s=0\mid G)
+  =
+  1-p_{r,\nu}(s=1\mid G),
+  \label{eq:born-probability}
+\end{equation}
+up to the precise sign convention used to associate the two branch labels with
+occupied and empty outcomes. More general schedules may also include an
+externally chosen probability for selecting \((r,\nu,\sigma)\).
+
+\section{Discrete-time Markov process on covariance matrices}
+
+The covariance process is a time-inhomogeneous Markov chain on \(\cX\). Given
+the current covariance \(G_t\), one samples a branch label \(\alpha_t\) from a
+conditional probability law
+\begin{equation}
+  \Prob(\alpha_t=\alpha\mid G_t=G)=p_t(\alpha\mid G),
+\end{equation}
+and then updates deterministically inside that branch,
+\begin{equation}
+  G_{t+1}=F_\alpha(G_t).
+  \label{eq:discrete-process}
+\end{equation}
+Equivalently,
+\begin{equation}
+  G_{t+1}=F_{\alpha_t}(G_t),
+  \qquad
+  \alpha_t\sim p_t(\cdot\mid G_t).
+\end{equation}
+The Markov property is immediate:
+\begin{equation}
+  \Prob(G_{t+1}\in E\mid G_t,G_{t-1},\ldots,G_0)
+  =
+  \Prob(G_{t+1}\in E\mid G_t)
+\end{equation}
+for every Borel set \(E\subset\cX\), provided the circuit schedule at time \(t\)
+is fixed or is itself included as part of the time-dependent law \(p_t\).
+
+The associated Markov kernel is
+\begin{equation}
+  K_t(G,E)
+  =
+  \sum_{\alpha\in\cA_t}
+  p_t(\alpha\mid G)\,
+  \bm{1}_E\!\left(F_\alpha(G)\right),
+  \label{eq:markov-kernel}
+\end{equation}
+or, in distributional notation,
+\begin{equation}
+  K_t(G,\dd G')
+  =
+  \sum_{\alpha\in\cA_t}
+  p_t(\alpha\mid G)\,
+  \delta_{F_\alpha(G)}(\dd G').
+  \label{eq:kernel-delta}
+\end{equation}
+Here \(\cA_t\) is the finite set of branch labels available at step \(t\). For a
+deterministic choice of location and operation, \(\cA_t\) contains only the two
+measurement outcomes. For a randomly selected location or operation, \(\cA_t\)
+contains the combined operation-outcome labels and \(p_t\) includes both the
+external sampling probability and the Born probability.
+
+\section{Transfer operators on observables and distributions}
+
+Let \(\varphi:\cX\to\mathbb{C}\) be a bounded measurable observable of the
+covariance matrix. The Koopman, or backward, Markov transfer operator is
+\begin{equation}
+  (\Koop_t\varphi)(G)
+  =
+  \E\!\left[\varphi(G_{t+1})\mid G_t=G\right]
+  =
+  \sum_{\alpha\in\cA_t}
+  p_t(\alpha\mid G)\,
+  \varphi\!\left(F_\alpha(G)\right).
+  \label{eq:koopman}
+\end{equation}
+The dual Perron-Frobenius operator evolves probability measures. If \(\mu_t\)
+is the law of \(G_t\), then
+\begin{equation}
+  \mu_{t+1}=\PF_t\mu_t,
+  \qquad
+  (\PF_t\mu_t)(E)
+  =
+  \int_\cX K_t(G,E)\,\mu_t(\dd G).
+  \label{eq:measure-pushforward}
+\end{equation}
+Equivalently, duality with observables gives
+\begin{equation}
+  \int_\cX \varphi(G')\,\mu_{t+1}(\dd G')
+  =
+  \int_\cX (\Koop_t\varphi)(G)\,\mu_t(\dd G).
+  \label{eq:duality}
+\end{equation}
+
+If \(\mu_t\) has a density \(\rho_t\) with respect to a chosen reference measure
+\(\dd G\) on the real covariance manifold, then formally
+\begin{equation}
+  \rho_{t+1}(G')
+  =
+  \sum_{\alpha\in\cA_t}
+  \int_\cX
+  \rho_t(G)\,
+  p_t(\alpha\mid G)\,
+  \delta\!\left(G'-F_\alpha(G)\right)
+  \dd G.
+  \label{eq:density-delta}
+\end{equation}
+When each branch map is locally invertible on the relevant smooth stratum, this
+can be written as
+\begin{equation}
+  \rho_{t+1}(G')
+  =
+  \sum_{\alpha\in\cA_t}
+  \sum_{G\in F_\alpha^{-1}(G')}
+  \frac{\rho_t(G)\,p_t(\alpha\mid G)}
+       {|\det_{\mathbb{R}} D F_\alpha(G)|}.
+  \label{eq:pf-density}
+\end{equation}
+The determinant in Eq.~\eqref{eq:pf-density} is the real Jacobian on the
+appropriate tangent space of admissible covariance matrices. In practice,
+Eq.~\eqref{eq:measure-pushforward} is the more robust definition: measurement
+maps can be rank deficient or singular on lower-dimensional sets, in which case
+the evolved measure need not remain absolutely continuous.
+
+\section{Full layers and unit cells}
+
+A full circuit layer or unit cell consists of a finite sequence of elementary
+updates. Suppose the physical order is
+\begin{equation}
+  j=1,2,\ldots,m,
+\end{equation}
+with elementary kernels \(K_t^{(j)}\). The covariance process inside the cell is
+\begin{equation}
+  G^{(j)}=F_{\alpha^{(j)}}^{(j)}(G^{(j-1)}),
+  \qquad
+  \alpha^{(j)}\sim p_t^{(j)}(\cdot\mid G^{(j-1)}).
+\end{equation}
+The cell-level kernel is the kernel composition
+\begin{equation}
+  K_t^{\mathrm{cell}}
+  =
+  K_t^{(1)}K_t^{(2)}\cdots K_t^{(m)}
+\end{equation}
+in the following explicit sense:
+\begin{align}
+  K_t^{\mathrm{cell}}(G,E)
+  &=
+  \int_{\cX}\cdots\int_{\cX}
+  K_t^{(1)}(G,\dd G^{(1)})
+  K_t^{(2)}(G^{(1)},\dd G^{(2)})
+  \cdots
+  K_t^{(m)}(G^{(m-1)},E).
+  \label{eq:kernel-composition}
+\end{align}
+Thus for observables,
+\begin{equation}
+  \Koop_t^{\mathrm{cell}}\varphi
+  =
+  \Koop_t^{(1)}
+  \Koop_t^{(2)}
+  \cdots
+  \Koop_t^{(m)}
+  \varphi,
+  \label{eq:observable-composition}
+\end{equation}
+where the first physical operation appears first because
+\((\Koop_t^{(1)}\psi)(G)=\E[\psi(G^{(1)})\mid G^{(0)}=G]\). For measures the
+dual order is
+\begin{equation}
+  \mu_t^{\mathrm{out}}
+  =
+  \PF_t^{(m)}
+  \cdots
+  \PF_t^{(2)}
+  \PF_t^{(1)}
+  \mu_t^{\mathrm{in}}.
+  \label{eq:measure-composition}
+\end{equation}
+
+\section{Linearization and tangent transfer matrices}
+
+The branchwise tangent map follows by differentiating
+Eq.~\eqref{eq:branch-map}. Let
+\begin{equation}
+  M_\alpha(G)=A_\alpha-G^{-1}.
+\end{equation}
+For a perturbation \(\delta G\),
+\begin{equation}
+  \delta G^{-1}
+  =
+  -G^{-1}\delta G\,G^{-1},
+\end{equation}
+and therefore
+\begin{equation}
+  \delta M_\alpha
+  =
+  G^{-1}\delta G\,G^{-1}.
+\end{equation}
+Since \(\delta M^{-1}=-M^{-1}(\delta M)M^{-1}\), one obtains
+\begin{align}
+  D F_\alpha(G)[\delta G]
+  &=
+  B_\alpha^\dagger
+  M_\alpha(G)^{-1}
+  G^{-1}\delta G\,G^{-1}
+  M_\alpha(G)^{-1}
+  B_\alpha .
+\end{align}
+Using the noncommutative identities
+\begin{equation}
+  M_\alpha(G)^{-1}G^{-1}
+  =
+  (G A_\alpha-\I)^{-1},
+  \qquad
+  G^{-1}M_\alpha(G)^{-1}
+  =
+  (A_\alpha G-\I)^{-1},
+\end{equation}
+this becomes
+\begin{equation}
+  D F_\alpha(G)[\delta G]
+  =
+  B_\alpha^\dagger
+  (G A_\alpha-\I)^{-1}
+  \delta G
+  (A_\alpha G-\I)^{-1}
+  B_\alpha.
+  \label{eq:linearization}
+\end{equation}
+When the covariance and Choi blocks obey the Hermiticity relation needed to
+identify the left factor as the adjoint of the right factor, define
+\begin{equation}
+  T_\alpha(G)
+  =
+  (A_\alpha G-\I)^{-1}B_\alpha.
+  \label{eq:tangent-transfer}
+\end{equation}
+Then
+\begin{equation}
+  \delta G_{t+1}
+  =
+  T_{\alpha_t}(G_t)^\dagger
+  \delta G_t
+  T_{\alpha_t}(G_t).
+  \label{eq:tangent-update}
+\end{equation}
+
+\section{Lifted Markov process and Lyapunov cocycle}
+
+Equations \eqref{eq:discrete-process} and \eqref{eq:tangent-update} define a
+Markov process lifted to the tangent bundle:
+\begin{align}
+  G_{t+1}
+  &=
+  F_{\alpha_t}(G_t),
+  \\
+  \delta G_{t+1}
+  &=
+  T_{\alpha_t}(G_t)^\dagger
+  \delta G_t
+  T_{\alpha_t}(G_t),
+  \\
+  \alpha_t
+  &\sim
+  p_t(\cdot\mid G_t).
+\end{align}
+Along one realized trajectory, set
+\begin{equation}
+  T_t:=T_{\alpha_t}(G_{t-1}).
+\end{equation}
+Then the chronological product convention compatible with
+\(\delta G_t=T_t^\dagger\delta G_{t-1}T_t\) is
+\begin{equation}
+  \widetilde T_n
+  =
+  T_1T_2\cdots T_n,
+  \label{eq:chronological-product}
+\end{equation}
+so that
+\begin{equation}
+  \delta G_n
+  =
+  \widetilde T_n^\dagger
+  \delta G_0
+  \widetilde T_n.
+  \label{eq:delta-product}
+\end{equation}
+The Lyapunov exponents are the quenched singular-value growth rates
+\begin{equation}
+  \lambda_i
+  =
+  \lim_{n\to\infty}
+  \frac{1}{n}\log \sigma_i(\widetilde T_n),
+  \label{eq:lyapunov-svd}
+\end{equation}
+when the limit exists. Equivalently,
+\begin{equation}
+  2\lambda_i
+  =
+  \lim_{n\to\infty}
+  \frac{1}{n}
+  \log \operatorname{eig}_i
+  \left(\widetilde T_n^\dagger\widetilde T_n\right).
+  \label{eq:lyapunov-positive}
+\end{equation}
+In a stationary ergodic setting, existence and nonrandomness of the limiting
+exponents are the content of the multiplicative ergodic theorem applied to the
+Markov cocycle \(T_\alpha(G)\).
+
+\section{Branch averaging versus quenched products}
+
+A useful distinction is between the annealed distributional dynamics of \(G\)
+and the quenched tangent dynamics along a realized trajectory. The distribution
+of \(G\) evolves by the Markov kernel,
+\begin{equation}
+  \mu_{t+1}=\PF_t\mu_t.
+\end{equation}
+However, the tangent update is quadratic in the branch transfer matrix. Thus,
+conditional on \(G_t=G\),
+\begin{equation}
+  \E[\delta G_{t+1}\mid G_t=G,\delta G_t]
+  =
+  \sum_{\alpha\in\cA_t}
+  p_t(\alpha\mid G)\,
+  T_\alpha(G)^\dagger
+  \delta G_t
+  T_\alpha(G).
+  \label{eq:average-quadratic}
+\end{equation}
+This is not equal in general to
+\begin{equation}
+  \overline T(G)^\dagger\delta G_t\,\overline T(G),
+  \qquad
+  \overline T(G)=
+  \sum_{\alpha\in\cA_t}p_t(\alpha\mid G)T_\alpha(G).
+\end{equation}
+Consequently the Lyapunov spectrum relevant to relaxation of perturbations is
+the spectrum of the random product in Eq.~\eqref{eq:chronological-product}, not
+the spectrum of an outcome-averaged matrix.
+
+\section{Summary}
+
+The covariance dynamics can be organized at three levels.
+First, the state \(G_t\) is a discrete-time Markov chain with transition kernel
+\(K_t(G,\dd G')\). Second, distributions of \(G_t\) evolve by the
+Perron-Frobenius pushforward \(\PF_t\), while observables evolve by the dual
+Koopman operator \(\Koop_t\). Third, infinitesimal perturbations define a
+matrix cocycle over the Markov chain,
+\begin{equation}
+  (G_t,\delta G_t)
+  \mapsto
+  \left(F_{\alpha_t}(G_t),
+  T_{\alpha_t}(G_t)^\dagger\delta G_tT_{\alpha_t}(G_t)\right).
+\end{equation}
+The Lyapunov spectrum is obtained from the singular values of the chronological
+product of the realized tangent transfer matrices.
+
+\end{document}

@@ -1,0 +1,98 @@
+\documentclass[aps,prb,twocolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,graphicx,booktabs}
+\usepackage[T1]{fontenc}
+\begin{document}
+\title{Completed $4N_y$ hard-wall dynamical-critical analysis}
+\author{Numerical working note}
+\date{September 17, 2026}
+\begin{abstract}
+We analyze 700 independent Born trajectories of the $N_x=20$ hard-wall adaptive Gaussian circuit at
+$N_y=20,24,30,36,44,56,60$ and depth $T=4N_y$. All 140 five-sample shards pass checksum,
+identity, coverage, and numerical validation. The saved occupation spectra reproduce the stored leading
+many-body squared-singular-value levels to a maximum absolute error of
+$7.28e-12$.
+The calculation reports the raw finite-size coefficients and their uncertainty without acceptance gates.
+The resulting central-charge coefficient is anomalous, while the ordered gap coefficients form a nearly
+equally spaced sequence.
+\end{abstract}
+\maketitle
+
+\section{Protocol and reconstruction}
+The campaign uses maximally mixed initial conditions, hard support-truncated walls at $x=5,15$,
+$n_{\rm shell}=1$, $\alpha_1=1$, $\alpha_2=30$, raster-$y$ measurements, perfect correction,
+and complex128 covariance evolution. Entropies and active-space occupations were saved every four cycles;
+the realized Born record weight $\omega(t)$ was saved every cycle. For each saved occupation spectrum
+$\{\nu_a\}$ we reconstruct the many-body levels
+\begin{equation}
+ \ell_i=\log\sigma_i^2=\log Z+\sum_a\log\max(\nu_a,1-\nu_a)-d_i,
+\end{equation}
+where $d_i$ are the lowest subset sums of
+$|\log[\nu_a/(1-\nu_a)]|$. Exact zero and unit occupations retain infinite flip costs.
+We fit every trajectory separately in $W_1=[N_y,2N_y]$, $W_2=[2N_y,3N_y]$, and
+$W_3=[3N_y,4N_y]$. All confidence intervals resample complete trajectories, with 2000 replicates and
+seed 2026091702.
+
+\begin{figure*}[t]
+\centering\includegraphics[width=\textwidth]{figure_assets/dynamical_critical_main.png}
+\caption{Primary dynamical-critical results. (a) Entropy-density collapse with whole-trajectory bootstrap intervals.
+(b) Sample-wise purification times and endpoint residual entropy. (c) Relative $W_2\to W_3$ shifts.
+(d) Same-window record-weight closure. (e) Leading finite-size fit. (f) Ordered-gap densities.
+Colors label circumference.}
+\end{figure*}
+
+\section{Purification and temporal convergence}
+The endpoint entropy is small at every circumference, while the full $S(t)/N_y$ curves provide a direct
+descriptive test of $z=1$ scaling. Threshold-crossing times are linearly interpolated on the native
+four-cycle grid. We report the fitted threshold exponents and the paired $W_2\to W_3$ shifts directly,
+without converting them into pass/fail decisions.
+
+\section{Record closure and boundary localization}
+The leading reconstructed level is compared with $d\omega/dt$ in the same fit window. The endpoint ratio
+$-\omega(T)/T$ is retained only as a finite-depth diagnostic. The largest late-window relative mismatch
+between $d\omega/dt$ and $\lambda_0$ is 1.326e-03. The first four soft modes
+are analyzed only through their aggregate subspace density and aggregate weight near both walls. This avoids
+nonphysical labels under rotations in nearly degenerate eigenspaces.
+
+\section{Finite-size coefficients}
+The late-window leading density is fit to
+\begin{equation}
+ -\lambda_0/N_y=f_\infty+A_0/N_y^2,
+\end{equation}
+with $1/N_y^4$ and successive $N_{y,\min}=24,30,36$ sensitivity fits. The primary result is
+$A_0=11.19$ with 95\% interval
+$[-4.148,27.04]$.
+This gives $\alpha c_{\rm eff}=-21.374$ with 95\% interval
+$[-51.646,7.922]$.
+For the gaps we define $r_i\equiv x_i/c_{\rm eff}=-A_i/(12A_0)$ and additionally quote
+$x_i/x_1=A_i/A_1$:
+\begin{center}
+\begin{tabular}{ccccc}\toprule
+$i$ & $A_i$ & $\alpha x_i$ & $r_i$ & $x_i/x_1$ \\\midrule
+1 & 2.639 & 0.420 & -0.0196 & 1.000 \\
+2 & 3.606 & 0.574 & -0.0268 & 1.367 \\
+3 & 4.499 & 0.716 & -0.0335 & 1.705 \\
+4 & 5.493 & 0.874 & -0.0409 & 2.082 \\
+\bottomrule\end{tabular}
+\end{center}
+These are direct fit outputs, not gated claims. The negative $r_i$ values result from the positive fitted
+$A_0$ and therefore expose the anomalous central-charge extrapolation. No conformal operator names are
+assigned because momentum, charge-sector, and two-wall symmetry labels were not saved.
+
+\begin{figure*}[t]
+\centering\includegraphics[width=\textwidth]{figure_assets/dynamical_critical_diagnostics.png}
+\caption{Diagnostics. (a,b) Aggregate four-mode wall localization and transverse profile.
+(c) Random without-replacement sample convergence. (d) Unnormalized entropy dynamics. (e) Resolved fractions.
+(f) Maximum numerical residuals.}
+\end{figure*}
+
+\section{Relation to earlier ensembles}
+The earlier $2N_y$ pilot and the independent three-size $4N_y$ purification campaign are compared only at
+the summary-ledger level. Their trajectories are never pooled with this primary seven-size campaign.
+
+\section{Conclusion}
+The completed data validate the Gaussian many-body spectral reconstruction, deep-time purification,
+same-window record closure, and boundary localization. The ungated fits yield a negative
+$\alpha c_{\rm eff}$ but clean positive ordered-gap coefficients. The accompanying CSV and JSON files
+retain the bootstrap intervals, temporal shifts, resolved fractions, and fit sensitivities needed to judge
+those estimates directly.
+\end{document}

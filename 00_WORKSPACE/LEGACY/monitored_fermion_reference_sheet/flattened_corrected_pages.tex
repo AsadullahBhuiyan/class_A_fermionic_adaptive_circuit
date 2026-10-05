@@ -1,0 +1,18 @@
+\documentclass{article}
+\usepackage[paperwidth=612bp,paperheight=792bp,margin=0pt,noheadfoot]{geometry}
+\usepackage{graphicx}
+\usepackage{tikz}
+\pagestyle{empty}
+\begin{document}
+\null
+\begin{tikzpicture}[remember picture,overlay]
+  \node[anchor=south west,inner sep=0pt] at (current page.south west)
+    {\includegraphics[width=612bp,height=792bp]{corrected_front_page.png}};
+\end{tikzpicture}
+\newpage
+\null
+\begin{tikzpicture}[remember picture,overlay]
+  \node[anchor=south west,inner sep=0pt] at (current page.south west)
+    {\includegraphics[width=612bp,height=792bp]{corrected_author_page.png}};
+\end{tikzpicture}
+\end{document}

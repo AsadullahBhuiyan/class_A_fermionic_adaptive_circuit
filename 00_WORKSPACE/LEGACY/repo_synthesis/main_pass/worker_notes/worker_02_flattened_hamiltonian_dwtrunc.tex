@@ -1,0 +1,84 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\begin{document}
+
+\title{Worker 02 Notes: Flattened Hamiltonian, \texorpdfstring{$\alpha_2$}{alpha2} Sweep, and Domain-Wall Truncation}
+\author{Worker 02}
+\date{\today}
+
+\begin{abstract}
+I inspected only \texttt{notebooks/flattened\_hamiltonian\_analysis/}, excluding paths containing \texttt{haining}, \texttt{haoyu}, or \texttt{erroneous}, and did not read synthesis hierarchy notes, edit files, execute notebooks, or load large arrays. The flattened-Hamiltonian notes support the repository message that the overcomplete-Wannier (OW) construction gives a useful target covariance connecting the microscopic class-A adaptive circuit to domain-wall Chern-insulator topology. The strongest evidence is that domain-wall-sector truncation restores the full-support Chern number to $\mathcal C\simeq1$, one-shell OW states already reproduce the edge entanglement slope, the $\alpha_2$ sweep counts exposed chiral channels, and the post-selected CPU Markov circuit rapidly approaches the OW target but saturates at a finite Frobenius distance.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+Inspected sources were confined to \texttt{notebooks/flattened\_hamiltonian\_analysis/}: the generated manuscript \texttt{docs/flattened\_hamiltonian\_analysis.tex}, small CSV/JSON summaries under \texttt{data/}, and notebook JSON source text for the alpha sweep, finite-size scaling, and Frobenius comparison. I did not execute notebooks and did not read binary arrays or parquet/pickle payloads.
+
+\section{Findings}
+
+\subsection{Flattened Hamiltonian Construction}
+
+The local model is a two-band Chern insulator with mass profile $\alpha(x)=\alpha_1$ in the central topological strip and $\alpha_2$ in the flanks. The benchmark uses $\alpha_1=1$, $\alpha_2=30$, and two domain walls. OW spinors are generated from upper/lower-band projectors and two trial spinors, giving four rank-one projector families per lattice site. The flattened Hamiltonian is
+\begin{equation}
+H_{\rm flat}=\sum_{\bm R}\left(P_{A+}(\bm R)+P_{B+}(\bm R)-P_{A-}(\bm R)-P_{B-}(\bm R)\right),
+\end{equation}
+with numerical Hermitization. The half-filled occupied subspace defines the OW target covariance $G_{\rm OW}=2P_{\rm occ}-I$.
+
+Finite shell radius $n_{\rm shell}$ truncates each OW spinor spatially; \texttt{None} denotes full support. The extra \texttt{dw\_truncation} mask confines each OW spinor to the topological or trivial sector containing its center, imposing hard OW-function boundaries at the two domain walls.
+
+\subsection{\texorpdfstring{$n_{\rm shell}$}{nshell} and Domain-Wall Truncation}
+
+The Chern diagnostic is sensitive to both OW support and sector leakage. At $N_x\times N_y=20\times40$, $\alpha_1=1$, $\alpha_2=30$, the no-truncation variants saturate near $\mathcal C\simeq0.796$, while full-support DW-truncated variants reach $\mathcal C=0.99999895$. For $n_{\rm shell}=1$, $\mathcal C\simeq0.795$, so the one-shell state captures much of the topology but not full Chern quantization.
+
+Entanglement is more robust: the wall-window log-chord slope is already near $1/6$ at $n_{\rm shell}=1$, and the full-$x$ slope is near $1/3$, consistent with two domain-wall edge modes and total effective $c=1$.
+
+\subsection{\texorpdfstring{$\alpha_2$}{alpha2} Sweep}
+
+The focused alpha sweep fixes $\alpha_1=1$, $DW=\mathrm{True}$, $n_{\rm shell}=1$, trial orbital $X$, and scans $\alpha_2\in\{1,1.2,1.4,1.6,1.8,2,2.2,3\}$ with and without DW truncation. The manuscript interpretation is sharp: with \texttt{dw\_truncation=True}, the truncation itself exposes topological edges whenever a sector is topological. If both sides are topological, the extracted central charge is $c_{\rm est}\approx2$; when the $\alpha_2$ flank becomes trivial, the result drops to a robust $c_{\rm est}\approx1$. Thus the sweep counts the chiral channels supplied by the flank sector and locates the phase boundary near $\alpha\simeq2$.
+
+\subsection{Post-Selected Frobenius Comparison}
+
+The Frobenius comparison uses the canonical CPU dynamics entry point \texttt{classA\_U1FGTN.run\_markov\_circuit}, consistent with the repository policy. For $16\times20$, $\alpha_2=30$, $n_{\rm shell}=1$, and 40 cycles, the normalized distance to $G_{\rm OW}$ drops quickly: without DW truncation, $d(0)=1.4132$, $d(10)=0.7529$, $d(40)=0.7529$; with DW truncation, $d(0)=1.4161$, $d(10)=0.7215$, $d(40)=0.7210$. The circuit therefore approaches the OW target rapidly but saturates at a nonzero fixed-point offset.
+
+\section{Interpretation}
+
+The local evidence supports the main repo message: the OW flattened Hamiltonian is a theoretical bridge between adaptive measurement dynamics and the class-A topological target state. DW truncation is not a minor implementation detail; it is a physically active boundary condition in OW-function space. It can expose edge channels even without a mass discontinuity, and in the physical sweep its central-charge floor distinguishes ``topological on both sides'' from ``topological strip against trivial flank.'' The Markov circuit result is best read as approximate preparation of the OW target rather than exact convergence at these sizes and shell radius.
+
+\section{Evidence Table}
+
+\begin{center}
+\begin{tabular}{p{0.33\linewidth}p{0.45\linewidth}p{0.16\linewidth}}
+\toprule
+Evidence & Content & Source \\
+\midrule
+Model and DW geometry & $\alpha_1=1$, $\alpha_2=30$ benchmark; central strip and two domain walls. & \texttt{docs/flattened\_hamiltonian\_analysis.tex:100--116} \\
+OW truncation rule & Finite $n_{\rm shell}$ support and DW-sector mask; mask imposes hard boundaries. & \texttt{docs/...tex:157--185} \\
+Flattened Hamiltonian & Signed sum of OW rank-one projectors and half-filled target covariance. & \texttt{docs/...tex:187--232} \\
+Chern result & DW truncation reaches $\mathcal C\simeq1$ at full support; no-truncation saturates near $0.796$. & \texttt{docs/...tex:254--290}; \texttt{data/flattened\_chern\_df.csv:2--16} \\
+Entanglement result & $n_{\rm shell}=1$ gives wall-window slope near $1/6$ and full-$x$ slope near $1/3$. & \texttt{docs/...tex:302--373}; \texttt{data/combined\_fit\_summary\_df.csv:2--20} \\
+Alpha sweep setup & Fixed $\alpha_1=1$, $N_x=20$, $N_y=30$, $n_{\rm shell}=1$, and listed $\alpha_2$ values. & \texttt{flattened\_hamiltonian\_alpha2\_sweep.ipynb source:183--202} \\
+Alpha sweep interpretation & $c_{\rm est}\approx2$ for topological flanks and $c_{\rm est}\approx1$ after the flank becomes trivial. & \texttt{docs/...tex:448--503} \\
+Finite-size check & Half-filling Chern plateau and slope plateau stabilize with size. & \texttt{docs/...tex:510--570}; \texttt{data/flattened\_hamiltonian\_finite\_size\_*} \\
+Frobenius run provenance & CPU canonical entry point and run configuration. & \texttt{data/postselected\_flattened\_frobenius\_cpu\_...metadata.json:1--78} \\
+Frobenius distances & $d(40)=0.7529$ without DW truncation and $0.7210$ with DW truncation. & \texttt{data/postselected\_flattened\_frobenius\_cpu\_...csv:2,12,42,43,53,83} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Caveats}
+
+The alpha2 numerical points were not found as a separate small exported CSV in the inspected data directory; the sweep conclusions are therefore taken from the generated manuscript and notebook source. I did not verify figures visually, rerun fits, execute notebooks, or inspect binary arrays. The phrase ``main repo message'' is interpreted only from the allowed local sources: class-A adaptive circuit dynamics, OW target covariance, and domain-wall topological diagnostics.
+
+\section{Confidence}
+
+Confidence is high for construction, parameter provenance, Chern/Frobenius numbers, and the qualitative alpha2 interpretation because they are documented consistently in manuscript, notebook source, and small summaries. Confidence is medium for exact alpha2 fit values because the compact exported numeric sweep table was not present among the inspected small CSV files.
+
+\end{document}

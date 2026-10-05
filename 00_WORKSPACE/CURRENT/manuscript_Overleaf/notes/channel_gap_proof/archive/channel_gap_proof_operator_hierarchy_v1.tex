@@ -1,0 +1,214 @@
+\documentclass[aps,prb,twocolumn,10pt,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+\hypersetup{pdftitle={Exact many-body relaxation gap of a fermionic reset circuit},
+  pdfauthor={Class-A fermionic adaptive-circuit project}}
+\newcommand{\Id}{\hat{\mathbf{1}}}
+\newcommand{\id}{\mathbf{1}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\spec}{\operatorname{spec}}
+\newcommand{\E}{\widetilde{\mathcal E}}
+
+\begin{document}
+\title{Exact many-body relaxation gap of a fermionic reset circuit}
+\author{Class-A fermionic adaptive-circuit project}
+\noaffiliation
+\date{October 1, 2026}
+\begin{abstract}
+For a fixed sequence of perfect occupation resets, we prove that the
+charge-neutral many-body channel gap equals the covariance decay rate
+$-2\log\rho(A)$, where $A$ is the ordered product of single-particle
+complement projectors. The proof uses an exact triangular hierarchy of
+fermionic operator degrees and requires neither Gaussian input states nor
+commuting measured modes. We distinguish this physical relaxation sector
+from the unrestricted operator-space gap.
+\end{abstract}
+\maketitle
+\setcounter{tocdepth}{1}
+\tableofcontents
+
+\section{Reset channel and neutral sector}
+Consider $N$ complex modes with
+$\{\hat\psi_i,\hat\psi_j^\dagger\}=\delta_{ij}$ and
+$\{\hat\psi_i,\hat\psi_j\}=0$. At step $j$, measure the normalized mode
+$\hat\chi_j=\sum_i v_{ji}\hat\psi_i$, $v_j^\dagger v_j=1$, and reset its
+occupation $\hat N_j=\hat\chi_j^\dagger\hat\chi_j$ to a prescribed
+$s_j\in\{0,1\}$. After discarding the outcome and ancillary mode, the
+specified Kraus channel is
+\begin{align}
+ \E_{j,0}(\hat\rho)&=\hat\chi_j\hat\rho\hat\chi_j^\dagger
+ +(\Id-\hat N_j)\hat\rho(\Id-\hat N_j),\nonumber\\
+ \E_{j,1}(\hat\rho)&=\hat\chi_j^\dagger\hat\rho\hat\chi_j
+ +\hat N_j\hat\rho\hat N_j. \label{eq:reset}
+\end{align}
+The Kraus completeness relation follows from $\hat N_j^2=\hat N_j$.
+With $\mathcal D[\hat L](\hat\rho)=\hat L\hat\rho\hat L^\dagger
+-\{\hat L^\dagger\hat L,\hat\rho\}/2$, these are exactly
+$\mathrm{Id}+\mathcal D[\hat\chi_j]+\mathcal D[\hat N_j]$ and
+$\mathrm{Id}+\mathcal D[\hat\chi_j^\dagger]+\mathcal D[\hat N_j]$,
+respectively, rather than continuous-time exponentials.
+
+One cycle is the composition
+$\E=\E_{M,s_M}\circ\cdots\circ\E_{1,s_1}$, with step 1 acting first;
+the sequence repeats every cycle. Set
+\begin{equation}
+ P_j=v_jv_j^\dagger,\qquad Q_j=\id-P_j,\qquad
+ A=Q_M\cdots Q_1. \label{eq:A}
+\end{equation}
+The modes may be nonorthogonal. In particular, overcomplete Wannier (OW)
+stabilizers need not commute~\cite{BPJ}; their order is retained in $A$.
+
+For $\overline G_{ab}=\Tr(\overline{\hat\rho}\,
+\hat\psi_a^\dagger\hat\psi_b)$, direct application of
+Eq.~\eqref{eq:reset} gives
+\begin{align}
+ \overline G'&=Q_j\overline GQ_j+s_jP_j,\nonumber\\
+ \overline G_{n+1}&=A\overline G_nA^\dagger+B,
+ \qquad \delta G_{n+1}=A\delta G_nA^\dagger. \label{eq:cov}
+\end{align}
+Here $B$ is independent of the input and
+$\delta G=\overline G-G_{\rm ss}$. Thus, for eigenvalues $a_i$ of $A$,
+the covariance multipliers are $a_i a_j^*$. Define
+\begin{equation}
+ \begin{gathered}
+ r=\rho(A)=\max_i|a_i|,\qquad 0<r<1,\\
+ \Delta_C=-2\log r.
+ \end{gathered} \label{eq:rate}
+\end{equation}
+All rates below are per complete cycle.
+
+The relevant operator sector is
+\begin{equation}
+ \mathcal V_0=\{\hat O:[\hat N_F,\hat O]=0\},\qquad
+ \hat N_F=\sum_i\hat\psi_i^\dagger\hat\psi_i. \label{eq:neutral}
+\end{equation}
+Each Kraus operator has definite charge, so $\E$ is $U(1)$ covariant
+and preserves $\mathcal V_0$. Density matrices of fixed-number Slater
+determinants and mixtures of number sectors belong to $\mathcal V_0$.
+Fill/empty events change particle number while preserving this property.
+Neutrality is an operator-space condition, not a fixed-filling constraint.
+
+\section{Exact spectral factorization}
+\textit{Local deletion rule.} Choose an orthonormal mode basis beginning
+with $\hat\chi_j$ and let $\hat B$ involve only the other modes. From
+Eq.~\eqref{eq:reset}, for an even total operator,
+\begin{align}
+ \E_{j,s}^\dagger(\hat B)&=\hat B &&(\hat B\text{ even}),\nonumber\\
+ \E_{j,s}^\dagger(\hat\chi_j^{(\dagger)}\hat B)&=0
+ &&(\hat B\text{ odd}),\nonumber\\
+ \E_{j,s}^\dagger(\hat N_j\hat B)&=s\hat B
+ &&(\hat B\text{ even}). \label{eq:rule}
+\end{align}
+For example, filling gives
+$\hat\chi_j\hat N_j\hat B\hat\chi_j^\dagger
++\hat N_j\hat N_j\hat B\hat N_j
+=(\Id-\hat N_j)\hat B+\hat N_j\hat B=\hat B$;
+both terms vanish for depletion. A single measured creation or
+annihilation operator has zero Kraus sandwiches.
+
+\textit{Invariant filtration.} A basis of $\mathcal V_0$ consists of
+normal-ordered monomials
+\begin{equation}
+ \hat O_{I,J}=\hat\psi_{i_1}^\dagger\cdots\hat\psi_{i_p}^\dagger
+ \hat\psi_{j_p}\cdots\hat\psi_{j_1},\qquad |I|=|J|=p,
+ \label{eq:monomials}
+\end{equation}
+including $p=0$. Equation~\eqref{eq:rule} either preserves $(p,p)$,
+annihilates the monomial, or lowers it to $(p-1,p-1)$. A change of
+one-particle basis preserves these degrees. Hence the span of all
+monomials through degree $(p,p)$ is invariant under $\E^\dagger$.
+
+On the quotient by lower degrees, each index is projected by $Q_j$ or
+$Q_j^*$. Explicitly, for the moments
+$F_{I,J}=\Tr(\hat\rho\hat O_{I,J})$, the degree-preserving block of one
+reset has entries
+\begin{equation}
+ H_{j,p}[I,J;K,L]
+ =\det Q_j[I,K]\,\det Q_j[J,L]^*. \label{eq:minors}
+\end{equation}
+Here $Q_j[I,K]$ is a $p\times p$ submatrix. These determinants are the
+matrix entries of exterior powers. The Cauchy--Binet identity gives
+$\wedge^p(XY)=(\wedge^p X)(\wedge^p Y)$; applying it in the actual reset
+order yields the homogeneous moment propagator over one cycle,
+\begin{equation}
+ T_p=(\wedge^p A)\otimes(\wedge^p A^*),\qquad
+ p=0,\ldots,N. \label{eq:blocks}
+\end{equation}
+The dual operator-coefficient block is its transpose, with the same
+spectrum. Reset-source terms couple only to lower degrees and therefore
+do not change the eigenvalues of this block-triangular hierarchy.
+
+The eigenvalues of an exterior power are products of distinct
+one-particle eigenvalues. Consequently, counting algebraic multiplicity,
+\begin{equation}
+ \spec(\E|_{\mathcal V_0})=
+ \bigcup_{p=0}^{N}
+ \left\{\prod_{i\in I}a_i\prod_{j\in J}a_j^*:
+ |I|=|J|=p\right\}. \label{eq:spectrum}
+\end{equation}
+The sets $I,J$ are independent and may overlap; each index occurs at
+most once within either set. This accounts for
+$\sum_p\binom Np^2=\binom{2N}{N}=\dim\mathcal V_0$ eigenvalues.
+Schur triangularization proves the exterior-power statement even when
+$A$ has Jordan blocks. No Gaussian-state assumption is used; Gaussian
+maps provide a related general framework~\cite{Bravyi}.
+
+\textit{Gap.} The $p=0$ eigenvalue is 1. Every $p\geq1$ product satisfies
+$|\Lambda|\leq r^{2p}\leq r^2$. Equality is attained at $p=1$ by
+$I=J=\{i_*\}$ with $|a_{i_*}|=r$. The stationary eigenvalue is therefore
+simple in this sector and
+\begin{equation}
+ \boxed{\Delta_{q=0}\equiv-\log
+ \max_{\Lambda\ne1}|\Lambda|=-2\log r=\Delta_C.}
+ \label{eq:gap}
+\end{equation}
+This proves equality, strengthening the upper bound obtained from
+quadratic spectral inclusion alone.
+
+\section{Parity sectors and scope}
+Allow $p$ creations and $\ell$ annihilations in Eq.~\eqref{eq:monomials},
+with net operator charge $q=p-\ell$.
+For $p+\ell$ even, the same proof gives blocks
+$(\wedge^p A)\otimes(\wedge^\ell A^*)$. Every nonconstant product contains
+at least two factors, and the neutral block attains $r^2$. Thus
+$\Delta_{\rm even}=\Delta_{q=0}$; even means commuting with fermion
+parity, not occupying only one Hilbert-space parity block.
+
+For completeness, the unrestricted spectrum of the specified Kraus
+channel requires an additional step. Let $\hat\Pi=(-1)^{\hat N_F}$ and
+$\mathcal S(\hat O)=\hat\Pi\hat O$, so $\mathcal S^2=\mathrm{Id}$.
+For even and odd Kraus operators $\hat K_{\rm e},\hat K_{\rm o}$,
+\begin{equation}
+ (\mathcal S\E_j^\dagger\mathcal S)(\hat O)
+ =\hat K_{\rm e}^\dagger\hat O\hat K_{\rm e}
+ -\hat K_{\rm o}^\dagger\hat O\hat K_{\rm o}. \label{eq:twist}
+\end{equation}
+On odd monomials, this sign restores Eq.~\eqref{eq:rule} with the
+parities of $\hat B$ reversed: moving an odd $\hat B$ through the odd
+Kraus operator cancels the minus sign. Similarity preserves spectra and
+composition, giving the same blocks with $p+\ell$ odd. Their maximal
+modulus is $r$, attained at total degree one. Hence
+\begin{equation}
+ \Delta_{\rm full}=-\log r=\tfrac12\Delta_C,
+ \qquad \Delta_{\rm even}=\Delta_{q=0}=\Delta_C. \label{eq:sectors}
+\end{equation}
+Physical density matrices have even parity, and the preparations under
+discussion are also charge neutral. Their channel relaxation is governed
+by Eq.~\eqref{eq:gap}. The proof concerns a fixed finite system, exact
+resets, and a repeated deterministic schedule. It establishes an
+asymptotic spectral rate, allowing Jordan prefactors; it does not by itself
+bound a size-uniform mixing time or a conditional-trajectory purification
+time. Standalone number dephasing, imperfect feedback, and averaging
+different schedules require a new higher-order analysis.
+
+\begin{thebibliography}{2}
+\bibitem{BPJ}
+A. Bhuiyan, H. Pan, and C.-M. Jian,
+\href{https://doi.org/10.1103/nk38-ygyq}{Phys. Rev. Research \textbf{8}, 023147 (2026)}.
+\bibitem{Bravyi}
+S. Bravyi, Lagrangian representation for fermionic linear optics,
+\href{https://arxiv.org/abs/quant-ph/0404180}{Quantum Inf. Comput. \textbf{5}, 216 (2005)}.
+\end{thebibliography}
+\end{document}

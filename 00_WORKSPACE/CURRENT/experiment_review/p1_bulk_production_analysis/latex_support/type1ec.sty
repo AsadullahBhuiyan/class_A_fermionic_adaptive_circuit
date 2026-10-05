@@ -1,0 +1,7 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{type1ec}[2026/08/21 local Matplotlib compatibility shim]
+% Matplotlib requests type1ec for scalable Computer Modern sans-serif text.
+% The repository toolchain already loads type1cm; no additional declarations
+% are required here. Keeping the default OT1 encoding avoids unavailable EC
+% PostScript fonts in the local TeX installation.
+\endinput

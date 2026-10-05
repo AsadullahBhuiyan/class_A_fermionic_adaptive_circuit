@@ -1,0 +1,71 @@
+{
+  "schema": "state_projector_pump_variant_campaign_v1",
+  "campaign_id": "N24x24_state_projector_pump_s100_v1",
+  "root_seed": 2026090502,
+  "geometry": {
+    "Nx": 24,
+    "Ny": 24,
+    "DW": true,
+    "dw_interval": [6, 18],
+    "nshell": 1,
+    "filling_frac": 0.5,
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "trial_orbitals": "X"
+  },
+  "walls": {
+    "soft": {"dw_truncation": false, "meas_slab_only": false},
+    "hard": {"dw_truncation": true, "meas_slab_only": true}
+  },
+  "dynamics": {
+    "burn_in_cycles": 48,
+    "sequence": "raster_y",
+    "perfect_correction": true,
+    "postselect": false,
+    "postselect_probability": 0.0,
+    "init_mode": "default",
+    "state_representation": "physical_frame",
+    "physical_covariance_update": "rank1",
+    "dtype": "complex128",
+    "canonical_entry_point": "classA_U1FGTN.run_markov_circuit"
+  },
+  "endpoint_source": null,
+  "projector_pump": {
+    "grid_intervals": 64,
+    "regulator": 1e-7,
+    "directions": {"ccw": 1, "cw": -1},
+    "projector": "P_xi = F_xi F_xi^dagger",
+    "flattened_parent": "h_xi = 1 - 2 P_xi",
+    "twist": "h_rs(phi) = h_rs(0) exp(i phi d_y(r,s)/Ny)",
+    "periodic_displacement": "minimum_image",
+    "rank_rule": "preserve the burn-in occupied rank",
+    "matching": "maximum overlap with the preceding occupied projector",
+    "instantaneous_control": "fill the lowest burn-in-rank eigenvectors independently at each phi"
+  },
+  "regions": {
+    "left_x_start": 0,
+    "left_x_stop_exclusive": 12,
+    "right_x_start": 12,
+    "right_x_stop_exclusive": 24
+  },
+  "ensemble": {
+    "samples_per_wall": 100,
+    "independent_sampling_unit": "wall-specific monitored trajectory",
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 2026090503,
+    "confidence_level": 0.95
+  },
+  "execution": {"cpu_list": "28-55", "workers": 28, "blas_threads": 1},
+  "acceptance": {
+    "frame_gram_tolerance": 1e-8,
+    "burnin_charge_continuity_tolerance": 1e-9,
+    "projector_tolerance": 1e-10,
+    "pump_charge_conservation_tolerance": 1e-9,
+    "large_gauge_tolerance": 1e-9,
+    "initial_regulator_charge_tolerance": 1e-5,
+    "instantaneous_endpoint_closure_tolerance": 1e-5,
+    "minimum_principal_overlap_floor": 0.001,
+    "pump_event_threshold": 0.5,
+    "quantization_is_acceptance_gate": false
+  }
+}

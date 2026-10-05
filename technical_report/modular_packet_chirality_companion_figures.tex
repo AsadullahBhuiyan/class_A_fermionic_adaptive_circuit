@@ -1,0 +1,49 @@
+% Optional companion figures; not automatically included in technical_report.tex.
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.98\textwidth]{modular_packet_snapshots_n20x32_y8_v2.pdf}
+    \caption{\textbf{Spatial packet snapshots with explicit injection coordinates.}
+    The same $20\times32$ hard-wall, cycle-64, $n_{\rm shell}=1$, $\alpha_2=30$
+    ensembles and independent two-orbital charge-2 sources as the main figure
+    are used, with $S=100$ per $\alpha_1$. Random pure initialization includes
+    Born-conditioned exterior product preparation; correction is perfect.
+    Top: $\alpha_1=3$ control. Bottom: $\alpha_1=1$. Columns show
+    $t_{\rm mod}=0,0.1,0.2,0.5,1$ at cutoff $10^{-10}$.
+    Density is averaged after evolution, first over 32 translated cuts within
+    each trajectory and then trajectories. Circle area is linear in mean
+    density with identical normalization; cells below $10^{-4}$ are hidden only
+    in rendering. Here $y_{\rm rel}$ is position within the subsystem. Dashed
+    lines and open rings mark injection at $y_{\rm rel}=8$; black ticks mark
+    averaged wall-window centers, not centers of pooled density. No fit or
+    coordinate unwrapping is used.}
+    \label{fig:ModularPacketSnapshotsVTwo}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.98\textwidth]{modular_handedness_cutoff_comparison_v2.pdf}
+    \caption{\textbf{Cutoff sensitivity on the same endpoint ensembles.}
+    Saved displacement curves for $\epsilon=10^{-8},10^{-10},10^{-12}$ reuse
+    the same $S=100$ trajectories per $\alpha_1$, geometry, preparation, sources
+    and five-column conditional estimator as the main figure. Cuts are averaged
+    within trajectories before trajectory mean and $\pm$ SEM. Solid/dashed
+    denote $x=5,15$. The control panel has an explicitly expanded vertical scale.
+    Opposite signs persist across this cutoff family, while magnitudes and
+    oscillation periods change. No cutoff-independent velocity is inferred,
+    and no smoothing or fit is used.}
+    \label{fig:ModularPacketCutoffVTwo}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.98\textwidth]{modular_packet_retention_v2.pdf}
+    \caption{\textbf{Charge retained in the source-wall windows.}
+    For the same main-figure ensembles, sources, and cutoff $10^{-10}$, each
+    five-column window's instantaneous charge is divided by initial charge 2.
+    Cuts are averaged within trajectories; curves and bands are the mean and
+    $\pm$ SEM across 100 trajectories per $\alpha_1$. Both panels use the same
+    vertical scale. This exposes leakage removed by conditional normalization
+    of the heatmaps. Times are modular, not physical circuit times; no fit is
+    applied.}
+    \label{fig:ModularPacketRetentionVTwo}
+\end{figure*}

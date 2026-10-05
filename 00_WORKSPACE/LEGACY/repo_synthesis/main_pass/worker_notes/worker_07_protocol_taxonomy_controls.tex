@@ -1,0 +1,265 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\PF}{\mathfrak{P}}
+\newcommand{\Koop}{\mathfrak{K}}
+\newcommand{\src}[1]{\texttt{\detokenize{#1}}}
+
+\begin{document}
+
+\title{Worker 07 Notes: Protocol Taxonomy and Control Objects}
+\author{Worker 07}
+\date{\today}
+
+\begin{abstract}
+I inspected the repository's allowed protocol and control sources, excluding paths
+containing \texttt{haining}, \texttt{haoyu}, or \texttt{erroneous}, and excluding
+\texttt{repo\_synthesis/main\_pass/worker\_notes},
+\texttt{supervisor\_notes}, and \texttt{boss}.  The repository contains several
+distinct but related objects: the physical Born-sampled adaptive Markov
+trajectory, the deterministic post-selected trajectory, a partial-post-selection
+interpolation, distributional Markov/transfer operators, cumulative Choi
+operator contractions, and a continuous-time Lindblad mean-channel control.
+The central conclusion is that the physical perfect-correction object is not an
+outcome-averaged transfer matrix and not the deterministic post-selected
+trajectory.  It is a trajectory-resolved Born process whose correction/reset
+operation is deterministic only after a mismatch has been observed; observables
+reported under perfect correction are ensemble averages over such trajectories.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+I read \src{REPO_POLICY.md} first, as required.  I then inspected only text/code
+sources in the allowed tree, principally
+\src{src/fgtn/classA_U1FGTN.py},
+\src{src/fgtn/classA_U1FGTN_gpu.py},
+\src{colab_partial_post-select/src/classA_U1FGTN_gpu.py},
+\src{colab_partial_post-select/src/streaming_covariance_observables_gpu.py},
+\src{markov_transfer_operators/markov_transfer_operators_note.tex},
+\src{colab_regularized_choi_transfer_matrix/docs/regularized_choi_covariance_contractions.tex},
+\src{colab_charge_fluctuations/docs/charge_fluctuations_notes.tex}, and
+\src{scripts/legacy/CI_Lindblad_DW.py}.  I did not execute notebooks, edit files, or load binary
+array data.
+
+\section{Findings}
+
+\subsection{Trajectory protocols}
+
+The canonical CPU and GPU APIs expose the same main protocol switches:
+\texttt{postselect}, \texttt{postselect\_probability}, and
+\texttt{perfect\_correction}.  In the CPU engine, the docstring states that
+\texttt{postselect=True} applies deterministic target-outcome projections with no
+ancilla-swap feedback, while \texttt{postselect\_probability} randomly chooses
+between a forced post-selected site map and the ordinary Born-rule
+measurement/feedback map.  It also states that \texttt{perfect\_correction}
+makes corrective ancilla swaps deterministic, independent of \(n_a\)
+(\src{src/fgtn/classA_U1FGTN.py}:2472--2481).  The GPU engine implements the same
+normalization of \texttt{postselect=True} to \texttt{postselect\_probability=1}
+and forces the number of full post-selected samples to one
+(\src{src/fgtn/classA_U1FGTN_gpu.py}:2287--2312).
+
+The Born-sampled branch is explicit.  In the CPU implementation, a measured
+occupation event is sampled as \(\mathrm{rand}<p_{\rm occ}\), then the covariance
+is projected onto the realized occupied or unoccupied branch
+(\src{src/fgtn/classA_U1FGTN.py}:1666--1714).  With
+\texttt{perfect\_correction=True}, only the subsequent reset target is forced:
+upper-band mismatches are pumped out and lower-band mismatches are pumped in
+(\src{src/fgtn/classA_U1FGTN.py}:1671--1712).  Thus perfect correction is a
+trajectory-resolved Born process with deterministic classical feedback, not a
+forced-measurement protocol.
+
+The post-selected branch is deterministic at each site.  The GPU code applies
+the fixed desired sequence: upper channels \(A+\), \(B+\) are measured empty and
+lower channels \(A-\), \(B-\) are measured occupied, with no Born draw in the
+state update (\src{src/fgtn/classA_U1FGTN_gpu.py}:1711--1825).  The partial
+post-selection fork then introduces an external Bernoulli mask: sites selected
+by this mask use the forced map, while the complement uses the Born-sampled
+Markov feedback map
+(\src{colab_partial_post-select/src/classA_U1FGTN_gpu.py}:1864--2028).
+This is best interpreted as a controlled interpolation, not as the physical
+perfect-correction ensemble.
+
+\subsection{Distributional transfer operators}
+
+The transfer-operator note formalizes each elementary event as a
+state-dependent random rational map \(G\mapsto F_\alpha(G)\), with branch
+probabilities \(p_t(\alpha\mid G)\).  The process is a Markov chain on the
+covariance state space:
+\[
+  G_{t+1}=F_{\alpha_t}(G_t),\qquad
+  \alpha_t\sim p_t(\cdot\mid G_t).
+\]
+The corresponding Markov kernel is
+\[
+  K_t(G,\dd G')=\sum_{\alpha\in\cA_t}
+  p_t(\alpha\mid G)\,\delta_{F_\alpha(G)}(\dd G').
+\]
+The note then distinguishes the Koopman action on observables from the
+Perron-Frobenius pushforward of probability measures
+(\src{markov_transfer_operators/markov_transfer_operators_note.tex}:133--215).
+A full cycle is a composition of elementary kernels in the physical site order
+(\src{markov_transfer_operators/markov_transfer_operators_note.tex}:247--299).
+
+The same note is explicit that Lyapunov data are quenched products along
+realized trajectories, not spectra of outcome-averaged matrices.  The tangent
+update has the branchwise form
+\[
+  \delta G_{t+1}
+  =
+  T_{\alpha_t}(G_t)^\dagger \delta G_t T_{\alpha_t}(G_t),
+\]
+and the exponents come from singular-value growth of chronological products
+(\src{markov_transfer_operators/markov_transfer_operators_note.tex}:302--430).
+It further notes that
+\[
+  \E[T_\alpha^\dagger \delta G\,T_\alpha]\neq
+  \bar T^\dagger \delta G\,\bar T
+\]
+in general
+(\src{markov_transfer_operators/markov_transfer_operators_note.tex}:432--461).
+
+\subsection{Choi and Lindblad controls}
+
+The regularized Choi document concerns a cumulative two-leg Gaussian operator
+tensor for a realized sequence of local operations.  It explicitly distinguishes
+this operator-level Choi covariance from the production state-covariance
+dynamics propagated by \texttt{classA\_U1FGTN.run\_markov\_circuit} and its GPU
+analogue
+(\src{colab_regularized_choi_transfer_matrix/docs/regularized_choi_covariance_contractions.tex}:63--103).
+It encodes four rank-one local branches by signs \((\eta_1,\eta_2)\), matching
+upper-mode emptying and lower-mode filling roles
+(\src{colab_regularized_choi_transfer_matrix/docs/regularized_choi_covariance_contractions.tex}:105--162).
+
+The Lindblad helper is a separate continuous-time control object for a
+single-layer correlation matrix.  It evolves \(G\) by RK4 through gain, loss,
+and optional decoherence terms
+(\src{scripts/legacy/CI_Lindblad_DW.py}:516--601, 727--761), and also constructs an affine
+vectorized single-particle superoperator
+\[
+  \frac{\dd}{\dd t}\mathrm{vec}(G)
+  =
+  \mathrm{source}+\mathrm{generator}\,\mathrm{vec}(G)
+\]
+(\src{scripts/legacy/CI_Lindblad_DW.py}:763--858).  This is a mean/channel-level generator,
+not the sampled adaptive circuit trajectory.
+
+\section{Interpretation}
+
+The clean taxonomy is as follows.
+
+\begin{enumerate}
+\item \emph{Physical Born Markov trajectory}: a pathwise stochastic covariance
+process.  The next branch is sampled from Born probabilities depending on the
+current \(G\).  This is the base physical trajectory object.
+
+\item \emph{Perfect correction}: the physical Born trajectory with deterministic
+feedback on mismatch events.  Measurement outcomes are still sampled.  The
+``perfect'' qualifier refers to the correction/reset target, not to
+post-selecting the measurement outcome.
+
+\item \emph{Post-selection}: a deterministic desired-branch trajectory.  It
+removes the Born sampling at the measurement site and therefore represents a
+conditioned, biased trajectory rather than the measurement-averaged physical
+process.
+
+\item \emph{Partial post-selection}: an artificial protocol control in which an
+external Bernoulli variable chooses whether a site is forced or Born-sampled.
+It is useful diagnostically but should not be identified with physical perfect
+correction.
+
+\item \emph{Transfer/Markov operators}: distributional or observable-level
+objects acting on laws or observables of \(G\).  They summarize ensembles, but
+their spectra are not automatically the quenched trajectory Lyapunov spectra.
+
+\item \emph{Choi transfer object}: a cumulative operator-tensor representation
+of realized branches.  It is related to branch composition, but distinct from
+the state covariance propagated in production dynamics.
+
+\item \emph{Lindblad/channel control}: a continuous-time affine mean evolution
+for a single-layer covariance.  It should be treated as a channel-level control
+or approximation, not as the trajectory-resolved perfect-correction object.
+\end{enumerate}
+
+This taxonomy also resolves an apparent language hazard in the notes.  The
+charge-fluctuation writeup calls perfect correction the physically relevant
+ensemble average and post-selection a single retained trajectory
+(\src{colab_charge_fluctuations/docs/charge_fluctuations_notes.tex}:284--299).
+That is consistent with the implementation if one reads ``perfect correction''
+as an ensemble of Born-sampled corrected trajectories.  It would be incorrect,
+however, to replace that ensemble by a deterministic mean covariance map or by
+an averaged transfer matrix when discussing trajectory-resolved physics.
+
+\section{Evidence Table}
+
+\begin{table}[h]
+\caption{Key source evidence.  Line references are from the inspected working
+tree.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.33\linewidth}p{0.18\linewidth}p{0.41\linewidth}}
+Source & Lines & Evidence \\
+\midrule
+\src{src/fgtn/classA_U1FGTN.py} & 2472--2481 &
+Defines \texttt{postselect}, \texttt{postselect\_probability}, and
+\texttt{perfect\_correction}; perfect correction makes reset targets
+deterministic, while postselection forces target-outcome projections. \\
+\src{src/fgtn/classA_U1FGTN.py} & 1666--1714 &
+Born probabilities are sampled via random draws before measurement; perfect
+correction only fixes the corrective pump-in/pump-out target on mismatches. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 2287--2312 &
+GPU canonical engine normalizes full postselection to probability one and
+forces samples to one for full postselection. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 1711--1825 &
+Post-selected site update applies fixed desired branches without Born outcome
+sampling. \\
+\src{colab_partial_post-select/src/classA_U1FGTN_gpu.py} & 1864--2028 &
+Partial postselection splits each group into forced and Born-sampled subsets
+using an external random mask. \\
+\src{markov_transfer_operators/markov_transfer_operators_note.tex} & 133--215 &
+Defines the covariance Markov chain, Markov kernel, Koopman operator, and
+Perron-Frobenius pushforward. \\
+\src{markov_transfer_operators/markov_transfer_operators_note.tex} & 370--461 &
+Defines quenched tangent products and warns against replacing them by
+outcome-averaged transfer matrices. \\
+\src{colab_regularized_choi_transfer_matrix/docs/regularized_choi_covariance_contractions.tex} & 63--103 &
+Identifies the Choi object as a cumulative realized operator tensor and
+distinguishes it from production state-covariance dynamics. \\
+\src{scripts/legacy/CI_Lindblad_DW.py} & 727--858 &
+Defines gain, loss, decoherence, and vectorized affine Lindblad generator for
+mean/channel evolution. \\
+\src{colab_charge_fluctuations/docs/charge_fluctuations_notes.tex} & 274--299 &
+Protocol notes describe recorded Born-probability maps, perfect correction as
+a multi-sample ensemble, and postselection as one fixed-pattern trajectory. \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+\section{Caveats}
+
+I did not execute notebooks or inspect binary outputs.  I relied on code and
+text documentation rather than reproducing numerical campaigns.  I also did not
+read any worker, supervisor, or boss synthesis notes.  Some documentation uses
+slightly different covariance normalizations, but the protocol taxonomy is
+stable because it follows the branch-control logic in the canonical engines.
+
+\section{Confidence}
+
+Confidence is high for the implementation-level taxonomy of Born sampling,
+perfect correction, full postselection, and partial postselection, because the
+same structure appears in the CPU and GPU engines.  Confidence is moderate to
+high for the interpretive separation between Markov transfer, Choi transfer, and
+Lindblad controls; the source documents explicitly distinguish these objects,
+but their numerical uses may vary across campaigns.
+
+\end{document}

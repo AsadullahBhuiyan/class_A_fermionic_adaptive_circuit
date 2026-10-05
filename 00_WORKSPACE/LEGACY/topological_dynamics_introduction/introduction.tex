@@ -1,0 +1,62 @@
+\documentclass[aps,prl,twocolumn,nofootinbib,superscriptaddress]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\cE}{\mathcal{E}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\fI}{\mathfrak{I}}
+\newcommand{\ketbra}[2]{\lvert #1\rangle\!\langle #2\rvert}
+
+\begin{document}
+
+\title{Chiral Critical Ensembles at Topological Dynamical Domain Walls}
+
+\author{Asadullah Bhuiyan}
+\affiliation{Department of Physics, Cornell University, Ithaca, New York 14853, USA}
+\author{Haining Pan}
+\affiliation{Department of Physics and Astronomy, Center for Materials Theory, Rutgers University, Piscataway, New Jersey 08854, USA}
+\author{Chao-Ming Jian}
+\affiliation{Department of Physics, Cornell University, Ithaca, New York 14853, USA}
+
+\date{\today}
+
+\maketitle
+
+\section{Introduction}
+
+The boundary is where a topological phase becomes physical.  In equilibrium, a mismatch of bulk invariants requires an anomalous interface---for a Chern insulator, a chiral fermion that cannot be removed without closing the bulk gap or changing the symmetry~\cite{Hatsugai1993,HasanKane2010}.  This principle has been extended to periodically driven systems, where topology belongs to a Floquet unitary and its micromotion~\cite{Rudner2013}, and to several classes of open and non-Hermitian evolution~\cite{Gong2018,Lieu2020,Altland2021}.  A monitored quantum circuit poses a different question.  Its elementary step is neither an invertible evolution operator nor a deterministic generator, but a physical quantum instrument with a classical outcome.  What, then, is the boundary of a \emph{topological dynamics} built from stochastic and explicitly noninvertible operations, and what quantum state does such a boundary prepare?
+
+The appropriate object is the record-resolved instrument.  At time $t$, let $\fI_t=\{\cM_{m,t}\}_m$ be a local instrument, let $K_{m,t}$ denote a Kraus representative of outcome $m$, and allow later operations to depend on the earlier record $\xi=(m_1,\ldots,m_t)$.  The physical evolution is
+\begin{equation}
+ \begin{aligned}
+ K_\xi&=K_{m_t,t}\cdots K_{m_1,1},
+ &p_\xi&=\Tr(K_\xi\rho_0K_\xi^\dagger),\\
+ \rho_\xi&=K_\xi\rho_0K_\xi^\dagger/p_\xi.&&
+ \end{aligned}
+ \label{eq:instrument}
+\end{equation}
+In the terminology introduced in Ref.~\cite{BhuiyanPanJian2026}, \emph{topological monitored quantum dynamics} is a phase of this ensemble of many-body evolution operators, equivalently of its single-particle transfer-matrix ensemble for Gaussian fermions: a bulk invariant remains well defined under local, symmetry-preserving spacetime disorder, and is inherited by the temporal-boundary steady-state ensemble.  This is a statement about the complete physical instrument, including its outcomes and Born weights, rather than about one favored record.
+
+That distinction separates the present problem from three nearby notions.  Floquet topology assumes a repeatable unitary $U_F$ and quasienergy, whereas even a periodically scheduled monitored circuit realizes a random word $K_\xi$ that may be singular.  A non-Hermitian Hamiltonian commonly describes a no-click or otherwise postselected branch; it omits the complementary outcomes, their probabilities, and the feedback conditioned on them~\cite{Fleckenstein2022,Kells2023}.  Finally, the unconditional channel $\bar\rho_t=\sum_\xi p_\xi\rho_\xi$, or a Lindblad equation that embeds its weak-update limit, discards the classical record.  Such an equation can possess many unravelings and therefore does not by itself specify the operational trajectory ensemble.  In particular, nonlinear trajectory observables need not survive averaging, and finite-range quadratic dissipation cannot relax at a size-independent rate to a unique pure Chern state~\cite{Diehl2011,Bardyn2013,Budich2015,Goldstein2019}.  Our trajectory ensemble lies outside the target of this no-go statement precisely because its unconditional steady state is mixed.
+
+Earlier work established the bulk classification of monitored free-fermion dynamics, its relation to Anderson localization, and adaptive protocols that stabilize topological Gaussian states without postselection~\cite{Jian2022,Kells2023,BhuiyanPanJian2026,XiaoKawabata2026}.  Topological Lyapunov modes and protected dynamical defects have also been identified in monitored chains and at open boundaries~\cite{Oshima2025,PanShapourianJian2025,XiaoKawabata2026}.  What remained unresolved in the two-dimensional class-A protocol of Ref.~\cite{BhuiyanPanJian2026} was the physical nature of its one-dimensional domain wall: the wall purified anomalously slowly, but it was not known whether the surviving sector was chiral, what ensemble it represented, or how it appeared in the actual measurement record.  These questions---rather than a second bulk classification---are the starting point of this work.
+
+The microscopic protocol gives them an unusual form.  A Chern band admits no exponentially localized orthonormal Wannier basis, but it can be represented by localized, nonorthogonal overcomplete frames~\cite{Brouder2007,DubailRead2015,LiDongLedwithKhalaf2024}.  We exploit such an overcomplete Wannier frame $\{w_{R\alpha}\}$ as a set of physical measurement modes.  The circuit projectively measures the occupations $\hat n_{R\alpha}=\hat a^\dagger(w_{R\alpha})\hat a(w_{R\alpha})$ and, following an undesired outcome, implements ancillary feedback whose record-selected action injects or removes a fermion.  Thus ``fermion counting'' is not the premise of the model but the classical output field of an adaptive topological instrument: the record reports which local occupation constraints were satisfied and where gain or loss was required.  This differs from uniform loss, gain, or number-monitoring problems, where counting statistics diagnose a prescribed open dynamics~\cite{Soares2025,Starchl2025,Landi2024}; here the counters form the spatially structured, mutually overlapping controller from which the dynamics itself is built.  Nonorthogonality alone is not topology, but at a domain wall the same record can reveal how a topological preparation obstruction is redistributed into an interface sector.
+
+The physical operations also force an extension of the usual transfer-matrix language.  Projectors, coherent gains, and coherent losses are noninvertible; the gain and loss letters are nilpotent and can destroy every ordinary square transfer chart.  We therefore represent a Gaussian record by its occupied Choi subspace $W_{K_\xi}\subset\mathcal H_L\oplus\mathcal H_R$, equivalently by a linear relation rather than by an everywhere-defined matrix.  Exact occupied and empty ``caps'' encode modes fixed by measurement or exchange with a reservoir, while the quotient relation supplies an invertible transfer core for the surviving channels.  This single-particle construction treats invertible gates, projective measurements, gain, and loss in one chronology without replacing the physical instrument by an effective non-Hermitian Hamiltonian.  It also provides the natural bridge from the record to Lyapunov, scattering, purification, and full-counting diagnostics.
+
+The closest error-correction analogue is a \emph{dynamical} or Floquet code.  There, a periodic schedule of noncommuting checks can preserve logical information even when no instantaneous subsystem code contains the logical qubits~\cite{HastingsHaah2021}; in two dimensions the measurement schedule may itself possess an obstruction that enforces anomalous flow of logical operators along a boundary~\cite{AasenHaahLiMong2023}.  Our overcomplete Wannier occupations and conditional gain/loss have the same schedule-level architecture, but not yet the same coding claim.  In the closed bulk the intended attractor is effectively rank one, the Born outcomes fluctuate even without external errors, and the feedback steers a phase ensemble rather than preserving an arbitrary logical superposition.  The conservative interpretation is therefore a boundary anomaly of active state stabilization: the bulk is driven toward a near-absorbing topological manifold, while the domain wall retains a soft chiral sector.  A genuine dynamical edge code would require a multi-dimensional time-dependent code space, a logical algebra transported by the full measurement-correction cycle, and a recoverability or threshold test.  Recent approximate-code constructions at chiral topological edges suggest coherent-information loss under local erasure as one concrete diagnostic~\cite{SongEtAl2026}.
+
+The object prepared at the wall is consequently not one target wavefunction.  It is a record-resolved ensemble $\cE_{\rm ss}=\{p_\xi,\ketbra{\psi_\xi}{\psi_\xi}\}$ of pure Gaussian states whose microscopic occupations and total charge fluctuate, while their bulk topology and interface universality are shared.  The average $\bar\rho_{\rm ss}$ is a different, mixed object: for example, $\sum_\xi p_\xi S(\rho_{\xi,A})\neq S(\bar\rho_A)$, and trajectory-averaged squared correlations contain a fluctuation term absent from $|\bar C_{ij}|^2$.  In this sense the protocol prepares a \emph{phase ensemble}, a family of states with common long-distance chiral physics, rather than cooling to a unique ground state.  The measurement record is indispensable because it labels that physical decomposition and records the correction events that the averaged channel erases.
+
+In this work we characterize the domain wall of a two-dimensional class-A topological monitored dynamics.  We combine the singular Gaussian instrument formalism with trajectory-resolved numerics to identify a wall-localized, charge-fluctuating critical ensemble and to determine whether its propagation is chiral.  We then compare three inequivalent views of the same protocol: the stochastic state ensemble, the fermion-counting and gain/loss record, and the trajectory-averaged channel.  The resulting perspective is a record-resolved dynamical bulk--boundary correspondence: topology belongs to the monitored dynamics in the bulk, while its boundary is expressed jointly in the universal states it prepares, the marginal single-particle channels it leaves behind, and the measurement activity required to stabilize them.
+
+\clearpage
+\bibliographystyle{apsrev4-2}
+\bibliography{references}
+
+\end{document}

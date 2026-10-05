@@ -1,0 +1,484 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\I}{\mathbf{1}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\sgn}{\operatorname{sgn}}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\cI}{\mathcal{I}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\cV}{\mathcal{V}}
+\newcommand{\bxi}{\boldsymbol{\xi}}
+\newcommand{\ket}[1]{\lvert #1\rangle}
+\newcommand{\bra}[1]{\langle #1\rvert}
+\newcommand{\ketbra}[2]{\lvert #1\rangle\!\langle #2\rvert}
+
+\begin{document}
+
+\title{Tangent-Cocycle Diagnostics for a Chiral Monitored Domain Wall}
+\author{Asadullah Bhuiyan}
+\date{\today}
+
+\begin{abstract}
+This note defines the numerical object used to test whether a topological
+domain wall in the class-A adaptive fermion circuit carries a coherent chiral
+channel.  The object is the differential of the \emph{normalized,
+record-resolved} Gaussian state update, including both projective measurement
+and conditional gain/loss reset.  It is not the singular-value spectrum of a
+cumulative Kraus operator, a Choi-covariance transfer chart, or the
+trajectory-averaged channel.  We give the exact fixed-record differential,
+its stable QR restriction to two predetermined Hamiltonian edge modes, and
+observables for survival, isotropy, wall retention, directed propagation, and
+leakage of the encoded perturbation into the classical record.  We then state
+a preregistered numerical campaign and a staged claim criterion.  Passing the
+tangent-channel tests would motivate a separate coherent-information erasure
+test; it would not by itself establish a quantum error-correcting code.  No
+numerical result is asserted here.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Question and object dictionary}
+\label{sec:question}
+
+The adaptive preparation protocol of Ref.~\cite{BhuiyanPanJian2026} is a
+physical quantum instrument: the state is measured in a spatially structured,
+overcomplete one-particle frame and a record-dependent gain or loss operation
+corrects undesired occupations.  A domain wall between dynamical phases
+therefore poses an operational question.  Does the complete
+measurement--correction cycle transmit a two-dimensional space of
+single-particle perturbations along the wall without learning which
+perturbation was injected?
+
+Ordinary square transfer matrices are poorly conditioned for this question.
+Exact projectors and gain/loss operations create null directions; in a Choi
+particle or hole chart these appear as zero or infinite rapidities.  Those
+endpoints are meaningful data about a singular Gaussian operator, but they can
+obscure the finite channel that acts on a state perturbation.  The differential
+of the physical covariance update instead follows the sensitivity of the
+normalized trajectory itself.  It is finite on every nonzero-probability
+branch, although it may be rank deficient.  Table~\ref{tab:objects} records the
+distinctions that will be maintained throughout.
+
+\begin{table}[h]
+\caption{\label{tab:objects}Related but inequivalent transfer objects.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.23\linewidth}p{0.34\linewidth}p{0.35\linewidth}}
+Object & Operational question & Present use \\
+\hline
+Choi/Kraus transfer data & What singular sectors does the realized operator
+$K_{\bxi}$ possess? & Formal representation of projections and gain/loss; not
+the numerical definition below. \\
+Tangent cocycle & How does $G_0+\epsilon\,\delta G_0$ change along the same
+record? & Primary two-mode transmission diagnostic. \\
+Mean channel & How does $\sum_{\bxi}K_{\bxi}\rho K_{\bxi}^\dagger$ evolve
+after discarding the record? & Control only; it does not determine quenched
+trajectory sensitivity. \\
+Flagged instrument & Can a record-dependent recovery preserve arbitrary
+superpositions? & Eventual error-correction question, tested only after the
+tangent gate. \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+In particular, the quenched product of branch differentials cannot be replaced
+by the differential of an outcome-averaged map.  Nor does a slowly contracting
+tangent direction automatically define a logical degree of freedom: it may be
+a classical metastable coordinate that is continuously revealed by the
+counting record.
+
+\section{Exact fixed-record branch differential}
+\label{sec:differential}
+
+\subsection{Measurement and reset}
+
+Write the number-conserving covariance as
+$G=2\langle c^\dagger c\rangle-\I$, and let
+$P=\ketbra{\chi}{\chi}$ and $Q=\I-P$ for a normalized measured mode.
+The outcome $s=+1$ denotes occupied and $s=-1$ empty.  Its conditional Born
+probability and normalized covariance update are
+\begin{align}
+ p_s(G)&=\frac{1+s g}{2},
+ &g&=\bra{\chi}G\ket{\chi},
+ \label{eq:born}\\
+ F_s(G)&=sP+Q(\I+sGP)^{-1}GQ .
+ \label{eq:measurement-map}
+\end{align}
+For a \emph{fixed} outcome $s$, differentiation gives
+\begin{align}
+ D F_s(G)[\delta G]
+ &=L_s(G)\,\delta G\,L_s(G)^\dagger,
+ &L_s(G)&=Q(\I+sGP)^{-1}.
+ \label{eq:measurement-differential}
+\end{align}
+One may multiply $L_s$ by an overall phase; in particular, the minus sign used
+by a one-particle implementation has no effect on the covariance congruence.
+Equation~\eqref{eq:measurement-differential}, rather than a finite difference
+between two independently sampled outcomes, is the branch differential.  The
+discrete draw $s$ is held fixed.
+
+A conditional swap with an ancilla resets the same mode to covariance
+$r=+1$ (filled) or $r=-1$ (empty):
+\begin{align}
+ R_r(G)&=QGQ+rP,
+ &D R_r(G)[\delta G]&=Q\,\delta G\,Q .
+ \label{eq:reset-differential}
+\end{align}
+Thus a corrected event has the column factor
+\begin{equation}
+ L_{s,r}^{\mathrm{event}}(G)=Q L_s(G).
+ \label{eq:event-factor}
+\end{equation}
+For an ideal rank-one measurement and a reset of exactly the same normalized
+mode, $QL_s=L_s$.  Omitting a separate $Q$ multiplication in this specific
+branch therefore gives the same Jacobian in exact arithmetic; legacy GPU
+spectra are not invalidated for this reason alone.  New code and tests
+nevertheless represent the reset explicitly, both to audit chronology and to
+avoid assuming this identity for generalized supports or imperfect mode
+matching.
+
+Equations~\eqref{eq:measurement-map}--\eqref{eq:event-factor} are evaluated
+only when $p_s(G)>0$.  An exactly forbidden forced branch is invalid; replacing
+its singular denominator by a numerical regulator and calling the result a
+physical Lyapunov step changes the problem.  Production data must therefore
+save the minimum Born denominator, null ranks, and the number of invalid forced
+branches.
+
+\subsection{Chronology and covariance perturbations}
+
+Let $L_{t,j}$ be the factor for event $j$ of cycle $t$, including the reset
+when it occurs, and define the chronological cycle factor
+\begin{equation}
+ \cL_t=L_{t,M_t}\cdots L_{t,2}L_{t,1}.
+ \label{eq:cycle-factor}
+\end{equation}
+For a realized record $\bxi$, the restricted one-particle product and the full
+covariance tangent are
+\begin{align}
+ \cA_T(\bxi)&=\cL_T\cdots\cL_2\cL_1,
+ \label{eq:chronological-product}\\
+ \delta G_T&=\cA_T\,\delta G_0\,\cA_T^\dagger .
+ \label{eq:covariance-tangent}
+\end{align}
+This convention puts the factor acting on perturbation columns on the left.
+It is equivalent, after adjointing the one-particle transfer convention, to
+the usual Gaussian Schur-complement differential.  Its Lyapunov exponents are
+quenched singular-value growth rates of a state derivative, not many-body
+excitation gaps and not eigenvalues of an averaged Lindbladian.
+
+\section{A QR-stabilized physical edge channel}
+\label{sec:edge-channel}
+
+\subsection{Predetermined edge frame}
+
+The input frame is chosen before any monitored trajectory is generated.  Let
+$H_{\mathrm{DW}}$ be the exact or spectrally flattened single-particle domain-
+wall Hamiltonian used to define the protocol.  On a chosen wall, take two
+orthonormal edge-band modes $f_0,f_1$ at adjacent momenta nearest the edge
+crossing and set
+\begin{equation}
+ W_0=(f_0,f_1),\qquad W_0^\dagger W_0=\I_2.
+ \label{eq:initial-frame}
+\end{equation}
+The localization and energy-window rules, including tie breaking, are fixed
+once for every system size.  The two modes are not learned from the slowest
+Lyapunov vectors.  This prevents the diagnostic from manufacturing a channel
+by optimizing its input on the same disorder records used for evaluation.
+
+Directly multiplying $\cA_TW_0$ underflows or overflows.  Starting from
+$Q_0=W_0$ and $B_0=\I_2$, perform one thin QR factorization per full cycle,
+\begin{align}
+ Y_t&=\cL_t Q_{t-1}=Q_tR_t,
+ &B_t&=R_tB_{t-1}.
+ \label{eq:restricted-qr}
+\end{align}
+Then the identity
+\begin{equation}
+ \cA_tW_0=Q_tB_t
+ \label{eq:factorization-identity}
+\end{equation}
+is exact up to roundoff.  Stabilize the $2\times2$ coordinate matrix by writing
+$B_t=e^{\Gamma_t}\widehat B_t$, adding a scalar log norm to $\Gamma_t$ after
+each multiplication.  Singular values are reconstructed as
+$\log\sigma_i(B_t)=\Gamma_t+\log\sigma_i(\widehat B_t)$.  An exact zero
+singular value is recorded as a null channel, not silently clipped into a
+finite exponent.
+
+\subsection{Survival, isotropy, and spatial support}
+
+Let $\sigma_1\geq\sigma_2\geq0$ be the singular values of $B_T$.  The common
+survival exponent and the scale-free anisotropy are
+\begin{align}
+ \overline\lambda_T
+ &=\frac{\log\sigma_1+\log\sigma_2}{2T},
+ \label{eq:survival}\\
+ \delta_{\mathrm{iso}}(T)
+ &=\frac{\sigma_1^2-\sigma_2^2}{\sigma_1^2+\sigma_2^2}
+ =\tanh\!\left|\log\frac{\sigma_1}{\sigma_2}\right|.
+ \label{eq:isotropy}
+\end{align}
+A neutral but strongly anisotropic channel preserves at most one direction;
+it cannot carry an arbitrary two-component perturbation.  Both quantities are
+invariant under a $U(2)$ change of the initial edge basis.
+
+For a real-space projector $\Pi_w$ onto a fixed-width strip around the chosen
+wall, define
+\begin{align}
+ \eta_w(t)&=\frac{\|\Pi_w Q_tB_t\|_F^2}{\|Q_tB_t\|_F^2},
+ &\eta_{w\rightarrow\bar w}(t)
+ &=\frac{\|\Pi_{\bar w}Q_tB_t\|_F^2}{\|Q_tB_t\|_F^2}.
+ \label{eq:wall-retention}
+\end{align}
+The common scalar $e^{\Gamma_t}$ cancels.  The strip width is specified in
+lattice units before the run and held fixed in the size extrapolation.  The
+first ratio measures wall retention and the second leakage to the opposite
+wall; their sum need not equal one because there is also intervening bulk.
+
+\subsection{Directed propagation from interference}
+
+Contraction alone does not establish chirality.  For adjacent momenta, inject
+$u_+=(1,e^{i\phi_0})^T/\sqrt2$ and form the normalized propagated density
+\begin{equation}
+ \rho_t(x,y,\mu)=
+ \frac{|[Q_t\widehat B_tu_+]_{x,y,\mu}|^2}
+ {\|Q_t\widehat B_tu_+\|^2}.
+ \label{eq:interference-density}
+\end{equation}
+Its first circular moment along the periodic direction is
+\begin{equation}
+ Z_t=\sum_{x,y,\mu}e^{2\pi i y/N_y}\rho_t(x,y,\mu),
+ \qquad
+ y_c(t)=\frac{N_y}{2\pi}\operatorname{unwrap}\arg Z_t .
+ \label{eq:circular-center}
+\end{equation}
+The slope of $y_c(t)$ after burn-in defines a trajectory velocity.  The
+analysis is repeated with several fixed $\phi_0$ values to exclude a phase-
+choice artifact.  A chiral domain-wall interpretation requires nonzero mean
+velocities with opposite signs on the two oppositely oriented walls, while
+randomized and raster schedules quantify ordering bias.
+
+\section{Does the counting record learn the edge coordinate?}
+\label{sec:fisher}
+
+Near a maximally mixed reference, a two-mode Hermitian perturbation can be
+written
+\begin{equation}
+ \delta G_a(0)=W_0\sigma_aW_0^\dagger,
+ \qquad a\in\{x,y,z\},
+ \label{eq:logical-generators}
+\end{equation}
+where $\sigma_a$ are Pauli matrices.  Propagate each generator by the same
+fixed record using Eq.~\eqref{eq:covariance-tangent}.  Immediately before
+measurement event $j$, set
+\begin{equation}
+ d_{j,a}=\bra{\chi_j}\delta G_a(j^-)\ket{\chi_j},
+ \qquad g_j=\bra{\chi_j}G(j^-)\ket{\chi_j}.
+ \label{eq:score-data}
+\end{equation}
+The realized score and the conditional classical Fisher increment are then
+\begin{align}
+ h_{j,a}
+ &=\partial_a\log p_{s_j}
+ =\frac{s_jd_{j,a}}{1+s_jg_j},
+ \label{eq:realized-score}\\
+ J^{(j)}_{ab}
+ &=\sum_{s=\pm1}p_s h_{j,a}(s)h_{j,b}(s)
+ =\frac{d_{j,a}d_{j,b}}{1-g_j^2},
+ \label{eq:fisher-increment}
+\end{align}
+for $|g_j|<1$.  Deterministic endpoints are evaluated by the corresponding
+physical limit rather than by dividing by zero.  Because conditional score
+increments form a martingale difference, the expected Fisher information of
+the complete record is the expected sum of Eq.~\eqref{eq:fisher-increment}.
+The principal statistic is its largest eigenvalue per observed cycle.
+
+This quantity supplies the missing ``record privacy'' test.  A small
+$\delta_{\mathrm{iso}}$ says that the normalized tangent map treats two input
+directions similarly; it does not say that their Born weights are the same.
+A neutral wall coordinate with finite Fisher-information density is therefore
+a long-lived \emph{classical measured mode}, not a coherent memory.
+
+For comparison, append the classical flag to a fixed-record instrument,
+\begin{equation}
+ \cI(\rho)=\sum_{\bxi}\ketbra{\bxi}{\bxi}\otimes
+ K_{\bxi}\rho K_{\bxi}^\dagger.
+ \label{eq:flagged-instrument}
+\end{equation}
+If recovery may depend on the accessible flag, exact Knill--Laflamme
+correctability of a code projector $P_{\cV}$ requires, branch by branch,
+\begin{equation}
+ P_{\cV}K_{\bxi}^\dagger K_{\bxi}P_{\cV}
+ =p_{\bxi}P_{\cV}.
+ \label{eq:branch-kl}
+\end{equation}
+The record Fisher test probes the infinitesimal state-independence of
+$p_{\bxi}$, while two-mode isotropy probes part of the normalized branch
+action.  Neither test alone, nor their conjunction at finite size, proves
+Eq.~\eqref{eq:branch-kl} or constructs a recovery map
+\cite{KnillLaflamme1997}.
+
+\section{Scattering interpretation and its limit}
+\label{sec:scattering}
+
+Separate common amplification from channel anisotropy by defining
+\begin{equation}
+ g_T=(\sigma_1\sigma_2)^{1/2},\qquad
+ \widetilde\sigma_{1,2}=\sigma_{1,2}/g_T=e^{\pm x_T},
+ \qquad
+ x_T=\frac12\log\frac{\sigma_1}{\sigma_2}.
+ \label{eq:rapidity}
+\end{equation}
+Then $\delta_{\mathrm{iso}}=\tanh(2x_T)$.  In a reciprocal flux-conserving
+two-port transfer problem, the usual polar decomposition identifies
+$\tau=\operatorname{sech}^2x_T$ as a transmission eigenvalue
+\cite{ChalkerCoddington1988,Beenakker1997}.  This supplies a useful dictionary:
+the QR cocycle measures normalized sensitivity transmitted from one temporal
+boundary to the other, while $x_T$ is its imbalance rapidity.
+
+The equality with a physical particle-transmission probability is
+\emph{conditional}.  A monitored gain/loss tangent need not preserve a flux
+metric or admit the reciprocal singular-value pairing of a unitary scattering
+network.  Without an explicit current-conserving dilation, $\operatorname{sech}^2
+x_T$ is a transmission \emph{proxy}, not an $S$-matrix probability.  Conversely,
+the divergent directions of a singular Choi transfer chart should not be
+inserted into Eq.~\eqref{eq:rapidity}: they encode exact occupied/empty caps of
+the Kraus relation, whereas the present $\sigma_i$ describe the differential
+of a normalized state trajectory.
+
+\section{Numerical protocol and validation}
+\label{sec:protocol}
+
+The primary data are Born-sampled, perfect-correction trajectories of the
+canonical adaptive circuit.  Postselection is retained only as a deterministic
+implementation check.  The planned campaign is summarized in
+Table~\ref{tab:campaign}; these are prospective parameters, not completed
+results.  This note specifies intended behavior; implementation and completed-
+run status must be established separately by source, tests, and output
+metadata.
+
+\begin{table}[h]
+\caption{\label{tab:campaign}Prospective steady-ensemble campaign.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.22\linewidth}p{0.70\linewidth}}
+Quantity & Choice \\
+\hline
+Geometry & $N_x=20$, $N_y\in\{24,32,48,64,80\}$ \\
+Frame truncation & $n_{\rm shell}=1$; repeat $N_y=32,64$ at $n_{\rm shell}=2$ \\
+Time window & burn-in $2N_y$, observation $4N_y$ cycles \\
+Domain-wall schedule & symmetric randomized ordering \\
+Couplings & $\alpha_{\rm in}=1$, $\alpha_{\rm out}=30$, wall truncation on \\
+Sampling & 128 trajectories for primary and uniform control; 64 otherwise \\
+Primary feedback & Born-sampled perfect correction \\
+Validation branch & forced postselection, never substituted for the primary ensemble \\
+Controls & uniform topological, trivial hard wall with the same mask,
+same-Chern artificial cut, and raster ordering \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+Before data from this protocol are used for the staged claims of
+Sec.~\ref{sec:gates}, the corresponding implementation must pass the following
+tests.
+\begin{enumerate}
+ \item For a forced nonzero-probability branch, compare
+ \begin{equation}
+  \frac{F_{\bxi}(G+\epsilon\delta G)-F_{\bxi}(G-\epsilon\delta G)}{2\epsilon}
+  \quad\text{with}\quad
+  \cA_{\bxi}\delta G\cA_{\bxi}^\dagger
+  \label{eq:finite-difference-test}
+ \end{equation}
+ over a convergence window in $\epsilon$.  Cover mixed and nearly pure $G$,
+ occupied and empty outcomes, mismatch and no-mismatch branches, gain and
+ loss, and local and dense update paths.
+ \item Represent Eq.~\eqref{eq:reset-differential} explicitly in the CPU/GPU
+ audit trail and test $QL_s=L_s$ for the current branch.  Under identical
+ forced records, compare final covariance, event weights, QR factors, null
+ counts, and restricted singular values.
+ \item Check Eq.~\eqref{eq:factorization-identity} against an unstabilized
+ small-system product, and verify independence under QR frequency and an
+ arbitrary initial $U(2)$ rotation of $W_0$.
+ \item Save denominator minima and censor invalid zero-probability branches
+ rather than regularizing them into the physical sample.
+\end{enumerate}
+
+\section{Staged interpretation and claim gates}
+\label{sec:gates}
+
+The finite-size analysis uses trajectory bootstrap confidence intervals and
+fits versus $N_y$ that retain raw null/censor counts.  The staged gate is:
+\begin{enumerate}
+ \item The magnitudes $|\overline\lambda_T|$, $\delta_{\mathrm{iso}}$, and the
+ largest record-Fisher eigenvalue per cycle must each decrease with $N_y$ with
+ a positive decay exponent at 95\% confidence.
+ \item At $N_y=80$, require $\delta_{\mathrm{iso}}<0.1$ and a lower 95\%
+ confidence bound on wall retention above $0.8$.
+ \item On the two walls, the velocity confidence intervals must exclude zero
+ and have opposite signs.
+ \item No control may reproduce this entire conjunction.
+\end{enumerate}
+The numerical thresholds are conservative preregistration choices, not
+universal constants.  Failure has a useful interpretation: depending on which
+condition fails, the wall supports a localized slow tangent sector, a directed
+but classically monitored perturbation, or a one-dimensional survivor, but not
+the proposed coherent two-mode channel.
+
+Only if all four conditions pass do we proceed to a Song-type erasure test for
+a fixed-charge Gaussian candidate code
+\begin{equation}
+ \cV=\operatorname{span}\left\{
+ f_0^\dagger\prod_{j=1}^{N-1}d_j^\dagger\ket{0},
+ f_1^\dagger\prod_{j=1}^{N-1}d_j^\dagger\ket{0}
+ \right\}.
+ \label{eq:gaussian-code}
+\end{equation}
+Arbitrary superpositions in this two-dimensional space remain Slater
+determinants because only one occupied orbital is varied.  For
+$\overline\rho=P_{\cV}/2$ and a local erased region $A$, the coherent-
+information loss is
+\begin{equation}
+ \Delta(A;\cV)=S_A(\overline\rho)+\log 2-S_{\bar A}(\overline\rho).
+ \label{eq:song-loss}
+\end{equation}
+Its decay with distance and erased length gives a direct approximate-recovery
+diagnostic in the spirit of chiral-edge and CFT codes
+\cite{SongEtAl2026,SangHsiehZou2024}.  The mixture $\overline\rho$ is generally
+non-Gaussian even though both codewords are Gaussian; its entropy cannot be
+computed from the averaged covariance alone.  This gated calculation must be
+validated against exact small-system Fock-space reductions.
+
+This proposal is adjacent to dynamically generated and Floquet codes, where a
+measurement schedule transports a genuine logical algebra and may enforce
+anomalous boundary flow~\cite{HastingsHaah2021,AasenHaahLiMong2023}.  The
+present adaptive circuit instead begins as dissipative state preparation.
+Until Eq.~\eqref{eq:branch-kl}, coherent-information recovery, or an equivalent
+operator-algebra test is demonstrated, the justified language is \emph{chiral
+tangent channel} or \emph{boundary anomaly of active stabilization}, not
+\emph{dynamical edge code}.
+
+\section{Conclusion}
+
+The proposed calculation replaces a singular transfer-core diagnostic by the
+well-defined differential of the actual measurement--feedback trajectory.
+Its QR restriction asks a deliberately narrow question: do two physically
+chosen Hamiltonian edge modes survive, remain isotropic and wall-localized,
+move chirally, and remain hidden from the Born record?  The combined answer is
+more discriminating than a near-zero Lyapunov exponent.  It also creates a
+clean decision boundary between three possible outcomes---a slow classical
+wall coordinate, a coherent chiral tangent channel, and a genuine approximate
+edge code---without presupposing that the strongest interpretation is true.
+
+\bibliographystyle{apsrev4-2}
+\bibliography{references}
+
+\end{document}

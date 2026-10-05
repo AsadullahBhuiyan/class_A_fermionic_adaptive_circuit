@@ -18,11 +18,11 @@ import numpy as np
 
 STATS_PATH = (
     "figs/N12x31_C20_S250_nshNone_DW1_init-default_n_a0.5_seq-dw_symmetric_random_"
-    "exclNone_pm1.00_tbtf1_tbtflm0_markov_circuit_sample_fit_stats_memopt.npz"
+    "exclNone_markov_circuit_sample_fit_stats_memopt.npz"
 )
 SAVE_PATH = (
     "figs/N12x31_C20_S250_nshNone_DW1_init-default_n_a0.5_seq-dw_symmetric_random_"
-    "exclNone_pm1.00_tbtf1_tbtflm0_markov_circuit_sample_fit_stats_memopt_mean_slope_only.pdf"
+    "exclNone_markov_circuit_sample_fit_stats_memopt_mean_slope_only.pdf"
 )
 
 

@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "bundle": "06_b1_controller_frame",
+  "sampling_revision": "production_10sample_v4_occupied_frame_cycle_resolved_b1_chargefix_v2",
+  "output_bundle": "06_b1_controller_frame_frame_native_v2",
+  "audit_sha256": "d0173317608b2da2a45f6185d15a85237e11265917a0ceed6ff79dc761261de9",
+  "root_seed": 2026081706,
+  "priority": "required_final",
+  "blocking_gate": false,
+  "locked_contract": {
+    "samples": 10,
+    "sample_shard_size": 5,
+    "cycles_rule": "2*Ny",
+    "physical_burn_in_cycles": 0,
+    "sequence": "random",
+    "dtype": "complex128",
+    "canonical_entry_point": "classA_U1FGTN_gpu.run_markov_circuit"
+  },
+  "B1": {
+    "Nx": 20,
+    "Ny": 40,
+    "nshell": 1,
+    "alpha_top": 1.0,
+    "alpha_triv": 30.0,
+    "protocols": [
+      "explicit_interface",
+      "explicit_interface_matched_trivial"
+    ],
+    "primary_reference": "nominal_half_filled_ground_state_manifold",
+    "secondary_comparator": "instantaneous_rank_ky_fan_bound",
+    "late_window_rule": "3*Ny/2..2*Ny",
+    "slope_window_rule": "Ny..2*Ny",
+    "bootstrap_draws": 2000,
+    "degeneracy_tolerance": 1e-10,
+    "numerical_tolerance": 1e-10,
+    "charge_integer_tolerance": 1e-8,
+    "persistence_contract": "compact_products_before_acceptance_validation_v1",
+    "classification": "finite-window only",
+    "charge_sector_weights": false,
+    "training_test_split": false
+  }
+}

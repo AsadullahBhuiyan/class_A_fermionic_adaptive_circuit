@@ -1,0 +1,55 @@
+{
+  "schema": "state_adiabatic_projector_pump_campaign_v1",
+  "campaign_id": "N16x20_state_adiabatic_projector_pump_s10_v1",
+  "source_campaign": {
+    "campaign_id": "N16x20_online_flux_ramp_s10_v1",
+    "config": "campaign_config.online_ramp_s10_v1.json",
+    "output_root": "results/N16x20_online_flux_ramp_s10_v1"
+  },
+  "geometry": {
+    "Nx": 16,
+    "Ny": 20,
+    "periodic_direction": "y",
+    "left_x_stop_exclusive": 8
+  },
+  "state_parent": {
+    "projector": "P_xi = F_xi F_xi^dagger",
+    "flattened_parent": "h_xi = 1 - 2 P_xi",
+    "twist": "h_rs(phi) = h_rs(0) exp(i phi d_y(r,s)/Ny)",
+    "periodic_displacement": "minimum_image",
+    "dtype": "complex128"
+  },
+  "continuation": {
+    "grid_intervals": 64,
+    "regulator": 1e-07,
+    "directions": {
+      "ccw": 1,
+      "cw": -1
+    },
+    "schedule": "phi_j^(sigma) = -sigma*1e-7 + sigma*2*pi*j/64, j=0,...,64",
+    "rank_rule": "preserve the saved occupied rank",
+    "matching": "maximum total overlap with the preceding occupied projector",
+    "tie_breaker": "lower instantaneous eigenvalue",
+    "instantaneous_control": "fill the lowest saved-rank eigenvectors independently at each phi"
+  },
+  "ensemble": {
+    "walls": ["soft", "hard"],
+    "samples_per_wall": 10,
+    "independent_sampling_unit": "saved burn-in trajectory"
+  },
+  "execution": {
+    "cpu_list": "56-63",
+    "workers": 8,
+    "blas_threads": 1
+  },
+  "acceptance": {
+    "input_gram_tolerance": 1e-08,
+    "projector_tolerance": 1e-10,
+    "charge_conservation_tolerance": 1e-09,
+    "large_gauge_tolerance": 1e-09,
+    "initial_regulator_charge_tolerance": 1e-05,
+    "instantaneous_endpoint_closure_tolerance": 1e-05,
+    "minimum_principal_overlap_floor": 1e-03,
+    "quantization_is_acceptance_gate": false
+  }
+}

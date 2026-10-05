@@ -1,0 +1,105 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\begin{document}
+
+\title{Worker 10 Notes: Correlator and Slope-Excess Diagnostics}
+\author{Worker 10}
+\date{\today}
+
+\begin{abstract}
+I inspected the charge-fluctuation correlator and perfect-correction slope-excess diagnostics without editing files, executing notebooks, or loading large binary arrays. The correlator evidence says that the apparent power-law exponent is strongly fit-window dependent: default long-window fits can give exponents far from the nominal chiral value, while shorter controlled windows cluster nearer $\Delta_{\rm fit}\simeq 2$. The slope-excess evidence says that the trajectory-averaged entanglement slope remains above $1/3$ at the final observed cycles, with excess $\delta m_s=m_s-1/3\simeq 0.015$--$0.026$, but this excess is not primarily explained by global charge imbalance. Instead, local wall charge/defect metrics and incomplete cycle convergence receive the strongest diagnostic support.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+The inspected sources were limited to text-like artifacts: manifests, CSV summaries, notebook JSON text, and figure/caption metadata in
+\begin{itemize}
+\item \texttt{colab\_charge\_fluctuations/analysis\_outputs/correlator\_scaling\_diagnostics},
+\item \texttt{colab\_charge\_fluctuations/analysis\_outputs/perfect\_correction\_slope\_excess\_diagnostics},
+\item related characterization summaries under \texttt{colab\_charge\_fluctuations/analysis\_outputs/streaming\_covariance\_characterization/N20\_selected\_nsh1\_dwtrunc1\_init-default\_S100\_cycles-2Ny}.
+\end{itemize}
+I excluded all paths containing \texttt{haining}, \texttt{haoyu}, or \texttt{erroneous}, case-insensitively, and did not inspect \texttt{repo\_synthesis/main\_pass/worker\_notes}, \texttt{supervisor\_notes}, or \texttt{boss}. I did not execute notebooks or load large binary arrays.
+
+\section{Findings}
+
+\subsection{\texorpdfstring{Correlator Exponents}{Correlator Exponents}}
+
+The correlator diagnostics fit
+\begin{equation}
+  C(r_y) \sim r_y^{-\Delta_{\rm fit}},
+\end{equation}
+with \(\Delta_{\rm fit}\) defined as minus the log-log slope. The dedicated notebook states that the purpose is to diagnose why the correlation-function exponent is unstable using existing data only, with no Markov dynamics run. Its manifest records the domain-wall convention and explicitly marks the dynamics analysis as source-data-only.
+
+The decision table supports three robust conclusions. First, the \(N=20\) x-averaged exponent is fit-window sensitive: the maximum final-cycle mean window spread is \(1.9536\), well above the diagnostic threshold \(0.5\). Second, postselection is not uniformly cleaner: the default postselected final exponent varies by \(2.2557\) across \(N_y\). Third, the \(N=16\) wall-localized fits are still window-sensitive, with maximum cycle-50 mean spread \(4.6549\).
+
+The default long-window comparison is misleading as a benchmark for chirality. For \(N=20\) perfect correction, default full-\(x\) exponents are \(1.4111,1.5747,1.6341\) for \(N_y=30,40,50\). The postselected default exponents are \(1.6239,3.8796,2.6978\), but with only one sample per \(N_y\). The half-filled flattened-H reference gives very large default-window exponents, e.g. both-wall values \(6.4306,5.3992,4.8564\), with poor-ish default-window \(R^2\simeq 0.73\)--\(0.75\). In contrast, selected shorter windows are much closer to the expected \(\Delta\simeq 2\): for \(r_{\min}=2\), \(r_{\max}=N_y/4\), perfect correction gives \(2.1295,2.1167,2.1185\), and the flattened reference gives both-wall exponents \(2.2260,2.2360,2.1971\).
+
+The physical reading is therefore not ``the correlator is non-chiral.'' The safer statement is that the available correlator exponent is a crossover diagnostic dominated by window choice and finite geometry. On appropriate intermediate windows it is compatible with a near-\(2\) chiral-like power law, but default long-distance windows fold in finite-size curvature and produce nonuniversal effective exponents.
+
+\subsection{\texorpdfstring{Slope Excess}{Slope Excess}}
+
+The slope-excess diagnostics define
+\begin{equation}
+  \delta m_s = m_s - \frac{1}{3}.
+\end{equation}
+The final-cycle summaries for perfect correction show persistent positive excess:
+\begin{align}
+N_y=30 &: m_s=0.35980,\quad \delta m_s=0.02647,\\
+N_y=40 &: m_s=0.34919,\quad \delta m_s=0.01585,\\
+N_y=50 &: m_s=0.34788,\quad \delta m_s=0.01455.
+\end{align}
+Each is based on \(100\) trajectories at final cycles \(60,80,100\), respectively.
+
+The decision table does not support global charge imbalance as the cause: low global charge cuts do not move the mean slope close enough to \(1/3\) or remove enough excess. Local wall charge/defect structure is supported: conditioning on low wall metrics removes a substantial fraction of the excess in at least one geometry, and wall/frustration or Chern-error correlations are non-negligible. Incomplete cycle convergence is also supported: convergence fits estimate smaller plateaux than the final observed excess, especially for \(N_y=40,50\). Averaging order is not supported because the mean of sample slopes and the slope of the mean entropy curve agree to numerical precision.
+
+\section{Interpretation}
+
+The correlator and entropy-slope diagnostics point to the same operational picture. Trajectory ensembles appear close to the expected chiral scaling regime on intermediate windows, but finite-time and finite-size effects remain visible. The entropy slope is slightly above \(1/3\) at accessible cycle depths; this excess decreases with \(N_y\) and, from convergence fits, may continue to decrease with longer evolution. The correlator exponent is more fragile because extracting \(\Delta_{\rm fit}\) from a finite \(r_y\) interval is highly sensitive to whether the fit emphasizes short/intermediate separations or long-distance curvature.
+
+The local-wall evidence is important. Global charge imbalance is too weak an explanation, whereas wall charge RMS, wall frustration, Chern-marker error, and Frobenius motion show stronger links to excess slope. This suggests that the remaining excess is not simply a conserved-charge offset in the ensemble. It is more plausibly tied to local wall defects, residual nonstationarity of trajectories, or finite-cycle relaxation near the domain-wall/chiral channel.
+
+\section{Evidence Table}
+
+\begin{center}
+\begin{tabular}{p{0.30\linewidth}p{0.20\linewidth}p{0.42\linewidth}}
+\toprule
+Source & Lines & Evidence \\
+\midrule
+\texttt{REPO\_POLICY.md} & 1--38 & Required policy was read before inspection; it mandates canonical dynamics practice and notebook discipline. \\
+\texttt{correlator\_scaling\_diagnostics/analysis\_manifest.json} & 3, 8, 16--17 & Domain-wall convention, flattened-H reference, and source-data-only/no-Markov-dynamics flags. \\
+\texttt{correlator\_diagnostic\_decision\_table.csv} & 2--7 & Fit-window sensitivity supported; postselection not uniformly cleaner; wall/bulk mixing not supported as default-window cause; flattened-H default exponent not near \(2\); adaptive perfect correction below default flattened-H benchmark. \\
+\texttt{equilibrium\_vs\_dynamics\_default\_exponents.csv} & 2--25 & Default exponents: perfect correction \(1.41\)--\(1.63\), postselect \(1.62,3.88,2.70\), flattened reference \(4.86\)--\(10.35\) depending window. \\
+\texttt{equilibrium\_vs\_dynamics\_selected\_window\_exponents.csv} & 2--13, 38--49 & Intermediate windows give exponents near \(2\); default \(5\) to \(N_y/2\) window gives inflated or unstable values. \\
+\texttt{diagnose\_correlator\_scaling\_windows\_cpu.ipynb} & 10--15, 224--228, 884--887, 3516--3591 & Notebook states diagnostic purpose, defines exponent as minus log-log slope, reports wall windows, and constructs decision criteria. \\
+\texttt{slope\_excess\_feature\_table.csv} & 1 & Feature schema includes \(q\), entropy slope, correlator exponent, wall charge/frustration, Chern error, and Frobenius motion. \\
+\texttt{final\_cycle\_summary.csv} & 2--4 & Final-cycle slope excess remains positive for \(N_y=30,40,50\). \\
+\texttt{summary\_decision\_table.csv} & 2--6 & Global charge not supported; local wall charge/defect structure and incomplete convergence supported; averaging order not supported; raw x-window contamination not evaluated. \\
+\texttt{test1\_metric\_correlations.csv} & 2--7, 23--25 & Pooled correlations are weak for global charge but stronger for wall frustration/Chern error/Frobenius motion; \(N_y=50\) Chern and Frobenius correlations are notable. \\
+\texttt{test2\_conditioned\_subset\_slopes.csv} & 12--18, 62--68, 72--76 & Low wall-charge or wall-frustration subsets reduce excess; low Chern-error subsets also reduce excess, especially at larger \(N_y\). \\
+\texttt{test3\_cycle\_convergence\_fits.csv} & 2--7 & Exponential/power fits estimate positive but reduced plateau excesses, strongest reduction for \(N_y=40,50\). \\
+\texttt{test4\_averaging\_order.csv} & 2--42 & Mean-of-slopes and slope-of-mean-curve differences are numerical roundoff, excluding averaging order as source of excess. \\
+\texttt{data\_manifest.csv} & 2--4 & Slope-excess analysis uses \(100\) samples per \(N_y\), cycles \(60,80,100\), saved observable products only. \\
+\texttt{streaming\_covariance\_characterization/analysis\_manifest.json} & 37--96, 114--132 & Related characterization has \(100\) perfect-correction samples and \(1\) postselect sample per geometry; targets are \(\Delta=2\) and \(m_s=1/3\). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Caveats}
+
+The correlator results are not a controlled thermodynamic scaling analysis. They are highly sensitive to \(r_{\min}\), \(r_{\max}\), and whether full-\(x\), wall, bulk, or nonwall windows are used. The postselected correlator evidence is especially weak statistically because the inspected characterization records only one postselected sample per \(N_y\). The flattened-H reference is useful as an equilibrium control, but its default-window exponents are themselves window-contaminated.
+
+For slope excess, the diagnostics use saved observable products rather than recomputing from raw covariance histories. The optional raw-covariance x-window contamination section was disabled, so it cannot yet decide whether contour localization changes entropy slopes at the raw-state level.
+
+\section{Confidence}
+
+Confidence is high that the repository summaries support the qualitative conclusions above: correlator exponents are fit-window dominated, global charge imbalance is not the leading slope-excess explanation, and local wall/defect structure plus incomplete convergence are the strongest supported explanations. Confidence is moderate, not high, on the deeper physical claim that the asymptotic ensemble realizes the chiral \(m_s=1/3\), \(\Delta=2\) fixed point, because the inspected evidence remains finite-size, finite-cycle, and window-sensitive.
+
+\end{document}

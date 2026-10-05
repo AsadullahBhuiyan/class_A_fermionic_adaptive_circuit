@@ -1,0 +1,55 @@
+{
+  "sampling_revision": "hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1",
+  "root_seed": 2026092403,
+  "Nx": 20,
+  "Ny_values": [
+    40
+  ],
+  "samples_per_case": 100,
+  "cycles_multiplier": 4,
+  "nshell": 1,
+  "alpha_1": 3.0,
+  "alpha_2": 30.0,
+  "trial_orbitals": "X",
+  "filling_fraction": 0.5,
+  "n_a": 0.5,
+  "init_mode": "maxmix",
+  "sequence": "raster_y",
+  "perfect_correction": true,
+  "postselect": false,
+  "dtype": "complex128",
+  "device": "cuda:0",
+  "backend": "local",
+  "state_representation": "covariance",
+  "result_shard_size": 5,
+  "segment_cycles": 10,
+  "gpu_memory_budget_bytes": 38000000000,
+  "gpu_allocator_limit_bytes": 35000000000,
+  "resume_initial_purity_tolerance": 0.50000001,
+  "execution_batch_size_by_Ny": {
+    "40": 40
+  },
+  "observer_sample_chunk_by_Ny": {
+    "40": 5
+  },
+  "constructions": {
+    "hard": {
+      "DW": true,
+      "dw_truncation": true,
+      "meas_slab_only": true
+    }
+  },
+  "observables": {
+    "cycles": "0..4Ny inclusive",
+    "occupation_spectrum": true,
+    "cell_entropy_contour": true,
+    "cell_charge_variance_contour": true,
+    "final_centered_covariance": true,
+    "measurement_log_probability": true,
+    "cumulative_log_probability": true,
+    "log_probability_dtype": "float64",
+    "hard_log_probability_origin": "after_born_conditioned_exterior_preparation",
+    "soft_log_probability_origin": "global_maxmix_cycle_zero",
+    "entropy_log_base": "natural"
+  }
+}

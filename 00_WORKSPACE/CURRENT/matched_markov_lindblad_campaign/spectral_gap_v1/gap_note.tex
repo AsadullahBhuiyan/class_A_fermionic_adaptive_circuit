@@ -1,0 +1,80 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+\begin{document}
+\title{A spectral bound on relaxation of the trajectory-averaged circuit}
+\author{Asadullah Bhuiyan}
+\date{September 29, 2026}
+\begin{abstract}
+We obtain the two-point relaxation rate directly from an ordered product of
+single-particle projectors. No trajectory sampling or explicit time evolution
+is required. This rate bounds the full channel's relaxation rate from above.
+\end{abstract}
+\maketitle
+
+We ask how quickly the circuit forgets its initial two-point function after
+discarding the measurement record. We use the manuscript convention
+$C_{ab}=\operatorname{Tr}(\hat\rho\hat c_a^\dagger\hat c_b)$; the canonical
+CPU engine stores the centered matrix $G=2C-\mathbf{1}$.
+For a normalized overcomplete Wannier (OW) mode $j$, let $P_j$ be its
+projector in the stored correlation ordering and $Q_j=\mathbf{1}-P_j$.
+Perfect feedback fills a lower-band mode ($s_j=1$) or depletes an upper-band
+mode ($s_j=0$). Gain or loss contributes
+$s_jP_j-\{P_j,\overline C\}/2$ to the covariance increment, while number
+dephasing contributes $-\{P_j,\overline C\}/2+P_j\overline C P_j$.
+The elementary channel $\mathcal E_j=\mathrm{Id}+\mathcal L_j$ therefore gives
+\begin{equation}
+ \overline C'=\overline C-\{P_j,\overline C\}
+       +P_j\overline C P_j+s_jP_j
+       =Q_j\overline C Q_j+s_jP_j.
+\end{equation}
+This is an exact finite reset, not a time-step approximation. Closure of
+this equation does not require the averaged state to be Gaussian.
+
+One cycle is the composition $\mathcal E_{j_M}\cdots\mathcal E_{j_1}$,
+with the rightmost operation acting first. At cycle boundaries,
+\begin{equation}
+ \overline C_{n+1}=A\overline C_nA^\dagger+B,
+ \qquad A=Q_{j_M}\cdots Q_{j_1},\qquad
+ \delta C_{n+1}=A\delta C_nA^\dagger,
+\end{equation}
+where $B$ is independent of the input and
+$\delta C=\overline C-C_{\mathrm{ss}}$. Column vectorization yields
+$T=A^*\otimes A$. If $a_p$ are the eigenvalues of $A$, the covariance
+multipliers are $a_pa_q^*$. Hence, provided $0<\rho(A)<1$,
+\begin{equation}
+ \rho(A)=\max_p|a_p|,\qquad
+ \Delta_C=-\log\rho(T)=-2\log\rho(A)
+       =\min_{p,q}\bigl[-\log|a_pa_q^*|\bigr].
+\end{equation}
+The largest survival factor gives the smallest decay rate, measured per
+cycle. This is not the occupation-spectrum gap around $1/2$, nor the
+largest singular value of $A$. Non-normality can affect transients;
+Jordan blocks add polynomial prefactors without changing the exponential rate.
+
+The adjoint channel preserves
+$\mathcal V_2=\operatorname{span}\{\hat{\mathbf{1}},\hat c_a^\dagger\hat c_b\}$,
+and its restriction has diagonal blocks $1$ and $T^{\mathsf T}$.
+Spectral inclusion then implies, for a mixing full channel in the same
+physical symmetry sector,
+\begin{equation}
+ r_{\mathrm{full}}\geq\rho(T),\qquad
+ \Delta_{\mathrm{full}}=-\log r_{\mathrm{full}}\leq\Delta_C.
+\end{equation}
+Mixing means a unique stationary state and no other unit-modulus eigenvalues
+in that sector; $r_{\mathrm{full}}$ excludes the stationary eigenvalue. A closing upper
+bound forces slow relaxation, but a finite bound does not establish a
+many-body gap: higher-order observables may relax more slowly.
+
+We evaluate $N_x=20$, $N_y=20,24,28,32,36,40,44,50$, and $\alpha_1=1,3$,
+with $\alpha_2=30$, $n_{\mathrm{shell}}=1$, hard-wall support truncation at
+the inclusive slab $x=5,\ldots,15$, and all slabs active. Both directions
+are periodic, the twist is zero, and the trial orbitals are the $X$ pair.
+The fixed raster-$y$ schedule advances $y$ at fixed $x$, with within-cell
+order $A+,A-,B+,B-$. We construct $A$ by complex128 local rank-one updates
+and compute its full non-Hermitian spectrum. There is no sampled ensemble,
+chosen initial covariance, temporal average, or fitted decay law.
+\input{results_summary.tex}
+\end{document}

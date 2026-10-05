@@ -1,0 +1,39 @@
+{
+  "bundle": "02_wall_cft_windows",
+  "sampling_revision": "production_25sample_wall_windows_v1",
+  "audit_sha256": "a4a81421626ef933a5ff1e8dc82e3c9fd8678ce36fbfbb9e226bf5f43da59f70",
+  "root_seed": 24071991,
+  "output_bundle": "02_wall_cft_windows",
+  "production_output_collection": "classA_final_production_outputs/production_25sample_wall_windows_v1",
+  "pilot_output_collection": "classA_pilot_outputs/production_25sample_wall_windows_v1",
+  "locked_contract": {
+    "samples": 25,
+    "sample_shard_size": 5,
+    "Nx": 20,
+    "Ny_values": [20, 30, 40, 50, 60],
+    "cycles_rule": "2*Ny",
+    "checkpoint_rule": "Ny + nearest_integer(j*Ny/6), j=1..6",
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "nshell": 1,
+    "filling_fraction": 0.5,
+    "initial_state": "haar_random_half_filled_slater",
+    "perfect_correction": true,
+    "born_sampling": true,
+    "sequence": "random",
+    "ancilla_occupation": 0.5,
+    "physical_burn_in_cycles": 0,
+    "dtype": "complex128",
+    "canonical_entry_point": "classA_U1FGTN_gpu.run_markov_circuit"
+  },
+  "wall_protocols": {
+    "hard": {"DW": true, "dw_truncation": true, "meas_slab_only": true},
+    "soft": {"DW": true, "dw_truncation": false, "meas_slab_only": false}
+  },
+  "raw_products": [
+    "periodic_window_occupation_spectrum",
+    "periodic_window_entropy_contour",
+    "periodic_window_charge_variance_contour",
+    "x_resolved_square_correlator"
+  ]
+}

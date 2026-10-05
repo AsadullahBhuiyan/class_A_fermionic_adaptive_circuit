@@ -1,0 +1,214 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\I}{\mathbf{1}}
+\newcommand{\ket}[1]{\lvert #1\rangle}
+\newcommand{\bra}[1]{\langle #1\rvert}
+\newcommand{\pathref}[1]{\path{#1}}
+
+\begin{document}
+
+\title{Worker 13 Note: Regularized Choi Transfer Evidence}
+\author{Repository synthesis worker 13}
+\date{\today}
+
+\begin{abstract}
+I inspect the regularized Choi-transfer materials in
+\path{colab_regularized_choi_transfer_matrix/}, excluding all paths requested
+by the hierarchy.  The evidence supports a coherent operator-level diagnostic:
+realized adaptive trajectories are still propagated by the canonical GPU Markov
+engine, while an auxiliary cumulative Gaussian Choi covariance is updated by a
+regulated rank-one contraction and queried for a finite-sector particle-transfer
+gap.  The strongest result is not a long-time physical trajectory gap, but a
+controlled short-to-intermediate-time transfer/stability diagnostic with explicit
+censoring when the Choi chart becomes numerically unreliable.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+I read \path{REPO_POLICY.md} before inspection.  I inspected only lightweight
+text, metadata, notebook JSON text, source code, and CSV summaries under
+\path{colab_regularized_choi_transfer_matrix/}.  I did not execute notebooks,
+edit files, or load binary arrays.  I excluded paths containing
+\texttt{haining}, \texttt{haoyu}, or \texttt{erroneous}, and did not read under
+\path{repo_synthesis/main_pass/worker_notes}, \path{supervisor_notes}, or
+\path{boss}.
+
+\section{Findings}
+
+The theoretical note distinguishes the cumulative operator tensor from the
+physical state covariance.  The physical covariance \(G\) is the production
+trajectory variable, while the two-leg Choi covariance \(\Sigma\) represents the
+realized circuit operator \(\hat C_t\), with \(L,R\) denoting Choi legs rather
+than spatial regions.  This distinction is explicit in the derivation and is
+essential for interpreting the evidence.
+
+The local branch tensor has the singular rank-one form
+\[
+K(\eta_1,\eta_2)=
+\begin{pmatrix}
+\eta_1 P & Q\\
+Q & \eta_2 P
+\end{pmatrix},
+\qquad
+P=\ket{\chi}\bra{\chi},\quad Q=\I-P ,
+\]
+so the Choi contraction requires regulation on \(Q\).  The note introduces
+\(K_{LL}^{(\epsilon)}=\eta_1P+\epsilon Q\), takes the Schur-complement limit,
+and obtains a finite update when
+\[
+d=\Tr(P\Sigma_{RR})-\eta_1\neq 0.
+\]
+The basis-independent update is
+\[
+\Sigma'=
+\begin{pmatrix}
+\Sigma_{LL}-\dfrac{\Sigma_{LR}P\Sigma_{RL}}{d}
+&
+\Sigma_{LR}Q-\dfrac{\Sigma_{LR}P\Sigma_{RR}Q}{d}
+\\[8pt]
+Q\Sigma_{RL}-\dfrac{Q\Sigma_{RR}P\Sigma_{RL}}{d}
+&
+\eta_2P+Q\Sigma_{RR}Q-\dfrac{Q\Sigma_{RR}P\Sigma_{RR}Q}{d}
+\end{pmatrix}.
+\]
+The same note proves Hermiticity and pure-Choi involution preservation on
+nonsingular branches.
+
+The GPU implementation follows the same structure.  It initializes
+\(\Sigma_{LL}=0\), \(\Sigma_{LR}=\I\), \(\Sigma_{RR}=0\), records a singular
+tolerance, computes \(d=\bra{\chi}\Sigma_{RR}\ket{\chi}-\eta_1\), records the
+minimum denominator context, and either raises or records a
+\texttt{denominator\_regularized} event when \(|d|\) is below tolerance.  The
+rank-one update is assembled through a resolvent action, matching the
+regularized formulation.
+
+The transfer observable is explicitly a finite-sector particle-transfer
+diagnostic,
+\[
+T_p=-(\I+\Sigma_{LL})^{-1}\Sigma_{LR},
+\qquad
+\Delta_\lambda(t)=\min_j |\log s_j(T_p)/t|.
+\]
+The helper extracts near-gap modes using a restarted block-Davidson calculation
+on \(\Sigma_{LL}^2\), with exact eigensolves used for final spectra or fallback.
+Endpoint sectors at \(\Sigma_{LL}=\pm1\) are treated as exact particle
+zeros/poles rather than ordinary finite exponents.
+
+\section{Interpretation}
+
+The evidence supports the following reading.  The regularized Choi transfer
+object is an operator-history chart layered on top of the physical Markov
+trajectory, not a replacement for the physical trajectory covariance.  It is
+useful because the cumulative Choi covariance turns products of local adaptive
+Kraus events into a transfer spectrum whose near-zero Lyapunov exponents test
+whether the realized operator has stable finite-sector transmission channels.
+
+The domain-wall slab runs are the physically targeted transfer/stability
+diagnostic.  The homogeneous \(DW=0\) full-basis run is best interpreted as a
+control: it uses the same Choi machinery and canonical dynamics path but lacks
+the domain-wall slab truncation.  The campaign metadata confirms that the
+physical \(G\) evolution continues even after the Choi observable is censored;
+therefore the late-cycle disappearance of stable Choi samples is not evidence
+that the physical Markov dynamics terminates.  It is evidence that the exact
+cumulative Choi chart, under the chosen tolerances and finite-sector extraction,
+has become numerically unreliable.
+
+The local CSV summary shows all three available runs retain full Choi stability
+for early cycles and then lose all stable samples around cycles \(15\)--\(16\).
+For \(N_x=20,N_y=30\), the \(DW=1\) slab gap is small, roughly
+\(10^{-2}\)--\(2\times10^{-2}\) over the stable window, while the \(DW=0\) full
+control has much larger transient mean gaps after the first few cycles.  For
+\(N_y=40\), the \(DW=1\) slab gap is again around \(10^{-2}\) before censoring.
+This is consistent with a domain-wall transfer channel remaining closer to
+marginality than the homogeneous full-basis control, but only within the
+surviving Choi-observable window.
+
+\section{Evidence Table}
+
+\begin{table}[h]
+\caption{\label{tab:evidence}Lightweight sources used for the synthesis.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.34\linewidth}p{0.16\linewidth}p{0.42\linewidth}}
+Source & Lines & Evidence \\
+\colrule
+\pathref{docs/regularized_choi_covariance_contractions.tex} & 63--103 &
+Defines the cumulative Choi operator viewpoint and distinguishes it from the
+physical state covariance propagated by the canonical engine.\\
+\pathref{docs/regularized_choi_covariance_contractions.tex} & 164--246,
+455--551 & Derives the singular contraction, regulator, nonsingular condition
+\(d\neq0\), and full basis-independent update.\\
+\pathref{docs/regularized_choi_covariance_contractions.tex} & 749--775 &
+Rewrites the update as regularized resolvent solves, giving the numerical form
+used by the implementation.\\
+\pathref{docs/regularized_choi_covariance_contractions.tex} & 800--938 &
+States Hermiticity, singular-branch limitation, and preservation of the pure
+Choi involution.\\
+\pathref{src/classA_U1FGTN_gpu.py} & 754--774 &
+Initializes cumulative Choi blocks and records singular tolerance and diagnostic
+state.\\
+\pathref{src/classA_U1FGTN_gpu.py} & 840--916 &
+Computes \(d\), detects small denominators, applies resolvent actions, and
+updates \(LL,LR,RR\) blocks.\\
+\pathref{src/choi_transfer_observables_gpu.py} & 11--18,
+43--63 & Records helper metadata, transfer definition, gap definition, endpoint
+zero/pole handling, and extraction method.\\
+\pathref{src/choi_transfer_observables_gpu.py} & 360--435,
+477--635 & Defines the particle Choi gap observer, censoring behavior, retained
+diagnostics, and final exact-spectrum path.\\
+\pathref{analysis_outputs/gap_vs_cycle/gap_vs_cycle_summary.csv} & 62--76,
+122--136 & Shows \(DW=1\) slab mean gaps near \(10^{-2}\) before Choi stability
+collapses by cycles \(15\)--\(16\).\\
+\pathref{analysis_outputs/gap_vs_cycle/gap_vs_cycle_summary.csv} & 2--17 &
+Shows the \(DW=0\) full control has larger transient gaps and also loses all
+stable Choi samples by cycle \(16\).\\
+\pathref{gpu_data/.../N20x30_DW1.../run_summary.json} & 671--672,
+1427--1499, 1716--1778 & Confirms canonical dynamics entry point, censoring
+rule, Choi failure mode, slab effectiveness, stable fraction list, and zero
+stable final samples.\\
+\pathref{gpu_data/.../N20x40_DW1.../run_summary.json} & 891--892,
+1647--1719, 1936--2018 & Confirms the same metadata for the \(N_y=40\) slab run.\\
+\pathref{gpu_data/.../N20x30_DW0.../run_summary.json} & 1211--1212,
+1985--2057, 2292--2354 & Confirms the homogeneous full-basis control,
+censoring, and zero stable final samples.\\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+\section{Caveats}
+
+The locally present completed campaign summaries cover \(N_y=30\) for
+\(DW=0\), and \(N_y=30,40\) for \(DW=1\).  The notebook text describes a larger
+\(N_y=30,40,50\) plan, but I did not treat absent local summaries as completed
+evidence.
+
+No full Choi matrices or transfer matrices were inspected; campaign metadata
+says they were not saved.  This note therefore relies on documented formulas,
+implementation text, JSON metadata, and aggregate CSV summaries.
+
+The late-cycle stable fraction reaches zero in all available runs.  Hence the
+final-cycle gap values at \(T=2N_y\) are not physical gap estimates from stable
+Choi transfer data.  They are censored.  The physical Markov trajectory may
+continue, but the exact Choi observable is intentionally set to NaN after the
+first numerical-instability failure.
+
+\section{Confidence}
+
+Confidence is high that the regularized rank-one Choi contraction is
+mathematically and programmatically represented consistently.  Confidence is
+moderate that the early-cycle \(DW=1\) slab transfer evidence indicates a
+near-marginal transfer channel relative to the homogeneous control.  Confidence
+is low for any long-time or thermodynamic conclusion from this specific
+campaign, because all locally available samples are censored before the final
+cycle and the evidence inspected here is aggregate rather than raw spectral
+data.
+
+\end{document}

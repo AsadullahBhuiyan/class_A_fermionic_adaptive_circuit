@@ -1,0 +1,31 @@
+\documentclass{article}
+\usepackage{pdfpages}
+\usepackage{tikz}
+\pagestyle{empty}
+\newcommand{\sourcepdf}{/home/abhuiyan/.codex/attachments/578edaa7-aa5a-46ac-bc45-a6b9e73bb31a/monitored_fermion_state_preparation_references.pdf}
+\begin{document}
+\includepdf[
+  pages=1,
+  pagecommand={\begin{tikzpicture}[remember picture,overlay]
+    \fill[white] ([xshift=51bp,yshift=636bp]current page.south west)
+      rectangle ([xshift=90bp,yshift=650bp]current page.south west);
+    \node[anchor=south west,inner sep=0pt,font=\fontsize{8}{9}\selectfont]
+      at ([xshift=52.9bp,yshift=638bp]current page.south west) {15, 2026.};
+    \fill[white] ([xshift=120bp,yshift=467bp]current page.south west)
+      rectangle ([xshift=221bp,yshift=481bp]current page.south west);
+    \node[anchor=south west,inner sep=0pt,font=\fontsize{8}{9}\selectfont]
+      at ([xshift=122.1bp,yshift=469bp]current page.south west)
+      {102 works, including 38};
+  \end{tikzpicture}}
+]{\sourcepdf}
+\includepdf[
+  pages=6,
+  pagecommand={\begin{tikzpicture}[remember picture,overlay]
+    \fill[white] ([xshift=75bp,yshift=178bp]current page.south west)
+      rectangle ([xshift=151bp,yshift=194bp]current page.south west);
+    \node[anchor=south west,inner sep=0pt,font=\fontsize{8.8}{10}\selectfont]
+      at ([xshift=77.7bp,yshift=180.7bp]current page.south west)
+      {A. Bhuiyan,};
+  \end{tikzpicture}}
+]{\sourcepdf}
+\end{document}

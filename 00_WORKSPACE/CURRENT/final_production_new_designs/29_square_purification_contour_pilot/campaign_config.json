@@ -1,0 +1,33 @@
+{
+  "sampling_revision": "square_full_measurement_purification_l30-40_s1_t60_v1",
+  "root_seed": 2026092929,
+  "sizes": [
+    30,
+    40
+  ],
+  "samples": 1,
+  "cycles": 60,
+  "segment_cycles": 5,
+  "DW": true,
+  "dw_truncation": true,
+  "meas_slab_only": false,
+  "triv_region_local_mode": false,
+  "alpha_1": 1.0,
+  "alpha_2": 30.0,
+  "nshell": 1,
+  "trial_orbitals": "X",
+  "filling_fraction": 0.5,
+  "init_mode": "maxmix",
+  "n_a": 0.5,
+  "sequence": "raster_y",
+  "perfect_correction": true,
+  "postselect": false,
+  "state_representation": "covariance",
+  "dtype": "complex128",
+  "device": "cuda:0",
+  "backend": "local",
+  "covariance_spectral_clip": false,
+  "occupation_tolerance": 1e-09,
+  "entropy_eps": 1e-12,
+  "initial_purity_tolerance": 0.50000001
+}

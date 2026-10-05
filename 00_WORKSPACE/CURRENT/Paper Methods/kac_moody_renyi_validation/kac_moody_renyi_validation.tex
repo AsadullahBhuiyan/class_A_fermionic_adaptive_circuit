@@ -1,0 +1,1031 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,array}
+\usepackage{graphicx}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\e}{\mathrm{e}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\sech}{\operatorname{sech}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+
+\newcommand{\missingfigure}[1]{%
+  \fbox{\begin{minipage}[c][2.05in][c]{0.90\linewidth}
+  \centering\small #1
+  \end{minipage}}}
+
+\hypersetup{
+  pdftitle={U(1) Kac--Moody Level and Renyi Entanglement in Monitored Gaussian Trajectories},
+  pdfauthor={Class-A fermionic adaptive-circuit project}
+}
+
+\begin{document}
+
+\title{\texorpdfstring{$U(1)$ Kac--Moody Level and R\'enyi Entanglement in Monitored
+Gaussian Trajectories:\\ Formalism and Numerical Validation}{U(1) Kac--Moody Level and
+Renyi Entanglement in Monitored Gaussian Trajectories: Formalism and Numerical Validation}}
+\author{Class-A fermionic adaptive-circuit project}
+\affiliation{Repository methods note}
+\date{September 1, 2026}
+
+\begin{abstract}
+We give a self-contained account of interval R\'enyi entropy and charge full counting
+statistics for Born-conditioned, number-conserving Gaussian trajectories.  The restricted
+correlation spectrum determines both observables, while their logarithmic chord-length
+coefficients measure different infrared data: the total conformal entanglement content
+seen by the cut and the level of the physical $U(1)$ current algebra.  We fix all
+one-wall and two-wall factors by introducing explicit branch sums, derive the cylinder
+charge variance from the Kac--Moody correlator, and formulate a paired null test for a
+minimal $U(1)_1$ sector.  We carefully distinguish Born-averaged conditional entropies,
+annealed replica moments, the entropy of the Born mixture, within-trajectory quantum
+charge variance, and record-to-record charge wandering.  Finally, we turn the formalism
+into a reanalysis-first validation program.  The program begins with the accepted exact
+domain-wall spectra and archived stochastic covariance snapshots, invokes a fixed-record
+engine comparison only if old and current outputs must be pooled, and permits new dynamics
+only when archived data are statistically inconclusive.  Static entropy and charge
+fluctuations never determine chirality; that claim requires a separate signed propagation
+or flux diagnostic.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Purpose, scope, and hierarchy of claims}
+\label{sec:scope}
+
+The objective is not to infer a conformal field theory (CFT) from one successful entropy
+fit.  It is to separate four logically distinct questions:
+\begin{enumerate}
+\item Does the interval entanglement have a stable logarithmic coefficient compatible
+with a specified total central charge?
+\item Does the \emph{within-trajectory} interval charge variance have the coefficient of
+a level-one $U(1)$ Kac--Moody current?
+\item Do the entropy and charge coefficients obey the paired relation expected when the
+same minimal charged sector accounts for both signals?
+\item Is that sector chiral, and if so what is its handedness?
+\end{enumerate}
+The first three questions are static and unsigned.  The fourth is dynamical or topological
+and requires an independent orientation-sensitive packet, response, or flux experiment.
+The note therefore uses the following claim hierarchy.
+
+\begin{table}[t]
+\caption{Evidence required by each proposed statement.  Every row inherits the
+requirements above it only when explicitly stated; a failure of a stronger row does not
+erase a valid weaker result.}
+\label{tab:claim-hierarchy}
+\centering
+\begin{ruledtabular}
+\begin{tabular}{p{0.22\linewidth}p{0.70\linewidth}}
+wording & required evidence \\
+\hline
+``$c\simeq1$ entanglement scaling'' & A stable log-chord coefficient with declared wall
+count, fit window, finite-size drift, and whole-trajectory uncertainty. \\
+``R\'enyi-consistent $c\simeq1$'' & Compatible $c_{w,n}$ from $n=1,2,3$ on the same
+trajectory ensembles and under the same window-sensitivity tests. \\
+``level-one $U(1)$ current sector'' & $k_w\simeq1$ from conditional quantum charge
+variance, using a fixed microscopic unit of charge and excluding record-to-record
+wandering. \\
+``minimal $U(1)_1$ sector'' & Compatible $c_{w,n}\simeq k_w\simeq1$, the paired residual
+$\delta_n$ consistent with zero, and no resolved extra neutral logarithmic contribution. \\
+``chiral $U(1)_1$ wall'' & The preceding static evidence plus a separately validated,
+orientation-reversing signed propagation or spectral-flow diagnostic. \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+The formal development treats arbitrary R\'enyi order $n>0$.  Numerical validation is
+restricted to $n=1,2,3$.  Charged or symmetry-resolved R\'enyi entropies and paired/Nambu
+Gaussian states are outside the present scope.
+
+\section{Conditioned Gaussian trajectories and interval geometry}
+\label{sec:gaussian-setup}
+
+\subsection{Canonical correlation matrix and archive crosswalk}
+
+Let the complex fermions obey
+\begin{equation}
+ \{\hat\psi_i^\dagger,\hat\psi_j\}=\delta_{ij},\qquad
+ \{\hat\psi_i,\hat\psi_j\}=0 .
+\end{equation}
+For a normalized many-body density operator $\hat\rho_\xi$ conditioned on a complete
+Born-sampled record $\xi$, the canonical single-particle correlation matrix is
+\begin{equation}
+ G_{\xi,ij}=\Tr(\hat\rho_\xi\hat\psi_i^\dagger\hat\psi_j),
+ \qquad 0\leq G_\xi\leq\Id .
+ \label{eq:G-definition}
+\end{equation}
+The record label $\xi$ is not an additional quantum degree of freedom.  It indexes the
+classical ensemble generated by the adaptive free-fermion protocol of
+Ref.~\cite{BhuiyanPanJian2026}.
+
+This note reserves $G$ for the occupation correlation matrix in
+Eq.~\eqref{eq:G-definition}.  Many archived analyses call the same object $C$; after
+conversion to the occupation convention their symbol $C_{\xi,A}$ is exactly our
+$G_{\xi,A}$.  Some older raw products instead store a centered covariance and sometimes
+its transpose.  Those files require the metadata-declared affine/transpose conversion
+before the present formulas apply.  In particular, the analysis must never guess the
+meaning of a stored array from the variable name alone.  The provenance manifest records
+the source convention and the explicit map to $G$ for every input.
+
+For a spatial region $A$, let $P_A$ be its one-body projector and
+\begin{equation}
+ G_{\xi,A}=P_AG_\xi P_A\big|_A,
+ \qquad
+ G_{\xi,A}u_{\xi a}=\nu_{\xi a}u_{\xi a},
+ \qquad 0\leq\nu_{\xi a}\leq1.
+ \label{eq:restricted-spectrum}
+\end{equation}
+All nonlinear observables below are evaluated on $G_{\xi,A}$ before the Born average.
+Replacing $G_\xi$ by $\overline G=\E_\xi[G_\xi]$ changes the observable and is not an
+allowed shortcut.
+
+\subsection{Cylinder interval, chord coordinate, and branch count}
+
+The stochastic wall geometries are periodic along $y$ with circumference $N_y$.  A
+full-transverse strip of length $\ell$ and origin $y_0$ is
+\begin{equation}
+ A(y_0,\ell)=[0,N_x)\times
+ \{y_0,y_0+1,\ldots,y_0+\ell-1\},
+ \label{eq:strip-region}
+\end{equation}
+with $y$ understood modulo $N_y$.  The logarithmic cylinder coordinate is
+\begin{equation}
+ X_{N_y}(\ell)=
+ \log\!\left[\frac{N_y}{\pi a}
+ \sin\!\left(\frac{\pi\ell}{N_y}\right)\right],
+ \qquad 0<\ell<N_y,
+ \label{eq:chord-coordinate}
+\end{equation}
+where the microscopic cutoff $a$ changes the intercept but not the slope.
+
+Let $w$ label the independent gapless wall branches intersected by the entanglement cut,
+and define the explicit sums
+\begin{equation}
+ c_\Sigma=\sum_w c_w,
+ \qquad
+ k_\Sigma=\sum_w k_w .
+ \label{eq:branch-sums}
+\end{equation}
+These definitions prevent the most common factor-of-two error.  A single chiral branch
+has $c_\Sigma=c_w$ and $k_\Sigma=k_w$.  A full strip crossing two well-separated,
+oppositely oriented but otherwise identical walls has $c_\Sigma=2c_w$ and
+$k_\Sigma=2k_w$.  Orientation does not change either unsigned sum.
+
+Within a trajectory, all periodic origins and all retained stationary snapshots are
+correlated internal averages.  The trajectory, not an origin or snapshot, is the
+independent sampling unit.
+
+\begin{figure}[t]
+\centering
+\IfFileExists{figures/figure_01_geometry_pipeline.pdf}{%
+  \includegraphics[width=0.96\linewidth]{figures/figure_01_geometry_pipeline.pdf}%
+}{%
+  \missingfigure{Builder output pending: one-/two-wall strip geometry and the analysis
+  pipeline $G_{\xi,A}\to\{\nu_a\}\to\{S_n,F\}\to\{c_{w,n},k_w,\delta_n\}$.}%
+}
+\caption{Geometry and estimator order.  The region is a full-$x$, periodic-$y$ strip;
+the branch sum counts the physical wall branches intersected by its entanglement cuts.
+Restriction, spectral nonlinearities, and origin/snapshot averaging are performed within
+each conditioned trajectory before whole-trajectory resampling.  This schematic contains
+no Monte Carlo data.}
+\label{fig:geometry-pipeline}
+\end{figure}
+
+\section{Reduced Gaussian state and R\'enyi entropies}
+\label{sec:renyi}
+
+\subsection{Natural-orbital factorization}
+
+Number conservation and Gaussianity imply that the reduced state factorizes in the
+natural-orbital basis of Eq.~\eqref{eq:restricted-spectrum}~\cite{Peschel2003}:
+\begin{align}
+ \hat\rho_{\xi,A}
+ &=\frac{\exp[-\sum_a\epsilon_{\xi a}
+ \hat f_{\xi a}^\dagger\hat f_{\xi a}]}{Z_{\xi,A}},
+ &
+ \epsilon_{\xi a}&=\log\frac{1-\nu_{\xi a}}{\nu_{\xi a}},
+ \label{eq:rhoA-modular}\\
+ \hat\rho_{\xi,A}
+ &=\bigotimes_a\left[(1-\nu_{\xi a})\lvert0_a\rangle\!\rangle
+ \langle\!\langle0_a\rvert+\nu_{\xi a}\lvert1_a\rangle\!\rangle
+ \langle\!\langle1_a\rvert\right].
+ \label{eq:rhoA-product}
+\end{align}
+The one-body modular matrix is
+\begin{equation}
+ h^{\mathrm{mod}}_{\xi,A}
+ =\log[(\Id_A-G_{\xi,A})G_{\xi,A}^{-1}],
+ \label{eq:modular-matrix}
+\end{equation}
+with eigenvalues $\epsilon_{\xi a}$ and endpoints interpreted by continuity.
+
+For $n>0$, $n\neq1$, the trajectory R\'enyi entropy is
+\begin{align}
+ S_{n,\xi}(A)
+ &=\frac{1}{1-n}\log\Tr(\hat\rho_{\xi,A}^{\,n})
+ \nonumber\\
+ &=\frac{1}{1-n}\sum_a
+ \log[\nu_{\xi a}^{\,n}+(1-\nu_{\xi a})^{n}].
+ \label{eq:renyi-spectrum}
+\end{align}
+The continuous $n\to1$ limit is the von Neumann entropy
+\begin{equation}
+ S_{1,\xi}(A)=-\sum_a\left[
+ \nu_{\xi a}\log\nu_{\xi a}
+ +(1-\nu_{\xi a})\log(1-\nu_{\xi a})\right].
+ \label{eq:von-neumann-spectrum}
+\end{equation}
+Equations~\eqref{eq:renyi-spectrum} and \eqref{eq:von-neumann-spectrum} are exact for every
+number-conserving Gaussian reduced state, whether the global Gaussian state is pure or
+mixed.
+For a globally pure conditioned trajectory they quantify bipartite entanglement.  For a
+globally mixed conditioned Gaussian state they are reduced-state entropies; an
+entanglement/CFT interpretation requires the separately declared purity or purification
+gate.
+
+\subsection{Replica coefficient on the cylinder}
+
+In a chiral CFT, the replica twist field for one branch has scaling dimension
+\begin{equation}
+ h_n=\frac{c_w}{24}\left(n-\frac1n\right).
+\end{equation}
+The two-point function of the twist endpoints on the cylinder therefore gives
+\begin{equation}
+ S_n^{(w)}(\ell)=
+ \frac{c_w}{12}\left(1+\frac1n\right)X_{N_y}(\ell)
+ +b_{w,n}+\cdots ,
+ \label{eq:single-branch-renyi}
+\end{equation}
+where the ellipsis contains irrelevant-operator, lattice, wall-overlap, and finite-size
+corrections~\cite{CalabreseCardy2004,CalabreseCardy2009}.  Summing independent branches,
+\begin{equation}
+ \overline{S_n(\ell)}=
+ a_{S_n}X_{N_y}(\ell)+b_{S_n}+\cdots,
+ \qquad
+ \boxed{a_{S_n}=\frac{c_\Sigma}{12}
+ \left(1+\frac1n\right)}.
+ \label{eq:renyi-slope}
+\end{equation}
+For two identical wall branches this yields the per-wall estimator
+\begin{equation}
+ \boxed{c_{w,n}=\frac{6a_{S_n}}{1+1/n}}.
+ \label{eq:per-wall-c}
+\end{equation}
+For $n=1$, $c_{w,1}=3a_{S_1}$.  Agreement among $n=1,2,3$ is stronger than one
+successful von Neumann fit because the three kernels probe the same correlation spectrum
+differently.
+
+\section{Charge full counting statistics}
+\label{sec:fcs}
+
+Let the physical charge in $A$ be
+\begin{equation}
+ \hat Q_A=\sum_{i\in A}\hat\psi_i^\dagger\hat\psi_i .
+\end{equation}
+Klich's trace identity gives the trajectory-resolved characteristic function
+\cite{Klich2003}
+\begin{equation}
+ \mathcal Z_{\xi,A}(\lambda)
+ =\Tr(\hat\rho_{\xi,A}\e^{\ii\lambda\hat Q_A})
+ =\det[\Id_A-G_{\xi,A}+\e^{\ii\lambda}G_{\xi,A}]
+ =\prod_a(1-\nu_{\xi a}+\e^{\ii\lambda}\nu_{\xi a}).
+ \label{eq:fcs-determinant}
+\end{equation}
+With
+\begin{equation}
+ \kappa_{j,\xi}(A)=(-\ii\partial_\lambda)^j
+ \log\mathcal Z_{\xi,A}(\lambda)\big|_{\lambda=0},
+\end{equation}
+the first four cumulants are
+\begin{align}
+ \kappa_{1,\xi}&=\tr G_{\xi,A},
+ \label{eq:kappa1}\\
+ \kappa_{2,\xi}&=\tr[G_{\xi,A}(\Id_A-G_{\xi,A})],
+ \label{eq:kappa2}\\
+ \kappa_{3,\xi}&=\tr[G_{\xi,A}(\Id_A-G_{\xi,A})(\Id_A-2G_{\xi,A})],
+ \label{eq:kappa3}\\
+ \kappa_{4,\xi}&=\tr[G_{\xi,A}(\Id_A-G_{\xi,A})
+ (\Id_A-6G_{\xi,A}+6G_{\xi,A}^2)].
+ \label{eq:kappa4}
+\end{align}
+We write
+\begin{equation}
+ F_{\xi,A}\equiv\kappa_{2,\xi}(A)
+ =\langle(\hat Q_A-\langle\hat Q_A\rangle_\xi)^2\rangle_\xi
+ \label{eq:quantum-variance}
+\end{equation}
+for the \emph{within-trajectory quantum variance}.  It is this quantity, averaged after
+evaluation, that probes the current algebra.
+
+\subsection{Five inequivalent ensemble constructions}
+\label{sec:ensemble-constructions}
+
+The following objects must not be conflated:
+\begin{align}
+ \overline{S_n(A)}
+ &=\frac{1}{1-n}\E_\xi[\log\Tr(\hat\rho_{\xi,A}^{\,n})],
+ &&\text{Born-averaged conditional entropy},
+ \label{eq:quenched-renyi}\\
+ S_n^{\mathrm{ann}}(A)
+ &=\frac{1}{1-n}\log\E_\xi[\Tr(\hat\rho_{\xi,A}^{\,n})],
+ &&\text{annealed replica moment},
+ \label{eq:annealed-renyi}\\
+ S_n^{\mathrm{mix}}(A)
+ &=\frac{1}{1-n}\log\Tr[(\overline{\hat\rho_A})^n],
+ &&\overline{\hat\rho_A}=\E_\xi[\hat\rho_{\xi,A}],
+ \label{eq:mixture-renyi}\\
+ \overline{F_A}
+ &=\E_\xi[F_{\xi,A}],
+ &&\text{conditional quantum charge variance},
+ \label{eq:mean-quantum-variance}\\
+ F_A^{\mathrm{rec}}
+ &=\Var_\xi(\tr G_{\xi,A}),
+ &&\text{record-to-record charge wandering}.
+ \label{eq:record-wandering}
+\end{align}
+For $n>1$, Jensen's inequality generally separates
+Eqs.~\eqref{eq:quenched-renyi} and \eqref{eq:annealed-renyi}.  The Born mixture in
+Eq.~\eqref{eq:mixture-renyi} is generally non-Gaussian even when every conditional state
+is Gaussian; its entropy is not obtained by inserting $\overline G$ into the Gaussian
+formula.  Finally, the physical two-stage experiment that first draws a record and then
+measures $\hat Q_A$ obeys
+\begin{equation}
+ \Var_{\mathrm{two\ stage}}(Q_A)=\overline{F_A}+F_A^{\mathrm{rec}}.
+ \label{eq:total-variance}
+\end{equation}
+Only the first term belongs in the Kac--Moody estimator.
+Relations between free-fermion charge statistics, bipartite fluctuations, and entanglement
+are developed in Refs.~\cite{KlichLevitov2009,SongFlindtRachel2011,
+SongRachelFlindtKlichLaflorencieLeHur2012}; the conditional-versus-record distinctions
+above are essential when importing those relations into a monitored ensemble.
+
+\section{The level of the \texorpdfstring{$U(1)$}{U(1)} current algebra}
+\label{sec:kac-moody}
+
+\subsection{Normalization and cylinder correlator}
+
+We normalize the holomorphic current by
+\begin{equation}
+ J(z)J(0)\sim\frac{k_w}{z^2},
+ \qquad
+ J(z)=\sum_{m\in\mathbb Z}J_mz^{-m-1},
+ \qquad
+ [J_m,J_n]=k_wm\,\delta_{m+n,0}.
+ \label{eq:km-algebra}
+\end{equation}
+The microscopic charge unit is held fixed throughout.  A charge-one chiral complex
+fermion has $k_w=1$.  In this convention the Sugawara stress tensor of one Abelian
+current is
+\begin{equation}
+ T_J(z)=\frac{1}{2k_w}:J(z)J(z):,
+ \label{eq:sugawara}
+\end{equation}
+and carries central charge one; a theory may nevertheless contain additional neutral
+gapless sectors~\cite{DiFrancescoMathieuSenechal1997}.
+For an integer physical charge sector $Q$, the pure $U(1)$ charged primary has
+$h_Q=Q^2/(2k_w)$; a neutral sector can add to this dimension.  Subsystem FCS fixes the
+current coefficient but does not by itself resolve this operator tower.
+
+To fix the numerical coefficient rather than absorb it into the definition of $k_w$,
+write the cylinder coordinate as $w=\tau+\ii y$ and map it to the plane by
+$z=\exp(2\pi w/N_y)$.  A weight-one current transforms as
+\begin{equation}
+ J_{\mathrm{cyl}}(w)=\frac{2\pi}{N_y}zJ(z),
+ \qquad
+ \hat\rho_w(y)=\frac{1}{2\pi}J_{\mathrm{cyl}}(\ii y),
+ \label{eq:cylinder-current-map}
+\end{equation}
+where the second equality fixes the microscopic unit-charge normalization.  Since
+$z/(z-1)^2=-[4\sin^2(\pi y/N_y)]^{-1}$ at equal time, the noncoincident connected
+density correlator of one branch is
+\begin{equation}
+ \langle\hat\rho_w(y)\hat\rho_w(0)\rangle_c
+ =-\frac{k_w}{4\pi^2}
+ \left(\frac{\pi}{N_y}\right)^2
+ \csc^2\!\left(\frac{\pi y}{N_y}\right),
+ \qquad y\neq0,
+ \label{eq:density-correlator}
+\end{equation}
+up to the contact term that fixes the ultraviolet charge variance.  Double integration
+over an interval, or equivalently the derivation in Appendix~\ref{app:cylinder}, gives
+\begin{equation}
+ F_w(\ell)=\frac{k_w}{2\pi^2}X_{N_y}(\ell)+b_{F,w}+\cdots .
+ \label{eq:single-wall-F}
+\end{equation}
+Independent branches add, hence
+\begin{equation}
+ \overline{F(\ell)}=a_FX_{N_y}(\ell)+b_F+\cdots,
+ \qquad
+ \boxed{a_F=\frac{k_\Sigma}{2\pi^2}}.
+ \label{eq:F-slope}
+\end{equation}
+For two identical wall branches,
+\begin{equation}
+ \boxed{k_w=\pi^2a_F}.
+ \label{eq:per-wall-k}
+\end{equation}
+The coefficient determines the level only after the microscopic charge normalization and
+the number of intersected branches have been declared.  It does not determine the sign of
+a propagation velocity or a chiral central charge.
+
+\section{Shared susceptibility spectrum}
+\label{sec:shared-spectrum}
+
+Define the positive single-particle susceptibility operator
+\begin{equation}
+ \mathcal V_{\xi,A}=G_{\xi,A}(\Id_A-G_{\xi,A}),
+ \qquad
+ v_{\xi a}=\nu_{\xi a}(1-\nu_{\xi a})\in[0,1/4].
+ \label{eq:susceptibility}
+\end{equation}
+Then
+\begin{align}
+ F_{\xi,A}&=\tr\mathcal V_{\xi,A}=\sum_av_{\xi a},
+ \label{eq:F-from-V}\\
+ S_{n,\xi}(A)&=\tr g_n(\mathcal V_{\xi,A}),
+ \label{eq:S-from-V}
+\end{align}
+where
+\begin{equation}
+ g_n(v)=\frac{1}{1-n}\log[\nu(v)^n+(1-\nu(v))^n],
+ \qquad
+ \nu(v)=\frac{1+\sqrt{1-4v}}{2}.
+ \label{eq:gn-v}
+\end{equation}
+The branch choice in $\nu(v)$ is irrelevant because the entropy kernel is symmetric under
+$\nu\leftrightarrow1-\nu$.  The scalar $F$ is only the first moment of
+$\{v_a\}$ and does not determine $S_n$ at finite size; the full susceptibility spectrum
+does determine every Gaussian R\'enyi entropy.
+The map $\nu_a\mapsto v_a$ discards the branch information
+$\nu_a\leftrightarrow1-\nu_a$.  Consequently $\mathcal V_A$ determines $F$, every
+$S_n$, and even cumulants such as $\kappa_4$ that are symmetric under this exchange, but
+it does not determine the mean charge $\kappa_1$ or odd cumulants such as $\kappa_3$.
+
+In modular-energy variables,
+\begin{align}
+ \nu(\epsilon)&=\frac{1}{1+\e^\epsilon},
+ &
+ f(\epsilon)&=\nu(1-\nu)=\frac{1}{4\cosh^2(\epsilon/2)},
+ \label{eq:f-kernel}\\
+ s_n(\epsilon)&=\frac{
+ \log[2\cosh(n\epsilon/2)]-n\log[2\cosh(\epsilon/2)]}{1-n},
+ \quad &(n\neq1),
+ \label{eq:sn-kernel}\\
+ s_1(\epsilon)&=\log[2\cosh(\epsilon/2)]
+ -\frac{\epsilon}{2}\tanh(\epsilon/2).
+ \label{eq:s1-kernel}
+\end{align}
+If $\rho_{\xi,A}(\epsilon)=\sum_a\delta(\epsilon-\epsilon_{\xi a})$, then
+\begin{equation}
+ F_{\xi,A}=\int\dd\epsilon\,\rho_{\xi,A}(\epsilon)f(\epsilon),
+ \qquad
+ S_{n,\xi}(A)=\int\dd\epsilon\,\rho_{\xi,A}(\epsilon)s_n(\epsilon).
+ \label{eq:kernel-integrals-density}
+\end{equation}
+The exact kernel integrals are
+\begin{equation}
+ \int_{-\infty}^{\infty}\dd\epsilon\,f(\epsilon)=1,
+ \qquad
+ \int_{-\infty}^{\infty}\dd\epsilon\,s_n(\epsilon)
+ =\frac{\pi^2}{6}\left(1+\frac1n\right),
+ \label{eq:kernel-integrals}
+\end{equation}
+with the $n=1$ value $\pi^2/3$.  Thus a common slowly varying low-modular-energy density
+produces the universal ratio of \emph{leading logarithmic coefficients}.  Equation
+\eqref{eq:kernel-integrals} is not a mode-by-mode identity and does not imply
+$S_n(\ell)\propto F(\ell)$ at each finite $\ell$.
+
+\begin{figure}[t]
+\centering
+\IfFileExists{figures/figure_02_modular_kernels.pdf}{%
+  \includegraphics[width=0.96\linewidth]{figures/figure_02_modular_kernels.pdf}%
+}{%
+  \missingfigure{Builder output pending: normalized modular-energy kernels
+  $f(\epsilon)$ and $s_n(\epsilon)$ for $n=1,2,3$, with their analytic integrals.}%
+}
+\caption{Charge-susceptibility and R\'enyi kernels in modular energy.  The black curve is
+the raw physical kernel $f(\epsilon)=v(\epsilon)=1/[4\cosh^2(\epsilon/2)]$, with no
+display rescaling.  The plotted curves are analytic functions, not trajectory data.  All emphasize $|\epsilon|=O(1)$ but have
+different shapes; the ratio of their integrals controls the common-density logarithmic
+coefficient, not an exact finite-size equality.}
+\label{fig:modular-kernels}
+\end{figure}
+
+\section{Paired minimal-\texorpdfstring{$U(1)_1$}{U(1)1} test}
+\label{sec:paired-test}
+
+Combining Eqs.~\eqref{eq:renyi-slope} and \eqref{eq:F-slope}, define
+\begin{equation}
+ \boxed{\delta_n=
+ a_{S_n}-\frac{\pi^2}{6}\left(1+\frac1n\right)a_F}
+ =\frac{c_\Sigma-k_\Sigma}{12}\left(1+\frac1n\right).
+ \label{eq:delta-n}
+\end{equation}
+For a charge-one free complex-fermion branch, $c_w=k_w=1$, so $\delta_n=0$ for every
+$n$.  The strongest numerical test is paired: $S_n$ and $F$ are extracted from the same
+trajectory, snapshot, origin-averaging prescription, interval set, and regression design.
+Whole-trajectory resampling then retains their covariance.  Testing two independently
+estimated slopes and discarding their covariance is unnecessarily weak.
+
+The correct inference ladder is:
+\begin{enumerate}
+\item Estimate $c_{w,n}$ and $k_w$ separately, with branch count fixed by geometry.
+\item Test $\delta_n=0$ jointly for $n=1,2,3$ using the paired bootstrap covariance.
+\item Test window, endpoint, size, construction, and matched-trivial stability.
+\item Invoke ``minimal $U(1)_1$'' only if $c_{w,n}\simeq k_w\simeq1$ and the null test
+passes without a resolved neutral excess.
+\item Invoke ``chiral'' only after a separate signed diagnostic passes orientation
+reversal and wall-off controls.
+\end{enumerate}
+A failed $\delta_n$ blocks the minimal-sector statement but leaves independently valid
+$c$ and $k$ estimates intact.
+
+\section{Existing evidence and provenance audit}
+\label{sec:existing-evidence}
+
+This section distinguishes accepted archived results, locked regression targets, and the
+completed outputs of the read-only analysis builder.  No source campaign is modified.
+
+\subsection{Accepted exact domain-wall benchmark}
+
+The accepted deterministic B0 campaign uses exact Hamiltonian ground-state covariances.
+It calibrates geometry and estimators; it is not itself evidence about Born trajectories
+of the adaptive circuit.  At the accepted width $N_x=20$ and circumference $N_y=48$, the
+locked regression targets are:
+
+\begin{table}[t]
+\caption{Exact B0 regression targets for the two accepted domain-wall constructions.
+These are deterministic fits with no Monte Carlo sampling uncertainty.  The builder
+recomputes them from the hashed raw $N_x=20,N_y=48$ spectra and reports the
+manifest-declared interval window and endpoint-deletion sensitivity.}
+\label{tab:exact-b0}
+\centering
+\IfFileExists{tables/exact_b0_regression.tex}{%
+  \input{tables/exact_b0_regression.tex}%
+}{%
+\begin{ruledtabular}
+\begin{tabular}{lrrrr}
+construction & $k_w$ & $c_{w,1}$ & $c_{w,2}$ & $c_{w,3}$ \\
+\hline
+coupled & 0.9985294 & 1.0000918 & 0.9959103 & 0.9933597 \\
+hard exterior & 0.9985293 & 1.0000919 & 0.9959072 & 0.9933241 \\
+\end{tabular}
+\end{ruledtabular}%
+}
+\end{table}
+
+The locked B0 values reproduce that campaign's declared compatibility estimator, which
+floors natural-orbital occupations at $10^{-12}$ before evaluating the entropy.  The
+builder also performs an endpoint-exact, \code{logaddexp}-stable reduction and reports it
+in separate columns.  Across the two $N_y=48$ inputs the largest curve-level entropy
+difference is $2.30\times10^{-8}$ and the largest shift in a reported $c_{w,n}$ is
+$7.38\times10^{-8}$.  Thus archive reproduction is explicit rather than silently mixed
+with the canonical endpoint convention used elsewhere.
+
+\begin{figure}[t]
+\centering
+\IfFileExists{figures/figure_03_exact_b0_validation.pdf}{%
+  \includegraphics[width=0.96\linewidth]{figures/figure_03_exact_b0_validation.pdf}%
+}{%
+  \missingfigure{Builder output pending: exact B0 $c_{w,n}$, $k_w$, and
+  $\delta_n$ for the coupled and hard-exterior constructions.}%
+}
+\caption{Exact B0 matched-coefficient calibration at $N_x=20,N_y=48$.  The input is a
+deterministic half-filled ground-state covariance, so there is no trajectory count or
+Monte Carlo interval.  The analysis uses the accepted B0 fit window recorded in the
+generated table, $8\leq A_y\leq24$, and repeats the prescribed endpoint-deletion checks.  Agreement here
+validates formulas and wall factors, not the adaptive circuit.}
+\label{fig:exact-b0}
+\end{figure}
+
+\subsection{Archived stochastic Result 21}
+
+The audited legacy atlas reduced four canonical perfect-correction ensembles at cycle 50:
+$N_x=16$, $N_y=30,40$, $n_{\mathrm{shell}}=1,2$, and ten independent Born trajectories
+per configuration.  Periodic origins were averaged within each trajectory, and the fixed
+fit window was $8\leq\ell\leq N_y/2$.  Its accepted charge levels and matched von Neumann
+coefficients are:
+
+\begin{table}[t]
+\caption{Result-21 regression and read-only Tier-0 extension.  The $k_w$ and archived
+$c_{w,1}$ columns reproduce the published repository reduction; the generated
+$c_{w,2}$ and $c_{w,3}$ columns are new reductions of the same saved covariance snapshots.
+Uncertainties use ten independent trajectories, while origins remain internal averages;
+the entropy and charge estimates are paired rather than independent replications.}
+\label{tab:result21}
+\centering
+\IfFileExists{tables/result21_regression.tex}{%
+  \input{tables/result21_regression.tex}%
+}{%
+\begin{ruledtabular}
+\begin{tabular}{ccrr}
+$N_y$ & $n_{\mathrm{shell}}$ & $k_w$ & $c_{w,1}$ \\
+\hline
+30 & 1 & 1.0409(166) & 1.0458 \\
+30 & 2 & 1.0468(106) & 1.0551 \\
+40 & 1 & 1.0328(346) & 1.0324 \\
+40 & 2 & 1.0853(449) & 1.0865 \\
+\end{tabular}
+\end{ruledtabular}%
+}
+\end{table}
+
+Result 21 establishes a direct near-level-one signal in the conditional quantum charge
+variance, matched to entropy on the same ensembles.  The completed Tier-0 builder
+reproduces the archived $k_w$ and $c_{w,1}$ reductions and computes $S_2$ and $S_3$ on
+those exact same saved $G_{\xi,A}$ spectra.  The separate coefficients remain near one,
+but the strict paired null is not uniformly accepted.  At $N_y=30,n_{\rm shell}=1$, the
+$n=1$ 95\% interval for $c_{w,1}-k_w$ is $[0.00107,0.01007]$; at
+$N_y=30,n_{\rm shell}=2$, the intervals exclude zero for all three orders:
+$[0.00530,0.01182]$, $[-0.00499,-0.00255]$, and $[-0.00886,-0.00461]$ for
+$n=1,2,3$, respectively.  Therefore the scientific-status ledger marks the strict
+``minimal $U(1)_1$'' license as blocked while preserving the separate near-one $c$ and
+$k$ evidence.  These finite systems still do not provide a thermodynamic extrapolation,
+one-wall decomposition, higher-cumulant analysis, or independent chirality test.
+
+\subsection{Prior-production common ensembles}
+
+The prior-production bulk-width-gate archive contains 160 complete $N_x=20$ trajectories
+over $N_y=20,30,40,50$, with explicit-interface and support-terminated walls and separate
+matched trivial controls.  Those trajectory products contain common-snapshot von Neumann
+entropy and charge observables and therefore support a larger-size paired $S_1$--$F$
+reanalysis.  They were generated with an older canonical engine revision.  That fact is a
+compatibility question, not grounds to invalidate the archived result.
+
+\begin{table}[t]
+\caption{Prior-production paired reduction generated by the read-only builder.  Each
+configuration has ten independent trajectories, pure initialization, and a final
+$2N_y$ observation endpoint.  Periodic origins are internal averages; sampling intervals
+must resample whole trajectories.  The primary fit window is $8\leq\ell\leq N_y/2$ with
+the declared endpoint/window sensitivities.}
+\label{tab:prior-production}
+\centering
+\IfFileExists{tables/prior_production_regression.tex}{%
+  \input{tables/prior_production_regression.tex}%
+}{%
+\begin{ruledtabular}
+\begin{tabular}{p{0.86\linewidth}}
+Generated table pending.  The document does not hard-code an unaudited reduction. \\
+\end{tabular}
+\end{ruledtabular}%
+}
+\end{table}
+
+The archive must not be advertised as an $S_2,S_3$ dataset unless per-trajectory
+restricted spectra are actually present.  If those spectra are absent, obtaining higher
+R\'enyi entropies requires a deterministic replay of saved ordered records and is a
+separate, optional task.
+
+The completed paired $S_1$--$F$ reduction also finds primary-window intervals excluding
+zero for the explicit-interface $N_y=30$ and $N_y=40$ residuals.  This is recorded as
+additional finite-size tension in the scientific-status ledger, not as an implementation
+failure and not as evidence against the separately resolved logarithmic coefficients.
+All matched-trivial $c_{w,1}$ and $k_w$ intervals remain inside the declared $10^{-5}$
+numerical-null band.  Nevertheless, their numerical-floor curves have positive
+constant-minus-log AIC differences in the primary windows (for example, $39.09$ for the
+$N_y=50$ explicit-interface entropy control).  Thus the coefficient-null check passes
+but the literal requirement that trivial controls not prefer the log model is not met;
+the ledger records these as separate outcomes.
+
+\subsection{Inventory correction to the numerical campaign}
+
+The current campaign document says, in its W1 legacy paragraph, ``No compatible
+production legacy comparison is identified.''  That inventory statement is stale.  The
+audited Result-21 covariance snapshots and the 160 complete prior-production trajectories
+provide matched entropy/charge evidence.  They are not automatically equivalent to the
+proposed $S=100$ master ensemble, and the older engine revision must be handled as
+described in Tier 1 below.  This note records the correction without editing either the
+manuscript or the preserved campaign plan.
+
+\begin{figure}[t]
+\centering
+\IfFileExists{figures/figure_04_stochastic_legacy_validation.pdf}{%
+  \includegraphics[width=0.98\linewidth]{figures/figure_04_stochastic_legacy_validation.pdf}%
+}{%
+  \missingfigure{Builder output pending: Result-21 interval fits and distributions,
+  prior-production $S_1$--$F$ paired coefficients, and matched trivial controls.}%
+}
+\caption{Stochastic archived-data validation.  Result 21 uses cycle-50,
+$N_x=16$, $S=10$ trajectories at $N_y=30,40$ and $n_{\mathrm{shell}}=1,2$, with the
+archived default pure-state initialization and raster-$y$ schedule; the primary window is
+$8\leq\ell\leq N_y/2$.  The prior-production panel uses $N_x=20$, $S=10$ per
+configuration, pure initialization, random-serial schedule, final time $2N_y$, and
+$N_y=20,30,40,50$, including matched trivial controls.  Origins and any snapshots are
+averaged within a trajectory.  Error bars in the coefficient panels are 95\% paired
+whole-trajectory bootstrap intervals.  Panel (d) is instead a descriptive box plot: its
+center is the median, its box is the interquartile range, and its whiskers extend to
+$1.5$ times that range; those whiskers are not confidence intervals.  Exact sample
+counts, censoring, fit windows, and available engine hashes are emitted in the generated
+table and analysis manifest.}
+\label{fig:stochastic-validation}
+\end{figure}
+
+\section{Numerical validation ladder}
+\label{sec:validation-ladder}
+
+\subsection{Tier 0: immutable archived-data reanalysis}
+
+The first tier performs no dynamics and never edits source campaigns.  The committed
+builder has completed the following steps:
+\begin{enumerate}
+\item Recomputed $F,S_1,S_2,S_3$, $c_{w,n}$, $k_w$, and $\delta_n$ from the accepted
+B0 spectra and reproduced Table~\ref{tab:exact-b0} within numerical tolerance.
+\item Resolved the raw inputs for atlas Result 21 from its source manifest, reproduced the
+four $k_w$ values and their per-trajectory distributions, and computed $S_2,S_3$ from the
+same restricted spectra without treating origins as independent samples.
+\item Reduced the 160 complete prior-production trajectories for the larger-size paired
+$S_1$--$F$ test and matched-trivial null.  Preserve construction, system size, and sample
+axes.  Do not silently pool the explicit and support-terminated interfaces.
+\item Recorded input paths, byte counts, SHA-256 digests, stored-array conventions,
+conversion to canonical $G$, available engine/source identity, geometry, initialization,
+cycle, sample ID, fit window, censor flags, and numerical status; unavailable legacy
+seed and engine identities are marked explicitly rather than inferred.
+\end{enumerate}
+
+The primary regression design is ordinary least squares with a free intercept and a fixed,
+prespecified fit window:
+\begin{align}
+ \bar S_{n,\xi}(\ell)&=a_{S_n,\xi}X_{N_y}(\ell)+b_{S_n,\xi},
+ \\
+ \bar F_{\xi}(\ell)&=a_{F,\xi}X_{N_y}(\ell)+b_{F,\xi}.
+ \label{eq:paired-regression}
+\end{align}
+The same design matrix is used for every trajectory in a configuration.  Because the
+slope estimator is linear, the slope of the ensemble-mean curve equals the mean of the
+trajectory slopes when the window and weights are shared; displaying both nevertheless
+tests fit shape and trajectory typicality.  Confidence intervals and joint tests resample
+whole trajectories.
+
+Sensitivity analyses are declared rather than selected from the data: move the lower
+endpoint by the B0 increments, delete the largest included interval, fit the two
+complementary branches separately for pure snapshots, and compare the log-chord model to
+the declared noncritical alternative.  A trivial control must not acquire a stable
+critical coefficient merely because a short curve admits a high $R^2$.
+
+\subsection{Tier 1: fixed-record engine compatibility}
+
+Tier 1 is invoked only if old- and current-engine observables must be pooled into one
+numerical estimate.  Select one fixed geometry and seed, replay the identical ordered
+record with both engine revisions, and compare:
+\begin{equation}
+ \{\nu_a(\ell),S_1(\ell),S_2(\ell),S_3(\ell),F(\ell),
+ a_{S_n},a_F,c_{w,n},k_w,\delta_n\}
+\end{equation}
+for every declared interval.  Record array norms and phase/transpose conventions before
+comparing spectra.  A mismatch blocks pooling and is classified as a source-version or
+protocol discrepancy; it does not retroactively invalidate the internally consistent
+legacy evidence.
+
+\subsection{Tier 2: targeted top-up only after a statistical failure}
+
+New trajectories are authorized only when Tier 0 passes formula, provenance, geometry,
+and fit-stability checks but its whole-trajectory confidence intervals are too broad.
+The fixed top-up design is:
+\begin{itemize}
+\item primary explicit-interface wall and a separately run, geometry- and update-count-
+matched trivial control;
+\item $N_x=20$, $N_y=40,50,60$, $n_{\mathrm{shell}}=1$;
+\item pure initialization, random-serial schedule, and total evolution $T=2N_y$;
+\item first increase each configuration to $S=25$ independent trajectories;
+increase to $S=50$ only if central values and fit stability pass while the target joint
+confidence interval remains unresolved;
+\item save per-trajectory origin-averaged $S_1,S_2,S_3,\kappa_2$, fit diagnostics,
+purity metadata, and optionally $\kappa_3,\kappa_4$---not dense covariance histories that
+are unnecessary for the declared estimator.
+\end{itemize}
+A systematic failure of the log-chord form, branch counting, matched control, or
+$\delta_n$ is not cured by increasing $S$.  It triggers a claim downgrade or a separately
+versioned protocol investigation.
+
+\section{Acceptance criteria and failure semantics}
+\label{sec:acceptance}
+
+The implementation is accepted only if all applicable checks below pass.
+\begin{enumerate}
+\item On small systems, direct Fock-space traces, correlation-eigenvalue formulas, trace
+polynomials, and determinant FCS agree to absolute error $10^{-10}$.
+\item The fast origin-average estimator agrees with explicit restricted-submatrix
+construction at representative intervals in every source convention.
+\item Eigenvalues near zero and one are evaluated stably.  Roundoff clipping, purity
+deficits, non-Hermiticity, and out-of-range counts are reported rather than hidden.
+\item Exact B0 values in Table~\ref{tab:exact-b0} reproduce to their locked numerical
+tolerance, and the four Result-21 levels reproduce with their declared formulas.
+\item Wall data prefer stable log-chord scaling over the declared alternative while
+matched trivial controls do not show a false stable coefficient.
+\item Whole trajectories are the bootstrap unit.  Origins, intervals, and stationary
+snapshots never inflate $S$.
+\item $c_{w,n}$, $k_w$, and $\delta_n$ are tested jointly under the fixed-window and
+endpoint-deletion analyses.  The report includes their paired covariance.
+\item A failed $\delta_n$ blocks ``minimal $U(1)_1$'' but preserves separately supported
+central-charge and current-level statements.
+\item Every generated figure and table is traceable to the analysis manifest, and every
+source file is hashed before reading.
+\end{enumerate}
+
+The result vocabulary is fixed in advance:
+\begin{itemize}
+\item \emph{Formula failure}: an implementation error; no physics result is reported.
+\item \emph{Provenance or convention failure}: the affected source is quarantined from
+pooling until its mapping to $G$ is resolved.
+\item \emph{Fit instability}: report qualitative logarithmic tendency or no CFT
+coefficient, according to the control comparison.
+\item \emph{Separate $c$ and $k$ success but paired-null failure}: report the two
+coefficients separately and do not identify a minimal $U(1)_1$ sector.
+\item \emph{Static success without signed propagation}: report $U(1)_1$-consistent wall
+state data, not chirality.
+\end{itemize}
+
+\section{Conclusions}
+
+For number-conserving Gaussian trajectories, R\'enyi entropy and conditional quantum
+charge variance are exact spectral functionals of one restricted correlation matrix.
+Their common microscopic origin does not make them redundant: R\'enyi entropies weight the
+entire susceptibility spectrum, whereas the variance measures its first moment, and their
+CFT slopes determine $c_\Sigma$ and $k_\Sigma$ separately.  Explicit branch sums remove
+the one-wall/two-wall ambiguity, and the paired residual $\delta_n$ turns the proposed
+minimal-$U(1)_1$ identification into a falsifiable same-ensemble test.
+
+The completed hashed, read-only Tier-0 reanalysis validates the formulas, provenance,
+near-one entropy and charge coefficients, and wall log-chord preference.  The
+matched-trivial coefficients remain inside the declared numerical-null band, although
+their tiny numerical-floor curves can still prefer a log model by AIC; the literal
+``trivial controls do not prefer log'' criterion is therefore not met.  Several
+prespecified paired intervals also exclude $\delta_n=0$, so the strict minimal-$U(1)_1$
+license is blocked at this stage even though separate $c$ and $k$ evidence remains.  A
+systematic paired-null or control-model tension is not cured merely by adding
+trajectories; it calls for the declared protocol, finite-size, and engine-compatibility
+investigation.  No static value of $c$, $k$, or $\delta_n$ supplies handedness; chirality
+remains an independent experimental claim.
+
+\appendix
+
+\section{Cylinder integration of the current correlator}
+\label{app:cylinder}
+
+For one branch, define the regulated interval charge
+\begin{equation}
+ \hat Q_{[0,\ell]}=\int_0^\ell\dd y\,\hat\rho_w(y).
+\end{equation}
+Translation invariance gives
+\begin{equation}
+ F_w(\ell)=\int_0^\ell\dd y\int_0^\ell\dd y'\,
+ \langle\hat\rho_w(y)\hat\rho_w(y')\rangle_c.
+ \label{eq:F-double-integral}
+\end{equation}
+Away from the contact point,
+\begin{equation}
+ \frac{\dd^2F_w}{\dd\ell^2}
+ =2\langle\hat\rho_w(\ell)\hat\rho_w(0)\rangle_c
+ =-\frac{k_w}{2\pi^2}\left(\frac{\pi}{N_y}\right)^2
+ \csc^2\!\left(\frac{\pi\ell}{N_y}\right).
+\end{equation}
+Integrating twice yields
+\begin{equation}
+ F_w(\ell)=\frac{k_w}{2\pi^2}
+ \log\!\left[\sin\!\left(\frac{\pi\ell}{N_y}\right)\right]
+ +A\ell+B.
+\end{equation}
+Charge conservation and complement symmetry remove the nonuniversal linear term in the
+periodic ground-state/conditioned fixed-charge setting.  Restoring the ultraviolet scale
+inside the logarithm gives Eq.~\eqref{eq:single-wall-F}; the contact term changes only the
+additive constant.  Summing uncorrelated branches gives Eq.~\eqref{eq:F-slope}.
+
+\section{Stable spectral evaluation}
+\label{app:stable-evaluation}
+
+Hermitize the restricted matrix before diagonalization,
+\begin{equation}
+ G_{\xi,A}\leftarrow\frac12(G_{\xi,A}+G_{\xi,A}^\dagger),
+\end{equation}
+and report the pre-hermitization residual.  Eigenvalues outside $[0,1]$ by more than the
+declared tolerance are failures.  Values outside only by roundoff may be clipped, but the
+count and maximum correction enter the manifest.
+
+For $S_1$, evaluate $-x\log x$ with its continuous value zero at $x=0$.  For $n=2,3$,
+evaluate
+\begin{equation}
+ \log[\nu^n+(1-\nu)^n]
+ =\operatorname{logaddexp}(n\log\nu,n\log(1-\nu))
+\end{equation}
+to avoid underflow.  Compute $F=\sum_a\nu_a(1-\nu_a)$ and compare with the trace formula
+as an internal check.  The determinant FCS is evaluated through eigenvalue log sums near
+$\lambda=0$ rather than a raw determinant when conditioning is poor.
+
+For a direct small-system test, construct Eq.~\eqref{eq:rhoA-product} explicitly in its
+$2^{|A|}$-dimensional Fock basis and compare $\Tr(\hat\rho_A^n)$ and
+$\Tr(\hat\rho_A\e^{\ii\lambda\hat Q_A})$ against
+Eqs.~\eqref{eq:renyi-spectrum} and \eqref{eq:fcs-determinant}.
+
+\section{Origin-averaged block estimator}
+\label{app:origin-average}
+
+Group the full correlation matrix into $y$ blocks of dimension $d=2N_x$ and define
+\begin{equation}
+ \bar n=\frac1{N_y}\tr G_\xi,
+ \qquad
+ K_r=\frac1{N_y}\sum_{y=0}^{N_y-1}
+ \lVert G_{\xi;y,y+r}\rVert_F^2 .
+\end{equation}
+Expanding $F=\tr G_A-\tr G_A^2$ and counting the number of ordered block pairs at each
+separation gives
+\begin{equation}
+ \overline F_\xi(\ell)=
+ \ell(\bar n-K_0)
+ -\sum_{r=1}^{\ell-1}(\ell-r)(K_r+K_{-r}).
+ \label{eq:fast-origin-average}
+\end{equation}
+The builder compares Eq.~\eqref{eq:fast-origin-average} with the explicit mean of
+$\tr[G_{\xi,A(y_0,\ell)}(\Id_A-G_{\xi,A(y_0,\ell)})]$ at three or more interval lengths
+for every convention and configuration.  Entropies still require the restricted spectra;
+Eq.~\eqref{eq:fast-origin-average} is not an entropy estimator.
+
+\section{Pure versus mixed global Gaussian states}
+\label{app:pure-mixed}
+
+For a globally pure Slater determinant, $G_\xi^2=G_\xi$.  In the $A\oplus B$ block form,
+the $AA$ projector identity gives
+\begin{equation}
+ G_{\xi,A}(\Id_A-G_{\xi,A})=G_{\xi,AB}G_{\xi,BA}.
+ \label{eq:pure-cross-block}
+\end{equation}
+Thus $v_a$ are the squared singular values of the cross-boundary block and
+\begin{equation}
+ F_{\xi,A}=\lVert G_{\xi,AB}\rVert_F^2.
+\end{equation}
+For a globally mixed Gaussian state,
+\begin{equation}
+ G_{\xi,A}(\Id_A-G_{\xi,A})
+ =G_{\xi,AB}G_{\xi,BA}+(G_\xi-G_\xi^2)_{AA}.
+ \label{eq:mixed-cross-block}
+\end{equation}
+The second term is intrinsic global mixedness restricted to $A$.  A max-mix trajectory
+must therefore pass its purification/stationarity gate before its interval coefficient is
+interpreted as the same wall-entanglement observable as a pure trajectory.
+
+\section{Estimator pseudocode and provenance contract}
+\label{app:pseudocode}
+
+For each immutable input trajectory, the analysis follows this order:
+\begin{enumerate}
+\item hash and identify the source before opening numerical arrays;
+\item read metadata and convert the stored covariance convention to canonical $G$;
+\item validate Hermiticity, spectral bounds, trace/charge, and purity status;
+\item for every declared snapshot, interval, and periodic origin, restrict $G$ and compute
+$\nu_a$, $S_1,S_2,S_3$, and $F$;
+\item average origins and snapshots inside the trajectory;
+\item apply the common fixed-window linear estimators to obtain trajectory slopes;
+\item convert slopes using Eqs.~\eqref{eq:per-wall-c} and \eqref{eq:per-wall-k}, and form
+$\delta_n$ from the paired slopes;
+\item bootstrap complete trajectory IDs, preserving all observables and sizes selected in
+the declared resample;
+\item write machine-readable scalar rows, curves, diagnostics, figures, tables, and an
+analysis manifest without modifying an input path.
+\end{enumerate}
+The manifest collectively records source paths, SHA-256 digests, byte counts, archive
+members where applicable, stored and canonical conventions, available engine/source
+hashes, case/sample/seed information, geometry, initialization, cycle and snapshot
+aggregation, fit windows, branch counts, clipping and censor diagnostics, extracted
+values, and output hashes.  Fields absent from a legacy source---notably Result-21 seed
+and engine identities---are explicitly marked unavailable; they are not fabricated on
+every source row.
+
+\section{Notation crosswalk}
+\label{app:crosswalk}
+
+\begin{table}[t]
+\caption{Canonical notation used in this note and common archived alternatives.}
+\centering
+\begin{ruledtabular}
+\begin{tabular}{lll}
+object & this note & archived notation to check \\
+\hline
+occupation correlation matrix & $G_{\xi}$ & often $C_\xi$ \\
+restricted occupation matrix & $G_{\xi,A}$ & often $C_{\xi,A}$ \\
+centered covariance & metadata-defined & sometimes $G$, $\Gamma$, or \code{covariance} \\
+R\'enyi order & $n$ & sometimes $q$ \\
+physical interval charge & $\hat Q_A$ & $N_A$ or $Q_A$ \\
+susceptibility eigenvalue & $v_a=\nu_a(1-\nu_a)$ & sometimes $q_a$ \\
+conditional quantum variance & $F_{\xi,A}$ & $F_A^{\rm q}$ or $\kappa_2$ \\
+record charge wandering & $F_A^{\mathrm{rec}}$ & sample or classical variance \\
+branch sums & $c_\Sigma,k_\Sigma$ & often implicit wall factor \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+\bibliographystyle{apsrev4-2}
+\bibliography{references}
+
+\end{document}

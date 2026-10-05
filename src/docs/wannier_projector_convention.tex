@@ -1,0 +1,190 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\kk}{\bm{k}}
+\newcommand{\rr}{\bm{r}}
+\newcommand{\RR}{\bm{R}}
+\newcommand{\chiC}{\chi_{\rm code}}
+\newcommand{\chiW}{\chi_{\rm W}}
+
+\begin{document}
+
+\title{Wannier Projector Convention in the Adaptive Class-A Code}
+\author{Repository note}
+\date{\today}
+
+\begin{abstract}
+This note records the convention used by
+\texttt{src/fgtn/classA\_U1FGTN.py} and
+\texttt{src/fgtn/classA\_U1FGTN\_gpu.py} for the overcomplete-Wannier
+spinors and their associated rank-one projectors.  The central point is that
+the code always forms a projector from the stored vector as
+$P=\chiC\chiC^\dagger$.  However, the stored vector is the complex conjugate
+of a common ket convention for the real-space Wannier wavefunction.  Thus, if
+one denotes the conventional Wannier ket by $\chiW$, the code projector is
+$(\chiW\chiW^\dagger)^*$.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Band and measurement labels}
+
+The labels \texttt{p} and \texttt{m} in the code refer to positive- and
+negative-energy bands of the two-band Chern-insulator Bloch Hamiltonian, not to
+Bogoliubov particle and hole components.  With
+\begin{equation}
+    h(\kk)=\hat{\bm n}(\kk)\cdot\bm\sigma ,
+\end{equation}
+the code constructs
+\begin{equation}
+    P_+(\kk)=\frac{1}{2}\bigl(\Id+h(\kk)\bigr),\qquad
+    P_-(\kk)=\frac{1}{2}\bigl(\Id-h(\kk)\bigr).
+\end{equation}
+The arrays \texttt{WF\_Ap} and \texttt{WF\_Bp} are built from $P_+$, while
+\texttt{WF\_Am} and \texttt{WF\_Bm} are built from $P_-$.  In the postselected
+or feedback target state the positive-band modes are driven empty and the
+negative-band modes are driven occupied:
+\begin{equation}
+    A_+,B_+:\ {\rm unoccupied},\qquad
+    A_-,B_-:\ {\rm occupied}.
+\end{equation}
+The ``hole'' event in the measurement update is therefore the unoccupied
+outcome of the same single-particle mode; it is not represented by a separate
+complex-conjugated hole spinor.
+
+\section{\texorpdfstring{Stored Wannier spinor}{Stored Wannier spinor}}
+
+Let $\tau$ be one of the local trial spinors, for example the $\sigma_x$
+eigenstates used by default.  A common ket convention for a projected Wannier
+orbital centered at $\RR$ is
+\begin{equation}
+    \chiW(\rr;\RR)
+    =
+    \mathcal{N}^{-1}
+    \sum_{\kk}
+    e^{+i\kk\cdot(\rr-\RR)}
+    P_\pm(\kk)\tau .
+    \label{eq:usual-wannier-ket}
+\end{equation}
+This is a column spinor in the physical two-component internal space.
+
+The code uses a different, but internally consistent, construction.  In
+\texttt{construct\_OW\_projectors}, the momentum-space object is produced by
+\begin{equation}
+    \psi_{{\rm code},n}(\kk)
+    =
+    \sum_m \tau_m^*\, [P_\pm(\kk)]_{mn}.
+    \label{eq:code-momentum-row}
+\end{equation}
+Since $P_\pm(\kk)$ is Hermitian, this is the complex conjugate of the usual
+projected ket component:
+\begin{equation}
+    \psi_{{\rm code},n}(\kk)
+    =
+    \left[
+    \sum_m [P_\pm(\kk)]_{nm}\tau_m
+    \right]^*
+    =
+    \bigl(P_\pm(\kk)\tau\bigr)_n^* .
+    \label{eq:code-momentum-conjugate}
+\end{equation}
+The code then multiplies by a center phase $e^{+i\kk\cdot\RR}$ and applies
+\texttt{fft2} over the momentum axes.  With the standard NumPy convention,
+\texttt{fft2} carries the kernel $e^{-i\kk\cdot\rr}$, up to the global FFT
+normalization.  Hence the stored spinor has the form
+\begin{equation}
+    \chiC(\rr;\RR)
+    \propto
+    \sum_{\kk}
+    e^{-i\kk\cdot\rr}
+    e^{+i\kk\cdot\RR}
+    \bigl(P_\pm(\kk)\tau\bigr)^*
+    =
+    \sum_{\kk}
+    e^{-i\kk\cdot(\rr-\RR)}
+    \bigl(P_\pm(\kk)\tau\bigr)^* .
+    \label{eq:code-realspace-spinor}
+\end{equation}
+Comparing Eqs.~\eqref{eq:usual-wannier-ket} and
+\eqref{eq:code-realspace-spinor}, one obtains
+\begin{equation}
+    \chiC(\rr;\RR)=\chiW(\rr;\RR)^*
+    \label{eq:stored-is-conjugate}
+\end{equation}
+up to the harmless overall normalization convention, which is removed when the
+code normalizes each center.  Spatial shell truncation and domain-wall-sector
+truncation are then applied directly to this stored spinor and followed by
+renormalization.
+
+\section{\texorpdfstring{Rank-one projector}{Rank-one projector}}
+
+Once the vector is stored, there is no further ambiguity in the code.  For a
+stored vector
+\begin{equation}
+    \chiC \equiv \texttt{WF\_*[:, Rx, Ry]},
+\end{equation}
+the CPU implementation forms
+\begin{equation}
+    P_{\rm code}
+    =
+    \chiC\chiC^\dagger ,
+    \label{eq:code-projector}
+\end{equation}
+implemented as \texttt{np.outer(chi, chi.conj())}.  The GPU implementation uses
+the same convention,
+\begin{equation}
+    P_{{\rm code},ij}
+    =
+    \chi_{{\rm code},i}\chi_{{\rm code},j}^* .
+\end{equation}
+
+If the symbol $\chi$ in a calculation is defined to mean the stored code vector,
+then the correct statement is simply
+\begin{equation}
+    P = \chi\chi^\dagger .
+\end{equation}
+If instead $\chi$ denotes the conventional Wannier ket
+$\chiW$ of Eq.~\eqref{eq:usual-wannier-ket}, then
+Eq.~\eqref{eq:stored-is-conjugate} gives
+\begin{equation}
+    P_{\rm code}
+    =
+    |\chiW^*\rangle\langle \chiW^*|
+    =
+    \bigl(|\chiW\rangle\langle\chiW|\bigr)^* .
+    \label{eq:projector-conjugate}
+\end{equation}
+In components,
+\begin{equation}
+    (P_{\rm code})_{ij}
+    =
+    \chi_{W,i}^*\chi_{W,j}
+    =
+    \left(\chi_{W,i}\chi_{W,j}^*\right)^*
+    =
+    (P_W)_{ij}^* .
+\end{equation}
+
+\section{Practical convention}
+
+For code-facing derivations, it is safest to define
+\begin{equation}
+    \chi \equiv \texttt{WF\_*[:, Rx, Ry]}
+\end{equation}
+and use $P=\chi\chi^\dagger$ everywhere.  For paper-facing derivations that
+start from the usual Fourier ket in Eq.~\eqref{eq:usual-wannier-ket}, the
+translation to the present code is
+\begin{equation}
+    \chi_{\rm code}=\chi_{\rm paper}^*,\qquad
+    P_{\rm code}=P_{\rm paper}^* .
+\end{equation}
+The measurement branch, occupied versus unoccupied, is a separate issue from
+this complex-conjugation convention.
+
+\end{document}

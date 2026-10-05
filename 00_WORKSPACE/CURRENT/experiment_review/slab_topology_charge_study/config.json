@@ -1,0 +1,14 @@
+{
+  "revision": "slab_topology_charge_offline_v1",
+  "threads": 8,
+  "samples_per_case": 100,
+  "late_cycles": [21, 40],
+  "core_exclusions": [1, 2, 3],
+  "reference_shells": [1, null],
+  "projector_tolerance": 1e-8,
+  "reference_cutoff_relative_tolerance": 1e-10,
+  "cohorts": {
+    "square": "27_square_hard_wall_random_center_chern",
+    "rectangle": "23_hard_wall_random_center_chern"
+  }
+}

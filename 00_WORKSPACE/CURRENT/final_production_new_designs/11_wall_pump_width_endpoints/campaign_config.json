@@ -1,0 +1,60 @@
+{
+  "sampling_revision": "wall_pump_width_endpoints_s100_v1",
+  "root_seed": 2026090701,
+  "Ny": 24,
+  "cycles": 48,
+  "Nx_values": [20, 24, 28, 32],
+  "primary_cells": [
+    {"protocol": "nsh1", "Nx": 28},
+    {"protocol": "nsh1", "Nx": 32},
+    {"protocol": "dense", "Nx": 24},
+    {"protocol": "dense", "Nx": 28},
+    {"protocol": "dense", "Nx": 32}
+  ],
+  "bridge_cells": [
+    {"protocol": "nsh1", "Nx": 20},
+    {"protocol": "nsh1", "Nx": 24},
+    {"protocol": "dense", "Nx": 20}
+  ],
+  "samples_per_primary_wall": 100,
+  "samples_per_bridge_wall": 25,
+  "result_shard_size": 5,
+  "checkpoint_cycles": 5,
+  "execution_backend": "gpu",
+  "device": "cuda:0",
+  "dtype": "complex128",
+  "protocol": {
+    "DW": true,
+    "wall_locations_rule": ["Nx/4", "3Nx/4"],
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "filling_frac": 0.5,
+    "trial_orbitals": "X",
+    "init_mode": "default",
+    "sequence": "raster_y",
+    "perfect_correction": true,
+    "postselect": false,
+    "postselect_probability": 0.0,
+    "n_a": 0.5,
+    "state_representation": "physical_frame",
+    "triv_region_local_mode": false,
+    "frame_reorthonormalize_interval": 1
+  },
+  "walls": {
+    "soft": {"dw_truncation": false, "meas_slab_only": false},
+    "hard": {"dw_truncation": true, "meas_slab_only": true}
+  },
+  "shells": {
+    "nsh1": 1,
+    "dense": null
+  },
+  "benchmark": {
+    "execution_batch_candidates": [10, 20, 40, 60, 80, 100],
+    "short_cycles": 5,
+    "minimum_gpu_headroom_gib": 8.0,
+    "local_56_core_forecast_hours": 80.0,
+    "maximum_a100_forecast_hours": 40.0,
+    "full_timing_samples": 5,
+    "worst_case": {"protocol": "dense", "Nx": 32, "wall": "soft"}
+  }
+}

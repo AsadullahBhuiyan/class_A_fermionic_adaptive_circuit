@@ -1,0 +1,116 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\setcounter{tocdepth}{2}
+
+\begin{document}
+
+\title{Worker 04 Notes: Modular Charge Spreading in Domain-Wall Chern-Insulator Surrogates}
+\author{Worker 04}
+\date{June 11, 2026}
+
+\begin{abstract}
+I inspected only \texttt{notebooks/modular\_charge\_spreading/}, excluding binary trajectory arrays and media from direct loading.  The inspected materials document a modular-Hamiltonian diagnostic comparing the exact domain-wall (DW) Chern-insulator ground state with overcomplete-Wannier (OW) flattened-\(\sigma_x\) surrogate states.  The central result is sharp: the exact DW state and all eight OW variants have identical \(y\)-averaged half-system modular spectra, while their modular-time charge dynamics differ through the modular eigenvectors.  Standard OW surrogates reproduce the qualitative chiral, domain-wall-guided spreading of the exact state but leak somewhat more charge into the trivial region.  DW-truncated OW surrogates impose exact topological-slab confinement.  This supports the main repository message that OW measurement targets capture the topological entanglement structure needed by the adaptive circuit, with an important caveat that eigenvector-level spatial observables distinguish exact DW, standard OW, and DW-truncated OW constructions.
+\end{abstract}
+
+\maketitle
+\tableofcontents
+
+\section{Source Scope}
+
+The inspection was restricted to \texttt{notebooks/modular\_charge\_spreading/}.  I read the notebook JSON as text, the local RevTeX note, CSV summaries, and text logs.  I did not execute notebooks, did not read \texttt{repo\_synthesis/} notes, did not inspect paths containing \texttt{haining}, \texttt{haoyu}, or \texttt{erroneous}, and did not load \texttt{.npz} arrays or media files.
+
+Primary inspected sources were:
+\begin{itemize}
+\item \texttt{notebooks/modular\_charge\_spreading/modular\_charge\_spreading.ipynb};
+\item \texttt{notebooks/modular\_charge\_spreading/docs/modular\_charge\_spreading\_notes.tex};
+\item \texttt{notebooks/modular\_charge\_spreading/charge\_spreading\_summary.csv};
+\item \texttt{notebooks/modular\_charge\_spreading/modular\_hamiltonian\_spectrum\_summary.csv};
+\item \texttt{notebooks/modular\_charge\_spreading/run\_inplace.log}.
+\end{itemize}
+
+\section{Findings}
+
+\subsection{Geometry and States}
+
+The diagnostic uses an \(N_x\times N_y=20\times 40\) torus with domain walls at \(x=6,14\).  The mass profile is \(\alpha_1=1\) in the topological slab \(x\in[6,14]\), with Chern number \(C=+1\), and \(\alpha_2=30\) in the trivial exterior, with \(C=0\).  The local note states that each DW hosts one chiral edge mode.
+
+The exact reference is the filled negative-energy ground state of the DW Chern-insulator Hamiltonian.  The surrogates are flattened-\(\sigma_x\) OW states generated from projected Wannier modes with \(n_{\rm sh}=1,2\).  Four OW variants are studied: standard, trivial-region local mode, DW truncation, and DW truncation plus trivial-region local mode.  The notebook constants and run construction match this enumeration.
+
+\subsection{Modular Hamiltonian Protocol}
+
+The subsystem is a half cylinder of size \(N_x\times N_y/2\), with \(800\) single-particle degrees of freedom after including two orbitals.  The reduced covariance is averaged over all \(y\)-translated half cuts before extracting the modular Hamiltonian.  If \(\overline{G}_A=V\operatorname{diag}(g_i)V^\dagger\), the modular kernel is
+\begin{equation}
+h_{\rm mod}=-2V\operatorname{diag}(\operatorname{arctanh} g_i)V^\dagger .
+\end{equation}
+Charge is injected into both orbitals at DW sites for config 1, \(x=\{6,14\}\), and at the DW \(\pm1\) neighborhood for config 2, \(x=\{5,6,7,13,14,15\}\), using the two reduced half-system edge rows \(y=0,19\).  Evolution is exact spectral modular evolution with \(\Delta t=0.05\) and \(T=40\), not a numerical time-stepping integration.
+
+\subsection{Spectral Universality}
+
+All nine state variants have the same reported modular spectrum:
+\begin{equation}
+\varepsilon_{\min}=-23.718998027710036,\qquad
+\varepsilon_{\max}=+23.718998027710036,
+\end{equation}
+with \(800\) modes and zero reported Hermiticity error.  This is recorded independently in the spectrum CSV and summarized in the note.  The interpretation given locally is that \(y\)-averaging projects onto the translation-invariant entanglement structure dominated by chiral edge modes, so the OW surrogates and exact DW ground state agree at the entanglement-spectrum level.
+
+\subsection{Charge Dynamics and Chirality}
+
+The local note reports that modular-time charge spreads primarily along \(y\), i.e. along the domain walls and entanglement-cut direction, consistent with the chiral edge-mode structure.  At intermediate times the charge fans into the topological slab.  By \(T=40\), the exact DW ground state and standard OW surrogates show finite leakage into the trivial region, while DW-truncated variants remain strictly confined to \(x\in[6,14]\).
+
+For config 1, the note reports final topological charge fractions
+\begin{equation}
+Q_{\rm top}(T)/Q_{\rm tot}=0.959
+\end{equation}
+for the exact DW ground state,
+\begin{equation}
+0.896,\;0.859
+\end{equation}
+for standard OW with \(n_{\rm sh}=1,2\), and \(1.000\) for DW-truncated OW with \(n_{\rm sh}=1,2\).  Thus the exact DW state has small finite-size/exponential-tail leakage, standard OW has somewhat larger leakage, and DW truncation enforces an exact block structure between topological and trivial regions.
+
+\section{Interpretation}
+
+The result separates two notions of OW fidelity.  Spectrally, the OW flattened-\(\sigma_x\) states are indistinguishable from the exact DW ground state under the \(y\)-averaged half-system modular Hamiltonian.  This is strong evidence that the OW targets used by the adaptive circuit encode the same topological entanglement spectrum as the physical DW Chern-insulator state.
+
+Dynamically, however, modular charge spreading is sensitive to eigenvectors, not only eigenvalues.  Standard OW variants retain cross-DW correlations and therefore resemble the exact DW state qualitatively, including leakage into the trivial region.  DW truncation removes those cross-region tails by construction, producing exact confinement.  This is useful when the circuit analysis needs a clean topological-region diagnostic, but it also means DW-truncated OW dynamics should not be overinterpreted as the literal exact-ground-state spatial response.
+
+The relation to the main repository message is therefore positive but nuanced: OW projector targets appear to preserve the desired topological entanglement content, while spatially resolved modular observables expose controlled differences between exact DW physics, standard OW approximants, and hard DW-truncated surrogates.
+
+\section{Evidence Table}
+
+\begin{ruledtabular}
+\begin{tabular}{p{0.30\linewidth}p{0.20\linewidth}p{0.42\linewidth}}
+Source & Lines & Evidence \\
+\hline
+\texttt{docs/modular\_charge\_spreading\_notes.tex} & 38--51 & States central question: compare exact DW modular Hamiltonian to OW flattened-\(\sigma_x\) surrogates using modular-time charge propagation. \\
+\texttt{docs/modular\_charge\_spreading\_notes.tex} & 78--82 & Defines \(\alpha_1=1\) topological slab, \(\alpha_2=30\) trivial region, DWs at \(x=6,14\), and chiral edge modes. \\
+\texttt{modular\_charge\_spreading.ipynb} & 199--215 & Notebook constants: \(N_x=20\), \(N_y=40\), \(\alpha_1=1\), \(\alpha_2=30\), \(n_{\rm sh}=1,2\), four OW variants, \(T=2N_x\), and \(y\)-averaged modular mode. \\
+\texttt{modular\_charge\_spreading.ipynb} & 399--415 & Constructs flattened-\(\sigma_x\) covariance from OW projectors, with optional DW truncation and trivial-region local mode. \\
+\texttt{modular\_charge\_spreading.ipynb} & 436--479 & Builds one exact DW run plus eight flattened-\(\sigma_x\) OW runs. \\
+\texttt{modular\_charge\_spreading.ipynb} & 482--498 & Reduces covariance to half system and computes modular Hamiltonian data. \\
+\texttt{modular\_charge\_spreading.ipynb} & 603--680 & Defines injection configs and exact spectral evolution; records charge and norm drift. \\
+\texttt{modular\_hamiltonian\_spectrum\_summary.csv} & 1--10 & All nine variants have \(800\) modes, identical \(\pm23.718998027710036\) modular range, and zero Hermiticity error. \\
+\texttt{charge\_spreading\_summary.csv} & 2--19 & Records 18 trajectories, two injection configs per state, \(T=40\), \(\Delta t=0.05\), and charge conservation drifts below \(4.4\times10^{-7}\). \\
+\texttt{modular\_charge\_spreading.ipynb} & 3336--3340 & Notebook output reports 18/18 summary rows, videos, and NPZ files, with max charge drift \(4.352\times10^{-7}\). \\
+\texttt{docs/modular\_charge\_spreading\_notes.tex} & 360--390 & Reports final topological charge fractions and interprets exact/OW leakage. \\
+\texttt{docs/modular\_charge\_spreading\_notes.tex} & 398--416 & Interprets modular time as an entanglement probe and connects spreading along \(y\) to chiral entanglement-edge structure. \\
+\texttt{docs/modular\_charge\_spreading\_notes.tex} & 437--469 & Explains that DW truncation changes eigenvectors and imposes exact topological confinement while preserving spectral topology. \\
+\end{tabular}
+\end{ruledtabular}
+
+\section{Caveats}
+
+I did not independently recompute spectra, topological charge fractions, or charge maps from the \texttt{.npz} files because the task forbade loading large arrays.  The quantitative leakage fractions \(0.959\), \(0.896\), \(0.859\), and \(1.000\) are therefore taken from the local writeup rather than recalculated.
+
+The file \texttt{run\_inplace.log} contains an earlier failed nbconvert trace due to missing \texttt{ffmpeg}, but the notebook output and CSV manifests record a later successful set of 18 trajectories with all media and arrays present.  I treated the CSV summaries and saved notebook outputs as the final state.
+
+The chirality claim is supported by the local note's physical interpretation and figure captions, not by direct frame-by-frame inspection of videos or raw arrays.
+
+\section{Confidence}
+
+Confidence is high for the source scope, run inventory, geometry, modular spectrum equality, and conservation diagnostics because these are directly recorded in notebook code and CSV summaries.  Confidence is moderate-high for the charge-spreading and chirality interpretation because it is supported by the local RevTeX note and figure captions, but I did not reload trajectory arrays to independently verify spatial charge fractions.
+
+\end{document}

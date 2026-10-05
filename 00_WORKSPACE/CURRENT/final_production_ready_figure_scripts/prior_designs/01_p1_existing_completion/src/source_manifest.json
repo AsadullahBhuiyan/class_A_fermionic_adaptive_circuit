@@ -1,0 +1,79 @@
+{
+  "canonical_gpu_sha256": "2a51e13bd960cd3f45f8d63bd6114ddbc02dffe21a94dd5993234a47d5eefb41",
+  "files": {
+    "__init__.py": {
+      "repository_source": "generated",
+      "sha256": "7a0df3eca372952f3494a4c51a48e24e842b8ca76996a4c09fbbd2e7b8f2038b"
+    },
+    "campaign_cases.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/campaign_cases.py",
+      "sha256": "3d96c9a2e76127784902afdb9901e7c52234849cc608c242032580b10c6a58e9"
+    },
+    "classA_U1FGTN_gpu.py": {
+      "repository_source": "src/fgtn/classA_U1FGTN_gpu.py",
+      "sha256": "2a51e13bd960cd3f45f8d63bd6114ddbc02dffe21a94dd5993234a47d5eefb41"
+    },
+    "drive_storage_guard.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/drive_storage_guard.py",
+      "sha256": "50a43ada77f556de6678a8ebefa73a5fd7a9fdde9afd8d4b9f7abc90530f2864"
+    },
+    "fused_chirality_observables.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/fused_chirality_observables.py",
+      "sha256": "f8837a6f83852545a4ae15e03df31f0a86c95b64118c433d67df8362d6998b79"
+    },
+    "gate_analysis.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/gate_analysis.py",
+      "sha256": "076f75256a7225f8db9ed85984df4de870edec18b6a32f5466d3d7b7c3fc5152"
+    },
+    "h3_twist_observables.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/h3_twist_observables.py",
+      "sha256": "a179980f43b289fcd7462fbd3a1c9081e0f2fd53894c42bcbe6262fa50f37a58"
+    },
+    "lyapunov_observables_gpu.py": {
+      "repository_source": "colab_lyapunov/src/lyapunov_observables_gpu.py",
+      "sha256": "9353a17d3453c198ac4429cc1a51e432b6f6c8f670f08b2afde36df8b545a81a"
+    },
+    "noise_observables.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/noise_observables.py",
+      "sha256": "3ceb21d9d2abd9be8fb69bc7756d2ed92e1e63416dd40732161e819fa711c1aa"
+    },
+    "production_runtime.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/production_runtime.py",
+      "sha256": "ab76d7fe639779677f0e64a934ea3444f2c463a98ad95e630f8dea7ae8be2096"
+    },
+    "record_observables.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/record_observables.py",
+      "sha256": "10b17bfd7cffa085df673e21ea65862a0890ee0f31ded53f8a47c0786e1c41a9"
+    },
+    "record_spectrum_analysis.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/record_spectrum_analysis.py",
+      "sha256": "26742c0fc96fce7aa702b1d8817d06b3800885fcbfcaa949d87d5f44fc72c035"
+    },
+    "run_core_shard.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/run_core_shard.py",
+      "sha256": "6a1991020a96e2f8c4fa4110f3ba0fde3ed597dfc8faea526a6090b81d71355b"
+    },
+    "run_h3_shard.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/run_h3_shard.py",
+      "sha256": "7280d0649f158f71eb215f9f5b1f812f29539307c685ac9c0dbc7615e5cd3f95"
+    },
+    "run_validation_suite.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/run_validation_suite.py",
+      "sha256": "49aab70b40f49879a91311485cb6b2f59e2cb5f07b76a612cedbe43b8c0882dd"
+    },
+    "selected_observables.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/selected_observables.py",
+      "sha256": "28034201dca8a8e996666d425903cf1ac7df7c76b8284aa380cebbef77ca3fcd"
+    },
+    "streaming_covariance_observables_gpu.py": {
+      "repository_source": "colab_charge_fluctuations/src/streaming_covariance_observables_gpu.py",
+      "sha256": "96b8bf9c022f226dcb6bc9c03058b175535dd041e84a9e904015c29e766f667b"
+    },
+    "tangent_observables.py": {
+      "repository_source": "final_production_ready_figure_scripts/_shared_src/tangent_observables.py",
+      "sha256": "99547af01e2f481ede7d0f1dc8662ce41e663a55503161a966f2541e647c173f"
+    }
+  },
+  "schema_version": 1,
+  "warning": "Generated copies; edit repository sources and rerun sync_bundle_sources.py."
+}

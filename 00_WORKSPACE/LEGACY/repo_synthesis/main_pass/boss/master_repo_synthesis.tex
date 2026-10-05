@@ -1,0 +1,149 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\src}[1]{\begingroup\ttfamily\Urlmuskip=0mu plus 1mu\relax\nolinkurl{#1}\endgroup}
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\GO}{G_{\rm OW}}
+\newcommand{\Dlam}{\Delta_{\lambda}}
+
+\begin{document}
+
+\title{Master Repository Synthesis: Class-A Fermionic Adaptive Circuit Experiments}
+\author{Boss Synthesis}
+\date{June 11, 2026}
+
+\begin{abstract}
+This master note synthesizes the completed 16-worker and 5-supervisor read-only hierarchy for the non-excluded repository.  The main message is that the repository is converging on a trajectory-resolved picture of a finite-range class-A adaptive fermion circuit: under Born-sampled perfect correction, the circuit prepares a stochastic, charge-sharpening, quasi-one-dimensional chiral domain-wall ensemble whose cleanest present diagnostics are purification, log-chord entanglement scaling near \(c/3=1/3\), and a near-marginal domain-wall transfer sector.  Exact domain-wall Hamiltonians and overcomplete-Wannier flattened Hamiltonians define the target-state and benchmark structure; postselection, mean Markov/channel evolution, Lindblad dynamics, Choi transfer, and Lyapunov spectra are controls or diagnostics, not replacements for the physical trajectory ensemble.  The main caveats are finite-size and finite-depth effects, source-copy/provenance drift, postselection sample semantics, correlator-window sensitivity, Choi endpoint/censoring behavior, and weak archival provenance for legacy cache and some summary-figure inputs.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Protocol and Hierarchy}
+
+The synthesis followed the repository policy in \src{REPO_POLICY.md}.  The hierarchy used 16 independent worker notes, five supervisor notes with cross-supervisor addenda, and this final Boss synthesis.  All inspection was read-only with no notebook execution and no loading of large binary arrays.  The excluded material rule was applied throughout: paths containing \src{haining}, \src{haoyu}, or \src{erroneous}, case-insensitively, were not used as evidence.
+
+The worker layer covered target-state theory, canonical dynamics, production metadata, trajectory evidence, transfer/stability evidence, and provenance.  The supervisor layer grouped those notes into five areas:
+\begin{enumerate}
+\item Theory and target states: exact DW benchmark, OW flattened Hamiltonian, finite-shell form factor, perturbative update intuition, and modular charge.
+\item Core dynamics and protocols: canonical CPU/GPU engines, production scripts, protocol taxonomy, transfer/Choi/Lindblad controls.
+\item Trajectory evidence: purification, charge fluctuations, entanglement scaling, correlators, small-system checks, partial postselection.
+\item Transfer stability: Lyapunov spectra, regularized GPU Choi transfer, CPU Choi particle-transfer gaps.
+\item Reliability and provenance: manifests, run summaries, figure scripts, data strata, cache risk, and summary-figure caveats.
+\end{enumerate}
+
+\section{Executive Thesis}
+
+The underlying scientific message is this: the repository is not primarily about deterministic postselection preparing a static Gaussian target, nor about a mean Markov or Lindblad channel.  It is about a Born-sampled, trajectory-resolved class-A adaptive fermion circuit in which perfect correction gives deterministic feedback after measurement mismatches.  That physical ensemble rapidly purifies, sharply suppresses intrinsic charge variance, and develops chiral domain-wall critical structure visible most cleanly in strip entanglement.
+
+The exact domain-wall Chern-insulator ground state and OW flattened-Hamiltonian constructions supply the target-state language and calibrations.  Finite OW support is meaningful when its effective overlap form factor preserves the Chern-band zero/winding, not because a compact-support spinor itself carries the target Chern number.  Domain-wall truncation is an active OW hard-boundary condition.  Lyapunov and Choi diagnostics then support the same qualitative story from the stability side: uniform topological geometries are strongly contracting in the measured transfer frames, while domain-wall geometries host near-marginal slow channels.  These transfer objects support, but do not equal, the physical trajectory ensemble.
+
+\section{Audited Main Message}
+
+\subsection{Target states}
+
+The exact DW benchmark supplies the clean reference.  The exact Gaussian ground state of the two-band lattice Dirac-Chern Hamiltonian has edge-localized squared-correlator slopes near \(-2\), full-width strip entanglement slope near \(0.344\), and wall-window contour slopes near \(0.169\).  The contour convention matters: the subsystem is first the full strip in \(x\), and only the final contour sum is restricted to an \(x\)-window.
+
+The OW flattened Hamiltonian supplies a practical Gaussian target covariance \(\GO=2P_{\rm occ}-\Id\).  One-shell OW states reproduce the chiral entanglement structure better than they quantize the full Chern marker.  Full-support DW truncation reaches \(\mathcal C\simeq1\), while one-shell or untruncated variants can sit near \(\mathcal C\simeq0.795\).  Thus the target-state message is hierarchical: edge entanglement is robust at small shell; global Chern quantization and spatial modular dynamics are more sensitive to support and DW-sector boundaries.
+
+\subsection{Physical dynamics}
+
+The production dynamics should be described through \src{classA_U1FGTN.run_markov_circuit(...)} on CPU and \src{classA_U1FGTN_gpu.run_markov_circuit(...)} on GPU.  Perfect correction is not postselection.  It samples Born measurement outcomes and then deterministically applies the intended correction/reset after a mismatch.  Full postselection forces desired branches, often with one actual saved sample.  Partial postselection is an externally masked interpolation, useful as a control but not a thermodynamic phase diagram in the current evidence.
+
+The strongest trajectory evidence comes from purification and entropy.  Max-mixed perfect-correction runs at \(N_x=20\), \(N_y=30,40,50\) suppress intrinsic charge variance from the \(O(N_xN_y)\) max-mixed scale to \(0.0665,0.0846,0.0973\) by \(2N_y\) cycles.  Entanglement slopes in large-\(N_y\) and streaming summaries are near the domain-wall CFT target \(1/3\), with excellent log-chord fit quality but visible finite-size, cycle, and convergence systematics.  Correlator exponents support the picture only after careful window control; default long-window fits are not precision universality evidence.
+
+\subsection{Transfer and stability diagnostics}
+
+Lyapunov spectra give the cleanest stability contrast.  In the single-particle transfer frame, uniform \(DW=0\) geometries are \(O(1)\)-gapped, with perfect-correction gaps around \(0.72\)--\(0.77\) and postselected gaps around \(0.95\).  Domain-wall \(DW=1\) geometries are suppressed by one to two orders of magnitude, around \(0.020\)--\(0.027\) for perfect correction over \(N_y=30,40,50\), with no clean plateau at \(T=N_y\).  The writeups link smaller gaps to degraded Chern marker values and domain-wall-localized minimum-gap vectors.
+
+Choi transfer diagnostics are complementary.  The GPU regularized Choi chart gives early-cycle finite-sector gaps but censors before final time when the Choi chart fails.  The CPU particle-Choi pipeline reaches final cycles in completed slab-restricted campaigns and saves final spectra/eigenvectors, but endpoint saturation and finite-mode counts must be tracked.  These diagnostics support a near-marginal domain-wall sector, not a resolved thermodynamic scaling law and not equality with the Lyapunov operator.
+
+\section{Evidence Map}
+
+\begin{table*}[h]
+\caption{Condensed evidence map from supervisor and primary sources.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.23\linewidth}p{0.33\linewidth}p{0.36\linewidth}}
+Theme & Strong evidence & Caveat \\
+\hline
+Exact DW benchmark &
+\src{supervisor_01_theory_target_states.tex}; \src{exact_DW_benchmark_notes/exact_DW_GS_benchmark_revtex.tex}; \src{notebooks/exact_DW_GS_benchmark.ipynb}.  Edge correlator slope near \(-2\), additive wall entanglement slopes, local Chern-marker localization. &
+Parameter notation differs from later folders; use ``topological mass'' and ``trivial mass'' in cross-folder prose. \\
+OW target and truncation &
+\src{supervisor_01_theory_target_states.tex}; \src{notebooks/flattened_hamiltonian_analysis/docs/flattened_hamiltonian_analysis.tex}; \src{form_factor_analysis/docs/windowed_chern.tex}.  One-shell entanglement works well; effective form-factor zero/winding survives in documented \(X\)-trial case. &
+DW truncation is an active boundary condition; one-shell Chern marker is not fully quantized. \\
+Protocol taxonomy &
+\src{supervisor_02_core_dynamics_protocols.tex}; \src{src/fgtn/classA_U1FGTN.py}; \src{src/fgtn/classA_U1FGTN_gpu.py}; \src{markov_transfer_operators/markov_transfer_operators_note.tex}. &
+Some campaign copies of GPU/CPU source are stale; canonical-entry strings should be paired with source identity for flagship claims. \\
+Purification and charge sharpening &
+\src{supervisor_03_trajectory_evidence.tex}; \src{colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/.../campaign_manifest.json}; purification charge-variance CSV summaries. &
+Intrinsic charge variance collapses, but centered charge wander is small rather than exactly zero; postselection often has one actual sample. \\
+Entanglement scaling &
+\src{supervisor_03_trajectory_evidence.tex}; \src{colab_large_entanglement_scaling_N20/docs/entanglement_scaling_system_size.tex}; large-system run summaries and fit rows. &
+Slopes are near \(1/3\) but still above target in many finite-size/cycle windows; \(N_y=120\) is non-monotone in time-scaled data. \\
+Correlator diagnostics &
+\src{supervisor_03_trajectory_evidence.tex}; correlator diagnostic decision tables and selected-window exponent summaries. &
+Strong fit-window sensitivity; default long-window exponents are not precision evidence for \(\Delta=2\). \\
+Lyapunov stability &
+\src{supervisor_04_transfer_stability.tex}; \src{colab_lyapunov/docs/lyapunov_analysis.tex}; Lyapunov run index and manifests. &
+Single-particle transfer-frame diagnostic, not full Hermitian covariance tangent spectrum; finite-time scaling unresolved. \\
+Choi transfer &
+\src{supervisor_04_transfer_stability.tex}; \src{colab_regularized_choi_transfer_matrix/docs/regularized_choi_covariance_contractions.tex}; \src{choi_covariance_cpu/run_particle_choi_transfer_gap_cpu.py}. &
+GPU Choi censors before final time; CPU Choi has endpoint/finite-mode caveats. \\
+Reliability and figures &
+\src{supervisor_05_reliability_provenance.tex}; \src{summary_of_results/scripts/make_summary_figures.py}; campaign manifests and run summaries. &
+Legacy cache is weak provenance; \(\alpha_2\) panel uses hard-coded fallback data; one summary purification charge comparison has protocol/table mismatch. \\
+\end{tabular}
+\end{ruledtabular}
+\end{table*}
+
+\section{Reliability and Redundancy Map}
+
+\subsection{Primary evidence}
+
+Primary evidence should come from structured campaign products: campaign manifests, run summaries, run-index CSVs, and analysis manifests that record canonical entry points, actual sample counts, completion status, storage mode, observer mode, and source-to-derived-product links.  The cleanest examples are the charge-fluctuation GPU purification/streaming campaigns, the CPU alpha-sharpening campaign, large-entanglement run summaries, Lyapunov manifests, and the newer CPU Choi run indices.
+
+\subsection{Corroborating evidence}
+
+Corroborating evidence includes generated RevTeX notes, analysis-output CSVs, figure scripts, and notebooks-as-text.  These are valuable when they point back to primary campaign products and state fit windows, skipped inputs, and protocol semantics.  They should not override primary manifests for sample counts or protocol identity.
+
+\subsection{Weak or legacy evidence}
+
+The legacy \src{cache/G_history_samples} archive is enormous and weakly manifested.  Its filenames include rerun, testing, extracted, and duplicate-style labels.  It should be treated as archival unless a current manifest resolves the run identity.  Likewise, stale Colab/OSG source copies, root \src{OSG/} paths, hard-coded figure fallback tables, dirty/empty manifests, and summary panels with mismatched protocol tables are not primary evidence for the final story.
+
+\section{Unresolved Caveats}
+
+\begin{enumerate}
+\item The thermodynamic scaling law of the domain-wall transfer gap is unresolved.  The available Lyapunov data support a strong qualitative suppression and possible closing, but not an exponent.
+\item Entanglement scaling is strong but finite-size and finite-depth corrections remain visible.  The safest claim is ``near \(1/3\) with corrections,'' not a final central-charge extraction.
+\item Correlator exponents are fit-window dominated and should not be used as a precision universality claim.
+\item Postselection sample semantics are a repository-wide trap.  Many postselected entries request larger sample counts but have one actual deterministic sample.
+\item DW truncation is an active hard boundary in OW-function space.  It is useful and sometimes necessary, but not a neutral numerical cutoff.
+\item Choi, Lyapunov, Markov-transfer, Lindblad, and mean-covariance objects are distinct.  They should be used as controls/diagnostics with their own definitions.
+\item The \(\alpha_1,\alpha_2\) convention differs across folders.  Cross-folder prose should use physical labels instead.
+\item Some figure-level claims need tighter exported data provenance, especially the \(\alpha_2\) hard-wall/truncation panel and postselection charge-fluctuation comparisons.
+\end{enumerate}
+
+\section{Boss Final Recommendations}
+
+\begin{enumerate}
+\item State the main story as a trajectory-resolved perfect-correction ensemble story, not as deterministic postselection or a mean-channel story.
+\item Use exact DW and OW flattened Hamiltonian results as target-state calibration, not as proof that finite-time adaptive trajectories exactly equal \(\GO\).
+\item Lead with purification, charge sharpening, and entropy scaling; use correlators, modular charge, Lyapunov, and Choi as supporting diagnostics with explicit caveats.
+\item Preserve the protocol taxonomy in every figure caption and result summary: Born Markov, perfect correction, postselection, partial postselection, mean channel, Lindblad, Choi, and Lyapunov are separate objects.
+\item Require manifest-level provenance for any claim meant for a paper: canonical entry point, actual sample count, source identity/checksum if possible, storage mode, fit window, and skipped-input status.
+\item Quarantine legacy cache and stale OSG/Colab code paths from positive evidence unless independently tied to a current manifest and source identity.
+\item Before turning this into a paper, export stable CSV/JSON tables for the \(\alpha_2\) sweep, tighten postselection charge-statistic provenance, and decide whether to regenerate the most surprising modular-spectrum equality as a flagship check.
+\end{enumerate}
+
+\section{Final Message}
+
+The repo's experiments collectively argue that finite-range adaptive class-A measurements can generate a charge-sharpening, chiral, domain-wall critical ensemble when interpreted trajectory by trajectory under perfect correction.  The target-state theory explains why finite OW measurements can carry the Chern obstruction through overlap winding and why DW boundaries matter; the trajectory data show purification and near-\(1/3\) entanglement scaling; and the stability data show a slow domain-wall sector distinct from the strongly contracting uniform geometry.
+
+The mature version of the claim is not ``postselection prepares the exact OW ground state.''  It is: \emph{trajectory-resolved perfect correction prepares a stochastic charge-fluctuating chiral critical domain-wall ensemble, while exact DW states, OW flattened Hamiltonians, postselection, mean channels, Lindblad limits, Choi transfer, and Lyapunov spectra are calibrated targets or controls that triangulate that physical object.}
+
+\end{document}

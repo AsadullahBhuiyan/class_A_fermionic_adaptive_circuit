@@ -1,0 +1,54 @@
+{
+  "schema_version": 2,
+  "campaign": "mean_channel_lindblad_cpu_v2_hybrid_response",
+  "backend": "numpy_scipy_cpu_complex128",
+  "trajectory_samples": 0,
+  "schedule_samples": 0,
+  "default_Nx": 20,
+  "static_scan_Ny": 64,
+  "response_Ny": [32, 48, 64],
+  "alpha_out": 30.0,
+  "alpha_in": [1.0, 1.5, 1.75, 1.875, 2.125, 2.25, 2.5, 3.0],
+  "nshell": [1, 2, null],
+  "n_a": 0.5,
+  "wall_rule": "canonical",
+  "canonical_dw_truncation": true,
+  "endpoint_dw_truncation": [true, false],
+  "init_mode": "maxmix",
+  "physical_burn_in_time": 0.0,
+  "physical_time_fraction": 2.0,
+  "observation_time_fractions": [0.0, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0],
+  "finite_channel_p": [1.0, 0.5, 0.25, 0.125, 0.0625],
+  "response": {
+    "alpha_in": 1.0,
+    "epsilon": 0.001,
+    "epsilon_multipliers": [0.5, 1.0, 2.0],
+    "time_step": 0.25,
+    "time_fraction": 0.5,
+    "fit_time_min": 2.0,
+    "fit_time_max_fraction": 0.375,
+    "wall_window_columns": 1
+  },
+  "controls": {
+    "representative_Ny": 64,
+    "representative_alpha": 1.0,
+    "legacy_wall_rule": true,
+    "ancilla_fillings": [0.45, 0.55],
+    "uniform_phases": ["topological", "trivial"],
+    "initial_modes": ["empty", "filled"]
+  },
+  "dephasing_controls": {
+    "geometry": [4, 6],
+    "alpha_in": [1.0, 3.0],
+    "nshell": [1, 2, null],
+    "dt": 0.05,
+    "physical_time_fraction": 2.0,
+    "observation_time_fractions": [0.0, 0.5, 1.0, 1.5, 2.0]
+  },
+  "observable_contract": {
+    "momentum_resolved_nshell": null,
+    "finite_shell_forbidden_output_tokens": ["ky", "momentum", "branch"],
+    "save_covariance_history": false,
+    "save_final_covariance": false
+  }
+}

@@ -19,9 +19,9 @@ from threadpoolctl import threadpool_limits
 from fgtn.classA_U1FGTN import classA_U1FGTN
 # User knobs
 CPU = 56               # set max BLAS threads; None uses all cores
-CYCLES = 20               # nominal cycles; sweeps = round(CYCLES / p)
-P_LIST = [1.0, 1e-1]
-OUT_FIG = "figs/corr_y_profiles/exclude_dw_symmetric_seq_p_sweep.png"
+CYCLES = 20
+DECOH_LIST = [True, False]
+OUT_FIG = "figs/corr_y_profiles/dw_symmetric_random_seq_decoh_sweep.png"
 
 # Model setup
 Nx = Ny = 21
@@ -79,51 +79,39 @@ def _pick_x_positions():
 
 profiles = {}
 with threadpool_limits(limits=CPU or os.cpu_count() or 1):
-    for p in P_LIST:
+    for decoh in DECOH_LIST:
         res = model.run_markov_channel(
             G_history=False,
             progress=True,
             cycles=CYCLES,
-            p=p,
             save=True,
-            save_suffix=f"_DW1_seq_symm_dw_exclude",
-            sequence="exclude_dw_symmetric",
+            save_suffix=f"_DW1_seq_dw_symmetric_random_decoh{int(bool(decoh))}",
+            sequence="dw_symmetric_random",
+            decoh=decoh,
         )
         G_ss = res["G_final"]
         entries = []
         for x, label in _pick_x_positions():
             ry_vals, vals = corr_y_profile(G_ss, Nx, Ny, x)
             entries.append((label, ry_vals, vals))
-        profiles[p] = entries
-"""
-        sequence options (case-insensitive):
-            - "snake_y": Rx outer loop, Ry inner loop increasing (previous default)
-            - "reverse_snake_y": reverse ordering of snake_y
-            - "snake_x": Ry outer loop, Rx inner loop increasing
-            - "reverse_snake_x": reverse ordering of snake_x
-            - "random": shuffle all (Rx,Ry) each cycle
-            - "exclude_dw_random": random over sites excluding DW_loc columns
-            - "dw_symmetric": Rx sweep mid->Nx-1 then mid-1->0 for each Ry
-            - "dw_symmetric_2": Rx sweep 0->mid then Nx-1->mid+1 for each Ry
-            - "dw_symmetric_y": Ry sweep mid->Ny-1 then mid-1->0 for each Rx; Rx order is mid->right then mid-1->left
-            - "exclude_dw_symmetric": dw_symmetric but skip Rx in DW_loc
-            - "exclude_dw_symmetric_y": dw_symmetric Rx (skipping DW_loc), Ry starts at Ny//2 then outward
-"""
+        profiles[decoh] = entries
+# Supported sequence options are now limited to:
+# snake_x, snake_y, random, dw_symmetric_random
 # Plot
-fig, axes = plt.subplots(1, len(P_LIST), figsize=(5 * max(1, len(P_LIST)), 5), sharey=True)
-if len(P_LIST) == 1:
+fig, axes = plt.subplots(1, len(DECOH_LIST), figsize=(5 * max(1, len(DECOH_LIST)), 5), sharey=True)
+if len(DECOH_LIST) == 1:
     axes = [axes]
 
 max_curves = max(len(v) for v in profiles.values())
 gradient = np.linspace(0.0, 1.0, max_curves)
 
-for ax, p in zip(axes, P_LIST):
-    colors = plt.cm.viridis(gradient[: len(profiles[p])])
-    for (label, ry, vals), color in zip(profiles[p], colors):
+for ax, decoh in zip(axes, DECOH_LIST):
+    colors = plt.cm.viridis(gradient[: len(profiles[decoh])])
+    for (label, ry, vals), color in zip(profiles[decoh], colors):
         ax.plot(ry, vals, marker="o", label=f"x={label}", color=color)
     ax.set_yscale("log")
     ax.set_xscale("linear")
-    ax.set_title(f"p = {p:g}")
+    ax.set_title(f"decoh = {decoh}")
     ax.set_xlabel(r"$r_y$")
     ax.grid(True, which="both", alpha=0.3)
     ax.text(

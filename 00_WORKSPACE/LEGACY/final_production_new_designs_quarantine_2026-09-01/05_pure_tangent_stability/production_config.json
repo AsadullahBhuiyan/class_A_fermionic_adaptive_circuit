@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "bundle": "05_pure_tangent_stability",
+  "campaign_revision": "pure_tangent_stability_v1",
+  "root_seed": 2026082605,
+  "production_output_collection": "classA_final_production_outputs/pure_tangent_stability_v1",
+  "pilot_output_collection": "classA_pilot_outputs/pure_tangent_stability_v1",
+  "contract": {
+    "Nx": 20,
+    "Ny_values": [20, 30, 40, 50, 60],
+    "samples_per_case": 25,
+    "samples_per_shard": 5,
+    "cycles_rule": "2*Ny",
+    "alignment_cycles_rule": "Ny",
+    "accumulation_cycles_rule": "Ny",
+    "accumulation_checkpoints": [0.25, 0.5, 0.75, 1.0],
+    "physical_pair_modes": 16,
+    "nshell": 1,
+    "filling_fraction": 0.5,
+    "sequence": "random",
+    "perfect_correction": true,
+    "postselection": false,
+    "ancilla_occupation": 0.5,
+    "dtype": "complex128",
+    "canonical_entry_point": "classA_U1FGTN_gpu.run_markov_circuit",
+    "initialization": "independent_haar_half_filled_pure_slater",
+    "tangent_basis_mode": "pure_occupied_empty",
+    "choi_tracked": false,
+    "finite_difference_states": false,
+    "trajectory_record_saved": false
+  },
+  "protocols": {
+    "wall": {"DW": true, "alpha_1": 1.0, "alpha_2": 30.0, "dw_truncation": false, "meas_slab_only": false},
+    "matched_trivial": {"DW": false, "alpha_1": 30.0, "alpha_2": 30.0, "dw_truncation": false, "meas_slab_only": false}
+  },
+  "selection": {
+    "finite_singular_value_tolerance": 1e-12,
+    "eigenpair_residual_tolerance": 1e-8,
+    "eigenvector_gram_tolerance": 1e-8,
+    "interface_weight_minimum": 0.7,
+    "two_wall_balance_minimum": 0.25,
+    "aicc_preference_minimum": 4.0,
+    "temporal_delete_relative_tolerance": 0.1
+  },
+  "analysis": {"bootstrap_replicates": 2000, "bootstrap_seed": 2026082655},
+  "pilot": {"Ny_values": [20], "samples_per_case": 2},
+  "storage": {"production_case_count": 10, "production_shard_count": 50, "atomic_writes": true, "checksum": "sha256"}
+}

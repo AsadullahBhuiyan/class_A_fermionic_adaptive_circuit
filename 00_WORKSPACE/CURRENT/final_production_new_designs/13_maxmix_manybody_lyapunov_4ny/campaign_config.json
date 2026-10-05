@@ -1,0 +1,78 @@
+{
+  "Nx": 20,
+  "Ny_values": [
+    20,
+    24,
+    30,
+    36,
+    44,
+    56,
+    60
+  ],
+  "alpha_1": 1.0,
+  "alpha_2": 30.0,
+  "backend": "local",
+  "constructions": {
+    "hard": {
+      "DW": true,
+      "dw_truncation": true,
+      "meas_slab_only": true
+    },
+    "soft": {
+      "DW": true,
+      "dw_truncation": false,
+      "meas_slab_only": false
+    }
+  },
+  "cycles_multiplier": 4,
+  "device": "cuda:0",
+  "dtype": "complex128",
+  "execution_batch_size_by_Ny": {
+    "20": 100,
+    "24": 100,
+    "30": 100,
+    "36": 90,
+    "44": 60,
+    "56": 40,
+    "60": 35
+  },
+  "filling_fraction": 0.5,
+  "gpu_memory_hard_limit_gib": 38.0,
+  "init_mode": "maxmix",
+  "n_a": 0.5,
+  "nshell": 1,
+  "observables": {
+    "cap_tolerance": 1e-09,
+    "cumulative_log_probability": true,
+    "leading_log_sigma2_levels": 64,
+    "measurement_log_probability": true,
+    "occupation_spectrum": true,
+    "record_cycles": "0..4Ny inclusive",
+    "save_covariance_history": false,
+    "save_final_covariance": false,
+    "soft_mode_count": 16,
+    "spectrum_cycles": "stride 4 union Ny,2Ny,3Ny,4Ny",
+    "squared_singular_value_convention": "ell_i=log(sigma_i^2)",
+    "transverse_mode_profiles": true
+  },
+  "observer_sample_chunk_by_Ny": {
+    "20": 20,
+    "24": 20,
+    "30": 10,
+    "36": 10,
+    "44": 5,
+    "56": 2,
+    "60": 2
+  },
+  "perfect_correction": true,
+  "postselect": false,
+  "result_shard_size": 5,
+  "resume_initial_purity_tolerance": 0.50000001,
+  "root_seed": 2026091001,
+  "samples_per_case": 100,
+  "sampling_revision": "maxmix_manybody_lyapunov_nx20_ny20-60_hard-soft_s100_4ny_gpu_v4_38gib_memory_scaled",
+  "segment_cycles": 10,
+  "sequence": "raster_y",
+  "state_representation": "covariance",
+  "trial_orbitals": "X"
+}

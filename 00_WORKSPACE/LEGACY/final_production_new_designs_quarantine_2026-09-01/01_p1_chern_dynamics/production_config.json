@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "bundle": "01_p1_chern_dynamics",
+  "output_bundle": "01_p1_chern_dynamics",
+  "sampling_revision": "production_25sample_p1_chern_v4",
+  "production_output_collection": "classA_final_production_outputs/production_25sample_p1_chern_v4",
+  "pilot_output_collection": "classA_pilot_outputs/production_25sample_p1_chern_v4",
+  "audit_sha256": "9e44a3c03d201756ca8615d7b10f1488fd1f367afc11a7c05464cc1595c047ae",
+  "strict_source_hash_resume": true,
+  "drive_commit": {
+    "schema": "classA_drive_api_commit_v1",
+    "authoritative_backend": "google_drive_api_v3",
+    "drivefs_role": "non_authoritative_cache",
+    "required_headroom_bytes": 1342177280,
+    "checkpoint_publish_order": "generation_remote_verify_then_pointer_remote_verify_then_previous_delete",
+    "archive_publish_order": "archive_remote_verify_then_receipt_remote_verify_then_checkpoint_delete"
+  },
+  "root_seed": 2026081701,
+  "locked_contract": {
+    "samples": 25,
+    "sample_shard_size_by_L": {
+      "16": 5,
+      "24": 5,
+      "32": 5,
+      "64": 1
+    },
+    "checkpoint_unit": "atomic_completed_cycle_occupied_frame_rng_observer",
+    "checkpoint_interval_cycles": 1,
+    "checkpoint_retention": "one_rolling_checkpoint_per_active_shard_deleted_after_verified_archive",
+    "cycles_rule": "L",
+    "physical_burn_in_cycles": 0,
+    "sequence": "random",
+    "dtype": "complex128",
+    "canonical_entry_point": "classA_U1FGTN_gpu.run_markov_circuit"
+  },
+  "P1": {
+    "sizes": [16, 24, 32, 64],
+    "nshell_values": [1, 2, null],
+    "alpha_1": 1.0,
+    "alpha_2": 1.0,
+    "initial_state": "random_half_filled_slater",
+    "ancilla_occupation": 0.5,
+    "center_count": 10,
+    "center_sampling": "fresh_per_sample_cycle_shared_across_shells",
+    "chern_radius_fraction": 0.4,
+    "chern_sign_target": 1.0,
+    "declared_observables": ["periodic_trijunction_real_space_chern"]
+  }
+}

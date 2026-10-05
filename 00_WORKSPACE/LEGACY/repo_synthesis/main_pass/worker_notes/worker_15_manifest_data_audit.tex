@@ -1,0 +1,179 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\repo}[1]{\texttt{\detokenize{#1}}}
+
+\begin{document}
+
+\title{Worker 15 Manifest and Data Audit}
+\author{Worker 15}
+\date{June 11, 2026}
+
+\begin{abstract}
+I audited manifest-level and tabular metadata for non-excluded cache, CPU-data, GPU-data,
+and campaign outputs, without reading binary arrays or executing notebooks.  The main
+conclusion is that the newer campaign products are the most reliable primary evidence:
+they usually record the canonical CPU/GPU dynamics entry point, run configuration, sample
+counts, saved-observable policy, and file-size accounting.  By contrast, the older
+\repo{cache/G_history_samples} layer is extremely large, filename-driven, weakly
+manifested, and contains multiple rerun/duplicate/test-style artifacts.  Several
+metadata-visible caveats should be carried into any synthesis: postselection runs often
+have requested samples greater than actual samples because the canonical driver stores a
+single deterministic sample; at least one analysis manifest records no runs despite
+derived comparison outputs; and one CPU convergence manifest was produced from a dirty
+working tree.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+The audit followed \repo{REPO_POLICY.md} before inspection.  I excluded every path
+containing \repo{haining}, \repo{haoyu}, or \repo{erroneous}, case-insensitive, and did
+not inspect \repo{repo_synthesis/main_pass/worker_notes},
+\repo{repo_synthesis/main_pass/supervisor_notes}, or \repo{repo_synthesis/main_pass/boss}.
+No files were edited, no notebooks were executed, and binary arrays were treated only by
+filename, byte size, and text manifests.
+
+The inspected evidence consists of JSON manifests, CSV inventories, run indices, run
+summaries, and file-size listings under \repo{cache/}, campaign-specific \repo{cpu_data}
+and \repo{gpu_data} trees, \repo{dw_convergence}, \repo{colab_charge_fluctuations},
+\repo{colab_small_system_testing}, and
+\repo{colab_large_entanglement_scaling_N20}.  A manifest inventory found 30
+\repo{campaign_manifest.json} files and 333 \repo{run_summary.json} files in the principal
+campaign trees.  The legacy \repo{cache/G_history_samples} binary layer contains 38
+non-excluded \repo{.npz}/\repo{.npy} files larger than 1 GiB, totaling approximately
+662.3 GiB by filename/size metadata alone.
+
+\section{Findings}
+
+\subsection{Primary Data Layer}
+
+The strongest primary layer is the newer campaign/run-summary structure.  Representative
+GPU manifests explicitly identify
+\repo{classA_U1FGTN_gpu.run_markov_circuit} as the canonical dynamics entry point, record
+A100/complex128 batching policy, and set \repo{covariance_history_saved=false} for
+streaming observable campaigns.  The large-entanglement run summary records the canonical
+GPU entry point in its configuration, the A100 40 GB strategy, the final-only Markov
+result, and complete status.  The charge-fluctuation GPU campaign records six
+multi-geometry configurations, saved observables, per-run byte counts, and a total saved
+observable footprint of 163,681,202 bytes.
+
+The strongest CPU primary layer is the structured
+\repo{purification_charge_sharpening_alpha_sweep} campaign.  Its campaign manifest records
+the canonical CPU entry point \repo{classA_U1FGTN.run_markov_circuit}, declares the run
+complete, suppresses covariance-history saving, and documents the active domain-wall slab
+observer.  The companion CSV inventory gives a machine-checkable row-level run index with
+columns for protocol, geometry, alpha, cycle count, expected/completed samples, and
+completion.
+
+\subsection{Corroborating and Derived Data}
+
+Analysis-output manifests should be treated as corroborating rather than primary unless
+they point cleanly back to a primary campaign.  The streaming covariance characterization
+manifest is useful because it names the source dataset, lists all derived figures/tables,
+records analysis targets, and gives a six-record map from derived scaling fits back to
+GPU \repo{local_charge_cell.npz} inputs.  It also records a skipped \repo{N20x60} run
+because both \repo{local_charge_cell.npz} and
+\repo{streaming_covariance_scaling_fits.npz} were missing; this is valuable negative
+evidence, not a completed datum.
+
+The \repo{dw_convergence} analysis manifest is internally informative but lower priority
+as primary evidence.  It records the canonical CPU engine and a clear N20x20 convergence
+configuration, but its \repo{runs} array is empty despite nearby derived CSV outputs, and
+its git status contains many modified, deleted, and untracked paths.  That combination
+makes it useful for method provenance and for locating derived products, but not as a
+self-contained completed campaign manifest.
+
+\subsection{Redundancy and Stale-Legacy Risk}
+
+The legacy \repo{cache/G_history_samples} layer is the highest-risk stratum for stale or
+redundant evidence.  The file-size listing alone shows many tens-of-GiB covariance-history
+artifacts, including names containing \repo{slope_drift_testing}, \repo{fromcache-rerun},
+\repo{legacydup1}, and paired variants such as \repo{init-default} versus
+\repo{init-rerun}.  These names encode useful hints, but they are not a substitute for
+structured provenance.  Such files should not be used as primary evidence unless a
+current manifest explicitly points to them and resolves the intended run identity.
+
+The newer campaign layer also contains deliberate redundancy: run summaries, campaign
+manifests, run indices, and analysis inventories repeat configuration and sample-count
+fields.  This redundancy is beneficial when consistent, because it allows cross-checks
+without opening arrays.  It becomes a warning signal when sample counts differ or when
+analysis records list skipped inputs.
+
+\subsection{Metadata-Visible Contradictions}
+
+The clearest recurring contradiction is requested versus actual sample count for
+postselection.  The purification-dynamics GPU campaign requests 100 samples for
+postselection but states that the canonical GPU driver forces \repo{samples=1}; the result
+rows then show \repo{samples_requested=100} and \repo{samples_actual=1}.  The covariance
+history campaign has the analogous warning for 10 requested postselection samples saved as
+one deterministic sample.  These are not necessarily physical contradictions, but they are
+semantic traps: postselection rows should not be ensemble-weighted as if they had the same
+sample count as perfect-correction rows.
+
+\section{Evidence Table}
+
+\begin{table}[h]
+\caption{Representative manifest and metadata evidence.}
+\begin{tabular}{p{0.36\textwidth}p{0.17\textwidth}p{0.39\textwidth}}
+\toprule
+Source & Lines & Audit use \\
+\midrule
+\repo{REPO_POLICY.md} & 1--19 & Establishes canonical CPU/GPU entry points and requires production metadata to record the entry point. \\
+\repo{colab_charge_fluctuations/gpu_data/index.json} & 1--10 & Top-level GPU index points only to \repo{purification_dynamics_maxmix/latest_campaign.json}; useful as a bundle pointer but incomplete as a full inventory. \\
+\repo{colab_small_system_testing/gpu_data/index.json} & 1--10 & Similar top-level pointer for \repo{streaming_covariance_protocol_characterization}; not a comprehensive data catalogue. \\
+\repo{colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/.../campaign_manifest.json} & 11, 92--100, 104--105, 270--364 & Records canonical GPU engine, no covariance-history saving, postselection sample downgrade note, six results, per-run byte counts, saved observables, and 163,681,202 total saved bytes. \\
+\repo{colab_charge_fluctuations/gpu_data/streaming_covariance_observables/.../N20x50.../run_summary.json} & 13--33 & Records canonical GPU engine, no covariance-history saving, 10,000 scalar metric rows, and streaming observer mode. \\
+\repo{colab_charge_fluctuations/analysis_outputs/streaming_covariance_characterization/.../analysis_manifest.json} & 36--106, 107--133 & Maps six derived analysis records back to GPU inputs and records a skipped N20x60 run with missing files. \\
+\repo{colab_charge_fluctuations/cpu_data/purification_charge_sharpening_alpha_sweep/.../campaign_manifest.json} & 25--35, 36--49 & Records complete CPU campaign, canonical CPU engine, no covariance-history saving, active-slab observer, and completed run rows. \\
+\repo{colab_charge_fluctuations/.../tables/inventory.csv} & 1--35 & CSV inventory confirms row-level alpha/geometry/cycle/sample completion for the fine CPU sweep. \\
+\repo{colab_small_system_testing/gpu_data/covariance_protocol_histories/.../campaign_manifest.json} & 8, 217--219, 266--299, 343--377 & Records canonical GPU engine, full history storage for selected runs, explicit shard sizes/shapes, and postselection reduction from requested 10 samples to 1 saved sample. \\
+\repo{colab_large_entanglement_scaling_N20/.../run_summary.json} & 49--67, 196--233 & Records checkpoint/output paths, canonical GPU engine, A100 40 GB batching, final-only Markov result metadata, and complete status. \\
+\repo{dw_convergence/n20x20_maxmix_dwtrunc_convergence_cpu/analysis_manifest.json} & 2--24, 76--90 & Records canonical CPU engine and configuration, but also dirty git status and an empty \repo{runs} array. \\
+\repo{cache/G_history_samples} size listing & manifest-only file sizes & Shows 38 non-excluded binary files larger than 1 GiB, totaling about 662.3 GiB; filenames include rerun, testing, and duplicate-style labels. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Interpretation}
+
+For synthesis, use the structured campaign manifests and run summaries as the primary
+data spine.  Prefer campaigns that satisfy all of the following: canonical dynamics entry
+point present; sample counts explicit; covariance-history policy explicit; run status or
+completion explicit; and derived analysis records linked by relative paths to primary
+run directories.  The charge-fluctuation GPU streaming/purification campaigns, the CPU
+alpha sweep, and the large-entanglement N20 run meet this standard most clearly.
+
+Use analysis manifests and tables as corroborating summaries.  They are especially useful
+when they name source datasets and missing inputs, but they should not override primary
+run manifests on sample count or protocol identity.  Treat legacy \repo{cache} binaries as
+archival or diagnostic unless referenced by current manifests.  Their scale and filename
+semantics imply substantial duplication and historical experimentation, and their lack of
+structured provenance makes them poor foundations for a final narrative.
+
+\section{Caveats}
+
+This audit did not open \repo{.npz}, \repo{.npy}, \repo{.parquet}, images, videos, PDFs,
+or notebooks.  Therefore it verifies provenance, shape/size claims where written in
+manifests, sample-count semantics, and manifest consistency, but not numerical values
+inside binary arrays.  Line references are to the inspected text files as present on
+June 11, 2026.  Some top-level indices are intentionally sparse and should not be
+mistaken for exhaustive inventories.
+
+\section{Confidence}
+
+Confidence is high for metadata-level conclusions: canonical engine recording, sample
+count mismatches, missing-input records, dirty git provenance, and binary-size risk are
+directly visible from text manifests and file-size listings.  Confidence is moderate for
+ranking data products as primary versus corroborating, because that judgment depends on
+provenance completeness rather than numerical validation.  Confidence is low for any
+claim about the numerical correctness of observables, since binary arrays and notebooks
+were intentionally not inspected.
+
+\end{document}

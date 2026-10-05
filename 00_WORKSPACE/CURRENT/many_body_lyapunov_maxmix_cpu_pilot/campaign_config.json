@@ -1,0 +1,62 @@
+{
+  "schema": "maxmix_manybody_lyapunov_cpu_campaign_v2",
+  "revision": "maxmix_manybody_lyapunov_nx16_ny20to30_hard-soft_s100_4ny_cpu_v1",
+  "root_seed": 2026090901,
+  "geometry": {
+    "Nx": 16,
+    "Ny_values": [20, 22, 24, 26, 28, 30],
+    "domain_wall": true,
+    "domain_wall_interval": [4, 12],
+    "constructions": {
+      "hard": {
+        "domain_wall_truncation": true,
+        "measurement_slab_only": true
+      },
+      "soft": {
+        "domain_wall_truncation": false,
+        "measurement_slab_only": false
+      }
+    }
+  },
+  "dynamics": {
+    "cycles_rule": "4*Ny",
+    "samples_per_case": 100,
+    "nshell": 1,
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "trial_orbitals": "X",
+    "initialization": "maxmix",
+    "sequence": "raster_y",
+    "perfect_correction": true,
+    "postselect": false,
+    "n_a": 0.5,
+    "state_representation": "covariance",
+    "dtype": "complex128",
+    "canonical_entry_point": "classA_U1FGTN.run_markov_circuit"
+  },
+  "observer": {
+    "spectrum_cycle_stride": 4,
+    "extra_spectrum_cycles": ["Ny", "2*Ny", "3*Ny", "4*Ny"],
+    "soft_mode_count": 16,
+    "leading_level_count": 64,
+    "cap_tolerance": 1e-12
+  },
+  "checkpoint": {
+    "stride_cycles": 4,
+    "schema": "maxmix_manybody_lyapunov_cpu_checkpoint_v2"
+  },
+  "execution": {
+    "default_max_workers": 16,
+    "one_blas_thread_per_worker": true,
+    "task_unit": "one independent trajectory"
+  },
+  "analysis": {
+    "bootstrap_replicates": 2000,
+    "bootstrap_seed": 2026090302,
+    "early_window": ["Ny", "2*Ny"],
+    "middle_window": ["2*Ny", "3*Ny"],
+    "late_window": ["3*Ny", "4*Ny"],
+    "relative_shift_threshold": 0.1,
+    "sample_prefixes": [25, 50, 75, 100]
+  }
+}

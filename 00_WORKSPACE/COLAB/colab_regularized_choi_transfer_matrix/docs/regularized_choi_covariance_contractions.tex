@@ -1,0 +1,1659 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\I}{\mathbf{1}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Ran}{\operatorname{Ran}}
+\newcommand{\ket}[1]{\lvert #1\rangle}
+\newcommand{\bra}[1]{\langle #1\rvert}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\cK}{\mathcal{K}}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+
+\theoremstyle{definition}
+\newtheorem{remark}{Remark}
+
+\begin{document}
+
+\title{Regularized Choi-Covariance Contractions for the Class-A Adaptive Fermionic Circuit}
+\author{Asadullah Bhuiyan}
+\date{\today}
+
+\begin{abstract}x
+We formalize the regulated Gaussian contraction calculation underlying a
+cumulative Choi-covariance representation of realized trajectories in the
+class-A adaptive fermionic circuit.  A local rank-one Wannier-mode operation is
+represented by a two-leg covariance tensor
+\(
+K(\eta_1,\eta_2)
+=
+\left(\begin{smallmatrix}
+\eta_1P & \I-P\\
+\I-P & \eta_2P
+\end{smallmatrix}\right)
+\),
+where \(P=\ket{\chi}\bra{\chi}\) and
+\(\eta_1,\eta_2\in\{\pm1\}\) select the four measurement or correction
+branches.  Direct composition with an accumulated Choi covariance is
+apparently obstructed because \(K_{LL}=\eta_1P\) is singular on the
+orthogonal complement of the measured mode.  Introducing
+\(K_{LL}^{(\eps)}=\eta_1P+\eps(\I-P)\), performing the Schur-complement
+contraction, and subsequently taking \(\eps\to0\) produces a finite update
+whenever
+\(
+\Tr(P\Sigma_{RR})-\eta_1\neq0
+\).
+We give the blockwise calculation, correct a dimensional ambiguity in the
+lower-right block of the original handwritten derivation, and state the
+result entirely in basis-independent projector notation.  This cumulative
+operator construction is distinct from the support-reduced state-covariance
+dynamics implemented by the repository's canonical Markov-circuit engine.
+\end{abstract}
+
+\maketitle
+\tableofcontents
+
+\section{Circuit-Operator Viewpoint}
+
+Consider one realized sequence of local measurement and feedback events.  Its
+unnormalized Gaussian circuit operator is denoted by \(\hat C_t\), so that the
+normalized physical state at time step \(t\) is
+\begin{equation}
+  \ket{\psi_t}
+  =
+  \frac{\hat C_t\ket{\psi_0}}
+       {\|\hat C_t\ket{\psi_0}\|},
+  \qquad
+  \hat C_{t+1}=\hat K_{t+1}\hat C_t .
+  \label{eq:operator-trajectory}
+\end{equation}
+The object considered below is a two-leg Gaussian Choi covariance for
+\(\hat C_t\),
+\begin{equation}
+  \Sigma_t
+  =
+  \begin{pmatrix}
+    \Sigma_{LL} & \Sigma_{LR}\\
+    \Sigma_{RL} & \Sigma_{RR}
+  \end{pmatrix},
+  \qquad
+  \Sigma_{RL}=\Sigma_{LR}^{\dagger}.
+  \label{eq:Sigma-blocks}
+\end{equation}
+The \(L\) and \(R\) labels refer to the input and output legs of the
+cumulative operator tensor, rather than to spatial regions.
+
+This viewpoint must be distinguished from the state-covariance formulation
+used for production dynamics in this repository.  There the dynamical variable
+is the top-layer covariance
+\begin{equation}
+  G_{ij}=2\langle c_i^\dagger c_j\rangle-\delta_{ij},
+  \label{eq:G-convention}
+\end{equation}
+which is propagated directly by
+\texttt{classA\_U1FGTN.run\_markov\_circuit(...)} or its GPU analogue.
+The present calculation instead asks how a full realized operator
+\(\hat C_t\) would be updated and retained as a Choi tensor.
+
+\section{Local Adaptive Branches}
+
+Let \(\ket{\chi}\) be a normalized single-particle Wannier mode and let
+\begin{equation}
+  P=\ket{\chi}\bra{\chi},
+  \qquad
+  Q=\I-P.
+  \label{eq:PQ}
+\end{equation}
+Thus \(P\) is rank one and \(Q\) projects onto all modes orthogonal to the
+locally interrogated channel.  The four local Gaussian branches written in
+the handwritten calculation can be assembled into
+\begin{equation}
+  K(\eta_1,\eta_2)
+  =
+  \begin{pmatrix}
+    K_{LL} & K_{LR}\\
+    K_{RL} & K_{RR}
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    \eta_1P & Q\\
+    Q & \eta_2P
+  \end{pmatrix},
+  \qquad
+  \eta_1,\eta_2\in\{+1,-1\}.
+  \label{eq:local-K}
+\end{equation}
+In the sign convention of the handwritten notes, the four branch assignments
+encoded by Eq.~\eqref{eq:local-K} are listed in Table~\ref{tab:branches}.
+\begin{table}[b]
+  \caption{\label{tab:branches}
+  Rank-one local operations encoded by Eq.~\eqref{eq:local-K}.  The
+  \(+\) and \(-\) labels on the mode indicate upper- and lower-band
+  Observable-Wannier channels, not the signs \(\eta_{1,2}\).}
+  \begin{ruledtabular}
+  \begin{tabular}{ccc}
+  Operation & Physical role & \((\eta_1,\eta_2)\)\\
+  \colrule
+  \(\hat N_-\) &
+  lower-band mode already occupied & \((-1,+1)\)\\
+  \(\hat\chi_-^\dagger(1-\hat N_-)\) &
+  fill a lower-band vacancy & \((+1,+1)\)\\
+  \(1-\hat N_+\) &
+  upper-band mode already empty & \((+1,-1)\)\\
+  \(\hat\chi_+\hat N_+\) &
+  remove an upper-band particle & \((-1,-1)\)
+  \end{tabular}
+  \end{ruledtabular}
+\end{table}
+
+In the present implementation of the circuit, each site supplies the
+Observable-Wannier channels \(\chi_{A+}\), \(\chi_{A-}\), \(\chi_{B+}\),
+and \(\chi_{B-}\).  The desired state empties
+the upper-band modes \(A+\) and \(B+\), while filling the lower-band modes
+\(A-\) and \(B-\).  Consequently the table is the operator-level
+counterpart of the measurement and feedback logic implemented for
+\texttt{Ap}, \texttt{Am}, \texttt{Bp}, and \texttt{Bm}.
+
+\section{Two-Leg Composition Formula}
+
+Contract the right leg of the accumulated tensor \(\Sigma\) with the left
+leg of a new local tensor \(K\).  The standard Gaussian two-leg contraction
+gives
+\begin{align}
+  \Sigma'
+  &=
+  K\circ\Sigma
+  \nonumber\\
+  &=
+  \begin{pmatrix}
+    \Sigma_{LL} & 0\\
+    0 & \eta_2P
+  \end{pmatrix}
+  -
+  \begin{pmatrix}
+    \Sigma_{LR} & 0\\
+    0 & Q
+  \end{pmatrix}
+  \begin{pmatrix}
+    \Sigma_{RR} & -\I\\
+    -\I & \eta_1P
+  \end{pmatrix}^{-1}
+  \begin{pmatrix}
+    \Sigma_{RL} & 0\\
+    0 & Q
+  \end{pmatrix}.
+  \label{eq:singular-composition}
+\end{align}
+The expression is formally singular because the internal lower-right block
+\(\eta_1P\) has rank one.  Inverting that block would require an inverse of
+\(P\) on \(\Ran Q\), where it vanishes identically.
+
+To define the contraction as a limit, replace the singular block by
+\begin{equation}
+  A_\eps
+  =
+  \eta_1P+\eps Q,
+  \qquad
+  A_\eps^{-1}
+  =
+  \eta_1P+\frac{1}{\eps}Q,
+  \qquad
+  \eps\neq0.
+  \label{eq:regulator}
+\end{equation}
+Let
+\begin{equation}
+  R\equiv \Sigma_{RR},
+  \qquad
+  \cK_\eps
+  =
+  \begin{pmatrix}
+    R & -\I\\
+    -\I & A_\eps
+  \end{pmatrix}.
+  \label{eq:internal-regulated}
+\end{equation}
+For fixed nonzero \(\eps\), block inversion through the Schur complement
+\begin{equation}
+  S_\eps=R-A_\eps^{-1}
+  \label{eq:S-eps}
+\end{equation}
+yields
+\begin{equation}
+  \cK_\eps^{-1}
+  =
+  \begin{pmatrix}
+  S_\eps^{-1}
+  &
+  S_\eps^{-1}A_\eps^{-1}
+  \\[2pt]
+  A_\eps^{-1}S_\eps^{-1}
+  &
+  A_\eps^{-1}
+  +
+  A_\eps^{-1}S_\eps^{-1}A_\eps^{-1}
+  \end{pmatrix}.
+  \label{eq:internal-inverse}
+\end{equation}
+Substitution into Eq.~\eqref{eq:singular-composition} reduces the problem to
+four regulated limits.
+
+\section{Calculation in a Projector-Adapted Basis}
+
+Choose a temporary computational basis adapted to
+\begin{equation}
+  \cH=\Ran P\oplus\Ran Q,
+  \qquad
+  \dim\Ran P=1.
+  \label{eq:PQ-splitting}
+\end{equation}
+In this basis,
+\begin{equation}
+  P=
+  \begin{pmatrix}
+    1&0\\0&0
+  \end{pmatrix},
+  \qquad
+  Q=
+  \begin{pmatrix}
+    0&0\\0&\I_Q
+  \end{pmatrix},
+  \qquad
+  R=
+  \begin{pmatrix}
+    a&b^\dagger\\
+    b&C
+  \end{pmatrix},
+  \label{eq:R-adapted}
+\end{equation}
+where
+\begin{equation}
+  a\in\mathbb{C},
+  \qquad
+  b\in\mathbb{C}^{(N-1)\times 1},
+  \qquad
+  C\in\mathbb{C}^{(N-1)\times(N-1)}.
+  \label{eq:reduced-dimensions}
+\end{equation}
+For Hermitian \(R\), \(a\) is real and \(C=C^\dagger\).  Define
+\begin{equation}
+  d=a-\eta_1.
+  \label{eq:d-adapted}
+\end{equation}
+The following discussion assumes \(d\neq0\).
+
+Using Eq.~\eqref{eq:regulator},
+\begin{equation}
+  S_\eps
+  =
+  \begin{pmatrix}
+    d & b^\dagger\\
+    b & C-\eps^{-1}\I_Q
+  \end{pmatrix}.
+  \label{eq:S-adapted}
+\end{equation}
+Since
+\begin{equation}
+  (C-\eps^{-1}\I_Q)^{-1}
+  =
+  -\eps(\I_Q-\eps C)^{-1}
+  =
+  -\eps\I_Q-\eps^2C+O(\eps^3),
+  \label{eq:Q-inverse-expansion}
+\end{equation}
+the block inverse of \(S_\eps\) gives the finite combinations needed by the
+Choi contraction:
+\begin{align}
+  S_\eps^{-1}
+  &\longrightarrow
+  \begin{pmatrix}
+    d^{-1}&0\\
+    0&0
+  \end{pmatrix},
+  \label{eq:limit-one}
+  \\
+  S_\eps^{-1}A_\eps^{-1}Q
+  &\longrightarrow
+  \begin{pmatrix}
+    0&d^{-1}b^\dagger\\
+    0&-\I_Q
+  \end{pmatrix},
+  \label{eq:limit-two}
+  \\
+  QA_\eps^{-1}S_\eps^{-1}
+  &\longrightarrow
+  \begin{pmatrix}
+    0&0\\
+    d^{-1}b&-\I_Q
+  \end{pmatrix},
+  \label{eq:limit-three}
+  \\
+  Q\!\left(
+    A_\eps^{-1}
+    A_\eps^{-1}S_\eps^{-1}A_\eps^{-1}
+  \right)Q
+  &\longrightarrow
+  \begin{pmatrix}
+    0&0\\
+    0&d^{-1}bb^\dagger-C
+  \end{pmatrix}.
+  \label{eq:limit-four}
+\end{align}
+Although the inverse \(A_\eps^{-1}\) diverges on \(\Ran Q\), its divergent
+contribution cancels in the combinations selected by the external \(Q\)
+factors of the local tensor.
+
+\subsection{Block Updates in the Adapted Basis}
+
+Equations~\eqref{eq:limit-one}--\eqref{eq:limit-four} immediately imply
+\begin{align}
+  \Sigma_{LL}'
+  &=
+  \Sigma_{LL}
+  -
+  \Sigma_{LR}
+  \begin{pmatrix}
+    d^{-1}&0\\0&0
+  \end{pmatrix}
+  \Sigma_{RL},
+  \label{eq:LL-adapted}
+  \\
+  \Sigma_{LR}'
+  &=
+  \Sigma_{LR}
+  \begin{pmatrix}
+    0&-d^{-1}b^\dagger\\
+    0&\I_Q
+  \end{pmatrix},
+  \label{eq:LR-adapted}
+  \\
+  \Sigma_{RL}'
+  &=
+  \begin{pmatrix}
+    0&0\\
+    -d^{-1}b&\I_Q
+  \end{pmatrix}
+  \Sigma_{RL},
+  \label{eq:RL-adapted}
+  \\
+  \Sigma_{RR}'
+  &=
+  \boxed{
+  \begin{pmatrix}
+    \eta_2&0_{1\times(N-1)}\\[4pt]
+    0_{(N-1)\times1}
+    &
+    C-\dfrac{bb^\dagger}{a-\eta_1}
+  \end{pmatrix}
+  }.
+  \label{eq:RR-adapted}
+\end{align}
+
+\section{Dimensional Correction to the Lower-Right Block}
+
+The handwritten calculation identifies the correct reduced \(Q\)-sector
+Schur complement,
+\begin{equation}
+  C-\frac{bb^\dagger}{a-\eta_1}.
+  \label{eq:reduced-RR}
+\end{equation}
+There is, however, an important dimensional qualification.  The matrices
+\(C\) and \(bb^\dagger\) in Eq.~\eqref{eq:reduced-RR} act on
+\(\Ran Q\) and hence have dimensions \((N-1)\times(N-1)\).  By contrast,
+\(P\), \(Q\), and \(\Sigma_{RR}'\) act on the full \(N\)-dimensional
+single-particle space.  Thus an expression that adds \(\eta_2P\) directly
+to Eq.~\eqref{eq:reduced-RR}, or multiplies Eq.~\eqref{eq:reduced-RR} by the
+full-space projector \(Q\) without declaring an embedding, is dimensionally
+incomplete.
+
+The corrected statement is Eq.~\eqref{eq:RR-adapted}: the scalar
+\(\eta_2\) occupies the \(P\)-sector, while the reduced Schur complement is
+embedded as the \(Q\)-sector block.  In physical terms, the selected mode is
+reset to the covariance prescribed by \(\eta_2\), and the modes not selected
+by \(P\) inherit the conditional Schur-complement covariance induced by their
+previous correlations with that mode.
+
+\section{Basis-Independent Update}
+
+The adapted basis serves only to calculate the limit.  Its final result can
+be written entirely using \(P\), \(Q\), and the original Choi blocks.  First,
+the reduced quantities appearing above obey
+\begin{align}
+  a
+  &=
+  \Tr(PR)
+  =
+  \bra{\chi}R\ket{\chi},
+  \label{eq:a-invariant}
+  \\
+  b
+  &\longleftrightarrow
+  QR\ket{\chi},
+  \label{eq:b-invariant}
+  \\
+  bb^\dagger
+  &\longleftrightarrow
+  QRPRQ,
+  \label{eq:bb-invariant}
+  \\
+  C
+  &\longleftrightarrow
+  QRQ\big|_{\Ran Q}.
+  \label{eq:C-invariant}
+\end{align}
+The arrows in Eqs.~\eqref{eq:b-invariant}--\eqref{eq:C-invariant} indicate
+that the left-hand objects are matrices in a basis of \(\Ran Q\), whereas
+the right-hand expressions are their full-space operator embeddings.
+
+\begin{proposition}[Regulated rank-one Choi contraction]
+\label{prop:reg-contraction}
+Let \(P=\ket{\chi}\bra{\chi}\) be rank one, \(Q=\I-P\), and
+\[
+  K(\eta_1,\eta_2)
+  =
+  \begin{pmatrix}
+    \eta_1P&Q\\
+    Q&\eta_2P
+  \end{pmatrix}.
+\]
+Let \(\Sigma\) be as in Eq.~\eqref{eq:Sigma-blocks}, write
+\(R=\Sigma_{RR}\), and suppose
+\begin{equation}
+  d
+  =
+  \Tr(PR)-\eta_1
+  =
+  \bra{\chi}R\ket{\chi}-\eta_1
+  \neq 0.
+  \label{eq:d-invariant}
+\end{equation}
+Then the \(\eps\to0\) limit of the contraction obtained from
+\(K_{LL}^{(\eps)}=\eta_1P+\eps Q\) exists and is
+\begin{equation}
+  \boxed{
+  \Sigma'
+  =
+  \begin{pmatrix}
+  \displaystyle
+  \Sigma_{LL}
+  -
+  \frac{\Sigma_{LR}P\Sigma_{RL}}{d}
+  &
+  \displaystyle
+  \Sigma_{LR}Q
+  -
+  \frac{\Sigma_{LR}PRQ}{d}
+  \\[15pt]
+  \displaystyle
+  Q\Sigma_{RL}
+  -
+  \frac{QRP\Sigma_{RL}}{d}
+  &
+  \displaystyle
+  \eta_2P+QRQ-\frac{QRPRQ}{d}
+  \end{pmatrix}.
+  }
+  \label{eq:full-invariant-update}
+\end{equation}
+\end{proposition}
+
+For clarity, the four operator-valued blocks of
+Eq.~\eqref{eq:full-invariant-update} are
+\begin{align}
+  \boxed{
+  \Sigma_{LL}'
+  =
+  \Sigma_{LL}
+  -
+  \frac{\Sigma_{LR}P\Sigma_{RL}}
+       {\Tr(P\Sigma_{RR})-\eta_1}
+  },
+  \label{eq:LL-invariant}
+  \\[5pt]
+  \boxed{
+  \Sigma_{LR}'
+  =
+  \Sigma_{LR}Q
+  -
+  \frac{\Sigma_{LR}P\Sigma_{RR}Q}
+       {\Tr(P\Sigma_{RR})-\eta_1}
+  },
+  \label{eq:LR-invariant}
+  \\[5pt]
+  \boxed{
+  \Sigma_{RL}'
+  =
+  Q\Sigma_{RL}
+  -
+  \frac{Q\Sigma_{RR}P\Sigma_{RL}}
+       {\Tr(P\Sigma_{RR})-\eta_1}
+  },
+  \label{eq:RL-invariant}
+  \\[5pt]
+  \boxed{
+  \Sigma_{RR}'
+  =
+  \eta_2P
+  +
+  Q\Sigma_{RR}Q
+  -
+  \frac{Q\Sigma_{RR}P\Sigma_{RR}Q}
+       {\Tr(P\Sigma_{RR})-\eta_1}
+  }.
+  \label{eq:RR-invariant}
+\end{align}
+Every term in Eqs.~\eqref{eq:LL-invariant}--\eqref{eq:RR-invariant} is an
+operator on the full \(N\)-dimensional single-particle space.  No
+dimension-dependent insertion maps or implied reduced-space products remain.
+
+\subsection{Sherman--Morrison Form of the \texorpdfstring{$RR$}{RR} Block}
+\label{subsec:SM-RR}
+
+The \(Q\)-sector of \(\Sigma_{RR}'\) admits a compact inverse
+representation.  Whenever \(R=\Sigma_{RR}\) is invertible, the
+Sherman--Morrison formula applied to the rank-one perturbation
+\(-\eta_1 P\) of \(R^{-1}\) gives
+\begin{equation}
+  \bigl(R^{-1}-\eta_1 P\bigr)^{-1}
+  =
+  R
+  +
+  \frac{\eta_1\,RPR}
+       {1-\eta_1\langle\chi\rvert R\lvert\chi\rangle}.
+  \label{eq:SM-R-inverse}
+\end{equation}
+Because \(\langle\chi\rvert R\lvert\chi\rangle = d+\eta_1\) and
+\(\eta_1^2=1\), the denominator collapses:
+\begin{equation}
+  1-\eta_1(d+\eta_1)
+  =
+  1-\eta_1 d-\eta_1^2
+  =
+  -\eta_1 d,
+  \label{eq:SM-denom}
+\end{equation}
+so Eq.~\eqref{eq:SM-R-inverse} becomes
+\begin{equation}
+  \bigl(R^{-1}-\eta_1 P\bigr)^{-1}
+  =
+  R-\frac{RPR}{d}.
+  \label{eq:SM-simplified}
+\end{equation}
+Projecting onto \(\Ran Q\) on both sides,
+\begin{equation}
+  Q\bigl(R^{-1}-\eta_1 P\bigr)^{-1}Q
+  =
+  QRQ-\frac{QRPRQ}{d},
+  \label{eq:SM-projected}
+\end{equation}
+which is exactly the \(Q\)-sector of \(\Sigma_{RR}'\) in
+Eq.~\eqref{eq:RR-invariant}.  The full updated right-right block
+therefore reads
+\begin{equation}
+  \boxed{
+  \Sigma_{RR}'
+  =
+  \eta_2 P
+  +
+  Q\bigl(\Sigma_{RR}^{-1}-\eta_1 P\bigr)^{-1}Q.
+  }
+  \label{eq:RR-SM-form}
+\end{equation}
+Equation~\eqref{eq:RR-SM-form} makes the singular-branch condition
+transparent: the Sherman--Morrison denominator for inverting
+\(\Sigma_{RR}^{-1}-\eta_1 P\) is \(-\eta_1 d\), which vanishes if and only
+if \(d=0\).  The regulated contraction is therefore well-defined on precisely
+those branches for which the inverse in
+Eq.~\eqref{eq:RR-SM-form} exists.
+
+\subsection{Regularized Resolvent Form of All Blocks}
+\label{subsec:regularized-resolvent-blocks}
+
+The inverse form in Eq.~\eqref{eq:RR-SM-form} can be written without first
+forming \(R^{-1}\).  Define the one-sided resolvents
+\begin{equation}
+  A_R
+  =
+  \I-\eta_1RP,
+  \qquad
+  A_L
+  =
+  \I-\eta_1PR.
+  \label{eq:one-sided-resolvents}
+\end{equation}
+If \(R\) is invertible, then
+\begin{equation}
+  R^{-1}-\eta_1P
+  =
+  R^{-1}A_R
+  =
+  A_LR^{-1},
+  \label{eq:inverse-factorizations}
+\end{equation}
+and hence
+\begin{equation}
+  \bigl(R^{-1}-\eta_1P\bigr)^{-1}
+  =
+  A_R^{-1}R
+  =
+  RA_L^{-1}.
+  \label{eq:resolvent-inverse-equivalence}
+\end{equation}
+The final resolvent formulas below only require the corresponding one-sided
+resolvent to be invertible; no explicit inverse of \(R\) need be formed in
+their numerical implementation.
+The Sherman--Morrison identity for \(A_R=\I-\eta_1RP\) gives
+\begin{equation}
+  A_R^{-1}
+  =
+  \I-\frac{RP}{d},
+  \qquad
+  A_L^{-1}
+  =
+  \I-\frac{PR}{d},
+  \label{eq:resolvent-SM-expanded}
+\end{equation}
+where \(d=\Tr(PR)-\eta_1\).  Substitution into
+Eqs.~\eqref{eq:LL-invariant}--\eqref{eq:RR-invariant} yields the equivalent
+resolvent representation
+\begin{align}
+  \boxed{
+  \Sigma_{LL}'
+  =
+  \Sigma_{LL}
+  +
+  \eta_1\Sigma_{LR}P A_R^{-1}\Sigma_{RL}
+  }
+  &=
+  \boxed{
+  \Sigma_{LL}
+  +
+  \eta_1\Sigma_{LR}A_L^{-1}P\Sigma_{RL}
+  },
+  \label{eq:LL-resolvent}
+  \\[5pt]
+  \boxed{
+  \Sigma_{LR}'
+  =
+  \Sigma_{LR}Q
+  +
+  \eta_1\Sigma_{LR}P A_R^{-1}RQ
+  }
+  &=
+  \boxed{
+  \Sigma_{LR}A_L^{-1}Q
+  },
+  \label{eq:LR-resolvent}
+  \\[5pt]
+  \boxed{
+  \Sigma_{RL}'
+  =
+  Q A_R^{-1}\Sigma_{RL}
+  }
+  &=
+  \boxed{
+  QRA_L^{-1}\eta_1P\Sigma_{RL}
+  +
+  Q\Sigma_{RL}
+  },
+  \label{eq:RL-resolvent}
+  \\[5pt]
+  \boxed{
+  \Sigma_{RR}'
+  =
+  \eta_2P
+  +
+  Q A_R^{-1}RQ
+  }
+  &=
+  \boxed{
+  \eta_2P
+  +
+  QRA_L^{-1}Q
+  }.
+  \label{eq:RR-resolvent}
+\end{align}
+For example,
+\[
+  Q A_R^{-1}\Sigma_{RL}
+  =
+  Q\Sigma_{RL}
+  -
+  \frac{QRP\Sigma_{RL}}{d},
+  \qquad
+  \eta_1\Sigma_{LR}P A_R^{-1}\Sigma_{RL}
+  =
+  -\frac{\Sigma_{LR}P\Sigma_{RL}}{d},
+\]
+so the lower-left and upper-left blocks in
+Eqs.~\eqref{eq:RL-resolvent} and \eqref{eq:LL-resolvent} reduce exactly to
+Eqs.~\eqref{eq:RL-invariant} and \eqref{eq:LL-invariant}.  The remaining
+two reductions are identical:
+\[
+  \eta_1\Sigma_{LR}P A_R^{-1}RQ
+  =
+  -\frac{\Sigma_{LR}PRQ}{d},
+  \qquad
+  Q A_R^{-1}RQ
+  =
+  QRQ-\frac{QRPRQ}{d}.
+\]
+
+Equations~\eqref{eq:LL-resolvent}--\eqref{eq:RR-resolvent} are useful
+computationally because they replace the explicit scalar division by two
+linear solves with the same nearly identity rank-one matrix.  In the
+right-resolvent form, solve
+\begin{equation}
+  A_RX=\Sigma_{RL},
+  \qquad
+  A_RY=RQ.
+  \label{eq:regularized-resolvent-solves}
+\end{equation}
+Then the update is assembled as
+\begin{align}
+  \Sigma_{LL}'&=\Sigma_{LL}+\eta_1\Sigma_{LR}PX,
+  &
+  \Sigma_{LR}'&=\Sigma_{LR}Q+\eta_1\Sigma_{LR}PY,
+  \nonumber\\
+  \Sigma_{RL}'&=QX,
+  &
+  \Sigma_{RR}'&=\eta_2P+QY.
+  \label{eq:regularized-resolvent-assembly}
+\end{align}
+The solves in Eq.~\eqref{eq:regularized-resolvent-solves} may be evaluated
+with the same Tikhonov-regularized linear solver used for the ordinary
+covariance updates.  On well-conditioned nonsingular branches the
+unregularized solve gives the exact identities above, while the Tikhonov
+fallback supplies a controlled numerical continuation when \(A_R\) is nearly
+singular.
+
+\subsection{Off-Diagonal Choi Block}
+
+The upper-right block deserves separate emphasis:
+\begin{equation}
+  \Sigma_{LR}'
+  =
+  \Sigma_{LR}Q
+  -
+  \frac{\Sigma_{LR}PRQ}{d}.
+  \label{eq:offdiag-interpretation}
+\end{equation}
+The first term removes the outgoing column in the measured \(P\)-direction:
+\(\Sigma_{LR}'P=0\).  The second term is a finite rank-one correction created
+by pre-existing correlations between the selected mode and \(\Ran Q\).  If
+\(PRQ=0\), meaning that the selected mode is uncorrelated with its
+orthogonal complement in \(R\), then
+\begin{equation}
+  \Sigma_{LR}'=\Sigma_{LR}Q.
+  \label{eq:offdiag-decoupled}
+\end{equation}
+The analogous statement for the lower-left block follows either directly or
+by Hermiticity.
+
+\subsection{Hermiticity and the Singular Branch Condition}
+
+When \(R=R^\dagger\), \(\Sigma_{RL}=\Sigma_{LR}^{\dagger}\), and
+\(\eta_{1,2}\) are real, \(d\) is real.  It then follows immediately from
+Eq.~\eqref{eq:full-invariant-update} that
+\begin{equation}
+  \Sigma_{LL}'=(\Sigma_{LL}')^\dagger,
+  \qquad
+  \Sigma_{RR}'=(\Sigma_{RR}')^\dagger,
+  \qquad
+  \Sigma_{RL}'=(\Sigma_{LR}')^\dagger.
+  \label{eq:hermiticity-preservation}
+\end{equation}
+
+If \(d=0\), the rank-one denominator in the regulated contraction vanishes.
+The ordinary finite limit in Proposition~\ref{prop:reg-contraction} is then
+not defined.  At the operator level this identifies a singular selected
+branch: the projected mode has exactly the covariance value at which the
+chosen local Kraus update has vanishing or nonregular overlap with the
+incoming accumulated tensor.  Such an event requires a separate
+zero-overlap or rescaled-limit analysis and is not covered by the formula
+above.
+
+\subsection{Preservation of the Choi Involution}
+
+For a pure Gaussian Choi tensor, the covariance is an involution,
+\begin{equation}
+  \Sigma^2=\I.
+  \label{eq:old-choi-involution}
+\end{equation}
+The corrected regulated update preserves this constraint on every
+nonsingular branch.
+
+\begin{proposition}[Preservation of the Choi involution]
+  Assume the hypotheses of Proposition~\ref{prop:reg-contraction}, together
+  with Eq.~\eqref{eq:old-choi-involution}.  Then, for
+  \(d=\Tr(P\Sigma_{RR})-\eta_1\neq0\),
+  \begin{equation}
+    \left(\Sigma'\right)^2=\I.
+    \label{eq:new-choi-involution}
+  \end{equation}
+\end{proposition}
+
+\begin{proof}
+  The assertion is basis independent, so for the proof choose a basis
+  adapted to \(P\oplus Q\), and reorder the full covariance as
+  \((L\oplus Q)\oplus P\).  Writing
+  \begin{equation}
+    \Sigma_{LR}=\begin{pmatrix} u & V \end{pmatrix},
+    \qquad
+    \Sigma_{RR}=
+    \begin{pmatrix}
+      r & b^\dagger\\
+      b & C
+    \end{pmatrix},
+    \qquad
+    r=\Tr(P\Sigma_{RR}),
+  \end{equation}
+  the unupdated covariance becomes
+  \begin{equation}
+    \widetilde{\Sigma}
+    =
+    \begin{pmatrix}
+      X & y\\
+      y^\dagger & r
+    \end{pmatrix},
+    \qquad
+    X=
+    \begin{pmatrix}
+      \Sigma_{LL} & V\\
+      V^\dagger & C
+    \end{pmatrix},
+    \qquad
+    y=
+    \begin{pmatrix}
+      u\\ b
+    \end{pmatrix}.
+    \label{eq:involution-proof-decomposition}
+  \end{equation}
+  Equation~\eqref{eq:old-choi-involution} is equivalent to
+  \begin{align}
+    X^2+yy^\dagger &= \I_{L\oplus Q},&
+    Xy+r y &=0,&
+    y^\dagger y+r^2&=1.
+    \label{eq:old-involution-identities}
+  \end{align}
+  Since \(\widetilde{\Sigma}\) is Hermitian, the second identity also gives
+  \(y^\dagger X=-r y^\dagger\).
+
+  The corrected update in Eq.~\eqref{eq:full-invariant-update}, written in
+  the same reordered output basis, decouples the newly reset \(P\) mode:
+  \begin{equation}
+    \widetilde{\Sigma}'
+    =
+    \begin{pmatrix}
+      T & 0\\
+      0 & \eta_2
+    \end{pmatrix},
+    \qquad
+    T=X-\frac{yy^\dagger}{d},
+    \qquad
+    d=r-\eta_1.
+    \label{eq:updated-involution-decomposition}
+  \end{equation}
+  Using Eq.~\eqref{eq:old-involution-identities},
+  \begin{align}
+    T^2
+    &=
+    X^2-\frac{Xyy^\dagger+yy^\dagger X}{d}
+    +\frac{(yy^\dagger)^2}{d^2}
+    \notag\\
+    &=
+    \I_{L\oplus Q}
+    +
+    \left(
+      -1+\frac{2r}{d}+\frac{1-r^2}{d^2}
+    \right)yy^\dagger
+    \notag\\
+    &=
+    \I_{L\oplus Q},
+    \label{eq:T-square-identity}
+  \end{align}
+  because
+  \begin{equation}
+    -d^2+2rd+1-r^2
+    =
+    1-\eta_1^2
+    =
+    0.
+  \end{equation}
+  Finally, \(\eta_2^2=1\), and therefore
+  \(\left(\widetilde{\Sigma}'\right)^2=\I\).  Permuting back to the original
+  Choi-leg ordering proves Eq.~\eqref{eq:new-choi-involution}.
+\end{proof}
+
+Thus an admissible local branch maps a pure Choi covariance to another pure
+Choi covariance: the selected mode is reset to an exact \(\eta_2\)
+eigenmode, while the complementary block remains an involution through the
+finite Schur-complement update.
+
+\section{Particle--Hole Transfer Complementarity of a Pure Choi Covariance}
+\label{sec:bipartite-reconstruction}
+
+The accumulated covariance \(\Sigma\) is itself the covariance of a pure
+Gaussian Choi state.  It therefore contains a single-particle transfer
+description of the realized non-unitary operator.  The natural language is
+not that of a failure of invertibility under projection, but that of
+complementary particle and hole amplitudes: an exact projected direction can
+be dark for particle propagation while it is a pole of the hole
+representation, or vice versa.
+
+In this section the two Choi legs are equal-dimensional one-particle spaces,
+\begin{equation}
+  \dim\cH_A=\dim\cH_B=N,
+  \label{eq:equal-choi-leg-dimensions}
+\end{equation}
+and the symbols \(A,B,D\) denote Choi-covariance blocks.  They are distinct
+from the rank-one measurement projector \(P\) of
+Eqs.~\eqref{eq:PQ}--\eqref{eq:full-invariant-update}.
+
+\subsection{Pure covariance identities}
+
+Let \(\ket{\Sigma}\) denote the pure number-conserving Choi state, with
+\begin{equation}
+  C_{ij}=\bra{\Sigma}c_i^\dagger c_j\ket{\Sigma},
+  \qquad
+  \Sigma_{ij}=\bra{\Sigma}[c_i^\dagger,c_j]\ket{\Sigma}
+  =2C_{ij}-\delta_{ij}.
+  \label{eq:bipartite-Gamma-convention}
+\end{equation}
+The purity condition \(C^2=C\) is equivalent to
+\begin{equation}
+  \Sigma=\Sigma^\dagger,
+  \qquad
+  \Sigma^2=\I.
+  \label{eq:bipartite-purity}
+\end{equation}
+After acting on the Choi state, creation and annihilation operators obey
+\begin{equation}
+  \bm c^\dagger\ket{\Sigma}
+  =
+  -\Sigma\bm c^\dagger\ket{\Sigma},
+  \qquad
+  \bm c\,\ket{\Sigma}
+  =
+  \Sigma^T\bm c\,\ket{\Sigma}.
+  \label{eq:global-ket-identities}
+\end{equation}
+These are state identities and are not operator equalities on the full Fock
+space.
+
+\subsection{Consistency of the Choi-state identities}
+
+We now verify explicitly that Eq.~\eqref{eq:global-ket-identities} encodes
+the same complex covariance \(\Sigma\) used in
+Eq.~\eqref{eq:bipartite-Gamma-convention}.  Sandwiching the annihilation
+identity between \(\bra{\Sigma}c_i^\dagger\) and \(\ket{\Sigma}\) gives
+\begin{align}
+  C_{ij}
+  &=
+  \bra{\Sigma}c_i^\dagger c_j\ket{\Sigma}
+  =
+  \sum_k \Sigma_{kj}
+  \bra{\Sigma}c_i^\dagger c_k\ket{\Sigma}
+  \nonumber\\
+  &=
+  \sum_k C_{ik}\Sigma_{kj},
+  \qquad\Longrightarrow\qquad
+  C=C\Sigma .
+  \label{eq:annihilation-identity-recovers-occupied-sector}
+\end{align}
+Because both \(C\) and \(\Sigma\) are Hermitian, taking the adjoint yields
+\begin{equation}
+  \Sigma C=C.
+  \label{eq:occupied-plus-sector}
+\end{equation}
+Thus the occupied one-particle subspace lies in the \(+1\) eigenspace of
+\(\Sigma\).
+
+Similarly, use the creation identity and contract with
+\(\bra{\Sigma}c_i\).  Since
+\(
+  \bra{\Sigma}c_i c_j^\dagger\ket{\Sigma}
+  =
+  \delta_{ij}-C_{ji}
+\),
+one obtains
+\begin{align}
+  \delta_{ij}-C_{ji}
+  &=
+  -\sum_k\Sigma_{jk}
+  \bigl(\delta_{ik}-C_{ki}\bigr).
+  \label{eq:creation-contraction-components}
+\end{align}
+Upon transposing this matrix equation,
+\begin{equation}
+  \Sigma(\I-C)=-(\I-C).
+  \label{eq:empty-minus-sector}
+\end{equation}
+Hence the empty one-particle subspace lies in the \(-1\) eigenspace of
+\(\Sigma\).  Resolving the identity into occupied and empty sectors now
+gives
+\begin{align}
+  \Sigma
+  &=
+  \Sigma C+\Sigma(\I-C)
+  =
+  C-(\I-C)
+  =
+  2C-\I .
+  \label{eq:state-identities-recover-covariance}
+\end{align}
+Therefore
+\begin{equation}
+  \boxed{
+  \bra{\Sigma}[c_i^\dagger,c_j]\ket{\Sigma}
+  =
+  2\bra{\Sigma}c_i^\dagger c_j\ket{\Sigma}
+  -
+  \delta_{ij}
+  =
+  \Sigma_{ij}.
+  }
+  \label{eq:explicit-complex-covariance-check}
+\end{equation}
+This closes the consistency loop: the linear relations in
+Eq.~\eqref{eq:global-ket-identities} are precisely the state-space
+representation of the complex Choi covariance, rather than an additional
+transfer assumption.
+
+In the bipartition \(\cH_A\oplus\cH_B\), write
+\begin{equation}
+  \Sigma
+  =
+  \begin{pmatrix}
+    A & B\\
+    B^\dagger & D
+  \end{pmatrix},
+  \qquad
+  A=A^\dagger,
+  \qquad
+  D=D^\dagger .
+  \label{eq:bipartite-blocks}
+\end{equation}
+Equation~\eqref{eq:bipartite-purity} gives
+\begin{align}
+  A^2+BB^\dagger&=\I_A,
+  &
+  AB+BD&=0,
+  \label{eq:bipartite-involution-identities}\\
+  B^\dagger A+DB^\dagger&=0,
+  &
+  B^\dagger B+D^2&=\I_B.
+  \notag
+\end{align}
+In particular,
+\begin{equation}
+  \I_A-A^2=BB^\dagger\geq0.
+  \label{eq:A-spectral-bound}
+\end{equation}
+Since \(A\) is Hermitian, it admits an orthonormal eigenbasis and
+\begin{equation}
+  \operatorname{spec}(A)\subseteq[-1,1].
+  \label{eq:A-spectrum-interval}
+\end{equation}
+
+\subsection{Particle and hole transfer matrices}
+
+Taking the \(A\)-leg components of Eq.~\eqref{eq:global-ket-identities}
+yields
+\begin{align}
+  (\I_A+A)\bm c_A^\dagger\ket{\Sigma}
+  &=-B\bm c_B^\dagger\ket{\Sigma},
+  \label{eq:creation-leg-equation}\\
+  (\I_A-A^T)\bm c_A\ket{\Sigma}
+  &=B^*\bm c_B\ket{\Sigma}.
+  \label{eq:annihilation-leg-equation}
+\end{align}
+Accordingly, wherever the indicated finite representation exists, define
+\begin{align}
+  \bm c_A^\dagger\ket{\Sigma}
+  &=
+  \mathcal T_p\bm c_B^\dagger\ket{\Sigma},
+  &
+  \mathcal T_p
+  &:=
+  -(\I_A+A)^{-1}B,
+  \label{eq:particle-transfer-definition}\\
+  \bm c_A\ket{\Sigma}
+  &=
+  \mathcal T_h\bm c_B\ket{\Sigma},
+  &
+  \mathcal T_h
+  &:=
+  (\I_A-A^T)^{-1}B^* .
+  \label{eq:hole-transfer-definition}
+\end{align}
+Here \(\mathcal T_p\) is the particle, or creation-sector, transfer matrix,
+while \(\mathcal T_h\) is the hole, or annihilation-sector, transfer matrix.
+Neither definition requires \(A\) itself to have full rank, and a
+rank-deficient \(\mathcal T_p\) is entirely regular.  Rather,
+\(\mathcal T_p\) develops a pole only at an exact \(A=-\I\) direction,
+whereas \(\mathcal T_h\) develops the complementary pole at an exact
+\(A=+\I\) direction.  At such endpoints the displayed inverse formulas are
+understood by approach from the finite sector.
+
+\begin{proposition}[Particle-transfer representation]
+\label{prop:particle-covariance}
+On a finite particle-transfer sector, Eq.~\eqref{eq:particle-transfer-definition}
+implies
+\begin{align}
+  A
+  &=
+  (\I_A-\mathcal T_p\mathcal T_p^\dagger)
+  (\I_A+\mathcal T_p\mathcal T_p^\dagger)^{-1},
+  \label{eq:particle-A-reconstruction}\\
+  B
+  &=
+  -2(\I_A+\mathcal T_p\mathcal T_p^\dagger)^{-1}\mathcal T_p.
+  \label{eq:particle-B-reconstruction}
+\end{align}
+On the corresponding coupled subspace of \(\cH_B\), one furthermore has
+\begin{equation}
+  D
+  =
+  -(\I_B-\mathcal T_p^\dagger\mathcal T_p)
+  (\I_B+\mathcal T_p^\dagger\mathcal T_p)^{-1}.
+  \label{eq:particle-D-reconstruction}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Equation~\eqref{eq:particle-transfer-definition} gives
+\begin{equation}
+  B=-(\I_A+A)\mathcal T_p.
+  \label{eq:B-from-transfer}
+\end{equation}
+Because \(A=A^\dagger\), substitution into
+\(A^2+BB^\dagger=\I_A\) first gives the unsimplified relation
+\begin{equation}
+  (\I_A+A)\mathcal T_p\mathcal T_p^\dagger(\I_A+A)
+  =
+  \I_A-A^2 .
+  \label{eq:TpTp-congruence}
+\end{equation}
+On a finite particle-transfer sector, \(\I_A+A\) is invertible.  Multiplying
+Eq.~\eqref{eq:TpTp-congruence} on both sides by
+\((\I_A+A)^{-1}\) therefore produces the two-inverse expression
+\begin{equation}
+  \mathcal T_p\mathcal T_p^\dagger
+  =
+  (\I_A+A)^{-1}
+  (\I_A-A^2)
+  (\I_A+A)^{-1}.
+  \label{eq:TpTp-two-inverses}
+\end{equation}
+Now \(A\), \(\I_A-A\), \(\I_A+A\), and
+\((\I_A+A)^{-1}\) mutually commute, because each is a function of the
+Hermitian operator \(A\).  Factoring
+\(
+  \I_A-A^2=(\I_A-A)(\I_A+A)
+\)
+and cancelling one factor yields
+\begin{equation}
+  \mathcal T_p\mathcal T_p^\dagger
+  =
+  (\I_A-A)(\I_A+A)^{-1}.
+  \label{eq:TpTp-from-A}
+\end{equation}
+The cancellation is unavailable precisely on an \(a=-1\) eigenvector,
+where \(\I_A+A\) vanishes and the particle-transfer representation has its
+endpoint pole.
+Inverting this Cayley relation yields
+Eq.~\eqref{eq:particle-A-reconstruction}; inserting the result into
+Eq.~\eqref{eq:B-from-transfer} yields
+Eq.~\eqref{eq:particle-B-reconstruction}.  Finally, \(AB+BD=0\) fixes
+\(D\) on \(\Ran B^\dagger\), giving
+Eq.~\eqref{eq:particle-D-reconstruction}.
+\end{proof}
+
+It is important that the qualifier in the last statement not be suppressed.
+If an exact projection makes \(B\) vanish on a direction, the equation
+\(AB+BD=0\) cannot determine the polarization of the decoupled mode on the
+opposite Choi leg: there one has only \(D^2=\I_B\).  Thus
+Eqs.~\eqref{eq:particle-A-reconstruction} and
+\eqref{eq:particle-B-reconstruction} determine particle transfer data,
+whereas a fully projected endpoint retains additional output-polarization
+information in \(D\).  This is precisely the information carried by the
+\(\eta_2P\) reset term in Eq.~\eqref{eq:full-invariant-update}.
+
+\subsection{Polar form and particle--hole duality}
+
+Take the left polar decomposition
+\begin{equation}
+  \mathcal T_p=HU,
+  \qquad
+  H=(\mathcal T_p\mathcal T_p^\dagger)^{1/2}\geq0.
+  \label{eq:left-polar-transfer}
+\end{equation}
+Because the Choi legs have equal dimension, the partial isometry can be
+extended to a unitary \(U:\cH_B\to\cH_A\).  On the particle-transfer
+sector,
+\begin{equation}
+  A=q(H):=\frac{\I-H^2}{\I+H^2},
+  \qquad
+  B=-r(H)U,
+  \qquad
+  r(H):=\frac{2H}{\I+H^2}.
+  \label{eq:qr-functions}
+\end{equation}
+The functions \(q(H)\) and \(r(H)\) commute and obey
+\begin{equation}
+  q(H)^2+r(H)^2=\I_A,
+  \label{eq:qr-circle}
+\end{equation}
+making purity transparent on the coupled sector.
+
+For strictly positive finite singular values of \(H\), substitution into
+Eq.~\eqref{eq:hole-transfer-definition} gives
+\begin{equation}
+  \mathcal T_h
+  =
+  -\left(H^T\right)^{-1}U^*
+  =
+  -H^{-T}U^* .
+  \label{eq:particle-hole-transfer-duality}
+\end{equation}
+Thus particle and hole amplitudes are dual descriptions of the same pure
+Choi correlation:
+\begin{equation}
+  s_j(\mathcal T_h)
+  =
+  s_j(\mathcal T_p)^{-1}
+  \qquad
+  \text{for }0<s_j(\mathcal T_p)<\infty .
+  \label{eq:reciprocal-singular-values}
+\end{equation}
+This is particle--hole complementarity in transfer space, rather than an
+alternative convention appended to the dynamics.
+
+\subsection{Endpoint sectors and Lyapunov exponents}
+
+Let
+\begin{equation}
+  A u_j=a_j u_j,
+  \qquad
+  a_j\in[-1,1].
+  \label{eq:A-eigenproblem}
+\end{equation}
+Equation~\eqref{eq:TpTp-from-A} gives, on the finite sector,
+\begin{equation}
+  s_{p,j}^2
+  =
+  \frac{1-a_j}{1+a_j},
+  \qquad
+  s_{h,j}^2
+  =
+  \frac{1+a_j}{1-a_j}.
+  \label{eq:particle-hole-singular-from-A}
+\end{equation}
+Consequently the endpoint structure is
+\begin{align}
+  a_j=+1:
+  &\qquad
+  s_{p,j}=0,
+  \qquad
+  s_{h,j}=\infty,
+  \label{eq:plus-endpoint}\\
+  -1<a_j<+1:
+  &\qquad
+  0<s_{p,j}<\infty,
+  \qquad
+  s_{h,j}=s_{p,j}^{-1},
+  \label{eq:interior-sector}\\
+  a_j=-1:
+  &\qquad
+  s_{p,j}=\infty,
+  \qquad
+  s_{h,j}=0.
+  \label{eq:minus-endpoint}
+\end{align}
+The infinite values in Eqs.~\eqref{eq:plus-endpoint} and
+\eqref{eq:minus-endpoint} are limiting statements: at the exact endpoint
+the relevant inverse in Eq.~\eqref{eq:particle-transfer-definition} or
+\eqref{eq:hole-transfer-definition} is singular.  Exact projective
+operations polarize selected one-particle directions into these extremal
+covariance sectors.  A particle-dark direction is a pole in the
+complementary hole description, and a hole-dark direction is a pole in the
+particle description.  This is not a loss of purity or a failure of the
+Choi covariance; it is the sharp transfer signature of an exact Gaussian
+projection.
+
+For an accumulated Choi tensor after \(t>0\) completed cycles, the finite
+particle and hole Lyapunov exponents are therefore
+\begin{align}
+  \lambda_{p,j}(t)
+  &=
+  \frac{1}{t}\log s_{p,j}(t)
+  =
+  \frac{1}{2t}
+  \log\!\left(\frac{1-a_j(t)}{1+a_j(t)}\right)
+  =
+  -\frac{1}{t}\operatorname{artanh}a_j(t),
+  \label{eq:particle-lyapunov-from-A}\\
+  \lambda_{h,j}(t)
+  &=
+  \frac{1}{t}\log s_{h,j}(t)
+  =
+  -\lambda_{p,j}(t).
+  \label{eq:hole-lyapunov-from-A}
+\end{align}
+The endpoint sectors contribute formal \(-\infty\) or \(+\infty\)
+exponents in the appropriate particle or hole representation.  A supported
+numerical observable may omit these endpoint sectors and record their
+multiplicities separately, but it must identify the transfer convention to
+which its retained exponents refer.
+
+\subsection{Particle-transfer Lyapunov gap}
+
+The transfer-space gap relevant for the slowest finite particle direction is
+the finite-time Lyapunov gap
+\begin{equation}
+  \Delta_\lambda(t)
+  \equiv
+  \min_{j\ {\rm finite}}\left|\lambda_{p,j}(t)\right|
+  =
+  \frac{1}{t}
+  \min_{j\ {\rm finite}}
+  \left|\log s_j\!\left(\mathcal T_p(t)\right)\right| .
+  \label{eq:particle-lyapunov-gap-definition}
+\end{equation}
+By Eq.~\eqref{eq:particle-lyapunov-from-A}, it is obtained directly from the
+left Choi block:
+\begin{equation}
+  \boxed{
+  \Delta_\lambda(t)
+  =
+  \frac{1}{t}
+  \min_{j\ {\rm finite}}
+  \left|
+    \operatorname{artanh} a_j(t)
+  \right|,
+  \qquad
+  a_j(t)\in\operatorname{spec}\Sigma_{LL}(t).
+  }
+  \label{eq:particle-gap-from-A}
+\end{equation}
+On the open interval \((-1,1)\), the function
+\(\left|\operatorname{artanh}a\right|\) is strictly increasing with
+\(\lvert a\rvert\).  Thus the finite gap is controlled by eigenvalues of
+\(A(t)=\Sigma_{LL}(t)\) closest to zero, rather than by its polarized
+endpoint sectors.  The latter have \(a_j=\pm1\) and contribute formal
+infinite particle exponents; they are excluded from the finite minimum in
+Eq.~\eqref{eq:particle-gap-from-A} while their multiplicities remain a
+separate diagnostic of exact projection.
+
+Equivalently, if \(A u_j=a_j u_j\), then
+Eq.~\eqref{eq:TpTp-from-A} gives
+\begin{equation}
+  \mathcal T_p\mathcal T_p^\dagger u_j
+  =
+  \frac{1-a_j}{1+a_j}u_j
+  =
+  s_{p,j}^2 u_j.
+  \label{eq:near-gap-transfer-eigenstates}
+\end{equation}
+The \(A\)-eigenstates closest to \(a_j=0\) are therefore precisely the
+eigenstates of \(\mathcal T_p\mathcal T_p^\dagger\) whose eigenvalues are
+closest to unity.  These are the near-gap transfer states.
+
+It is important not to replace this criterion by
+\(\sigma_{\min}(\I-\mathcal T_p)\).  The latter probes whether the operator
+\(\mathcal T_p\) has an approximately fixed vector, whereas
+Eq.~\eqref{eq:particle-lyapunov-gap-definition} probes whether a singular
+value of \(\mathcal T_p\) lies near unity.  For a non-normal transfer
+operator these questions are inequivalent.  Their identification would
+require additional normality and alignment assumptions that do not follow
+from purity of the Choi covariance.
+
+\subsection{Information content of the Choi blocks}
+
+For the particle Lyapunov spectrum, the upper-left Choi block is already
+complete data.  Indeed, Eq.~\eqref{eq:TpTp-from-A} states that
+\begin{equation}
+  \mathcal T_p\mathcal T_p^\dagger
+  =
+  (\I_A-A)(\I_A+A)^{-1}.
+  \label{eq:TpTpd-eigenstates-from-A}
+\end{equation}
+Consequently the eigenvalues of \(A=\Sigma_{LL}\) determine all particle
+singular values, while its eigenvectors are precisely the eigenstates of
+the positive transfer operator \(\mathcal T_p\mathcal T_p^\dagger\)
+(equivalently, the left singular vectors of \(\mathcal T_p\)).  This
+includes the regular zero-eigenvalue sector at \(a=+1\).  Thus neither an
+explicit construction of
+\(\mathcal T_p\) nor a spectral decomposition of \(B=\Sigma_{LR}\) is
+required in order to compute \(\lambda_{p,j}(t)\) and the corresponding
+\(\mathcal T_p\mathcal T_p^\dagger\) eigenstates.
+
+For a complete particle spectrum one may diagonalize \(A=\Sigma_{LL}\).
+For the gap alone, however, a complete intermediate spectral resolution is
+unnecessary.  Since the near-gap states minimize \(\lvert a_j\rvert\), they
+are the lowest-eigenvalue states of the positive operator
+\begin{equation}
+  A^2=\Sigma_{LL}^2 .
+  \label{eq:matrix-free-gap-target}
+\end{equation}
+An iterative Hermitian eigensolver can access this sector using only the
+matrix-vector operation
+\begin{equation}
+  v\longmapsto A(Av),
+  \label{eq:matrix-free-gap-action}
+\end{equation}
+without materializing \(A^2\), \(\mathcal T_p\), or
+\(\mathcal T_p\mathcal T_p^\dagger\).  Because \(A^2\) does not distinguish
+the signs of paired eigenvalues \(+a\) and \(-a\), the signed particle
+exponents must be recovered by diagonalizing the projected Hermitian
+operator \(X^\dagger A X\) inside the converged near-zero subspace \(X\).
+An exact diagonalization of \(A\) at the final observation time then provides
+the complete final spectrum and an independent validation of the iterative
+near-gap extraction.
+
+The off-diagonal block has different, equally physical information content.
+In the polar representation of Eq.~\eqref{eq:qr-functions}, \(A\) fixes
+the positive factor \(H\), whereas
+\begin{equation}
+  B=-r(H)U
+  \label{eq:B-carries-polar-isometry}
+\end{equation}
+fixes the partial-isometry, or angular, data \(U\) on the coupled support.
+Therefore \(B\) is required to reconstruct the full complex transfer matrix,
+its input-leg spectral data, or the mapping between input-leg and output-leg
+orbitals.  The distinction is operationally useful: a calculation whose
+target is only the Lyapunov spectrum and the output-leg eigenstates of
+\(\mathcal T_p\mathcal T_p^\dagger\) may diagonalize \(\Sigma_{LL}\)
+alone, whereas an analysis of the transported wavefunctions themselves must
+retain \(\Sigma_{LR}\).
+
+\subsection{Regularity of a zero particle-transfer sector}
+
+Rank deficiency of \(\mathcal T_p\) itself is regular.  Let \(\Pi_0\) be the
+orthogonal projector onto \(\ker H\).  Then
+\begin{equation}
+  q(H)\Pi_0=\Pi_0,
+  \qquad
+  r(H)\Pi_0=0,
+  \label{eq:kernel-qr}
+\end{equation}
+so \(H=0\) is precisely the \(a=+1\), particle-dark endpoint.  If desired,
+a full-rank family approaching this endpoint may be introduced by
+\begin{equation}
+  H_\eps=H+\eps\Pi_0,
+  \qquad
+  \eps>0.
+  \label{eq:H-kernel-regulator}
+\end{equation}
+Restricted to \(\Ran\Pi_0\),
+\begin{align}
+  q(H_\eps)\Pi_0
+  &=
+  \left(1-2\eps^2+O(\eps^4)\right)\Pi_0,
+  \label{eq:q-kernel-regulated}\\
+  r(H_\eps)\Pi_0
+  &=
+  \left(2\eps+O(\eps^3)\right)\Pi_0.
+  \label{eq:r-kernel-regulated}
+\end{align}
+The particle amplitude therefore vanishes continuously while its hole
+partner diverges in accordance with
+Eq.~\eqref{eq:reciprocal-singular-values}.
+
+\begin{remark}
+The matrices \(\mathcal T_p\) and \(\mathcal T_h\) above are complex,
+number-conserving particle and hole transfer matrices extracted from
+\(\Sigma\).  A direct complex-basis GPU observable associated with
+\path{colab_regularized_choi_transfer_matrix/src/choi_transfer_observables_gpu.py}
+uses the particle-spectrum consequence of
+Eq.~\eqref{eq:TpTpd-eigenstates-from-A} in the complex basis.  For
+time-resolved gap extraction it may target the near-zero spectrum of
+\(A^2\) through Eq.~\eqref{eq:matrix-free-gap-action}, while an exact
+final-time diagonalization of \(A\) supplies the full final particle
+spectrum and selected near-gap eigenstates of
+\(\mathcal T_p\mathcal T_p^\dagger\).  No Majorana covariance,
+pseudoinverse, or explicit stored \(\mathcal T_p\) is required.
+The complementary finite hole exponents are recovered by
+Eq.~\eqref{eq:hole-lyapunov-from-A}.
+\end{remark}
+
+\section{Relation to the Repository Dynamics}
+
+The cumulative-Choi construction developed here is useful when one intends to
+retain a composed non-unitary operator and, for example, extract a transfer
+spectrum from its Choi blocks.  Its complex blocks encode the complementary
+particle and hole transfer data described in
+Sec.~\ref{sec:bipartite-reconstruction}.  The dedicated analysis bundle,
+\path{colab_regularized_choi_transfer_matrix/}, propagates the corrected
+cumulative Choi blocks.  The intended finite-size gap campaign uses
+\begin{equation}
+  N_x=20,
+  \qquad
+  N_y\in\{30,40,50\},
+  \qquad
+  T=2N_y ,
+  \label{eq:intended-gap-campaign}
+\end{equation}
+and tracks
+\begin{equation}
+  \Delta_\lambda(t)=\min_j\left|\lambda_{p,j}(t)\right|
+  \label{eq:repository-gap-observable}
+\end{equation}
+at each completed cycle.  In the domain-wall truncated geometry the
+observable is evaluated on the active slab-only Choi basis; in the
+homogeneous \(DW=\mathrm{false}\) geometry it is evaluated on the complete
+top-layer Choi basis.  The numerical strategy is to extract the near-gap
+sector through the matrix-free \(A^2\) procedure above throughout the
+trajectory, and at \(t=T\) to retain an exact particle spectrum and selected
+near-gap eigenstates of \(\mathcal T_p\mathcal T_p^\dagger\).  This describes
+the intended direct complex-basis observable and does not assert that these
+finite-size campaign products have already been generated.
+
+The canonical Markov simulations in this repository take a different route.
+The CPU and GPU implementations of
+\path{classA_U1FGTN.run_markov_circuit(...)} and
+\path{classA_U1FGTN_gpu.run_markov_circuit(...)} propagate
+the normalized top-layer covariance \(G_t\), not \(\Sigma_t\).  For finite
+Wannier support, their rank-one measurement maps are evaluated by solving on
+the compact support block of the local mode.  Those support-reduced formulas
+are derived in
+\path{src/fgtn/support_reduced_markov_update_note.tex}.  The stochastic
+covariance process and its tangent cocycle are organized in
+\path{markov_transfer_operators/markov_transfer_operators_note.tex}.
+
+Accordingly, distinct constructions should not be conflated:
+\begin{enumerate}
+  \item The present \(\eps\)-prescription is an analytic definition of a
+  singular cumulative-Choi contraction before taking \(\eps\to0\).
+  \item Endpoint poles of \(\mathcal T_p\) or \(\mathcal T_h\) express
+  particle--hole complementarity under an exact projective update.
+  \item The direct complex particle-spectrum observable extracts only
+  \(\mathcal T_p\mathcal T_p^\dagger\) data; reconstructing the full
+  transfer matrix or its input-leg spectral data requires the additional
+  angular information in \(\Sigma_{LR}\).
+\end{enumerate}
+Only the first is required to define the regulated contraction itself.
+
+\section{Numerical Consistency Check}
+
+The basis-independent result can be verified without using any circuit
+simulation data.  For each test one generates Hermitian
+\(\Sigma_{LL}\) and \(R=\Sigma_{RR}\), an arbitrary \(\Sigma_{LR}\) with
+\(\Sigma_{RL}=\Sigma_{LR}^\dagger\), a rank-one projector \(P\), and each
+of the four sign pairs \((\eta_1,\eta_2)\).  Cases with \(d\) close to zero
+are excluded.  The directly regulated contraction obtained at finite
+\(\eps\) from Eqs.~\eqref{eq:singular-composition} and
+\eqref{eq:regulator} is then compared to
+Eq.~\eqref{eq:full-invariant-update}.
+
+For representative random matrices with \(N=3,5,7\), the largest Frobenius
+discrepancy over the four sign pairs was
+\begin{table}[h]
+  \caption{\label{tab:numerical-check}
+  Maximum full-Choi-block discrepancy between the regulated finite-\(\eps\)
+  contraction and the basis-independent \(\eps\to0\) formula for a fixed
+  random test ensemble.  The linear decrease with \(\eps\) is consistent
+  with the first omitted term in the regulated expansion.}
+  \begin{ruledtabular}
+  \begin{tabular}{cccc}
+  Dimension \(N\) & \(\eps=10^{-4}\) & \(\eps=10^{-6}\) & \(\eps=10^{-8}\)\\
+  \colrule
+  \(3\) & \(1.9\times10^{-3}\) & \(1.9\times10^{-5}\) & \(1.9\times10^{-7}\)\\
+  \(5\) & \(9.0\times10^{-3}\) & \(9.0\times10^{-5}\) & \(9.0\times10^{-7}\)\\
+  \(7\) & \(2.6\times10^{-2}\) & \(2.6\times10^{-4}\) & \(2.6\times10^{-6}\)
+  \end{tabular}
+  \end{ruledtabular}
+\end{table}
+Hermiticity of the output blocks is also satisfied to floating-point
+precision, in agreement with Eq.~\eqref{eq:hermiticity-preservation}.
+
+The involution statement was tested separately by generating random
+Hermitian involutions \(\Sigma=U\operatorname{diag}(\pm1)U^\dagger\), random rank-one
+projectors \(P\), and applying all four sign branches while excluding
+\(\lvert d\rvert<10^{-8}\).  For \(N=3,5,8\), with \(100\) samples per dimension
+and \(1200\) nonsingular branch updates in total, the worst residuals were
+\begin{equation}
+  \max \left\lVert\left(\Sigma'\right)^2-\I\right\rVert_{F}
+  =
+  7.317\times10^{-15},
+  \qquad
+  \max \left\lVert\Sigma'-\left(\Sigma'\right)^\dagger\right\rVert_{F}
+  =
+  8.689\times10^{-16}.
+\end{equation}
+These errors are at floating-point roundoff and provide an independent
+check of the algebraic preservation proof.
+
+\section{Conclusion}
+
+The local adaptive Kraus branches of the class-A fermionic circuit admit a
+compact two-sign Choi representation, but their rank-one projector structure
+makes naive full-tensor composition singular.  The regulated contraction
+\(K_{LL}^{(\eps)}=\eta_1P+\eps Q\) supplies a controlled limit and exposes a
+simple basis-independent answer.  The selected mode is reset by
+\(\eta_2P\); all other modes are updated by an embedded Schur complement; and
+the inter-leg Choi correlations receive a finite correction determined by the
+correlation of the selected mode with its complement.  Crucially, the
+lower-right reduced Schur complement must be embedded into \(\Ran Q\) before
+it is combined with the full-space \(P\)-sector contribution.  This resolves
+the dimensional ambiguity in the handwritten expression and gives a complete
+operator-valued update suitable for cumulative Choi transfer analyses.
+When the input covariance is pure, \(\Sigma^2=\I\), the corrected update
+also preserves the involution exactly on every nonsingular branch.  Finally,
+the bipartite Choi covariance resolves the transfer content into conjugate
+particle and hole descriptions.  A rank-deficient particle transfer is a
+regular, particle-dark sector; its complementary hole representation has an
+endpoint pole, and the opposite statement holds at the other extremal
+covariance polarization.  Any supported numerical spectrum must therefore
+state its basis and whether it retains particle, hole, or Majorana transfer
+data.
+
+\end{document}

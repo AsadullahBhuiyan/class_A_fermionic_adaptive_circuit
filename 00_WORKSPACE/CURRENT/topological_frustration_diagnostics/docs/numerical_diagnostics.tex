@@ -1,0 +1,325 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\cV}{\mathcal{V}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\ket}[1]{\lvert #1\rangle}
+\newcommand{\bra}[1]{\langle #1\rvert}
+\newtheorem{proposition}{Proposition}
+
+\begin{document}
+
+\title{\texorpdfstring{Numerical Diagnostics for Topological Frustration in a\\
+Domain-Wall-Truncated Adaptive Fermion Circuit}{Numerical Diagnostics for Topological Frustration in a Domain-Wall-Truncated Adaptive Fermion Circuit}}
+\author{Asadullah Bhuiyan}
+\affiliation{Department of Physics, Cornell University, Ithaca, New York 14853, USA}
+\date{\today}
+
+\begin{abstract}
+We specify a CPU reference program that distinguishes three logically separate
+features of a number-conserving adaptive Gaussian circuit: algebraic
+compatibility of its target measurements, stochastic defect and transfer
+activity along trajectories, and slow single-particle dynamics near a hard
+interface.  The interface is produced by truncating every controller mode to
+the sector containing its center and by updating only the active topological
+slab.  It therefore does not require a physically trivial exterior mass.  The
+reference implementation nevertheless retains the canonical geometry
+parameters $\alpha_1=1$ and $\alpha_2=30$.  We define exact
+Gaussian-completion tests, a weighted minimum-frustration problem, defect and
+signed-transfer records, empirical full-counting statistics, two deliberately
+distinct spectral proxies, and a paired local-response test for directional
+wall propagation.  The note also states the numerical controls and the
+inference licensed by each observable.  It is a methods and validation
+document and contains no numerical claims.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Controller and hard-wall geometry}
+
+The active single-particle Hilbert space has dimension
+$D=2N_{\rm cell}$, with two complex orbitals per cell.  A covariance
+$G=2C-\mathbf{1}$ is represented in terms of the one-body correlation matrix
+$0\leq C\leq\mathbf{1}$.  A pure number-conserving Gaussian state at half
+filling corresponds to a rank-$N$ projector $C$, where $N=D/2$.
+
+At each cell $R=(R_x,R_y)$ the controller contains four normalized observable
+Wannier vectors
+\begin{equation}
+ \ket{w_{aR}},\qquad a\in\{A+,A-,B+,B-\},
+\end{equation}
+with desired occupations
+\begin{equation}
+ s_{A+}=s_{B+}=0,\qquad s_{A-}=s_{B-}=1.
+ \label{eq:targets}
+\end{equation}
+The untruncated vectors are obtained from the upper- and lower-band projectors
+of the flattened class-A Hamiltonian at $\alpha=1$.  A finite support cutoff
+$n_{\rm shell}$ is applied first.  For a domain-wall center $R$, the additional
+binary mask is
+\begin{equation}
+ M_R(r)=
+ \begin{cases}
+  1,&r\text{ and }R\text{ lie in the same domain-wall sector},\\
+  0,&\text{otherwise},
+ \end{cases}
+ \qquad
+ \ket{w^{\rm DW}_{aR}}=
+ \frac{M_R\ket{w_{aR}}}{\lVert M_R\ket{w_{aR}}\rVert}.
+ \label{eq:dw-mask}
+\end{equation}
+Only centers and one-body indices inside the slab $x_L\leq x\leq x_R$ are
+retained by \texttt{meas\_slab\_only}.  Consequently, active controller vectors
+are determined entirely by $\alpha_1$ and the mask in Eq.~\eqref{eq:dw-mask}.
+Changing the unused exterior value $\alpha_2$ changes only excluded exterior
+frames.  The production configuration is therefore
+\begin{equation}
+ \alpha_1=1,\qquad \alpha_2=30,\qquad
+ \texttt{DW=True},\quad
+ \texttt{dw\_truncation=True},\quad
+ \texttt{meas\_slab\_only=True}.
+ \label{eq:reference-geometry}
+\end{equation}
+An automated invariance test compares active frames at $\alpha_2=1$ and $30$;
+this comparison is a software control, not a physics sweep.
+
+\section{Static Gaussian completion}
+
+Let $W_F$ contain the desired-filled vectors $A-,B-$ and $W_E$ the
+desired-empty vectors $A+,B+$.  Rank-revealing singular-value decompositions,
+with relative tolerance $10^{-10}$, define orthonormal bases $Q_F,Q_E$ and
+subspaces $\cV_F,\cV_E\subset\cH$.  The singular values of
+$Q_F^\dagger Q_E$ are $\cos\vartheta_j$.  We report
+\begin{equation}
+ \sigma_{\max}=\max_j\cos\vartheta_j,
+ \qquad
+ \Phi=\Tr(P_FP_E)=\sum_j\cos^2\vartheta_j,
+ \label{eq:angles}
+\end{equation}
+where $P_F=Q_FQ_F^\dagger$ and $P_E=Q_EQ_E^\dagger$.
+
+\begin{proposition}[Exact completion]
+A rank-$N$ projector $C$ satisfying
+$C\ket{w}=\ket{w}$ for every filled constraint and
+$C\ket{w}=0$ for every empty constraint exists if and only if
+\begin{equation}
+ \cV_F\perp\cV_E,\qquad
+ \rank W_F\leq N\leq D-\rank W_E.
+ \label{eq:completion}
+\end{equation}
+\end{proposition}
+
+Indeed, necessity follows by placing $\cV_F$ in $\operatorname{im}C$ and
+$\cV_E$ in $\ker C$.  Conversely, under Eq.~\eqref{eq:completion}, augment
+$\cV_F$ by any $N-\dim\cV_F$ directions in
+$(\cV_F\oplus\cV_E)^\perp$ and project onto the resulting space.  The code
+constructs this projector when possible and checks filled leakage, empty
+leakage, and rank error.
+
+When exact completion fails, define the weighted defect functional
+\begin{equation}
+ \cF[C]=\sum_a\gamma_a
+ \left[s_a+(1-2s_a)\bra{w_a}C\ket{w_a}\right],
+ \qquad \rank C=N,
+ \label{eq:cost}
+\end{equation}
+with $\gamma_a=1$ by default.  Writing
+\begin{equation}
+ A=\sum_a\gamma_a(1-2s_a)\ket{w_a}\bra{w_a},
+\end{equation}
+Ky Fan's variational principle gives
+\begin{equation}
+ F_\star=\min_C\cF[C]
+ =\sum_a\gamma_as_a+\sum_{j=1}^{N}\lambda_j^\uparrow(A).
+ \label{eq:fstar}
+\end{equation}
+The minimizing eigenspace yields channel-resolved residuals
+$f_{a\star}$ and the map $f_\star(x,y)$.  Equations~\eqref{eq:angles}--\eqref{eq:fstar}
+answer whether the controller constraints admit a common Gaussian state and
+where an irreducible static compromise resides.  They do not determine whether
+trajectory activity survives at long times.
+
+\section{Trajectory activity and counting statistics}
+
+For the $m$th visited channel, let $n_{a,m}\in\{0,1\}$ be the sampled
+Born-rule outcome and $n'_{a,m}$ the occupation imposed by any subsequent
+feedback reset.  We record
+\begin{equation}
+ X_{a,m}=\lvert n_{a,m}-s_a\rvert,
+ \qquad
+ Y_{a,m}=n'_{a,m}-n_{a,m}\in\{-1,0,+1\}.
+ \label{eq:xy}
+\end{equation}
+Thus $X$ is a wrong-outcome indicator, $\lvert Y\rvert$ is actual transfer
+activity, and the sign of $Y$ distinguishes gain from loss.  Under perfect
+correction, $X=\lvert Y\rvert$ event by event.  Under imperfect feedback they
+need not agree.  Forced postselection does not produce a stochastic activity
+record and is never encoded as a string of zero events.  The desired-outcome
+Born probability is retained as a conditional frustration diagnostic.
+
+The interface region contains the active columns within
+$w_{\rm int}=n_{\rm shell}+1$ of either hard wall; the remaining active cells
+form the interior.  For a region $R$ and observation window $T$, define
+\begin{equation}
+ K_R^X(T)=\sum_{m\in R,T}X_m,\qquad
+ K_R^Y(T)=\sum_{m\in R,T}\lvert Y_m\rvert.
+\end{equation}
+The code reports rates, spatial profiles, local inter-event survival
+probabilities, and the first three cumulants divided by $T$.  Its finite-time,
+empirical scaled cumulant-generating function is
+\begin{equation}
+ \theta_R(s,T)=\frac{1}{T}\log
+ \left\langle e^{-sK_R(T)}\right\rangle_{\rm traj}.
+ \label{eq:scgf}
+\end{equation}
+Evaluation uses log-sum-exp stabilization on 41 fields in
+$-0.2\leq s\leq0.2$, with bootstrap intervals and a reweighting effective
+sample fraction.  Points below $0.1$ effective sample fraction are flagged.
+Equation~\eqref{eq:scgf} measures finite-time fluctuations and intermittency;
+it is not the leading eigenvalue of an explicitly constructed tilted channel,
+and finite-size curvature is not a proof of a dynamical singularity.
+
+\section{Slow-mode proxies}
+
+\subsection{Lyapunov tangent cocycle}
+
+Along a sampled trajectory, the existing engine propagates a one-body tangent
+frame $V_t$ through the differential of every measurement and reset.  A QR
+factorization after each cycle gives
+\begin{equation}
+ V_t=Q_tR_t,\qquad
+ \lambda_j(t)=\frac{1}{t}\sum_{\tau=1}^{t}\log\lvert(R_\tau)_{jj}\rvert.
+\end{equation}
+We retain the full active-space spectrum on small systems and define
+\begin{equation}
+ \Delta_{\rm L}(t)=\min_j\lvert\lambda_j(t)\rvert.
+\end{equation}
+The final minimum-$\lvert\lambda\rvert$ vector is characterized by its
+interface weight, left/right-wall weights, inverse participation ratio, and
+transverse profile.  This diagnoses marginal directions of the implemented
+single-particle tangent cocycle, not the full nonlinear stochastic channel.
+
+\subsection{Regularized-Choi particle transfer}
+
+A separate run propagates the regularized Gaussian Choi covariance.  On its
+finite sector, the particle transfer matrix is
+\begin{equation}
+ T_p=-(\mathbf{1}+\Sigma_{LL})^{-1}\Sigma_{LR}.
+\end{equation}
+For a pure Choi covariance, diagonalizing the Hermitian block
+$\Sigma_{LL}$ with eigenvalues $a_j\in[-1,1]$ gives finite transfer exponents
+\begin{equation}
+ \xi_j(t)=\frac{1}{2t}
+ \left[\log(1-a_j)-\log(1+a_j)\right],
+ \qquad
+ \Delta_{\mathrm{Choi}}(t)=\min_{j\,{\rm finite}}\lvert\xi_j(t)\rvert.
+ \label{eq:choi}
+\end{equation}
+Endpoint zeros and poles, spectral-interval violations, eigensystem residuals,
+and near-gap eigenvectors are saved explicitly.  If no finite sector remains,
+$\Delta_{\mathrm{Choi}}$ is undefined rather than zero; the latest finite
+near-gap vectors and their observation cycle are retained.  The Lyapunov and
+Choi gaps
+are compared side by side but never merged: they answer different linearized
+questions and neither is labeled the exact Markov-channel gap.
+
+\section{Paired directional response}
+
+After $2N_y$ equilibration cycles, select a unit cell $(x_w,y_0)$ on a wall and
+let $P$ project onto its two onsite orbitals.  From the same equilibrated
+covariance construct
+\begin{equation}
+ G^+=QGQ+P,\qquad G^-=QGQ-P,\qquad Q=\mathbf{1}-P.
+ \label{eq:reset}
+\end{equation}
+The pair is evolved with identical per-sample random streams and identical
+randomized schedules under perfect correction.  Because this protocol consumes
+one Born variate per channel and no stochastic correction variate, the common
+stream remains aligned even when paired outcomes differ.  The normalized
+response is
+\begin{equation}
+ \delta n(x,y,t)=\frac{n^+(x,y,t)-n^-(x,y,t)}{2},
+ \qquad \sum_{x,y}\delta n(x,y,0)=1.
+\end{equation}
+After projecting onto each wall strip, the code records the response norm,
+absolute width, wall weight, and periodic signed moment
+\begin{equation}
+ M_1(t)=\frac{\sum_y d_y\,\delta n_{\rm wall}(y,t)}
+ {\sum_y\lvert\delta n_{\rm wall}(y,t)\rvert},
+ \qquad d_y\in[-N_y/2,N_y/2).
+ \label{eq:first-moment}
+\end{equation}
+An early-time slope estimates directed drift before periodic wraparound.
+Random update order is primary; raster order quantifies ordering bias.  A
+credible chiral response requires wall localization, opposite drift signs at
+the two oppositely oriented walls, stability under randomized order, and no
+analogous stable signal in the uniform controller.
+
+\section{Validation and numerical program}
+
+\begin{table}[ht]
+\caption{Question, control, and licensed inference for each diagnostic.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.18\textwidth}p{0.29\textwidth}p{0.43\textwidth}}
+Observable & Required test or control & Information supplied \\
+\midrule
+$\sigma_{\max},\Phi$ & Synthetic orthogonal and overlapping spans; rank threshold stability & Exact mutual compatibility of filled and empty target subspaces \\
+$F_\star,f_\star(x,y)$ & Ky Fan formula versus direct residual sum; $\alpha_2$ invariance & Minimum static defect cost and its location, but not persistent activity \\
+$X,Y$ & Live branch parser; $X=|Y|$ under perfect correction; imperfect-feedback control & Wrong outcomes versus actual particle transfer \\
+$\theta_R(s,T)$ & Bernoulli analytic benchmark, $\theta(0,T)=0$, bootstrap and effective sample size & Finite-time activity fluctuations and intermittency, not an exact tilted-channel phase transition \\
+$\Delta_{\rm L}$ & Dense small-system spectrum and final-vector localization & Slow or marginal one-body tangent directions \\
+$\Delta_{\mathrm{Choi}}$ & Known $\Sigma_{LL}$ spectra, endpoint counts, eigenpair residuals & Slow regularized one-body particle-transfer sectors, distinct from $\Delta_{\rm L}$ \\
+$M_1(t)$ & Common seeds, random-order primary run, raster sensitivity, uniform control & Direction and localization of a wall response; opposite wall velocities provide the chirality test \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+The smoke suite uses $4\times6$ uniform and hard-wall systems.  The reference
+activity grid fixes $N_x=12$, takes $N_y=16,24,32$, uses 64 trajectories and
+$4N_y$ cycles, and discards the first $2N_y$.  Spectral reference runs use
+$N_x=8$, $N_y=8,12,16$, eight trajectories, and $2N_y$ cycles.  Response runs
+use the activity geometries, 64 paired trajectories, $2N_y$ equilibration
+cycles, and an $N_y/2$ response horizon.  The default cutoff is
+$n_{\rm shell}=1$.  Runs at $n_{\rm shell}=2$ are explicit dynamical
+convergence controls, and the untruncated frame is an explicit static-only
+control; neither is launched by default.
+
+Every output stores the canonical entry point, geometry, active basis,
+tolerances, root seed, derived sample seeds, protocol, and update order.
+Equilibration observers stream charge, charge variance, Gaussian entropy,
+purity defect, and successive covariance change.  No full covariance history
+is required.  Independent geometries and trajectories execute in CPU process
+workers, with numerical-library threads capped per worker.  Worker seeds are
+derived before dispatch, results are merged in task order, and only the parent
+process writes files.  The run record includes the CPU and memory budget,
+chosen worker and thread counts, process identifiers, and task timing.
+Production characterization begins only after unit tests, $\alpha_2$
+invariance, serial--parallel reproducibility, the full small-system CLI smoke
+campaign, and a measured parallel-utilization benchmark pass.  The launcher
+then runs static, activity, and response pilots before their production stages;
+any failed gate terminates the sequence without a success marker.
+
+\section{Interpretive limits}
+
+The hard mask deliberately studies a controller boundary rather than a smooth
+material interface.  Smooth walls and mixed topological/trivial projector
+families are outside the present scope.  A nonzero $F_\star$ establishes an
+algebraic compromise but does not force a nonzero stationary rate.  A finite
+empirical SCGF samples trajectory fluctuations but does not replace a tilted
+operator.  Closing Lyapunov or Choi proxies are evidence for slow one-body
+sectors only after localization and finite-size checks.  Directional response
+becomes evidence for chirality only after update-order and uniform controls.
+These separations are part of the numerical specification, not merely
+terminological cautions.
+
+\end{document}

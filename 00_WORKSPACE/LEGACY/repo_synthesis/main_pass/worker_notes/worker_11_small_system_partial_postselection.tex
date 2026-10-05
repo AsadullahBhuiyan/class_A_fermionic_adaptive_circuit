@@ -1,0 +1,254 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\begin{document}
+
+\title{Worker 11 Notes: Small-System and Partial-Postselection Evidence}
+\author{Repository synthesis worker 11}
+\date{\today}
+
+\begin{abstract}
+I summarize the text-visible evidence in the small-system and partial-postselection
+subtrees, excluding paths containing \texttt{haining}, \texttt{haoyu}, or
+\texttt{erroneous}, and excluding prior synthesis notes.  The small-system data
+support a conservative statement: the canonical GPU dynamics and downstream CPU
+analyses reproduce robust qualitative distinctions between perfect-correction,
+deterministic postselection, and intermediate partial-postselection protocols.
+However, the same evidence also shows appreciable dependence on initial state,
+domain-wall truncation, shell number, geometry, and observable.  The most secure
+claim is therefore not a thermodynamic phase statement, but a finite-size
+confirmation of protocol-dependent purification and late-time covariance
+behavior, with partial postselection interpolating operationally but not yet
+establishing a sharp scaling theory.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+I inspected only text-sized repository artifacts: README text, notebook JSON as
+text, manifests, CSV summaries, JSON summaries, and validation reports.  I did
+not execute notebooks and did not load binary arrays such as \texttt{.npy} or
+\texttt{.npz}.  The principal sources were
+\texttt{colab\_small\_system\_testing/} and
+\texttt{colab\_partial\_post-select/}.  All paths containing the excluded names
+were omitted, and I did not read under
+\texttt{repo\_synthesis/main\_pass/worker\_notes},
+\texttt{supervisor\_notes}, or \texttt{boss}.
+
+\section{Findings}
+
+\subsection{Small-System Campaign Structure}
+
+The small-system bundle is explicitly organized around canonical GPU generation
+and local/CPU characterization.  The pure-state snapshot campaign uses
+$N_x=16$, $N_y=30,40$, $n_{\rm shell}=1,2$, $\alpha_2=30$,
+domain-wall truncation enabled, default initialization, perfect correction,
+ten samples, and cycles through $50$; it saves selected covariance snapshots
+rather than a full dense history.  The purification campaign starts from the
+maximally mixed state and compares perfect correction to deterministic
+postselection, with postselection represented by one deterministic sample in the
+GPU driver.  The README also distinguishes the current intended
+$N16\times 32$, $C=100$, no-domain-wall-truncation purification campaign from
+comparison/legacy truncated campaigns.
+
+\subsection{Protocol Dependence in Covariance Histories}
+
+The finite-size covariance-characterization summaries show that perfect
+correction and postselection are not merely statistically different samples of
+the same late-time process.  In the $N20$ streaming characterization, late
+entropy-slope windows are close but distinguishable: for cycles $21$--$50$ the
+mean slope is $0.3549$ for $N20\times40$ perfect correction and $0.3419$ for
+postselection.  At the same time, the deterministic postselected data have only
+one sample, so the comparison is qualitative rather than an uncertainty-resolved
+ensemble comparison.
+
+The older $N16$ covariance-history characterization shows a stronger early-time
+protocol separation.  For example, at $N16\times30$, the cycle-$10$ entropy
+slope is $0.5087\pm0.0482$ for perfect correction but $0.5520$ for the single
+postselected trajectory.  The Frobenius successive delta also separates:
+for $N16\times20$, perfect correction remains near $6$--$7$ in the displayed
+late early cycles, whereas postselection decays from $10.96$ at cycle $2$ to
+$0.787$ at cycle $10$.
+
+\subsection{Purification Entropy Contours}
+
+The maximally mixed purification contour evidence is the cleanest control.  In
+the current $N16\times32$, $C=100$, \texttt{dw\_truncation=False} campaign,
+perfect correction purifies the total entropy essentially to zero:
+$S_{100}=4.37\times10^{-4}$ for $n_{\rm shell}=1$ and
+$1.32\times10^{-3}$ for $n_{\rm shell}=2$.  Deterministic postselection instead
+settles near $2\log 2$: the final totals are $1.3862869$ and $1.3862943$ in
+natural-log units for $n_{\rm shell}=1,2$ respectively.
+
+The comparison table in entropy units normalized by $\ln 2$ makes the same
+statement sharper.  The postselected final entropy is essentially $2$ bits for
+$N16\times32$ with or without domain-wall truncation and for the larger
+$N30\times40$ truncated, $n_{\rm shell}=1$ comparison.  Perfect correction,
+by contrast, ends far below $2$ bits but with non-negligible sensitivity to
+truncation and geometry: for $N16\times32$ the final entropy is
+$6.3\times10^{-4}$ bits without truncation and $2.79\times10^{-2}$ bits with
+truncation for $n_{\rm shell}=1$, while the $N30\times40$ truncated case ends
+near $0.234$ bits.
+
+The contour validation report supports internal consistency of the derived
+observables: the stored contour shapes are $(101,16,32)$ for $N16\times32$ runs
+and $(101,30,40)$ for the $N30\times40$ comparison, with sum/total consistency
+errors at machine precision to roughly $10^{-13}$ depending on geometry.
+
+\subsection{Initial-State and Observable Dependence}
+
+Trace and flattened-energy controls show that initial state and observable
+choice matter.  The trace-real campaign explicitly includes both \texttt{maxmix}
+and \texttt{default} initial states and both perfect-correction and postselected
+protocols.  For $N20\times40$, $C=50$, \texttt{dw\_truncation=True}, the
+sample-averaged final $\mathrm{Re}\,\mathrm{tr}\,G$ under perfect correction is
+about $1.55$ for maxmix in one trace campaign and $6.20$ for default
+initialization, while deterministic postselection ends numerically near zero in
+both cases.  In the higher-sample flattened-energy/charge-variance campaign,
+perfect correction reaches a strongly negative flattened energy near
+$-1256$, while postselection reaches about $-1273$; the maximally mixed charge
+variance falls from $400$ to $0.181$ under perfect correction and to $0.502$ in
+the deterministic postselected run.  These controls support protocol dependence,
+but also warn against reducing the results to a single scalar order parameter.
+
+\subsection{Partial Postselection Sweep}
+
+The partial-postselection notebook defines a $N20\times40$, $C=40$,
+$n_{\rm shell}=1$, \texttt{dw\_truncation=True}, $\alpha_2=30$ sweep over
+$postselect\_probability$
+\[
+0,\;0.1,\;0.25,\;0.5,\;0.75,\;0.9,\;0.95,\;0.99,\;1.
+\]
+For $p<1$, the runs are trajectory-resolved perfect-correction dynamics with
+ten samples and a per-site forced postselection coin; the $p=1$ endpoint is the
+deterministic postselected control with one actual sample.  The run index records
+the same: lines for $p=0$ through $0.99$ have
+\texttt{protocol=perfect\_correction}, ten actual samples, and measurement
+frustration payloads, whereas $p=1$ has \texttt{protocol=postselect}, one actual
+sample, and no measurement-frustration payload.
+
+At the final displayed cycle and final sample, the Frobenius successive delta
+falls from about $11.03$ at $p=0$ to $2.24$ at $p=0.99$, then to $0.0609$ at the
+deterministic $p=1$ endpoint.  The real-space Chern marker remains near unity
+for the shown $p=0$ and $p=0.99$ final-sample rows, but the deterministic
+postselected endpoint is lower, about $0.769$.  This is evidence for a smooth
+operational interpolation in the measured dynamics, not by itself evidence for a
+sharp transition.
+
+\section{Interpretation}
+
+The strongest synthesis is that the small-system suite confirms the machinery
+and exposes a physically meaningful protocol axis.  Perfect correction,
+deterministic postselection, and partial postselection produce visibly different
+late-time covariance motion, purification entropy, trace observables, flattened
+energy, and charge variance.  The purification-contour data are particularly
+diagnostic because they start from a maximally mixed state and track a full
+spatial entropy contour with stringent internal consistency checks.
+
+The conservative physical reading is the following.  Perfect correction tends to
+drive the finite systems much closer to a pure state in the maxmix purification
+test than deterministic postselection does.  Deterministic postselection leaves a
+stable residual of approximately $2\log 2$ in the tested geometries, suggestive
+of a small protected or protocol-induced residual sector.  Partial
+postselection suppresses the large trajectory-to-trajectory covariance update
+scale as $p$ approaches one, but the available sweep is still a finite
+$N20\times40$ study with ten samples for $p<1$ and one deterministic endpoint.
+
+\section{Evidence Table}
+
+\begin{table}[h]
+\caption{Text sources used for the synthesis.  Line references are to the local
+repository files as inspected.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.31\textwidth}p{0.28\textwidth}p{0.34\textwidth}}
+Source & Lines & Evidence used \\
+\midrule
+\texttt{colab\_small\_system\_testing/README\_COLAB.txt}
+& 28--49, 51--83, 87--118
+& Campaign definitions; canonical GPU generation; maxmix purification setup;
+current versus comparison purification campaigns; CPU-only characterization. \\
+\texttt{colab\_small\_system\_testing/gpu\_data/streaming\_covariance\_protocol\_characterization/.../ensemble\_summaries.csv}
+& 2--43
+& $N20$ entropy-slope summaries comparing perfect correction and postselection
+across $N20\times20$, $N20\times30$, and $N20\times40$. \\
+\texttt{colab\_small\_system\_testing/analysis\_outputs/covariance\_protocol\_histories\_characterization\_cpu/.../ensemble\_summaries.csv}
+& 2--49, 50--67
+& $N16$ entropy-slope and Frobenius-delta summaries; early-time protocol
+separation and postselection relaxation. \\
+\texttt{colab\_small\_system\_testing/analysis\_outputs/purification\_entropy\_contours\_maxmix\_cpu/N16x32\_C100\_dwtrunc0/total\_entropy\_summary.csv}
+& 1--5
+& Current no-truncation purification totals: perfect correction nearly zero,
+postselection near $2\log2$. \\
+\texttt{colab\_small\_system\_testing/analysis\_outputs/purification\_entropy\_contours\_maxmix\_cpu/N16x32\_C100\_dwtrunc\_comparison/total\_entropy\_summary.csv}
+& 2--11
+& Cross-campaign comparison in units of $\ln2$, including truncated and
+larger-geometry cases. \\
+\texttt{colab\_small\_system\_testing/analysis\_outputs/purification\_entropy\_contours\_maxmix\_cpu/N16x32\_C100\_dwtrunc\_comparison/validation\_report.json}
+& 7--19, 129--160
+& Contour shapes and machine-precision sum/total consistency checks. \\
+\texttt{colab\_small\_system\_testing/gpu\_data/trace\_real\_vs\_cycle\_protocols/.../campaign\_manifest.json}
+& 7--18, 55--74
+& Canonical entry point and inclusion of both initial states and protocols. \\
+\texttt{colab\_small\_system\_testing/gpu\_data/trace\_real\_vs\_cycle\_protocols/.../run\_summary.json}
+& representative run summaries, especially final trace lines 111--114 and
+92--95
+& Final trace-real dependence on protocol and initialization; deterministic
+postselection single-sample convention. \\
+\texttt{colab\_small\_system\_testing/gpu\_data/trace\_chargevar\_flattened\_energy\_vs\_cycle\_protocols/.../run\_summary.json}
+& representative run summaries, especially lines 36--55, 74--75, 135--139
+& Flattened-energy and charge-variance controls with higher sample count for
+perfect correction. \\
+\texttt{colab\_partial\_post-select/notebooks/run\_partial\_postselection\_sweep\_N20x40\_gpu.ipynb}
+& 1
+& Notebook markdown/config records geometry, probability sweep, products, and
+$p<1$ versus $p=1$ interpretation. \\
+\texttt{colab\_partial\_post-select/gpu\_data/streaming\_covariance\_observables/.../run\_index.csv}
+& 1--10
+& Partial-postselection run index: nine probabilities, sample counts, protocol
+labels, and measurement-frustration payload sizes. \\
+\texttt{colab\_partial\_post-select/gpu\_data/streaming\_covariance\_observables/.../scalar\_metrics.csv}
+& $p=0$: 399--401; $p=0.99$: 399--401; $p=1$: 39--41
+& Final-cycle examples of Frobenius-delta suppression and endpoint Chern-marker
+change. \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+\section{Caveats}
+
+The postselected runs in these GPU conventions are deterministic single-sample
+controls.  They are therefore excellent for a protocol endpoint but not an
+ensemble uncertainty estimate.
+
+The partial-postselection sweep is finite and narrow: one geometry
+($N20\times40$), one shell number, one truncation convention, and ten samples for
+$p<1$.  It should not be used to claim a thermodynamic critical point or a
+universal interpolation law.
+
+The purification residual near $2\log2$ is robust across the inspected
+postselected maxmix cases, but its interpretation requires more theory and
+larger-size scaling.  The comparison data show quantitative sensitivity to
+domain-wall truncation and geometry, especially for perfect correction.
+
+Several observables were inspected only through summaries and captions/manifests,
+not through raw binary arrays.  This is appropriate for synthesis but means no
+new independent numerical reductions were performed here.
+
+\section{Confidence}
+
+Confidence is high for the descriptive statements about what campaigns exist,
+their parameters, and the qualitative protocol distinctions in the inspected
+summaries.  Confidence is moderate for physical interpretation of the residual
+postselected purification entropy as a meaningful finite-size sector, because
+the pattern is clean but not yet supported here by a systematic scaling collapse.
+Confidence is low for any stronger claim of a sharp partial-postselection
+transition, universality class, or thermodynamic phase boundary from the present
+small-system evidence alone.
+
+\end{document}

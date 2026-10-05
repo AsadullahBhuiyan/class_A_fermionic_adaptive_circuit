@@ -1,0 +1,150 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\setcounter{tocdepth}{2}
+
+\newcommand{\Nx}{N_x}
+\newcommand{\Ny}{N_y}
+\newcommand{\src}[1]{\texttt{\detokenize{#1}}}
+
+\begin{document}
+
+\title{Supervisor 03 Notes: Trajectory-Evidence Synthesis for the Class-A Adaptive Circuit}
+\author{Supervisor 03}
+\date{June 11, 2026}
+
+\begin{abstract}
+This note synthesizes trajectory-level evidence from the assigned worker reports and an independent text-only repository audit of the charge-fluctuation, entanglement-scaling, small-system, and partial-postselection source areas.  The strongest supported statement is asymmetric: trajectory-resolved perfect correction produces a stochastic adaptive ensemble whose purification, charge fluctuations, and strip-entanglement scaling are robustly visible in saved summaries, while postselection is best treated as a deterministic or single-trajectory control rather than an ensemble-equivalent protocol.  Max-mixed perfect-correction runs show rapid collapse of intrinsic charge variance to $\sim 10^{-1}$ at $\Nx=20$, $\Ny=30,40,50$; large-$\Ny$ and streaming summaries show log-chord entanglement slopes near, but mostly above, the $c/3=1/3$ target; correlator exponents remain strongly window-sensitive; and small-system/partial-postselection campaigns expose substantial dependence on protocol, initialization, geometry, shell number, and domain-wall truncation.  The Boss should preserve the trajectory-resolved perfect-correction narrative, but scrutinize any precision exponent, thermodynamic transition, or protocol-equivalence claim.
+\end{abstract}
+
+\maketitle
+\tableofcontents
+
+\section{Source Scope}
+
+I first read \src{REPO_POLICY.md}.  I did not edit files, execute notebooks, or load binary arrays.  I inspected only the four assigned worker notes:
+\begin{itemize}
+\item \src{repo_synthesis/main_pass/worker_notes/worker_08_purification_charge_fluctuations.tex},
+\item \src{repo_synthesis/main_pass/worker_notes/worker_09_entanglement_scaling.tex},
+\item \src{repo_synthesis/main_pass/worker_notes/worker_10_correlator_slope_excess.tex},
+\item \src{repo_synthesis/main_pass/worker_notes/worker_11_small_system_partial_postselection.tex}.
+\end{itemize}
+I did not read other worker notes, supervisor notes, or boss notes.  My independent audit was restricted to text-sized artifacts in \src{colab_charge_fluctuations/}, \src{colab_large_entanglement_scaling_N20/}, \src{colab_small_system_testing/}, \src{colab_partial_post-select/}, and \src{summary_of_results/summary_of_results.tex}, with the required case-insensitive forbidden-path filter applied.
+
+\section{Synthesis of Worker Claims}
+
+Worker 08 identifies the cleanest purification evidence: in the $\Nx=20$ max-mixed campaign, perfect correction suppresses total charge variance from the early-cycle scale $\sim 31,42,52$ to $0.0665,0.0846,0.0973$ at final cycles $60,80,100$ for $\Ny=30,40,50$.  The same worker emphasizes that postselection is effectively one trajectory in the available GPU convention, and that the alpha sweep shows charge sharpening near $\alpha\simeq1.8$--$2.0$.
+
+Worker 09 argues that the entanglement sector is the best scaling diagnostic.  The large-$\Ny$ time-scaled campaign at $\Nx=20$ gives log-chord slopes $0.3615,0.3555,0.3532,0.3470,0.3569$ for $\Ny=40,60,80,100,120$, all with excellent $R^2$, but with a non-monotone $\Ny=120$ point.
+
+Worker 10 supplies the main negative control: correlator exponents are not yet precision evidence.  Default long-window exponents differ strongly from the nominal $\Delta=2$ target, while shorter intermediate windows are much closer to $2$.  The same report shows that final-cycle perfect-correction entropy slopes retain positive excess above $1/3$, and that local wall/defect metrics plus incomplete convergence are better-supported explanations than global charge imbalance.
+
+Worker 11 shows that the small-system and partial-postselection sources support protocol dependence rather than a thermodynamic conclusion.  Max-mixed small-system perfect correction nearly purifies to zero entropy, deterministic postselection leaves approximately $2\log 2$, and partial postselection reduces covariance motion as the forced-postselection probability approaches one.  The evidence is finite-size and protocol-diagnostic, not a sharp phase-boundary result.
+
+\section{Independent Repo-Audit Adjustments}
+
+My audit confirms the four worker reports in broad outline, with four adjustments to carry upward.
+
+First, the strongest claim should be stated in terms of \emph{intrinsic} Gaussian charge variance, $\operatorname{Tr} C(1-C)$, not exact fixed charge.  The final perfect-correction centered total charge remains percent-level nonzero: about $0.276\%$, $0.318\%$, and $0.268\%$ for $\Ny=30,40,50$ in the max-mixed campaign.  Thus perfect correction sharply purifies and charge-sharpens without becoming identical to deterministic postselection.
+
+Second, postselection should be consistently described as a control branch with weak ensemble statistics.  Multiple manifests record requested sample counts of 10 or 100 but actual postselected sample count one.  Protocol comparison is therefore qualitative unless a separate postselected ensemble is explicitly generated.
+
+Third, entropy and correlator claims should remain asymmetric.  The entropy log-chord shape is very strong: $R^2$ is typically $>0.9999$ in the large-$\Ny$ fit products.  The correlator exponent is only compatible with the chiral picture after window control; default-window values alone would give misleading conclusions.
+
+Fourth, the Boss should separate three evidence layers: max-mixed purification, init-default/domain-wall scaling, and small-system/partial-postselection interpolation.  They are mutually supportive, but they do not constitute one interchangeable dataset.
+
+\section{Key Evidence Table}
+
+\begin{table*}[h]
+\caption{Principal text-visible evidence used in this synthesis.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.31\textwidth}p{0.16\textwidth}p{0.45\textwidth}}
+Source & Lines & Evidence \\
+\hline
+\src{colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/.../campaign_manifest.json} & 11--24, 92--100, 126--168 & Canonical GPU dynamics entry point, max-mixed initialization, no covariance-history saving, 100 perfect-correction samples, and postselection forced to one actual sample. \\
+\src{colab_charge_fluctuations/.../purification_total_charge_variance_sample_stats_vs_cycle.csv} & 1--2, 61, 141, 241 & Perfect-correction total charge variance collapses to $0.0665$, $0.0846$, $0.0973$ at final cycles for $\Ny=30,40,50$. \\
+\src{colab_charge_fluctuations/.../purification_centered_total_charge_sample_stats_vs_cycle.csv} & 1--2, 61, 141, 241 & Centered total charge remains small but not zero in the perfect-correction ensemble. \\
+\src{colab_charge_fluctuations/.../threshold_crossing_summary.csv} & 1--7 & Alpha sweep crosses the charge-sharpening threshold near $\alpha=1.9$ for perfect correction and $\alpha=1.7$--$1.8$ for postselection. \\
+\src{colab_charge_fluctuations/.../streaming_covariance_characterization/.../analysis_manifest.json} & 34--45, 57--96, 114--132 & Init-default streaming characterization includes $\Ny=30,40,50$, 100 perfect-correction samples, one postselected sample, and targets $m=1/3$, $\Delta=2$. \\
+\src{colab_charge_fluctuations/.../perfect_cycle_summary.csv} & 61, 141, 241 & Final perfect-correction entropy slopes are $0.3598$, $0.3492$, $0.3479$; default correlator exponents are $1.411$, $1.575$, $1.634$. \\
+\src{colab_charge_fluctuations/.../postselect_cycle_summary.csv} & 61, 141, 241 & Final postselected entropy slopes are $0.3348$, $0.3343$, $0.3340$, but with single-trajectory statistics; correlator exponents are nonuniform. \\
+\src{colab_charge_fluctuations/.../correlator_diagnostic_decision_table.csv} & 1--7 & Fit-window sensitivity is supported; postselection is not uniformly cleaner; default flattened-H correlator fits are not a stable $\Delta=2$ benchmark. \\
+\src{colab_charge_fluctuations/.../equilibrium_vs_dynamics_selected_window_exponents.csv} & 1--13, 38--49 & Intermediate windows give exponents near $2$, while default long windows produce unstable effective exponents. \\
+\src{colab_charge_fluctuations/.../summary_decision_table.csv} & 1--6 & Slope excess is not explained by global charge imbalance; local wall/defect structure and incomplete convergence are supported caveats. \\
+\src{colab_large_entanglement_scaling_N20/docs/entanglement_scaling_system_size.tex} & 23--39, 103--162 & Large-$\Ny$ slopes lie in $0.347$--$0.362$ with $R^2\ge 0.9999$; $\Ny=120$ is non-monotone and needs further convergence checks. \\
+\src{colab_large_entanglement_scaling_N20/gpu_data/.../run_summary.json} & fit fields & Time-scaled runs record $\Nx=20$, $T=\Ny/2$, 10 samples, canonical GPU dynamics, and slopes $0.3615,0.3555,0.3532,0.3470,0.3569$. \\
+\src{colab_large_entanglement_scaling_N20/gpu_data/.../slope_vs_cycle.csv} & 2--25, 45--62, 78--102 & The $\Ny=40$ cycle sweep flows into a near-$0.35$ window but remains cycle dependent at late times. \\
+\src{colab_small_system_testing/README_COLAB.txt} & 28--69, 79--118, 124--125 & Small-system campaigns use canonical GPU generation, max-mixed purification, derived CPU analysis, and Colab runtime-disconnect discipline. \\
+\src{colab_small_system_testing/.../total_entropy_summary.csv} & 1--5 & In the current $N16\times32$, $C=100$, no-truncation campaign, perfect correction purifies to $4.37\times10^{-4}$ or $1.32\times10^{-3}$, while postselection remains near $2\log2$. \\
+\src{colab_small_system_testing/.../dwtrunc_comparison/total_entropy_summary.csv} & 2--11 & The $2\log2$ postselected residual is robust across compared cases, while perfect-correction residuals depend on geometry and truncation. \\
+\src{colab_small_system_testing/.../ensemble_summaries.csv} & 22--43 & Small-system init-default protocol characterization gives distinct perfect-correction and postselection entropy-slope windows. \\
+\src{colab_partial_post-select/.../run_index.csv} & 1--10 & Partial-postselection sweep uses $p=0,\ldots,0.99$ with 10 perfect-correction samples and $p=1$ as one postselected sample. \\
+\src{colab_partial_post-select/.../scalar_metrics.csv} & p0: 398--401; p0.99: 398--401; p1: 38--41 & Final-sample Frobenius successive delta decreases from about $11.03$ at $p=0$ to $2.24$ at $p=0.99$ and $0.0609$ at $p=1$; the endpoint Chern marker is lower. \\
+\src{summary_of_results/summary_of_results.tex} & 149--178, 229--286, 383--411 & Repository-level narrative separates trajectory-resolved observables from mean-channel and postselected controls, and flags correlator/ensemble-ordering issues as open. \\
+\end{tabular}
+\end{ruledtabular}
+\end{table*}
+
+\section{Contradictions and Caveats}
+
+There is no fatal contradiction among the assigned notes, but there are several pressure points.
+
+The first is protocol language.  Perfect correction and postselection both show critical-looking entropy behavior in some summaries, but they are not statistically comparable ensembles in the available products.  Postselection often has one actual sample.
+
+The second is charge language.  Perfect correction suppresses intrinsic charge variance dramatically, yet does not remove all sample-to-sample centered charge wander.  The Boss should avoid saying that perfect correction simply projects onto a fixed-charge trajectory.
+
+The third is exponent language.  Entanglement slopes support the $m\simeq1/3$ domain-wall CFT target much more cleanly than correlator exponents support $\Delta=2$.  Correlator evidence is useful only with explicit fit-window and ensemble-ordering qualifications.
+
+The fourth is scaling language.  The large-$\Ny$ entropy data are persuasive but not a final thermodynamic extrapolation: the $\Ny=120$ point is non-monotone, the time-scaled campaign has 10 samples, and the cycle sweep shows late-time variability.
+
+The fifth is interpolation language.  Partial postselection gives a meaningful operational axis, but the inspected sweep is one finite geometry with 10 samples for $p<1$ and one deterministic endpoint.  It is not evidence for a sharp phase transition.
+
+\section{Confidence}
+
+I assign high confidence to the repository claim that trajectory-resolved perfect correction rapidly purifies max-mixed states and strongly suppresses intrinsic charge variance in the inspected $\Nx=20$ and small-system campaigns.
+
+I assign high confidence to the qualitative entanglement statement: domain-wall perfect-correction trajectories show excellent log-chord entropy shape with slopes near $1/3$.
+
+I assign moderate confidence to the quantitative central-charge interpretation, because finite-size, finite-depth, and cycle-selection effects remain visible.
+
+I assign moderate confidence to the claim that the correlator sector is compatible with the chiral picture after window control, but low confidence to any precise correlator exponent extracted from the current default-window tables.
+
+I assign low confidence to any thermodynamic partial-postselection transition claim from the current evidence.
+
+\section{What the Boss Should Preserve or Scrutinize}
+
+The Boss should preserve the central trajectory-resolved narrative: the physical object prepared by perfect correction is $\langle O[\Gamma_{\rm traj}]\rangle$, not $O[\bar{\Gamma}]$ and not the deterministic postselected branch.
+
+The Boss should preserve the purification evidence, especially the max-mixed collapse of $\operatorname{Tr}C(1-C)$ and the small-system contrast between near-zero perfect-correction entropy and the postselected $2\log2$ residual.
+
+The Boss should preserve entropy scaling as the leading critical diagnostic, with the phrase ``near $1/3$ with finite-size and finite-depth corrections'' rather than a final central-charge extraction.
+
+The Boss should scrutinize correlator exponents, slope excess, and any claim that postselection is cleaner or equivalent to perfect correction.
+
+The Boss should scrutinize the partial-postselection sweep as finite-system protocol evidence only, and should not promote it to a phase diagram without larger-size, multi-sample endpoint, and convergence studies.
+
+\section{Cross-Supervisor Addendum}
+
+Across the five supervisor notes there is strong agreement on the central object: the physical adaptive preparation is the trajectory-resolved perfect-correction ensemble, not the postselected branch, the mean channel, the Lindblad limit, or a Choi/transfer surrogate.  Supervisor 01 supplies the target-state side of this statement: the desired domain-wall sector is benchmarked by exact and OW flattened-Hamiltonian chiral edge states with entropy coefficient near \(c/3=1/3\).  Supervisor 02 supplies the protocol side: perfect correction remains Born-sampled and stochastic, while full postselection is a forced branch and partial postselection is an externally masked interpolation.  Supervisor 04 supplies the stability side: independent Lyapunov and Choi diagnostics point to a slow domain-wall sector, but they are distinct operators.  Supervisor 05 supplies the provenance side: modern manifested campaign products are the evidence spine, while legacy caches and weakly exported synthesis panels require caution.
+
+The main correction to my Supervisor 03 note is that \(\src{dw_truncation}\) should be treated as an active hard-wall/OW-support boundary condition, not merely as a benign numerical or geometry knob.  This strengthens the need to separate exact-DW, OW-truncated, init-default trajectory, and max-mixed purification claims.  A second correction is provenance-related: a campaign's \(\src{classA_U1FGTN_gpu.run_markov_circuit}\) string proves use of the public method name, but not byte identity with the current canonical source; source checksums matter for flagship claims.  A third correction is that any postselection charge-fluctuation comparison inherited from summary figures should be scrutinized, because the charge-statistic tables behind one summary panel select only perfect-correction configurations.  None of these changes overturns the Supervisor 03 conclusions, but they narrow the wording.
+
+There is no substantive conflict with the trajectory-evidence synthesis.  The cross-notes reinforce its asymmetry: entropy and purification are stronger than correlator exponents; postselection is a control, not an ensemble-equivalent comparator; transfer and Choi gaps support the domain-wall slow-mode picture but should not be identified with trajectory entropy or correlator observables; and no present note establishes a thermodynamic partial-postselection transition or a precision scaling exponent.
+
+Boss priorities:
+\begin{enumerate}
+\item Preserve the ensemble distinction
+\[
+  \overline{O[G_\xi]} \neq O[\overline{G_\xi}] \neq O[G_{\rm ps}],
+\]
+and make trajectory-resolved perfect correction the main physical object.
+\item Anchor numerical claims to manifested runs with explicit sample counts, canonical-entry metadata, and preferably source identity/checksum.
+\item Use entropy and max-mixed purification as the leading evidence; keep correlator exponents, slope excess, and transfer gaps as qualified supporting diagnostics.
+\item Treat \(\src{dw_truncation}\), Choi/Lyapunov operators, and partial postselection as physically meaningful controls with their own caveats, not interchangeable evidence for one object.
+\item Scrutinize summary-level figures or panels whose numbers are hard-coded, fallback-derived, missing inputs, or mismatched to the stated protocol comparison.
+\end{enumerate}
+
+\end{document}

@@ -26,15 +26,15 @@ DATA_PATH = (
     "cache/G_history_samples/"
     "N12x31/"
     "N12x31_C20_S250_nshNone_DW1_init-default_n_a0.5_seq-dw_symmetric_random_"
-    "exclNone_pm1.00_tbtf1_tbtflm0_markov_circuit_slope_drift_testing.npz"
+    "exclNone_markov_circuit_slope_drift_testing.npz"
 )
 PLOT_PATH = (
     "figs/N12x31_C20_S250_nshNone_DW1_init-default_n_a0.5_seq-dw_symmetric_random_"
-    "exclNone_pm1.00_tbtf1_tbtflm0_markov_circuit_sample_fit_stats_memopt.pdf"
+    "exclNone_markov_circuit_sample_fit_stats_memopt.pdf"
 )
 STATS_PATH = (
     "figs/N12x31_C20_S250_nshNone_DW1_init-default_n_a0.5_seq-dw_symmetric_random_"
-    "exclNone_pm1.00_tbtf1_tbtflm0_markov_circuit_sample_fit_stats_memopt.npz"
+    "exclNone_markov_circuit_sample_fit_stats_memopt.npz"
 )
 NX = 12
 NY = 31
@@ -231,11 +231,9 @@ def main():
     left_pair = np.array([x0 % nx, (x0 + 1) % nx], dtype=int)
     right_pair = np.array([(x1 - 1) % nx, x1 % nx], dtype=int)
 
-    y_cut_list_1 = np.arange(2, ny // 2, dtype=int)
-    y_cut_list_2 = np.arange(ny // 2, ny - 1, dtype=int)
-    n_cuts = min(len(y_cut_list_1), len(y_cut_list_2))
-    y_cut_list_1 = y_cut_list_1[:n_cuts]
-    y_cut_list_2 = y_cut_list_2[:n_cuts]
+    y_cut_base = np.arange(2, ny // 2, dtype=int)
+    y_cut_list_1 = y_cut_base.copy()
+    y_cut_list_2 = np.sort(ny - y_cut_base)
     ay_list_1 = ny - y_cut_list_1
     ay_list_2 = ny - y_cut_list_2
 

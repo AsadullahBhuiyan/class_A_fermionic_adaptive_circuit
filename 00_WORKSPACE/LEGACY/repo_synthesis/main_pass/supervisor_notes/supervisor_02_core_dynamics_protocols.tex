@@ -1,0 +1,482 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\src}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\PF}{\mathfrak{P}}
+\newcommand{\Koop}{\mathfrak{K}}
+
+\begin{document}
+
+\title{Supervisor 02 Notes: Core Dynamics Engines, Protocol Controls, and Production Provenance}
+\author{Supervisor 02}
+\date{June 11, 2026}
+
+\begin{abstract}
+This supervisor note synthesizes the assigned Worker 05--07 notes and an
+independent source-level audit of the repository's core dynamics and protocol
+surface.  The central conclusion is that the scientific dynamics should be
+described through the canonical public drivers
+\src{classA_U1FGTN.run_markov_circuit(...)} and
+\src{classA_U1FGTN_gpu.run_markov_circuit(...)}, not through notebook-local
+copies or private update helpers.  The physical perfect-correction protocol is a
+Born-sampled adaptive Markov trajectory with deterministic correction after a
+mismatch, whereas full post-selection is a deterministic forced-branch
+trajectory and partial post-selection is an interpolation controlled by an
+external Bernoulli mask.  The production layer has converged toward good
+manifested GPU campaigns using streamed observers, but the repository still
+contains stale Colab/OSG source copies, legacy scripts, incomplete
+engine-internal canonical-entry metadata, and at least one serious OSG merge
+cycle-label mismatch.  The Boss should preserve the protocol taxonomy and
+canonical-entry architecture while scrutinizing source synchronization,
+provenance fields, and legacy campaign paths before drawing final repository
+claims.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+I read \src{REPO_POLICY.md} first.  I then read only the three assigned worker
+notes:
+\begin{itemize}
+\item \src{repo_synthesis/main_pass/worker_notes/worker_05_canonical_engines.tex};
+\item \src{repo_synthesis/main_pass/worker_notes/worker_06_production_scripts_metadata.tex};
+\item \src{repo_synthesis/main_pass/worker_notes/worker_07_protocol_taxonomy_controls.tex}.
+\end{itemize}
+I did not read other worker notes, supervisor notes, or boss notes.
+
+The independent audit was read-only and source-level.  I inspected text/code
+sources in \src{src/fgtn}, current non-excluded Colab source copies, selected
+\src{scripts/} and \src{OSG/} production sources, \src{markov_transfer_operators},
+the regularized Choi documentation, charge-fluctuation protocol documentation,
+and \src{scripts/legacy/CI_Lindblad_DW.py}.  I did not edit files, execute notebooks, submit
+jobs, run simulations, or load large binary arrays.  All inspected paths excluded
+any path containing \src{haining}, \src{haoyu}, or \src{erroneous}, case
+insensitively.
+
+\section{Synthesis of Worker Claims}
+
+\subsection{Canonical dynamics}
+
+Worker 05 correctly identifies the repository policy's canonical production
+surface: CPU production runs should call
+\src{classA_U1FGTN.run_markov_circuit(...)} and GPU production runs should call
+\src{classA_U1FGTN_gpu.run_markov_circuit(...)}.  The policy also forbids GPU
+notebooks or scripts from reproducing the Markov cycle loop by directly calling
+private helpers such as \src{_apply_grouped_site_updates(...)}.
+
+The canonical CPU driver exposes the richest control surface: history/final-state
+storage, sample parallelization, slab restriction, Choi diagnostics, and a
+\src{physical_covariance_update} switch whose current default is the rank-one
+resolvent update.  The canonical GPU driver is narrower by design: it is a
+PyTorch Markov-circuit implementation with explicit device/dtype handling,
+A100-oriented automatic batching, shard/manifest output, resume checks, snapshot
+storage, streamed observers, Lyapunov observers, and Choi observers.
+
+\subsection{Production scripts and metadata}
+
+Worker 06's production-layer conclusion is also supported: recent GPU/OSG and
+Colab campaigns generally use the canonical GPU public driver, keep covariance
+histories out of memory when only observables are needed, and write campaign or
+run metadata.  The strongest pattern is the observer-based campaign style:
+\src{run_markov_circuit(..., save=False, return_data=False, cycle_observer=...)}
+streams reduced observables while the campaign layer writes JSON summaries,
+checkpoints, and manifests.
+
+The production risks are operational rather than conceptual.  The modern OSG
+slope-vs-cycle and slope-vs-system-size runners record
+\src{canonical_dynamics_entry_point}, but the entropy-vs-time OSG runner calls
+the canonical GPU method without storing that key in its block \src{config_json}.
+The root \src{OSG/} path is stale: it has a placeholder container image,
+hard-coded \src{queue 100} despite a generator currently producing four jobs,
+and a wrapper call passing a \src{protocol} keyword that is not part of the
+current canonical GPU signature.  The \src{OSG/osg_slope_vs_Ny} merge script
+reconstructs \src{cycles = Ny // 2} and \src{fit_cycle = Ny // 2}, whereas its
+generator and runner use \src{cycles = Ny} and \src{fit_cycle = Ny}; this is the
+highest-impact source-level bug in the audited production layer.
+
+\subsection{Protocol taxonomy}
+
+Worker 07's taxonomy should be preserved nearly verbatim.  The physical
+Born-sampled adaptive Markov process is a trajectory-resolved stochastic process
+on covariance matrices.  Perfect correction does not remove the Born draw.  It
+only makes the subsequent feedback/reset target deterministic once a mismatch is
+observed.  Thus a perfect-correction observable is an ensemble average over
+corrected Born trajectories, not a deterministic post-selected trajectory and not
+an outcome-averaged transfer matrix.
+
+Full post-selection is a forced desired-branch trajectory: upper-band modes are
+forced empty and lower-band modes forced occupied.  Partial post-selection
+interpolates by using an external Bernoulli mask to choose forced versus
+Born-sampled site maps.  Transfer operators act on distributions or observables
+of \(G\); Lyapunov data are quenched products along realized trajectories; the
+regularized Choi object is a cumulative two-leg operator covariance for realized
+branches; and the Lindblad object is a continuous-time mean/channel control, not
+the sampled adaptive circuit.
+
+\section{Independent Repo-Audit Adjustments}
+
+\subsection{Source-copy synchronization is broader than Colab}
+
+Worker 05 emphasizes stale Colab copies.  The independent audit confirms this
+and extends it to bundled OSG copies.  The canonical GPU source
+\src{src/fgtn/classA_U1FGTN_gpu.py} is byte-identical to only
+\src{colab_regularized_choi_transfer_matrix/src/classA_U1FGTN_gpu.py}.  Five
+other Colab GPU copies and two OSG GPU copies share the older checksum
+\src{3196fa36...c2216} and have 2831 lines, while the canonical source has
+checksum \src{6b90e1e0...a112c5} and 2881 lines.  The older copies also expose
+older Choi metadata, including \src{regularized_rank_one_basis_independent_v1}
+rather than the canonical \src{regularized_resolvent_rank_one_v2}.  Therefore
+the Boss should not treat all non-excluded \src{classA_U1FGTN_gpu.py} files as
+synchronized.
+
+The CPU source-copy issue is narrower but real: the canonical CPU source has
+5308 lines and checksum \src{f0dcd7ab...c5f6}, whereas the Colab charge
+fluctuation CPU copy has 4779 lines and checksum \src{6816fa01...897}.  Any
+claim about CPU algorithmic details should be anchored to \src{src/fgtn}, unless
+a result explicitly records which copied source produced it.
+
+\subsection{Canonical-entry provenance is split between engines and campaigns}
+
+Worker 05 notes that the canonical CPU/GPU \src{run_markov_circuit} configs do
+not visibly include \src{canonical_dynamics_entry_point}.  I confirm that the
+CPU \src{run_markov_circuit} \src{_run_config} records physics, protocol, Choi,
+and slab fields but not that explicit key, and the GPU \src{run_config} similarly
+omits it.  The CPU \src{run_markov_channel} routine does record
+\src{canonical_dynamics_entry_point}, so the provenance pattern exists in the
+codebase.
+
+The adjustment is that some campaign layers add the canonical-entry key outside
+the engine.  For example, current small-system GPU run summaries and Lyapunov
+campaign JSON files record \src{classA_U1FGTN_gpu.run_markov_circuit}, and charge
+fluctuation CPU run summaries can record \src{classA_U1FGTN.run_markov_circuit}.
+Thus the provenance gap is not universal at the output layer.  The precise
+statement should be: engine-internal Markov-circuit manifests/configs are not
+self-sufficient with respect to the policy-mandated canonical-entry key, but many
+modern campaign wrappers repair this at the run-summary or campaign-manifest
+layer.
+
+\subsection{Partial post-selection is now part of the canonical control surface}
+
+Worker 07 describes the partial-post-selection fork.  The independent audit finds
+the same intermediate \src{postselect_probability} logic in the canonical CPU and
+GPU engines as well: \src{postselect=True} is normalized to probability one,
+probabilities outside \([0,1]\) are rejected, full post-selection forces
+\src{samples=1}, and intermediate probabilities split site batches by a random
+mask.  The partial-post-selection campaign tree remains a useful concrete
+application, but the protocol knob itself is not only fork-local in the current
+canonical source.
+
+\subsection{Modern production style is real, but legacy scripts remain visible}
+
+The modern production path is consistent: OSG and Colab runners stream
+observables through \src{cycle_observer}, \src{site_observer},
+\src{lyapunov_observer}, or Choi observers rather than saving full histories by
+default.  The older \src{scripts/} layer is mixed.  Some scripts correctly call
+the CPU canonical \src{run_markov_circuit}; others still call
+\src{run_adaptive_circuit} or save only figures/raw histories without a separate
+machine-readable manifest.  These older scripts should be treated as exploratory
+or legacy unless a specific run summary and source checksum are present.
+
+\section{Key Evidence Table}
+
+\begin{table}[h]
+\caption{Source-level evidence from the assigned workers and independent audit.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.30\linewidth}p{0.16\linewidth}p{0.46\linewidth}}
+Source & Lines & Evidence and implication \\
+\hline
+\src{REPO_POLICY.md} & 5--24, 42--45 &
+Defines \src{classA_U1FGTN.run_markov_circuit(...)} and
+\src{classA_U1FGTN_gpu.run_markov_circuit(...)} as canonical production entry
+points; forbids direct GPU use of private update helpers; requires production
+metadata to record the canonical entry point; requires non-excluded GPU source
+copies to remain synchronized. \\
+\src{src/fgtn/classA_U1FGTN.py} & 1488--1500, 1666--1714 &
+CPU Markov site update samples Born outcomes before feedback.  With
+\src{perfect_correction=True}, the feedback target is forced to pump out upper
+mismatches or pump in lower mismatches; the measurement outcome itself is not
+post-selected. \\
+\src{src/fgtn/classA_U1FGTN.py} & 2438--2491 &
+Canonical CPU \src{run_markov_circuit} signature exposes history/final storage,
+postselection probability, perfect correction, sample parallelization, slab
+restriction, Choi observers, rank-one/dense physical update selection, and cycle
+observers. \\
+\src{src/fgtn/classA_U1FGTN.py} & 2513--2621 &
+CPU driver validates \src{postselect_probability}, normalizes full
+post-selection, records \src{physical_covariance_update},
+\src{choi_formula}, slab indices, and exterior preparation, but does not visibly
+record \src{canonical_dynamics_entry_point} in this Markov-circuit run config. \\
+\src{src/fgtn/classA_U1FGTN.py} & 3237--3259 &
+Separate CPU \src{run_markov_channel} config records
+\src{canonical_dynamics_entry_point}, showing the provenance convention exists
+elsewhere in the source. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 15--22, 76--125 &
+GPU class is explicitly a narrow Markov-circuit implementation and guards
+PyTorch/CUDA device resolution. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 228--292 &
+GPU batch-size estimator targets an A100 40 GB budget, adjusts for detected free
+memory, storage mode, dtype/backend, snapshots, and Choi tracking. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 1913--2018 &
+Private grouped-site helper dispatches full post-selection, pure Born Markov
+updates, and intermediate partial post-selection by a random mask.  This is
+engine-internal machinery, not a production entry point. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 2231--2430 &
+Canonical GPU \src{run_markov_circuit} validates resume, Choi observer
+compatibility, postselection probability, snapshots, batching, and records rich
+run configuration including \src{physical_covariance_update} and
+\src{choi_formula}, but not an explicit canonical-entry key. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 2586--2626 &
+The public GPU driver owns the cycle loop and calls the private grouped-site
+helper internally while appending snapshots/history according to storage mode. \\
+Checksum audit & N/A &
+Canonical GPU source and the regularized-Choi Colab copy share checksum
+\src{6b90e1e0...a112c5}; five other Colab GPU copies plus two OSG GPU copies
+share older checksum \src{3196fa36...c2216}. \\
+Line-count audit & N/A &
+Canonical GPU source has 2881 lines; older Colab/OSG GPU copies have 2831 lines.
+Canonical CPU source has 5308 lines; the charge-fluctuation Colab CPU copy has
+4779 lines. \\
+\src{OSG/scripts/run_slope_vs_cycle_block.py} & 65--88, 183--197 &
+Modern OSG slope-vs-cycle runner records
+\src{canonical_dynamics_entry_point} and uses canonical GPU
+\src{run_markov_circuit} with \src{save=False} and a streamed cycle observer. \\
+\src{OSG/osg_slope_vs_Ny/generate_params.py} & 41--57 &
+System-size OSG parameter generation writes \src{cycles=Ny} and
+\src{fit_cycle=Ny}. \\
+\src{OSG/osg_slope_vs_Ny/run_slope_vs_system_size.py} & 55--83, 124--132 &
+System-size OSG runner records canonical-entry metadata and calls canonical GPU
+\src{run_markov_circuit}. \\
+\src{OSG/osg_slope_vs_Ny/merge_slope_vs_system_size.py} & 54--80 &
+Merge script reconstructs \src{cycles=Ny//2} and \src{fit_cycle=Ny//2}, in
+conflict with the generator/runner convention. \\
+\src{OSG/osg_entropy_vs_time_maxmix/run_entropy_vs_time.py} & 106--137 &
+Entropy-vs-time runner calls canonical GPU dynamics, but the saved
+\src{config_json} contains no explicit canonical-entry key. \\
+\src{OSG/osg_entropy_vs_time_maxmix/merge_entropy_vs_time.py} & 31--49 &
+Merge checks cycle-array equality but uses \src{count[0]} as the reported sample
+count, so uneven count completeness across cycles is not fully asserted. \\
+\src{OSG/generate_params.py}, \src{OSG/batch_gpu.submit}, \src{OSG/run.sh} &
+48--58; 1--28; 38--46 &
+Legacy root OSG path generates four jobs but queues 100, uses a placeholder
+container image, and calls \src{run_markov_circuit} with a \src{protocol} keyword
+that is not in the current canonical GPU signature. \\
+\src{scripts/generate_markov_history_samples.py} & 30--44, 99--113 &
+Representative CPU script sets CPU/thread controls and calls canonical CPU
+\src{run_markov_circuit}. \\
+\src{scripts/generate_G_from_existing_G0.py} & 105--133 &
+Older generation script calls \src{run_adaptive_circuit} and saves raw history
+plus source snapshot metadata, not canonical Markov-circuit provenance. \\
+\src{scripts/analyze_covariance_protocol_histories_characterization.py} &
+36--48, 325--340 &
+Downstream analysis expects run summaries to contain
+\src{classA_U1FGTN_gpu.run_markov_circuit}, \src{store_mode=history}, one shard,
+and no snapshots, demonstrating campaign-layer provenance validation. \\
+\src{markov_transfer_operators/markov_transfer_operators_note.tex} &
+133--215, 247--299 &
+Formalizes the covariance dynamics as a Markov chain with kernel composition and
+dual Koopman/Perron-Frobenius transfer actions. \\
+\src{markov_transfer_operators/markov_transfer_operators_note.tex} &
+370--461 &
+Lyapunov exponents are quenched singular-value growth rates of chronological
+branchwise tangent products, not spectra of outcome-averaged matrices. \\
+\src{colab_regularized_choi_transfer_matrix/docs/regularized_choi_covariance_contractions.tex} &
+63--103, 105--164 &
+Choi object is a cumulative two-leg Gaussian operator covariance for realized
+branches and is explicitly distinguished from production state-covariance
+dynamics. \\
+\src{scripts/legacy/CI_Lindblad_DW.py} & 516--601, 727--858 &
+Lindblad control evolves a single-layer covariance by RK4 through gain/loss and
+optional decoherence and constructs an affine vectorized mean-channel generator. \\
+\src{colab_charge_fluctuations/docs/charge_fluctuations_notes.tex} &
+274--299 &
+Protocol notes describe perfect correction as a multi-sample ensemble average
+and post-selection as a single fixed-pattern trajectory. \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+\section{Contradictions and Caveats}
+
+There is no contradiction between ``perfect correction'' and Born sampling once
+the word ``perfect'' is read correctly.  Perfect correction means perfect
+classical correction/reset after a mismatch, not perfect selection of the
+measurement outcome.  Any Boss-level prose that calls perfect correction a
+post-selected trajectory, a deterministic covariance map, or an averaged transfer
+matrix should be revised.
+
+There is an apparent provenance tension.  The repository policy requires every
+production output to record the canonical dynamics entry point.  The canonical
+CPU/GPU Markov-circuit engine configs do not visibly record that field, but many
+modern campaign summaries do.  The Boss should distinguish engine-level metadata
+from campaign-layer metadata and should prefer outputs whose run summaries or
+manifests explicitly include both the canonical entry point and the source copy
+or checksum.
+
+There is also an apparent source-identity tension.  A Colab or OSG campaign may
+record \src{classA_U1FGTN_gpu.run_markov_circuit} while using a stale copied
+\src{classA_U1FGTN_gpu.py}.  The canonical-entry string proves use of the public
+method name, but it does not by itself prove byte identity with \src{src/fgtn}.
+For high-stakes comparisons, source checksums should be preserved.
+
+The production audit is source-only.  I did not execute notebooks, run scripts,
+submit OSG jobs, compare numerical outputs, or load covariance arrays.  Runtime
+failure claims are therefore based on visible source inconsistencies, not
+observed executions.
+
+Line numbers refer to the current working tree inspected for this note.  They
+may drift if files are edited later.
+
+\section{Confidence}
+
+Confidence is high for the canonical-entry identification, the protocol
+taxonomy, and the source-copy synchronization findings, because these follow
+directly from policy text, engine signatures, branch-control code, line counts,
+and checksums.  Confidence is high that the OSG
+\src{cycles=Ny} versus \src{cycles=Ny//2} mismatch is a real source-level defect.
+Confidence is moderate for production-status classifications such as ``modern''
+or ``legacy,'' since those are inferred from directory organization, metadata
+style, and runner freshness rather than an external registry.  Confidence is low
+for any numerical-performance or physics-output claim, because no simulations or
+notebooks were executed.
+
+\section{What the Boss Should Preserve or Scrutinize}
+
+\subsection{Preserve}
+
+The Boss should preserve the canonical public-entry narrative:
+\[
+  \src{classA_U1FGTN.run_markov_circuit(...)}
+  \quad\text{and}\quad
+  \src{classA_U1FGTN_gpu.run_markov_circuit(...)}
+\]
+are the authoritative CPU/GPU adaptive Markov-circuit surfaces.  Private helpers
+belong below these methods.
+
+The Boss should preserve the protocol taxonomy: Born Markov trajectory,
+perfect-correction ensemble, full post-selection, partial post-selection,
+distributional transfer operators, Choi operator-transfer objects, and Lindblad
+mean-channel controls are distinct objects.
+
+The Boss should preserve the modern campaign pattern: streamed observers,
+\src{save=False} where full histories are unnecessary, shard/checkpoint
+manifests, explicit protocol fields, and campaign-level summaries.
+
+\subsection{Scrutinize}
+
+The Boss should scrutinize all noncanonical copied
+\src{classA_U1FGTN_gpu.py} and \src{classA_U1FGTN.py} files, especially stale
+Colab and OSG copies, before using them as evidence for current dynamics.
+
+The Boss should require explicit canonical-entry metadata and source identity
+for production outputs.  A method-name string alone is weaker than a method-name
+string plus source checksum or copied-source manifest.
+
+The Boss should treat the root \src{OSG/} path as stale unless repaired, and
+should specifically flag the \src{OSG/osg_slope_vs_Ny} merge cycle mismatch.
+
+The Boss should avoid conflating Choi, Lindblad, transfer-operator, and sampled
+trajectory language.  These controls are useful cross-checks and theoretical
+objects, but they are not interchangeable with the production state-covariance
+Markov process.
+
+\section{Cross-Supervisor Addendum}
+
+\subsection{Cross-note agreements}
+
+All five supervisor notes agree on the central separation of objects: the
+physical adaptive circuit is a trajectory-resolved Born process, perfect
+correction is an ensemble of Born trajectories with deterministic feedback after
+mismatch, and post-selection is a deterministic or one-sample control rather
+than an equivalent ensemble.  This reinforces the Supervisor 02 taxonomy and the
+ensemble distinction
+\[
+\overline{O[G_\xi]} \neq O[\overline{G_\xi}] \neq O[G_{\rm ps}] .
+\]
+
+The notes also agree that the strongest evidence spine is not raw cache data but
+the structured campaign layer: canonical-entry metadata, run summaries,
+manifests, run-index CSVs, explicit sample counts, and derived-analysis
+manifests.  Supervisor 05 independently strengthens the Supervisor 02 warning
+that a method-name string is insufficient unless tied to source identity,
+campaign metadata, and sample-count semantics.
+
+The target-state and trajectory notes are compatible with the dynamics note:
+OW/domain-wall target diagnostics provide the theoretical benchmark, while
+perfect-correction trajectories supply the physical ensemble evidence.  Entropy
+scaling near \(1/3\) is the leading critical diagnostic; correlator exponents,
+partial-postselection sweeps, and finite-size transition claims require stronger
+qualification.
+
+The transfer-stability note agrees with Supervisor 02 that Choi, Lindblad,
+Markov-transfer, and sampled covariance dynamics are distinct.  It adds that
+Lyapunov and Choi transfer gaps are complementary diagnostics of a near-marginal
+domain-wall sector, not one mathematically identical spectrum.
+
+\subsection{Corrections and refinements to Supervisor 02}
+
+There is no hard cross-note contradiction to the Supervisor 02 protocol
+taxonomy.  The main correction is emphasis: perfect correction should not be
+described as fixed-charge projection.  Supervisor 03 shows strong suppression of
+\(\operatorname{Tr} C(1-C)\), but centered charge wander remains small and
+nonzero.
+
+Supervisor 02's provenance caution should be sharpened with Supervisor 05's
+figure/data caveats.  The Boss should not only require canonical-entry and source
+checksum metadata, but also check actual versus requested samples, skipped-input
+records, figure-script source tables, and whether a plotted comparison is backed
+by matching protocol data.
+
+The partial-postselection control should remain in the taxonomy, but Supervisor
+03 shows that the inspected sweep is finite-geometry protocol evidence, not a
+phase diagram.  The \(p=1\) endpoint is effectively a deterministic
+postselected branch.
+
+The Choi discussion in Supervisor 02 should inherit Supervisor 04's stricter
+language: GPU Choi evidence is early-cycle and censored before final time, while
+CPU Choi evidence reaches final time but has endpoint/finite-mode caveats.  Do
+not collapse these into a single final ``transfer gap.''
+
+The target-state context from Supervisor 01 adds one cross-folder convention
+warning absent from Supervisor 02: \(\alpha_1,\alpha_2\) are not used uniformly
+across theory folders.  Boss-level prose should say ``topological mass'' and
+``trivial mass'' unless the local convention is stated.
+
+\subsection{Boss priorities}
+
+\begin{enumerate}
+\item Preserve the canonical dynamics and ensemble taxonomy: CPU/GPU
+\src{run_markov_circuit} entry points, Born perfect-correction ensemble,
+postselection control, partial-postselection interpolation, and distinct
+Choi/Lyapunov/Lindblad/Markov-transfer objects.
+
+\item Use structured manifests and run summaries as the data spine.  Require
+canonical entry point, source identity or checksum, actual sample count, storage
+mode, completion status, and source-to-derived-product links.
+
+\item Treat entropy scaling and purification as the strongest physics evidence;
+scrutinize correlator exponents, postselection comparisons, partial-postselection
+phase language, and any exact-preparation claim.
+
+\item Repair or quarantine stale operational paths: unsynchronized Colab/OSG
+source copies, root \src{OSG/}, the \src{OSG/osg_slope_vs_Ny} cycle mismatch,
+legacy \src{cache/G_history_samples}, and hard-coded or mismatched summary-figure
+inputs.
+
+\item Keep target-state and stability claims precise: OW one-shell captures
+chiral entanglement better than full Chern quantization, DW truncation is an
+active boundary condition, and Lyapunov/Choi gaps support a qualitative
+near-marginal domain-wall sector but not a resolved thermodynamic exponent.
+\end{enumerate}
+
+\end{document}

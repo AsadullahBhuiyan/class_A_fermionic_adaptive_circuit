@@ -1,0 +1,28 @@
+universe = container
+container_image = docker://<dockerhub-username>/fermionic-env:latest
+
+executable = run.sh
+arguments  = $(Process)
+
+environment = "JOB_ID=$(Process)"
+
+transfer_input_files = run.sh, src/classA_U1FGTN_gpu.py, src/__init__.py, params.json
+
+log    = logs/job_$(Cluster)_$(Process).log
+error  = logs/job_$(Cluster)_$(Process).err
+output = logs/job_$(Cluster)_$(Process).out
+
++JobDurationCategory = "Medium"
+
+# A100 only (Compute Capability 8.0, 40 GB VRAM)
+# To widen pool: remove gpus_maximum_capability, or lower gpus_minimum_capability to 7.0
+gpus_minimum_capability = 8.0
+gpus_maximum_capability = 8.0
+gpus_minimum_memory     = 40000
+
+request_gpus   = 1
+request_cpus   = 4
+request_memory = 16 GB
+request_disk   = 10 GB
+
+queue 100

@@ -1,0 +1,38 @@
+{
+  "schema": "wall_diabatic_spectral_pump_numerical_recovery_campaign_v2",
+  "campaign_id": "N20_24_28_32x24_wall_diabatic_spectral_pump_numerical_recovery_v2",
+  "parent_campaign_id": "N20_24_28_32x24_wall_diabatic_spectral_pump_s100_v1",
+  "parent_config": "campaign_config.wall_diabatic_spectral_pump_s100_v1.json",
+  "parent_config_sha256": "ee3ca78c2448763c419bbd701c4e0d8bfbdca6d8e45601b1bf5bf764165a30b6",
+  "parent_runner": "run_wall_diabatic_spectral_pump_s100.py",
+  "parent_runner_sha256": "1e6112867498f9f74935f11b496f30a3007fa0228e55c97515c129b0fb6ad330",
+  "recovery_task_ids": [
+    "wall_diabatic_dense_N28x24_hard_sample_014",
+    "wall_diabatic_dense_N32x24_hard_sample_012",
+    "wall_diabatic_dense_N32x24_hard_sample_037",
+    "wall_diabatic_nsh1_N24x24_hard_sample_092",
+    "wall_diabatic_nsh1_N32x24_hard_sample_068"
+  ],
+  "numerical_recovery": {
+    "primary_full_driver": "numpy_heevd",
+    "full_fallback_drivers": [
+      "scipy_evr",
+      "scipy_evd",
+      "scipy_evx"
+    ],
+    "subset_drivers": [
+      "scipy_evr",
+      "scipy_evx"
+    ],
+    "fallback_eigenpair_residual_tolerance": 5e-10,
+    "fallback_orthonormality_tolerance": 5e-10,
+    "frame_polar_trigger": 1e-12,
+    "frame_polar_acceptance": 5e-13,
+    "scientific_thresholds_changed": false
+  },
+  "execution": {
+    "workers": 5,
+    "blas_threads": 1
+  },
+  "output_root": "results/N20_24_28_32x24_wall_diabatic_spectral_pump_numerical_recovery_v2"
+}

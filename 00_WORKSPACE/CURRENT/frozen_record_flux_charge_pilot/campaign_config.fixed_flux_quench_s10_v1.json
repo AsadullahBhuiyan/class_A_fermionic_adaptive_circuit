@@ -1,0 +1,68 @@
+{
+  "schema": "fixed_flux_quench_campaign_v1",
+  "campaign_id": "N16x20_frozen_record_fixed_flux_quench_s10_v1",
+  "root_seed": 2026090303,
+  "source_campaign": {
+    "campaign_id": "N16x20_frozen_record_continuous_ramp_s10_v1",
+    "config": "campaign_config.frozen_continuous_ramp_s10_v1.json",
+    "output_root": "results/N16x20_frozen_record_continuous_ramp_s10_v1"
+  },
+  "geometry": {
+    "Nx": 16,
+    "Ny": 20,
+    "DW": true,
+    "dw_interval": [4, 12],
+    "nshell": 1,
+    "filling_frac": 0.5,
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "trial_orbitals": "X"
+  },
+  "walls": {
+    "soft": {"dw_truncation": false, "meas_slab_only": false},
+    "hard": {"dw_truncation": true, "meas_slab_only": true}
+  },
+  "dynamics": {
+    "burn_in_cycles": 40,
+    "replay_cycles": 64,
+    "sequence": "raster_y",
+    "perfect_correction": true,
+    "postselect": false,
+    "postselect_probability": 0.0,
+    "state_representation": "physical_frame",
+    "physical_covariance_update": "rank1",
+    "controller_twist_gauge": "uniform",
+    "dtype": "complex128",
+    "canonical_entry_point": "classA_U1FGTN.run_markov_circuit"
+  },
+  "fixed_twists": [
+    {"name": "pi_over_2", "radians": 1.5707963267948966},
+    {"name": "pi", "radians": 3.141592653589793},
+    {"name": "three_pi_over_2", "radians": 4.71238898038469},
+    {"name": "near_2pi", "radians": 6.283185207179586}
+  ],
+  "near_2pi_offset": 1e-7,
+  "directions": {"ccw": 1, "cw": -1},
+  "regions": {
+    "left_x_start": 0,
+    "left_x_stop_exclusive": 8,
+    "right_x_start": 8,
+    "right_x_stop_exclusive": 16
+  },
+  "ensemble": {
+    "samples_per_wall": 10,
+    "paired_unit": "wall-specific burn-in sample_id and 64-cycle frozen record",
+    "uncertainty": "sample standard deviation"
+  },
+  "execution": {
+    "cpu_list": "28-55",
+    "workers": 28,
+    "blas_threads": 1
+  },
+  "acceptance": {
+    "charge_continuity_tolerance": 1e-9,
+    "frame_gram_tolerance": 1e-8,
+    "trajectory_replay_probability_tolerance": 1e-14,
+    "zero_flux_reproduction_tolerance": 1e-10
+  }
+}

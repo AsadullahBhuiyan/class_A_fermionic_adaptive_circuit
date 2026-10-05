@@ -1,0 +1,322 @@
+\documentclass[aps,prb,twocolumn,floatfix,nofootinbib,superscriptaddress]{revtex4-2}
+
+\usepackage{amsmath,amssymb,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\hypersetup{
+  pdftitle={Adaptive Kato Transport of Overlap-Continued Circuit Projectors},
+  pdfauthor={Asadullah Bhuiyan}
+}
+
+\begin{document}
+
+\title{Adaptive Kato Transport of Overlap-Continued Circuit Projectors:\
+A Preregistered Width Comparison}
+\author{Asadullah Bhuiyan}
+\affiliation{Class-A fermionic adaptive-circuit project}
+\date{September 6, 2026}
+
+\begin{abstract}
+We specify a geometric flux-continuation experiment on saved pure Gaussian
+states produced by the monitored class-A circuit.  At each flux, a fixed-rank
+spectral subspace of the state-derived flattened parent is selected by maximum
+overlap with the preceding projector.  Its frame is then transported with the
+Kato connection rather than a physical-time Schr\"odinger ramp.  Adaptive
+classical RK4 uses projector step doubling, while the selected--excluded
+spectral gap is retained as a diagnostic.  The campaign compares
+$20\times24$ and $24\times24$ endpoint ensembles, separately reporting raw
+clockwise and counterclockwise wall-charge transfer.  Numerical validity is
+gated, but charge quantization and agreement with earlier finite-grid
+continuations are measured outcomes.  This document fixes the theory,
+algorithm, diagnostics, and resume contract before production results are
+inspected.
+\end{abstract}
+
+\maketitle
+
+\section{Question and scope}
+
+The equilibrium Laughlin argument identifies a Chern phase by transporting an
+occupied spectral subspace around one boundary-flux quantum.  A monitored
+circuit supplies several inequivalent flux-dependent objects.  A physical
+online circuit ramp includes Born noise and feedback, and a finite-time
+Schr\"odinger ramp of a state-derived Hamiltonian includes Landau--Zener
+mixing.  Neither is identical to geometric continuation of a spectral branch.
+The present experiment isolates the latter operation.
+
+The input is a completed monitored endpoint state.  No circuit trajectory is
+rerun, no tangent cocycle is constructed, and no physical ramp time is
+introduced.  The output is the direct half-cylinder charge of a projector
+transported continuously in flux.  This is the closest circuit-state analogue
+of the overlap-continued flattened-Hamiltonian benchmark, but it does not make
+quantization automatic: the endpoint family may lack a clean isolated branch,
+the finite cylinder contains two walls, and previous-overlap selection can
+become ambiguous near a degeneracy.
+
+\section{Pure Gaussian states and their projectors}
+
+A number-conserving pure Gaussian state with occupied frame
+$F\in\mathbb{C}^{N\times r}$ satisfies
+\begin{equation}
+  F^\dagger F=\mathbf{1}_r,
+  \qquad P=FF^\dagger,
+  \qquad P^2=P=P^\dagger.
+  \label{eq:frame-projector}
+\end{equation}
+The frame basis is not physical: $F$ and $FU$ represent the same state for
+every $U\in U(r)$.  The rank-$r$ projector $P$ is the physical one-particle
+correlation matrix.  Regional particle numbers therefore follow directly from
+its diagonal,
+\begin{equation}
+  N_A=\tr(R_A P),
+\end{equation}
+where $R_A$ projects onto a spatial region.
+
+For an endpoint projector $P_0$, define the state-derived flattened parent
+\begin{equation}
+  H_0=\mathbf{1}_N-2P_0.
+  \label{eq:parent}
+\end{equation}
+It has occupied eigenvalue $-1$ and empty eigenvalue $+1$ at zero twist.
+Threading a uniform boundary flux in the periodic $y$ direction gives
+\begin{align}
+  \widetilde H_{rs}(\phi)
+    &=(H_0)_{rs}\exp\!\left[\ii\phi\frac{d_y(r,s)}{N_y}\right],\\
+  H(\phi)&=\frac{\widetilde H(\phi)+\widetilde H^\dagger(\phi)}{2},
+  \label{eq:twist}
+\end{align}
+with minimum-image displacement $d_y$.  The derivative is analytic,
+\begin{align}
+  \partial_\phi\widetilde H_{rs}
+  &=\ii\frac{d_y(r,s)}{N_y}\widetilde H_{rs},\\
+  \partial_\phi H
+  &=\frac{\partial_\phi\widetilde H+
+  (\partial_\phi\widetilde H)^\dagger}{2}.
+  \label{eq:analytic-h-derivative}
+\end{align}
+
+\section{Three distinct flux-dependent projectors}
+
+The notation distinguishes three operations that can otherwise look
+deceptively similar.
+
+The \emph{dynamical projector} $P_{\mathrm{dyn}}(t)$ solves a physical-time
+equation such as
+\begin{equation}
+  \ii\partial_tF_{\mathrm{dyn}}=H[\phi(t)]F_{\mathrm{dyn}}.
+\end{equation}
+Its result depends on ramp time and can mix instantaneous branches at an
+avoided crossing.
+
+The \emph{instantaneous projector} $P_{\mathrm{inst}}(\phi)$ is rebuilt
+independently at every flux by filling the $r$ lowest eigenvectors of
+$H(\phi)$.  It has no memory of how the flux point was reached.  In a finite
+system it normally closes after $2\pi$ by refilling according to energy order.
+
+The \emph{continued projector} $P_{\mathrm{cont}}(\phi)$ remembers the
+previous spectral subspace.  At a numerical stage with eigenpairs
+$\{E_n,|w_n\rangle\}$, every eigenvector receives the gauge-invariant weight
+\begin{equation}
+  \omega_n=\langle w_n|P_{\mathrm{previous}}|w_n\rangle.
+  \label{eq:weights}
+\end{equation}
+The fixed-rank set $I_{\mathrm{cont}}$ consists of the $r$ largest weights.
+Only exact numerical ties are resolved by increasing energy, reproducing the
+legacy static selector.  The selected spectral projector is
+\begin{equation}
+  P_{\mathrm{spec}}(\phi)=
+  \sum_{i\in I_{\mathrm{cont}}}|i\rangle\langle i|.
+  \label{eq:pspec}
+\end{equation}
+If the branch is smooth and resolved, Kato transport makes
+$P_{\mathrm{cont}}=P_{\mathrm{spec}}$ up to integration error.  We keep the
+two names because their discrepancy is a primary numerical diagnostic.
+
+\section{Kato parallel transport}
+
+\subsection{Derivation from $P^2=P$}
+
+Differentiating $P^2=P$ gives
+\begin{equation}
+  (\partial_\phi P)P+P(\partial_\phi P)=\partial_\phi P,
+  \qquad P(\partial_\phi P)P=0.
+  \label{eq:projector-identity}
+\end{equation}
+Thus $\partial_\phi P$ is off diagonal between the selected subspace and its
+complement.  Define the anti-Hermitian Kato generator
+\begin{equation}
+  K(\phi)=[\partial_\phi P_{\mathrm{spec}},P_{\mathrm{spec}}],
+  \qquad K^\dagger=-K.
+  \label{eq:kato-generator}
+\end{equation}
+The frame equation is
+\begin{equation}
+  \partial_\phi F_{\mathrm{cont}}=K(\phi)F_{\mathrm{cont}}.
+  \label{eq:frame-kato}
+\end{equation}
+It induces the basis-independent projector equation
+\begin{equation}
+  \partial_\phi P_{\mathrm{cont}}
+  =[[\partial_\phi P_{\mathrm{spec}},P_{\mathrm{spec}}],
+  P_{\mathrm{cont}}].
+  \label{eq:projector-kato}
+\end{equation}
+Indeed, $\partial_\phi(FF^\dagger)=KP-PK=[K,P]$; when
+$P=P_{\mathrm{spec}}$, Eq.~\eqref{eq:projector-identity} gives
+$[K,P]=\partial_\phi P$.  The connection fixes a convenient parallel gauge
+for the frame but transports the projector, which is the physical object.
+
+\subsection{Analytic spectral derivative}
+
+Away from an unresolved selected--excluded degeneracy, first-order spectral
+perturbation theory gives
+\begin{equation}
+  \partial_\phi P_{\mathrm{spec}}
+  =\sum_{\substack{i\in I_{\mathrm{cont}}\\a\notin I_{\mathrm{cont}}}}
+  \frac{|a\rangle\langle a|(\partial_\phi H)|i\rangle\langle i|}
+  {E_i-E_a}+\mathrm{H.c.}
+  \label{eq:spectral-derivative}
+\end{equation}
+The selected--excluded gap
+\begin{equation}
+  \delta_{\mathrm{sel}}=
+  \min_{\substack{i\in I_{\mathrm{cont}}\\a\notin I_{\mathrm{cont}}}}
+  |E_i-E_a|
+  \label{eq:selected-gap}
+\end{equation}
+controls the norm that Eq.~\eqref{eq:spectral-derivative} can acquire.  It is
+not, by itself, an integration-error estimate.  Matrix elements of
+$\partial_\phi H$, rotation distributed among many modes, and branch changes
+also matter.  For that reason $\delta_{\mathrm{sel}}$ is recorded but does not
+set the flux step directly.
+
+\section{Adaptive RK4 algorithm}
+
+The regulated observation grid is
+\begin{equation}
+  \phi_j^{(\sigma)}=-\sigma10^{-7}
+  +\sigma\frac{2\pi j}{128},
+  \quad j=0,\ldots,128,
+  \quad \sigma=\pm1.
+  \label{eq:grid}
+\end{equation}
+The signed $10^{-7}$ displacement starts on a definite side of the ambiguous
+finite-size crossing at the nominal origin.  It does not alter the Hamiltonian
+away from that negligible shift and is not a quantization criterion.
+
+For each RK4 stage, the code constructs $H$ and its analytic derivative,
+diagonalizes $H$, performs the previous-projector selection, constructs
+Eq.~\eqref{eq:spectral-derivative}, and applies the generator in
+Eq.~\eqref{eq:frame-kato}.  The same proposed step is evaluated once at size
+$h$ and twice at size $h/2$.  After symmetric polar orthonormalization of the
+two candidates, the local projector discrepancy is
+\begin{equation}
+  e=\frac{\|P_{h/2,h/2}-P_h\|_F}{\sqrt r}.
+  \label{eq:step-error}
+\end{equation}
+A step is accepted only for $e\le10^{-8}$.  The next proposal is
+\begin{equation}
+  h_{\mathrm{new}}=0.9h\left(\frac{10^{-8}}{e}\right)^{1/5},
+  \qquad 0.2h\le h_{\mathrm{new}}\le2h.
+  \label{eq:controller}
+\end{equation}
+No step may cross an observation point.  Failure is diagnostic if the
+proposal falls below $1/4096$ of one observation interval.  This rule catches
+an unresolved branch or singular derivative instead of silently stepping
+through it.
+
+After every accepted step, the frame is stabilized by the symmetric polar
+map
+\begin{equation}
+  F\longmapsto F(F^\dagger F)^{-1/2}.
+  \label{eq:polar}
+\end{equation}
+The result is \emph{not} reprojected onto $P_{\mathrm{spec}}$.  Reprojection
+would hide accumulated transport error and could convert a branch-selection
+discontinuity into an apparently exact path.  The direct projector mismatch
+$\|P_{\mathrm{cont}}-P_{\mathrm{spec}}\|_F/\sqrt r$ remains observable and
+must stay below $10^{-7}$.
+
+\section{Campaign and saved observables}
+
+The inputs are verified complex128 endpoint frames from two completed raster-
+$y$ monitored campaigns.  Both used pure initialization, perfect correction,
+no postselection, $n_{\mathrm{shell}}=1$, and
+$(\alpha_1,\alpha_2)=(1,30)$ for 48 cycles.  The width comparison is
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+size & walls & split & selected IDs\\
+\midrule
+$20\times24$ & $x=5,15$ & $x=10$ & $0,4,\ldots,96$\\
+$24\times24$ & $x=6,18$ & $x=12$ & $0,4,\ldots,96$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Soft and hard walls are both included.  Each of the 100 endpoint states is
+continued clockwise and counterclockwise, yielding 200 paths.  The two sizes
+are independent monitored ensembles; the two directions for a fixed endpoint
+are paired deterministic continuations.
+
+At all 129 points we save $\phi$, $N_L$, $N_R$, total charge,
+\begin{equation}
+  q_x=\frac{(N_R-N_R^{(0)})-(N_L-N_L^{(0)})}{2},
+\end{equation}
+the $x$-resolved density, transported--selected projector mismatch, minimum
+principal overlap, selected-weight floor and margin, $\delta_{\mathrm{sel}}$,
+generator norm, adaptive error, and accepted/rejected step counts.  Raw CW
+and CCW distributions are reported separately.  The analysis compares each
+path to its saved 64-interval static continuation and also to the 128-interval
+static continuation at $20\times24$.  Every change in the descriptive
+$|q_x|>0.5$ classification is listed.  Fractions above $0.5$ and $0.75$ are
+descriptive outcomes, not gates.
+
+Each path writes one atomic compressed NPZ and one completion JSON written
+last.  The completion binds the task, full source endpoint identity,
+configuration hash, source hashes, result bytes, and SHA-256.  A rolling
+uncompressed frame checkpoint is written every eight observation intervals
+as one stable NPZ/JSON pair.  It contains the exact transported frame,
+completed interval, next adaptive proposal, accumulated diagnostics, and all
+partial histories.  Restart verifies and skips complete pairs or continues a
+matching checkpoint; corrupt or partial pairs are rejected.
+
+\section{Numerical gates and interpretation}
+
+The preregistered numerical gates are: source-frame Gram residual below
+$10^{-8}$; post-polar orthonormality residual below $10^{-10}$; total-charge
+residual below $10^{-9}$; transported--selected projector mismatch below
+$10^{-7}$; finite spectral and adaptive diagnostics; and step-doubling error
+not exceeding $10^{-8}$.  Sample 0 for both sizes, walls, and directions is
+repeated at tolerance $2.5\times10^{-9}$, with full-path and endpoint raw
+$q_x$ differences required below $10^{-4}$.
+
+Kato continuation removes physical ramp time and hence removes finite-rate
+Landau--Zener mixing from the definition of the path.  It cannot force charge
+quantization.  A true ambiguity can remain if the selected--excluded gap
+closes, if the overlap margin vanishes, or if a finite-system continued branch
+does not carry a full unit of wall charge.  Quantization, agreement with the
+coarse-grid classification, and width improvement are therefore reported
+only after all 200 path pairs verify.  No result claim is made in this methods
+note.
+
+\begin{thebibliography}{9}
+\bibitem{Kato1950}
+T. Kato, On the adiabatic theorem of quantum mechanics,
+J. Phys. Soc. Jpn. \textbf{5}, 435 (1950).
+\bibitem{Laughlin1981}
+R. B. Laughlin, Quantized Hall conductivity in two dimensions,
+Phys. Rev. B \textbf{23}, 5632 (1981).
+\bibitem{BhuiyanPanJian2026}
+A. Bhuiyan, L. Pan, and C.-M. Jian, Free-fermion dynamics with measurements:
+Topological classification and adaptive preparation of topological states,
+Phys. Rev. Research \textbf{8}, 023147 (2026).
+\end{thebibliography}
+
+\end{document}

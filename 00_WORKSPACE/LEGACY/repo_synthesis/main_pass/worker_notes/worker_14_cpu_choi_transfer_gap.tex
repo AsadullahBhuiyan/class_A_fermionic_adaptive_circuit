@@ -1,0 +1,260 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\begin{document}
+
+\title{CPU Choi Transfer-Gap Evidence in the Class-A Adaptive Fermionic Circuit}
+\author{Worker 14}
+\date{\today}
+
+\begin{abstract}
+This note summarizes read-only evidence for the CPU Choi/particle-transfer gap
+analysis in the class-A adaptive fermionic circuit repository.  The strongest
+CPU evidence is a production script and associated metadata for
+domain-wall, slab-restricted Choi covariances, where the particle transfer
+operator is recorded as
+$T_p=-(I+\Sigma_{LL})^{-1}\Sigma_{LR}$ on finite sectors and the gap is
+$\Delta_p=\min_j|\log s_j(T_p)|/C$.  The current CPU pipeline avoids saving full
+Choi or transfer matrices but saves exact final spectra, near-gap eigenvectors,
+all finite final eigenvectors in the newer campaigns, and spectrum-by-cycle
+diagnostics.  The transfer-gap evidence is qualitatively consistent with the
+independent Lyapunov analysis: both diagnostics identify near-marginal modes in
+the domain-wall sector and motivate a chiral boundary interpretation.  The main
+caveats are that this inspection did not load binary arrays, several numerical
+claims therefore remain metadata-level, and some alpha-sweep runs show endpoint
+saturation/NaN sentinel behavior that must not be mistaken for a resolved
+finite gap.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+This synthesis used only text files, JSON/CSV metadata, scripts, notebook text,
+and existing notebook outputs.  No files were edited, no notebooks were
+executed, and no large binary arrays such as \texttt{.npz} spectra or
+eigenvectors were loaded.  Paths containing \texttt{haining}, \texttt{haoyu}, or
+\texttt{erroneous} were excluded case-insensitively, as were
+\texttt{repo\_synthesis/main\_pass/worker\_notes},
+\texttt{supervisor\_notes}, and \texttt{boss}.
+
+Primary inspected sources were \path{choi_covariance_cpu/},
+\path{lyapunov_analysis_v2/majorana_choi_transfer_spectrum.ipynb}, the CPU Choi
+campaign manifests and run summaries under
+\path{choi_covariance_cpu/cpu_data/complex_particle_choi_transfer/campaigns/},
+\path{scripts/smoke_choi_dense_vs_rank1.py}, and the existing Lyapunov writeup
+\path{colab_lyapunov/docs/lyapunov_analysis.tex}.
+
+\section{Findings: \texorpdfstring{$T_p$}{Tp} Gap and Choi Spectrum}
+
+The CPU production entry point is explicit: the Choi transfer observable is
+implemented in \path{choi_covariance_cpu/run_particle_choi_transfer_gap_cpu.py}
+using the CPU class \texttt{classA\_U1FGTN}.  The script records
+\texttt{classA\_U1FGTN.run\_markov\_circuit} as the canonical dynamics entry
+point and defines the observable as a complex particle Choi-transfer gap.  Its
+recorded transfer definition is
+\begin{equation}
+  T_p=-(I+\Sigma_{LL})^{-1}\Sigma_{LR},
+\end{equation}
+restricted to finite sectors.  The gap is recorded as
+\begin{equation}
+  \Delta_p(C)=\min_j\left|\frac{\log s_j(T_p)}{C}\right|.
+\end{equation}
+Operationally, the script diagonalizes the Hermitianized
+$\Sigma_{LL}$ block, verifies that its spectrum lies in the pure-Choi interval
+$[-1,1]$ up to tolerance, maps endpoint eigenvalues to particle zeros or poles,
+and treats non-endpoint eigenvalues as finite particle-transfer exponents.
+
+The relation between the Choi block eigenvalue $a$ and the finite transfer
+exponent is implemented as
+\begin{equation}
+  \lambda_p(a;C)=\frac{\log(1-a)-\log(1+a)}{2C}.
+\end{equation}
+The near-gap modes are selected by increasing $|\lambda_p|$, with eigenvectors,
+indices, residuals, endpoint multiplicities, finite-mode counts, and final
+spectra stored by the observer.  The final-cycle gap is marked as a mandatory
+exact eigensolve of $\Sigma_{LL}$ in the run summaries.
+
+The most substantive CPU metadata campaign found here is
+\path{Nx20_Ny20-30-40_DW1_dwtrunc1_a1-1-3_S10_cycles2Ny_allfiniteeig_v4}.  It
+contains six domain-wall, slab-restricted, perfect-correction runs with
+$N_x=20$, $N_y\in\{20,30,40\}$, $\alpha_1\in\{1,3\}$, $\alpha_2=30$, ten
+samples per configuration, and $C=2N_y$.  The manifest and run index record all
+six as completed, rank-1 physical covariance update used, no dense fallback, and
+ten stable final samples.  The newer summaries also record that all finite final
+eigenstates were saved and that full Choi/transfer matrices were not saved.
+
+\section{Eigenvectors and Spatial Evidence}
+
+The CPU observer saves near-gap final eigenvectors and, for newer campaigns, all
+finite final eigenvectors.  The executed plotting notebook
+\path{choi_covariance_cpu/plot_gap_vs_cycle_nan_sentinel_executed.ipynb}
+constructs density maps by placing $|\psi|^2$ from active slab indices onto
+$(x,y)$ and drawing domain-wall locator lines.  This is evidence that the saved
+eigenvectors were intended for spatial localization diagnostics, but this note
+does not independently inspect the binary eigenvector arrays.
+
+The independent Lyapunov writeup gives the clearest text-level spatial
+interpretation: the neutral Lyapunov eigenvector is reported to concentrate near
+the two domain-wall interfaces and extend along the wall direction.  This is not
+identical to the CPU particle-transfer eigenvector, but it supports the same
+physical picture: a slow or marginal boundary-sector mode rather than a trivial
+bulk instability.
+
+\section{Relation to Lyapunov Evidence}
+
+The Lyapunov analysis computes finite-time tangent exponents of the nonlinear
+Markov map, whereas the CPU Choi analysis computes singular exponents of a
+particle transfer object derived from the Choi covariance.  These are distinct
+linearizations.  Nevertheless, both use a minimum absolute exponent as a gap
+proxy.  The Lyapunov note states that DW-off spectra are strictly negative and
+gapped, while DW-on spectra develop a near-zero exponent whose gap decreases
+with $N_y$.  It also reports a sample-level correlation between small Lyapunov
+gap and degraded Chern marker in the domain-wall sector.
+
+The CPU Choi transfer-gap campaign is therefore best interpreted as a parallel
+transfer-matrix diagnostic of the same slow domain-wall physics.  Agreement in
+interpretation is qualitative at this read-only level: the metadata establishes
+that exact Choi-block spectra and eigenvectors were produced and saved, while
+the Lyapunov writeup supplies explicit text-level numerical trends and spatial
+interpretation.
+
+\section{Evidence Table}
+
+\begin{table*}[t]
+\caption{Text and metadata evidence inspected without loading binary arrays.}
+\begin{tabular}{p{0.30\textwidth}p{0.19\textwidth}p{0.43\textwidth}}
+\toprule
+Source & Lines & Evidence used \\
+\midrule
+\path{choi_covariance_cpu/run_particle_choi_transfer_gap_cpu.py}
+& 61--72
+& Imports the CPU class, records the canonical CPU dynamics entry point, defines
+the Choi formula, particle-transfer definition, gap definition, exact
+$\Sigma_{LL}$ extraction, and rooted singular-value convention. \\
+\path{choi_covariance_cpu/run_particle_choi_transfer_gap_cpu.py}
+& 241--306
+& Hermitianizes $\Sigma_{LL}$, diagonalizes it exactly, checks the $[-1,1]$
+spectral interval, maps endpoints to zeros/poles, computes finite exponents,
+selects near-gap modes, and records eigenvector residuals. \\
+\path{choi_covariance_cpu/run_particle_choi_transfer_gap_cpu.py}
+& 560--609
+& Censors non-finite or out-of-bounds Choi blocks, performs exact final-cycle
+storage of spectra and eigenvectors, and records all finite final eigenstates
+when requested. \\
+\path{choi_covariance_cpu/run_particle_choi_transfer_gap_cpu.py}
+& 650--737
+& Defines saved payloads: gap-vs-cycle, final spectrum, rooted singular values,
+near-gap eigenstates, all finite eigenstates, endpoint counts, and stability
+masks. \\
+\path{choi_covariance_cpu/run_particle_choi_transfer_gap_cpu.py}
+& 844--904
+& Calls \texttt{classA\_U1FGTN.run\_markov\_circuit} with
+\texttt{track\_choi=True}, perfect correction, slab measurement, Choi observer,
+and rank-1/dense physical covariance update option. \\
+\path{choi_covariance_cpu/.../Nx20_Ny20-30-40.../campaign_manifest.json}
+& 2--17, 18--96
+& Campaign metadata: $N_x=20$, $N_y=20,30,40$, $\alpha_1=1,3$,
+$\alpha_2=30$, $C=2N_y$, ten samples, DW on, slab restricted, canonical CPU
+entry point. \\
+\path{choi_covariance_cpu/.../Nx20_Ny20-30-40.../campaign_manifest.json}
+& 131--141, 147--165, 220--267
+& Dense fallback policy and finite-mode policy are recorded; representative
+results show completed runs with stable final samples and no rank-1 failure. \\
+\path{choi_covariance_cpu/.../Nx20_Ny20-30-40.../run_index.csv}
+& 1--7
+& Six completed configurations are indexed; each has ten stable final samples,
+rank-1 update used, and no dense fallback. \\
+\path{choi_covariance_cpu/.../N20x40...a1-1.../run_summary.json}
+& 888--893, 1127--1248, 1331, 1357
+& Representative run summary: ten samples, censoring rule, exact final gap
+override, saved spectrum-by-cycle and finite eigenstates, gap definition,
+particle-transfer definition, physical covariance health, and transfer object
+$T_pT_p^\dagger$. \\
+\path{choi_covariance_cpu/.../N20x40...a1-3.../run_summary.json}
+& 888--893, 1127--1248, 1331, 1357
+& Same metadata for the $\alpha_1=3$ representative run; records ten stable
+final samples and physical covariance eigenvalues essentially within
+$[-1,1]$. \\
+\path{choi_covariance_cpu/plot_gap_vs_cycle_nan_sentinel_executed.ipynb}
+& 136--169, 823--837
+& Existing executed notebook output loads six curves from the
+$N_y=20,24,30$ campaign; $\alpha_1=1$ has no final sentinels, whereas
+$\alpha_1=3$ has all samples sentinel by cycle 20 or 40, with first sentinel
+cycles 11--13. \\
+\path{choi_covariance_cpu/plot_gap_vs_cycle_nan_sentinel_executed.ipynb}
+& 560--612
+& Notebook constructs near-gap eigenstate density maps from saved eigenvectors
+and active slab indices, with domain-wall locator lines. \\
+\path{lyapunov_analysis_v2/majorana_choi_transfer_spectrum.ipynb}
+& 7--10, 118--210, 233--260
+& Older notebook converts complex Choi covariance to Majorana blocks and forms a
+Majorana transfer spectrum using solve/pseudoinverse diagnostics; useful as
+methodological context, less authoritative than the later CPU summaries. \\
+\path{colab_lyapunov/docs/lyapunov_analysis.tex}
+& 38--58, 206--221
+& Defines Lyapunov gap proxy and reports DW-off large gaps versus DW-on
+near-zero gaps decreasing with $N_y$; saves minimum-$|\lambda|$ eigenvectors. \\
+\path{colab_lyapunov/docs/lyapunov_analysis.tex}
+& 239--301, 464--471
+& Reports strictly negative DW-off spectra, DW-on near-zero modes, slow
+non-plateauing DW-on gap dynamics, and sample-level correlation between Chern
+marker degradation and smaller Lyapunov gap. \\
+\path{colab_lyapunov/docs/lyapunov_analysis.tex}
+& 577--595, 625--651, 657--668
+& Gives the chiral domain-wall interpretation, possible $1/N_y$ scaling, spatial
+localization of the neutral mode near the domain walls, and open questions about
+functional form and asymptotic convergence. \\
+\path{scripts/smoke_choi_dense_vs_rank1.py}
+& 1--6, 158--176, 191--215, 253--331
+& Small-system health check comparing production rank-1 Choi resolvent action
+against a dense solve/pseudoinverse implementation and reporting survival plus
+final-block differences. \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\section{Caveats}
+
+The Choi transfer-gap arrays and eigenvector arrays were not loaded.  Thus this
+note does not independently reproduce final gap values, rooted singular spectra,
+or eigenvector density plots.  It reports the definitions and metadata-level run
+status, plus text-level numerical conclusions already present in existing
+documents or notebook outputs.
+
+Endpoint saturation is a serious interpretive caveat.  The CPU policy accepts
+cycles with fewer than the requested number of finite exponents and pads
+near-gap slots with NaN or sentinel values rather than always censoring the
+physical trajectory.  In the executed NaN-sentinel notebook, the $\alpha_1=3$,
+$N_y=20,24,30$ curves have all samples at sentinel by cycle 20 or 40, so those
+runs should be read as evidence for finite-sector collapse or numerical/endpoint
+saturation, not as resolved finite transfer gaps.
+
+The Majorana Choi transfer notebook predates the later CPU particle-transfer
+pipeline and uses a pseudoinverse fallback when blocks are ill-conditioned.
+This is useful for cross-checking ideas but is weaker evidence than the exact
+$\Sigma_{LL}$ extraction in the current CPU script and run summaries.
+
+The Lyapunov and Choi gaps are not the same spectrum.  The former is a tangent
+spectrum of the nonlinear Markov map; the latter is a Choi-derived
+single-particle transfer spectrum.  Their shared near-zero/domain-wall
+interpretation is physically compelling but should be treated as convergence of
+diagnostics, not equality of operators.
+
+\section{Confidence}
+
+Confidence is high for the implementation-level statements: the CPU script and
+metadata explicitly define the transfer object, gap, exact extraction, saved
+payloads, censoring policy, and campaign status.  Confidence is moderate for
+the physical interpretation tying CPU Choi near-gap modes to chiral domain-wall
+degrees of freedom, because that inference combines CPU metadata with the
+separate Lyapunov writeup and notebook-derived plotting workflow.  Confidence is
+low for any precise CPU Choi numerical scaling law in this read-only synthesis,
+because the relevant binary spectra were intentionally not inspected.
+
+\end{document}

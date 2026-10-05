@@ -1,0 +1,115 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\setcounter{tocdepth}{2}
+
+\begin{document}
+
+\title{Worker 08 Notes: Purification and Charge-Fluctuation Evidence in the Class-A Adaptive Circuit}
+
+\author{Worker 08}
+\date{\today}
+
+\begin{abstract}
+I summarize lightweight repository evidence for purification and stochastic charge fluctuations in the Class-A fermionic adaptive circuit, using only documentation, manifests, JSON metadata, CSV summaries, and notebook text.  The strongest evidence is that maximally mixed initial states purify rapidly under perfect correction: for $N_x=20$ and $N_y=30,40,50$, the total charge variance is reduced from the max-mixed scale $N_xN_y/2$ to $\simeq 0.07$--$0.10$ by $2N_y$ cycles in the 100-sample perfect-correction ensemble.  A CPU alpha sweep from max-mixed states shows a sharp charge-sharpening crossover near $\alpha\simeq1.8$--$2.0$, with postselection sharpening earlier than perfect correction, though postselection is single-trajectory.  Streaming covariance summaries from default/domain-wall initial states support a late-time entropy chord coefficient close to $1/3$, while correlator exponents are more fragile: they are protocol-, size-, and fit-window-sensitive, and diagnostic tables support wall/defect structure and incomplete convergence as caveats.
+\end{abstract}
+
+\maketitle
+\tableofcontents
+
+\section{Source Scope}
+
+I first read \path{REPO_POLICY.md}.  I did not edit files, execute notebooks, or load binary arrays.  I excluded paths containing \texttt{haining}, \texttt{haoyu}, or \texttt{erroneous}, case-insensitively, and did not inspect \path{repo_synthesis/main_pass/worker_notes}, \path{supervisor_notes}, or \path{boss}.  The inspected evidence is limited to text-like sources under \path{colab_charge_fluctuations}: documentation, manifests, run summaries, CSV tables, JSON summaries, and notebook text where needed.
+
+\section{Findings}
+
+\subsection{Maximally Mixed Purification}
+
+The max-mixed purification campaign is well documented and internally consistent.  Its manifest records the canonical dynamics entry point \path{classA_U1FGTN_gpu.run_markov_circuit}, max-mixed initialization, domain-wall truncation, and streaming observable collection without saving covariance histories.  The campaign uses $N_x=20$, $N_y=30,40,50$, $T=2N_y$ cycles, and 100 perfect-correction samples; for postselection, the metadata explicitly warns that the canonical GPU driver forces the requested 100 samples down to one.
+
+The clearest quantitative evidence is the 100-sample perfect-correction total-charge variance table.  The raw variance falls from the early-cycle scale
+\[
+31.06,\;41.55,\;52.14
+\]
+at cycle 1 for $N_y=30,40,50$, respectively, to
+\[
+0.0665,\;0.0846,\;0.0973
+\]
+at cycles $60,80,100$.  In the table's percent normalization, these final values are only $0.0222\%$, $0.0212\%$, and $0.0195\%$ of $N_xN_y/2$.  This is strong evidence that the adaptive circuit nearly projects the max-mixed density matrix into a charge-sharp Gaussian state on the $O(N_y)$ cycle scale.
+
+The same analysis family reports centered total charge rather than intrinsic charge variance.  At the final cycles, the centered charge mean remains small as a percentage of the total mode count, roughly $0.28\%$, $0.32\%$, and $0.27\%$ for $N_y=30,40,50$, with sample standard deviations below about $0.54\%$.  Thus the perfect-correction ensemble is not exactly fixed-charge trajectory by trajectory, but its net charge wander is small on the global scale.  This distinction matters: intrinsic charge variance is strongly suppressed, while sample-to-sample centered charge remains finite but percent-level small.
+
+\subsection{Charge-Sharpening Alpha Sweep}
+
+The fine alpha sweep is a compact CPU summary over $N_y=16,24,32$, protocols \texttt{perfect\_correction} and \texttt{postselection}, alpha values $1.0$ through $3.0$, and the domain-wall slab observable region.  Its sharpening threshold is $\operatorname{Var}Q<10^{-2}$.
+
+The interpretation table shows a sharp crossover.  For perfect correction, the first alpha with mean charge variance below $10^{-2}$ is $\alpha=1.9$ for all three $N_y$ values, while complete sharpening fraction is reached by $\alpha=2.0$ for $N_y=16,24$ and by $\alpha=1.9$ for $N_y=32$.  For postselection, the same criteria are reached earlier: $\alpha=1.8$ for $N_y=16,24$ and $\alpha=1.7$ for $N_y=32$.  Representative rows show the qualitative jump: at $N_y=24$, perfect correction has mean variance $0.0734$ at $\alpha=1.8$, $0.00281$ at $\alpha=1.9$, and $5.3\times10^{-7}$ at $\alpha=2.0$; postselection has mean variance near $0.498$ at $\alpha=1.5$ and $1.37\times10^{-6}$ at $\alpha=1.8$.
+
+The alpha sweep is strong evidence for a sharpening crossover, but weaker evidence for precise critical exponents: samples are 10 for perfect correction and 1 for postselection in the summarized rows.
+
+\subsection{Default-State Streaming Covariance}
+
+The streaming covariance characterization uses the default/domain-wall initial state rather than max-mixed initialization.  Its manifest records complete $N_y=30,40,50$ perfect-correction and postselection records and an incomplete/skipped $N_y=60$ run due to missing artifacts.
+
+The entropy chord coefficient is comparatively robust.  In the late-cycle cycle summaries, perfect correction gives entropy slopes
+\[
+0.3598,\quad 0.3492,\quad 0.3479
+\]
+for $N_y=30,40,50$ at $2N_y$ cycles.  Postselection gives
+\[
+0.3348,\quad 0.3343,\quad 0.3340,
+\]
+nearly equal to $1/3$.  Thus default-state streaming data support a CFT-like entropy coefficient close to $1/3$, with postselection closer and perfect correction slightly above.
+
+The correlator exponent is less settled.  The characterization summaries report positive exponent magnitudes, corresponding to algebraic decay of the off-diagonal square correlator.  At final cycle, perfect correction gives exponent means $1.41$, $1.57$, and $1.63$ for $N_y=30,40,50$, while postselection gives $1.62$, $3.88$, and $2.70$.  The postselected values vary strongly with $N_y$, and the diagnostic decision table independently labels N20 exponent instability as fit-window sensitive.  This makes the entropy evidence stronger than the correlator-exponent evidence.
+
+\section{Interpretation}
+
+The max-mixed purification evidence supports a simple physical interpretation: adaptive measurements rapidly remove both entropy and intrinsic charge fluctuations, driving the Gaussian covariance spectrum close to projector eigenvalues.  The charge-variance collapse by four to five orders of magnitude is not merely a consequence of enforcing global charge neutrality, because the measured observable is $\operatorname{Tr} C(1-C)$, not only the centered total charge.
+
+Perfect correction and postselection should not be identified as equivalent ensembles.  Perfect correction is a 100-sample ensemble average with small but nonzero sample-to-sample charge offsets.  Postselection is a single selected trajectory and purifies or sharpens earlier in the available summaries.  Therefore postselection is best interpreted as a sharply biased limiting trajectory, not as a statistically comparable ensemble estimate.
+
+For default/domain-wall streaming data, entropy scaling is the strongest indication of late-time critical-like structure.  Correlator power laws are plausible but require more caution: the final exponents are sensitive to fit windows and protocol, and diagnostic tables support wall/defect structure and incomplete cycle convergence as explanations for residual slope excess.  The data therefore support ``purification plus charge sharpening'' more strongly than they support a precise universal correlator exponent.
+
+\section{Evidence Table}
+
+\begin{table*}[h]
+\caption{Lightweight evidence inspected for purification and charge fluctuations.  Line references are from text/CSV/JSON views available without loading binary arrays.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.29\textwidth}p{0.16\textwidth}p{0.43\textwidth}}
+Source & Lines & Evidence used \\
+\hline
+\path{colab_charge_fluctuations/docs/charge_fluctuations_notes.tex} & 32--48, 131--147, 305--384 & Defines the two campaigns, max-mixed/default initial states, canonical GPU dynamics entry point, entropy and charge-variance observables, and narrative claim of rapid max-mixed purification. \\
+\path{colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/campaigns/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/campaign_manifest.json} & 18--31, 99--107, 111--134, 154--175 & Records canonical dynamics entry point, max-mixed setup, no covariance-history saving, 100 perfect-correction samples, and postselection forced to one actual sample. \\
+\path{colab_charge_fluctuations/analysis_outputs/purification_total_charge_variance_histogram_video_cpu/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/tables/purification_total_charge_variance_sample_stats_vs_cycle.csv} & 1--2, 61--62, 141--142, 241 & Gives raw and percent-normalized total-charge variance.  Final perfect-correction values are $0.0665$, $0.0846$, and $0.0973$ for $N_y=30,40,50$. \\
+\path{colab_charge_fluctuations/analysis_outputs/purification_total_charge_histogram_video_cpu/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/tables/purification_centered_total_charge_sample_stats_vs_cycle.csv} & 1, 61, 141, 241 & Gives final centered-total-charge mean and sample spread; final percent means are about $0.28\%$, $0.32\%$, and $0.27\%$. \\
+\path{colab_charge_fluctuations/analysis_outputs/purification_charge_sharpening_alpha_sweep_cpu/N16_alpha-fine21_nsh1_dwtrunc1_init-maxmix_S10_cycles-2Ny/tables/analysis_summary.json} & 1--45 & Defines the alpha grid, protocols, $N_y$ values, domain-wall slab region, and sharpening threshold $10^{-2}$. \\
+\path{colab_charge_fluctuations/analysis_outputs/purification_charge_sharpening_alpha_sweep_cpu/N16_alpha-fine21_nsh1_dwtrunc1_init-maxmix_S10_cycles-2Ny/tables/interpretation_key_alpha_summary.csv} & 46--88 & Shows representative entropy, charge variance, and sharpening fractions across alpha, protocol, and $N_y$. \\
+\path{colab_charge_fluctuations/analysis_outputs/purification_charge_sharpening_alpha_sweep_cpu/N16_alpha-fine21_nsh1_dwtrunc1_init-maxmix_S10_cycles-2Ny/tables/threshold_crossing_summary.csv} & 89--95 & Summarizes first alpha crossing: perfect correction near $1.9$--$2.0$, postselection near $1.7$--$1.8$. \\
+\path{colab_charge_fluctuations/analysis_outputs/streaming_covariance_characterization/N20_selected_nsh1_dwtrunc1_init-default_S100_cycles-2Ny/analysis_manifest.json} & 34--45, 57--96, 98--107, 114--132 & Records default-initialized streaming records, complete $N_y=30,40,50$ runs, skipped $N_y=60$, and target diagnostics. \\
+\path{colab_charge_fluctuations/analysis_outputs/streaming_covariance_characterization/N20_selected_nsh1_dwtrunc1_init-default_S100_cycles-2Ny/tables/perfect_cycle_summary.csv} & 61, 141, 241 & Final-cycle perfect-correction entropy slopes $0.3598$, $0.3492$, $0.3479$ and correlator exponent magnitudes $1.41$, $1.57$, $1.63$. \\
+\path{colab_charge_fluctuations/analysis_outputs/streaming_covariance_characterization/N20_selected_nsh1_dwtrunc1_init-default_S100_cycles-2Ny/tables/postselect_cycle_summary.csv} & 61, 141, 241 & Final-cycle postselection entropy slopes $0.3348$, $0.3343$, $0.3340$ and correlator exponent magnitudes $1.62$, $3.88$, $2.70$. \\
+\path{colab_charge_fluctuations/analysis_outputs/perfect_correction_slope_excess_diagnostics/tables/summary_decision_table.csv} & 1--6 & Finds global charge imbalance and entropy averaging order not supported as explanations; wall/defect structure and incomplete convergence supported; raw x-window contamination not evaluated. \\
+\path{colab_charge_fluctuations/analysis_outputs/correlator_scaling_diagnostics/tables/correlator_diagnostic_decision_table.csv} & 1--7 & Labels N20 exponent instability as fit-window sensitive and postselected x-averaged correlator as not uniformly cleaner. \\
+\end{tabular}
+\end{ruledtabular}
+\end{table*}
+
+\section{Caveats}
+
+The largest caveat is ensemble comparability.  Perfect-correction data are generally 100-sample averages, while postselection is effectively one trajectory in the GPU max-mixed campaign and in the summarized alpha sweep.  Postselection may therefore reveal an aggressively purified limiting trajectory rather than a representative ensemble.
+
+The second caveat is that the strongest purification conclusions come from scalar summaries and documentation, not from reanalysis of raw covariance histories.  This was intentional: I did not load binary arrays or execute notebooks.  The charge-variance collapse is still strong because it is directly tabulated in CSV summaries.
+
+The third caveat concerns correlator exponents.  Diagnostic tables report substantial fit-window sensitivity, a non-uniform postselection exponent across $N_y$, and supported wall/defect and convergence effects.  Consequently, the correlator exponent should not be treated as a precise universal number from the present evidence alone.
+
+Finally, the default-state streaming campaign is not the same initial-state ensemble as max-mixed purification.  It supports related charge-fluctuation and scaling claims, but should not be conflated with the max-mixed purification protocol.
+
+\section{Confidence}
+
+I assign high confidence to the statement that max-mixed states purify rapidly and become charge-sharp under perfect correction for the inspected $N_x=20$, $N_y=30,40,50$ data.  I assign moderate confidence to the alpha-sharpening crossover near $\alpha\simeq1.8$--$2.0$, with lower confidence in protocol comparisons because postselection is single-trajectory.  I assign moderate confidence to late-time entropy chord coefficients near $1/3$ in default-state streaming summaries.  I assign low-to-moderate confidence to any precise correlator exponent or universal slope-excess interpretation, because the repository's own diagnostics identify fit-window sensitivity, wall/defect structure, and incomplete convergence as important caveats.
+
+\end{document}

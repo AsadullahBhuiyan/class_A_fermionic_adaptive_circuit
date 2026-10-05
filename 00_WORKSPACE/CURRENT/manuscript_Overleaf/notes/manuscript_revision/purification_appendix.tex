@@ -1,0 +1,51 @@
+{\color{blue}
+\section{Purification and the finite-time Lyapunov spectrum}
+\label{app:Lyapunov}
+
+The occupation spectrum used in Eq.~\eqref{eq:LyapunovFromOccupations} gives a direct measure of the slow purification modes. Here we explain the relation and its finite-time limitation. The connection between topological Lyapunov boundary modes and slow purification was established in Ref.~\cite{XiaoKawabata2026}; our purpose is to state it in the conventions appropriate to the present circuit.
+
+Let $\hat V_{\rec}(T)$ be the product of Kraus operators for a measurement record $\rec$ through $T$ cycles. Starting from the maximally mixed state, the conditioned density matrix is
+\begin{equation}
+    \hat\rho_{\rec}(T)=
+    \frac{\hat V_{\rec}(T)\hat V_{\rec}^\dagger(T)}
+    {\Tr[\hat V_{\rec}(T)\hat V_{\rec}^\dagger(T)]}.
+    \label{eq:PurificationKrausProduct}
+\end{equation}
+The same expression applies to the maximally mixed slab after factoring out an initially pure, decoupled exterior. Projective measurements may make the product singular; logarithms below are taken on its nonzero support, with the annihilated directions assigned infinite effective energies.
+
+The positive operator in Eq.~\eqref{eq:PurificationKrausProduct} is Gaussian and number conserving. We may therefore write
+\begin{align}
+    \hat\rho_{\rec}(T)&\propto e^{-2T\hat{\mathcal H}_{\rec}(T)},
+    \nonumber\\
+    \hat{\mathcal H}_{\rec}(T)
+    &=\sum_{ij}[h_{\rec}(T)^{\mathsf T}]_{ij}\hat c_i^\dagger\hat c_j
+      +\text{const.}
+    \label{eq:PurificationEffectiveHamiltonian}
+\end{align}
+The transpose follows from our convention $G_{ij}=\langle\hat c_i^\dagger\hat c_j\rangle$. In this convention,
+\begin{equation}
+    G_{\rec}(T)=\big[\mathbf{1}+e^{2T h_{\rec}(T)}\big]^{-1}.
+    \label{eq:PurificationFermiFunction}
+\end{equation}
+Thus $G_{\rec}$ and $h_{\rec}$ have the same eigenvectors, and their eigenvalues are related by
+\begin{equation}
+    \gamma_j(T)=\frac{1}{2T}\log\frac{1-\nu_j(T)}{\nu_j(T)},
+    \qquad \Delta_{\rec}(T)=\min_j|\gamma_j(T)|.
+    \label{eq:PurificationFiniteTimeRates}
+\end{equation}
+The $\gamma_j(T)$ are finite-time single-particle Lyapunov rates in this normalization. Equivalently, the eigenvalues of $\hat{\mathcal H}_{\rec}$ are obtained from the logarithms of the singular values of $\hat V_{\rec}$, up to a common shift. Its many-body ground state fills the modes with $\gamma_j<0$. When all number sectors on the mixed subsystem are allowed, the lowest excitation changes the occupation of the mode closest to zero and costs $\Delta_{\rec}$. A restriction to one fixed-charge block would instead require a particle--hole excitation; we make no such restriction in this purification experiment.
+
+The entropy in Eq.~\eqref{eq:BinaryEntropy} is a sum of independent mode contributions. Since $h(\nu)=h(1-\nu)$, a nearly pure mode with $T|\gamma_j|\gg1$ contributes
+\begin{equation}
+    h(\nu_j)=
+    \big(1+2T|\gamma_j|\big)e^{-2T|\gamma_j|}
+    +O\!\left[(1+T|\gamma_j|)e^{-4T|\gamma_j|}\right].
+    \label{eq:PurificationEntropyAsymptotic}
+\end{equation}
+The modes closest to zero therefore dominate late-time entropy. In real space the same weights multiply their local eigenvector densities in the entropy contour, explaining why the residual entropy follows the wall-localized slow modes. If the finite-time rates converge to a spectrum with a positive smallest magnitude $\Delta$, the entropy has exponential rate $2\Delta$, up to prefactors. A closing gap removes this uniform exponential rate. Neither statement alone fixes the time to reach a prescribed total entropy: the number of contributing modes, finite-time corrections, and record-to-record fluctuations also matter.
+
+The plotted $\overline{\Delta}(T)$ is the average of the smallest rate in each record, not the smallest eigenvalue of an averaged generator. Moreover, an exponential rate inferred from typical records need not equal that of the averaged entropy if rare records dominate the latter. We use the gap and its spatial profile as diagnostics of the observed purification, without identifying these distinct averages.
+
+In the size sweep, the observation time grows with circumference as $T=2N_y$. Consequently, finite-time corrections of order $1/T$ can also produce a contribution proportional to $1/N_y$. The observed closing of $\overline{\Delta}(T)$ is consistent with slow boundary dynamics, but extracting an asymptotic dynamical exponent requires convergence in $T$ at fixed $N_y$.
+\GPT{Check the gap at longer times at fixed $N_y$ before identifying the fitted size exponent with its asymptotic Lyapunov value.}
+}

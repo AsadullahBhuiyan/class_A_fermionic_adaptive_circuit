@@ -1,0 +1,73 @@
+{
+  "schema": "boundary_only_reference_anisotropy_cpu_config_v1",
+  "revision": "boundary_reference_anisotropy_uniform_qwz_nx16_ny16-32_v1",
+  "root_seed": 2026091802,
+  "geometry": {
+    "Nx": 16,
+    "Ny_values": [16, 20, 24, 28, 32],
+    "domain_wall_interval": [4, 12],
+    "controller_twist_y": 1e-7,
+    "initial_twist_y": 0.0
+  },
+  "initial_state": {
+    "hamiltonian": "periodic_translation_invariant_qwz",
+    "mass": 1.0,
+    "filling_fraction": 0.5,
+    "construction": "fill_exact_negative_energy_bloch_band"
+  },
+  "controller": {
+    "DW": true,
+    "nshell": 1,
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "trial_orbitals": "X",
+    "dw_truncation": true,
+    "measurement_x": [4, 12],
+    "measurement_slab_only": false,
+    "sequence": "raster_y",
+    "perfect_correction": true,
+    "postselect": false,
+    "state_representation": "physical_frame",
+    "dtype": "complex128",
+    "canonical_entry_point": "classA_U1FGTN.run_markov_circuit"
+  },
+  "audit": {
+    "Ny": 24,
+    "screen_samples": 32,
+    "confirmation_samples": 100,
+    "burn_in_multipliers": [4, 8, 12, 16],
+    "coarse_temporal_separations": [1, 2, 3, 4, 6, 8, 12, 18],
+    "initial_follow_multiplier": 3,
+    "extended_follow_multiplier": 5,
+    "setting_relative_tolerance": 0.05,
+    "minimum_bootstrap_resolved_fraction": 0.95
+  },
+  "production": {
+    "bracket_samples": 50,
+    "sample_targets": [100, 150, 200, 250, 300, 350, 400],
+    "relative_ci_half_width_target": 0.10,
+    "wall_relative_tolerance": 0.10,
+    "minimum_bootstrap_resolved_fraction": 0.95,
+    "bootstrap_draws": 10000,
+    "coarse_fractional_separations": [0.25, 0.5, 0.75]
+  },
+  "finite_size": {
+    "model": "alpha_infinity_plus_b_over_Ny_squared",
+    "relative_ci_half_width_target": 0.10,
+    "sensitivity_relative_tolerance": 0.10
+  },
+  "execution": {
+    "workers_per_lane": 20,
+    "lane_A_sizes": [32, 24, 16],
+    "lane_B_sizes": [28, 20],
+    "lane_A_cpu_ids": "0-19",
+    "lane_B_cpu_ids": "28-47",
+    "blas_threads_per_worker": 1
+  },
+  "validation": {
+    "frame_gram_residual_max": 1e-10,
+    "engine_gram_residual_max": 1e-8,
+    "translation_residual_max": 1e-10,
+    "reference_entropy_atol": 2e-10
+  }
+}

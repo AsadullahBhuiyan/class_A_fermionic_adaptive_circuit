@@ -1,0 +1,62 @@
+{
+  "schema_version": 2,
+  "campaign_parent": "final_production_ready_figure_scripts",
+  "audit_document": "PRODUCTION_10SAMPLE_FIXED_GEOMETRY_AMENDMENT.md",
+  "audit_sha256": "d0173317608b2da2a45f6185d15a85237e11265917a0ceed6ff79dc761261de9",
+  "canonical_entry_point": "classA_U1FGTN_gpu.run_markov_circuit",
+  "bundles": [
+    "00_validation",
+    "01_bulk_width_gate",
+    "01_p1_existing_completion",
+    "02_pure_wall_master",
+    "03_chirality_replay",
+    "04_maxmix_master",
+    "05_scans_and_controls",
+    "06_b1_controller_frame"
+  ],
+  "production_contract": {
+    "sampling_revision": "production_10sample_v4_occupied_frame_cycle_resolved",
+    "samples": 10,
+    "sample_shard_size": 5,
+    "production_output_collection": "classA_final_production_outputs/production_10sample_v4_occupied_frame_cycle_resolved",
+    "pilot_output_collection": "classA_pilot_outputs/production_10sample_v4_occupied_frame_cycle_resolved",
+    "prior_v3_production_output_collection": "classA_final_production_outputs/production_10sample_v3_fixed_nx20_ny20_30_40_50_60",
+    "prior_v2_production_output_collection": "classA_final_production_outputs/production_25sample_v2_lean",
+    "v1_production_output_collection": "classA_final_production_outputs/production_10sample_v1",
+    "legacy_production_output_collection": "classA_final_production_outputs",
+    "cycles_rule": "2*Ny",
+    "physical_burn_in_cycles": 0,
+    "sequence": "random",
+    "dtype": "complex128",
+    "fixed_Nx": 20,
+    "scaling_Ny": [
+      20,
+      30,
+      40,
+      50,
+      60
+    ],
+    "primary_trajectory_convergence_diagnostic": "frobenius(G_cycle-G_previous_cycle)/Nlayer",
+    "P1_nshell_values": [
+      2,
+      1,
+      null
+    ],
+    "gpu": "NVIDIA A100 40GB",
+    "minimum_free_memory_fraction": 0.2,
+    "bundle_output_overrides": {
+      "06_b1_controller_frame": "06_b1_controller_frame_frame_native_v2"
+    },
+    "B1_charge_integer_tolerance": 1e-08,
+    "B1_persistence_contract": "compact_products_before_acceptance_validation_v1"
+  },
+  "gates": {
+    "01_bulk_width_gate": "non-gating fixed-Nx=20 baseline over Ny=20,30,40,50,60",
+    "01_p1_existing_completion": "finishes only the original 240-shard production_25sample_v1 P1 matrix",
+    "02_pure_wall_master": "fixed Nx=20; includes S1/T1/B2/H1/H2 parents and R1 record cases",
+    "03_chirality_replay": "H3 only; requires compact pure-wall parent record and RNG manifest",
+    "04_maxmix_master": "requires T1 viability; compares max-mix purification with physical tangent scaling",
+    "05_scans_and_controls": "requires relevant core-gate decisions; includes two-construction pure S2 entropy analysis and geometry-aware M3",
+    "06_b1_controller_frame": "required final diagnostic; fixed Nx=20, Ny=40 matrix; no downstream gate"
+  }
+}

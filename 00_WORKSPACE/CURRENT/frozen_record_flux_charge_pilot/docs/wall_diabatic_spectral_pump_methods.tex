@@ -1,0 +1,349 @@
+\documentclass[aps,prb,twocolumn,floatfix,nofootinbib]{revtex4-2}
+\usepackage{amsmath,amssymb,mathtools,bm,booktabs,microtype}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\ii}{\mathrm{i}}
+
+\begin{document}
+\title{Wall-Diabatic Spectral Flow for Monitored-Circuit Endpoint States: A Preregistered Width and Shell Study}
+\author{Asadullah Bhuiyan}
+\affiliation{Class-A fermionic adaptive-circuit project}
+\date{September 7, 2026}
+
+\begin{abstract}
+We specify a flux-threading diagnostic for pure Gaussian endpoint states of a
+monitored class-A circuit.  Earlier static calculations produced almost
+integer left--right charge transfer only when a fixed-rank occupied subspace
+was continued through its wall-state crossing.  A global maximum-overlap rule
+does not define that continuation robustly after translation symmetry is
+lost: a finite-size avoided gap can make it follow the energy-ordered closure
+instead of the topological spectral-flow branch.  The present method isolates
+the occupied--empty wall doublet, transports the full doublet non-Abelianly,
+and fixes its occupied line by wall character.  It is diabatic with respect
+to the small internal wall splitting but adiabatic with respect to the
+external edge--bulk gap.  Raw clockwise and counterclockwise subsystem
+charges are primary.  Endpoint quantization is measured, not imposed.
+\end{abstract}
+\maketitle
+
+\section{What previously quantized}
+
+The unambiguous positive result is the exact flattened-Hamiltonian benchmark.
+For a translation-invariant topological slab, it diagonalized the
+one-particle Hamiltonian separately in each conserved transverse-momentum
+block.  Eigenvectors were assigned between adjacent flux points by maximum
+overlap, while occupation labels fixed at the start were carried through the
+wall crossing.  It did not refill instantaneous lowest-energy levels after
+every twist.  The continued occupied projector obeyed
+\begin{equation}
+ \Delta N_L\simeq-\sigma,\quad \Delta N_R\simeq+\sigma,\quad
+ q_x=\frac{\Delta N_R-\Delta N_L}{2}\simeq\sigma ,
+ \label{eq:qx-summary}
+\end{equation}
+where $\sigma=+1$ is counterclockwise (CCW) and $\sigma=-1$ clockwise (CW).
+
+The archived exact data give $\min|q_x|=0.98081$ over hard and soft walls and
+both directions on 129- and 257-point meshes.  Endpoints agree between those
+meshes to stored precision, the largest charge residual is
+$1.14\times10^{-13}$, and explicit reversal returns the projector with
+normalized Frobenius residual below $5\times10^{-18}$.  These values are
+revalidated from archived CSV tables before a new launch.
+
+The static monitored-endpoint calculation used the same direct charge
+observable but selected the entire rank-$r$ subspace globally.  At
+$20\times24$, $n_{\rm shell}=1$, 71 of 100 soft-wall and 36 of 100 hard-wall
+samples transported one charge on a 64-interval grid.  On 128 intervals the
+counts became 64 and 30.  The charge was not mismeasured; the selected branch
+changed.  Event samples also had smaller occupied--empty crossing gaps than
+closure samples.  Arbitrarily fine global continuation resolves the small
+finite-size avoided gap and tends to follow the branch that closes.
+
+\section{Endpoint state and threaded parent}
+
+A number-conserving pure Gaussian state has an occupied frame
+$F_0\in\mathbb{C}^{N\times r}$,
+\begin{equation}
+ F_0^\dagger F_0=\mathbf{1}_r,\qquad P_0=F_0F_0^\dagger .
+\end{equation}
+The physical object is $P_0$, not the basis chosen for $F_0$.  Define
+$H_0=\mathbf{1}_N-2P_0$.  In the production uniform gauge, transverse flux
+gives
+\begin{align}
+ \widetilde H_{rs}(\phi)&=(H_0)_{rs}
+ \exp[\ii\phi d_y(r,s)/N_y],\\
+ H(\phi)&=\tfrac12[\widetilde H(\phi)+\widetilde H^\dagger(\phi)],
+ \label{eq:thread}
+\end{align}
+where $d_y$ is the minimum-image transverse displacement.  A large-gauge
+map $G$ relates the endpoints; all endpoint comparisons return to the
+starting gauge.
+
+For $\sigma=\pm1$, the mesh is
+\begin{equation}
+ \phi_j^{(\sigma)}=-\sigma10^{-7}+\sigma\frac{2\pi j}{256},
+ \qquad j=0,\ldots,256 .
+ \label{eq:grid}
+\end{equation}
+The signed regulator chooses one side of an ambiguous crossing.  It is not a
+fit parameter and cannot make a non-topological response quantized.
+
+\section{The order-of-limits problem}
+
+Near $\phi_\star$, an occupied state on one wall and an empty state on the
+other approach the rank boundary.  Finite wall separation hybridizes them,
+producing an internal splitting $\delta_{\rm int}$.  Energy ordering defines
+a finite-system adiabatic branch which closes after one flux quantum.
+Topological spectral flow uses a different order of limits: it remains
+adiabatic to bulk states while crossing the exponentially small inter-wall
+splitting diabatically.
+
+A global rank-$r$ maximum-overlap selector makes one global yes/no choice at
+this crossing.  Small sample or grid changes can alter it.  Grid refinement
+alone is not a cure because it follows the finite-size avoided crossing more
+faithfully.  Increasing wall separation reduces $\delta_{\rm int}$, but a
+robust rule must also distinguish the internal splitting from the external
+gap to spectator states.
+
+\section{Wall-diabatic edge transport}
+
+At each flux, a small spectral block $E(\phi)$ contains the occupied--empty
+wall crossing.  The primary block has dimension two; rank four is a
+sensitivity test.  Let $R_L,R_R$ project onto windows around the physical
+walls.  Within the block, diagonalize
+\begin{equation}
+ B_E=E^\dagger(R_R-R_L)E .
+ \label{eq:wall-operator}
+\end{equation}
+Its extreme eigenvectors are maximally left- and right-polarized
+combinations.  Their eigenvalues and combined wall weight are saved.  The
+internal gap $\delta_{\rm int}$ is ignored when fixing the diabatic wall
+label.  The external gap
+\begin{equation}
+ \delta_{\rm ext}=\min_{i\in E,\ a\notin E}|E_i-E_a|
+\end{equation}
+separates the block from spectator states.  A path is marked unresolved if
+the block cannot be isolated or lacks definite wall character.  It is
+reported, not forced into a zero/one class.
+
+The whole edge block is aligned between adjacent fluxes.  For orthonormal
+bases $E_j,E_{j+1}$, form
+\begin{equation}
+ S_j=E_j^\dagger E_{j+1}=U_j\Sigma_jV_j^\dagger .
+\end{equation}
+The polar link aligns $E_{j+1}V_jU_j^\dagger$ with $E_j$.  This is discrete
+non-Abelian Kato transport: rotations inside the nearly degenerate edge
+multiplet are gauge freedom.  Every link's minimum singular value is saved.
+Wall-operator eigenvectors fix physical left/right labels inside the
+transported block.
+
+The initially occupied edge line is carried through this block without being
+reselected by energy.  Occupied spectator modes are continued as an isolated
+subspace.  Their projector plus the occupied edge line gives fixed-rank
+$P_{\rm cont}(\phi)$.  The prescription is adiabatic from edge block to bulk
+but diabatic within the finite-size wall doublet.  It reproduces the
+occupation-label convention that conserved momentum made unambiguous in the
+exact benchmark.
+
+\section{Direct charge and endpoint defect}
+
+With half-cylinder region projectors,
+\begin{align}
+ N_L(\phi)&=\tr[R_L^{\rm half}P_{\rm cont}(\phi)],\\
+ N_R(\phi)&=\tr[R_R^{\rm half}P_{\rm cont}(\phi)],\\
+ q_x(\phi)&=\tfrac12\{[N_R(\phi)-N_R(\phi_0)]
+ -[N_L(\phi)-N_L(\phi_0)]\}.
+ \label{eq:direct-qx}
+\end{align}
+Raw CCW and CW paths are reported separately for every sample.  No
+direction-odd average is substituted.
+
+At the endpoint define
+\begin{equation}
+ D=G^\dagger P_{\rm cont}(\phi_0+\sigma2\pi)G-P_0 .
+ \label{eq:defect}
+\end{equation}
+A clean rank-preserving one-particle transfer has one eigenvalue near $+1$,
+one near $-1$, and all others near zero.  The positive and negative defect
+modes must lie on opposite walls.  The spectrum of $D$, its mode densities,
+and Eq.~\eqref{eq:direct-qx} are independent views of the same transfer.
+
+Robustness to an arbitrary cut is tested by evaluating $q_x$ at several
+bulk-plateau cuts and recording normalized center-of-charge displacement.
+Neither replaces direct subsystem charge.  Polar links also define an edge
+holonomy, but a one-parameter Wilson determinant alone is not identified
+with the pumped integer.
+
+\section{Width and shell campaign}
+
+No monitored dynamics is rerun.  Authoritative endpoint ensembles contain
+100 soft-wall and 100 hard-wall states in each of eight cells:
+\begin{equation}
+ (N_x,N_y)=(20,24),(24,24),(28,24),(32,24),
+\end{equation}
+for both $n_{\rm shell}=1$ and the dense-shell controller.  Each endpoint
+pair stores both directions, giving 1600 primary atomic NPZ/completion pairs
+and 3200 primary raw directional paths.  When the A100 endpoint campaign is
+accepted, 25 GPU bridge endpoints per wall are also analyzed for the three
+cells whose primary endpoints came from the legacy CPU campaign.  This adds
+150 non-primary pairs without pooling backends, for 1750 base pairs total on
+the GPU route.  The bridge is absent on the all-CPU fallback route.  Input
+pairs, configuration and source hashes,
+frame dimensions, rank, complex128 dtype, and Gram residuals are verified.
+
+The primary mesh has 256 intervals, wall-window radius two, and block rank two.
+Development checks repeat selected samples on 128 and 512 intervals, wall
+window radii two and three, and block ranks two and four.  Outputs retain
+wall-diabatic, ordinary-global-overlap, and instantaneous-refill charge
+histories; gaps; wall-operator spectra and weights; polar-link conditioning;
+resolution status; endpoint defect data; multi-cut charge; center
+displacement; source real-space Chern markers; and numerical residuals.
+
+One endpoint and both directions form one durable result/completion pair.
+Restart verifies name, byte count, SHA-256, configuration and source identity,
+and endpoint dependency.  Invalid pairs rerun; verified pairs are skipped.
+
+The standard source route is the imported A100 campaign.  If its durability
+benchmark is rejected, a separate CPU fallback generates only the 1000
+missing primary endpoints: five samples are aggregated per shard, two
+28-worker NUMA lanes occupy cores 0--27 and 28--55, and the canonical CPU
+engine writes state/RNG checkpoints every five cycles.  A shard is published
+only after all five endpoints verify.  The CPU fallback does not synthesize a
+GPU bridge; the bridge is meaningful only as an independent backend check.
+
+\section{Controls and acceptance}
+
+The archived exact pump is the positive control.  Its mesh agreement,
+orientation reversal, true undo, and large-gauge equivalence must pass before
+launch.  Ordinary global overlap and instantaneous refill are saved inside
+every task as protocol controls.  When matched trivial, Chern-conjugated, and
+seam-gauge controls are present, preregistered gates are
+\begin{align}
+ \max|q_x|_{\rm trivial}&<0.05,\\
+ \max|q_x^{C=+1}+q_x^{C=-1}|&<0.05,\\
+ \max|q_x^{\rm uniform}-q_x^{\rm seam}|&<10^{-8}.
+\end{align}
+
+The executable exact control is the symmetry-resolved legacy calculation,
+not a twist of the single zero-flux surrogate $1-2P_{\rm exact}(0)$. For
+every value of $\phi$ we rebuild the canonical OW functions and hence
+$H_{\rm exact}(\phi)$, transform to the 40 conserved $k_y$ blocks, match the
+complete eigenbasis within each block by maximum overlap, and polar-align
+degenerate clusters. The initially occupied labels are then retained around
+the loop. This is precisely the momentum-resolved spectral-flow convention
+that made the equilibrium wall branch unambiguous. Because the exact wall
+band contains adjacent momentum sectors, its global rank-boundary pair is not
+required to satisfy the monitored-state two-level isolation threshold
+$\Delta_{\rm ext}\geq0.1$; translation-sector conservation supplies the
+stronger label. Seam-gauge vectors are transformed back to the common uniform
+gauge before overlap comparison.
+
+Numerical validity requires charge residual below $10^{-10}$, projector
+residual below $10^{-10}$, finite diagnostics, and a verified atomic pair.
+Exact controls require $|q_x|>0.97$ and endpoint mesh changes below
+$10^{-4}$ across the 128-, 256-, and 512-interval meshes (the archived
+129/257 comparison is substantially tighter).  The preregistered endpoint
+sensitivities are named \texttt{M128}, \texttt{M512},
+\texttt{seam\_M256}, \texttt{radius3\_M256}, and
+\texttt{rank4\_M256}.  Unresolved edge blocks are flagged rather than repaired
+after inspection.
+
+Endpoint quantization is not an acceptance gate.  Scientific outputs are
+sample-wise CW and CCW $q_x$ distributions and the correctly oriented
+variable $\sigma q_x$.  We report fractions with $\sigma q_x>0.5$ and
+$\sigma q_x>0.9$, and the fraction in $0.95\le\sigma q_x\le1.05$, together
+with resolved/unresolved fractions.  The crossing diagnostics are evaluated
+at the selected minimum-internal-gap index, rather than by combining unrelated
+global minima.  Width scaling fits
+$\delta_{\rm int}\propto\exp[-W/\xi]$ against the physical wall separation
+$W=N_x/2$ and bootstrap-resamples trajectories separately within each width.
+The optional GPU bridge is compared with the matching CPU strata as an
+independent, unpaired ensemble, including a GPU-indicator regression with
+cell--wall--direction fixed effects and a stratified bootstrap interval; it is
+never pooled into the primary estimates.  Remaining outputs compare shell
+dependence and agreement among direct charge, multi-cut plateaus, and the
+$\pm1$ defect pair.
+
+\section{Reproducibility, durability, and present status}
+
+The locked spectral campaign identifier is
+\path{N20_24_28_32x24_wall_diabatic_spectral_pump_s100_v1}.
+Its machine-readable contract is
+\path{campaign_config.wall_diabatic_spectral_pump_s100_v1.json}; the
+local execution profile, source-selection rule, CPU affinity, worker count,
+and expected pair counts are recorded separately in
+\path{local_profile.wall_diabatic_spectral_pump_s100_v1.json}.
+The human operator sequence and recovery rules are fixed in
+\path{WALL_DIABATIC_WIDTH_SWEEP_RUNBOOK.md}.  These three artifacts
+must agree before launch.
+
+The missing endpoint revision is
+\path{wall_pump_width_endpoints_s100_v1}, with root seed
+$2026090701$.  The self-contained Colab bundle requires a 40-GB A100, stages
+execution under \texttt{/content}, and calls the canonical GPU entry point
+\path{classA_U1FGTN_gpu.run_markov_circuit}.  Its 1000 missing primary
+and 150 bridge endpoints are published in five-trajectory shards.  One stable
+rolling checkpoint is written every five circuit cycles and binds the native
+occupied frames, ranks, partial charge observer, and NumPy and Torch CPU/CUDA
+random-number states.  A completed shard is recognized only from its NPZ and
+completion JSON after final-path readback, byte-count, configuration, and
+SHA-256 verification.
+
+The endpoint benchmark first sweeps candidate execution batches
+$10,20,40,60,80,100$ on the largest dense soft-wall cell.  It requires at
+least 8~GiB measured A100 headroom and then times all ten missing
+protocol--width--wall arms with production-shaped five-trajectory,
+48-cycle runs.  The complete projected A100 workload must not exceed 40 hours,
+one half of the locked approximately 80-hour 56-core local forecast.  At
+least 25~GiB of output storage is required before production.  A failed gate
+is preserved and selects the canonical two-lane CPU fallback; it is never
+weakened after observing the timing.
+
+The GPU engine backend is determined by the correction support: finite
+$n_{\rm shell}=1$ uses its local sparse backend, whereas
+$n_{\rm shell}=\mathrm{dense}$ (encoded as \texttt{None}) uses the dense
+backend.  A first launch on September 7 stopped during construction of the
+dense benchmark model because the launcher had incorrectly forced the local
+backend.  The corrected mapping is covered for every locked campaign cell.
+That attempt preceded benchmark dynamics and produced no benchmark receipt,
+endpoint shard, or scientific datum.
+
+The spectral calculation is local CPU work on physical cores 0--55 with 56
+one-thread workers unless a separate benchmark demonstrates both complex128
+agreement below $10^{-10}$ and at least twofold throughput against a
+same-host 56-affinity CPU reference.  One endpoint, containing both raw CCW
+and CW paths, is the atomic resume boundary.  Its completion binds the exact
+endpoint dependency, scientific configuration, source hashes, result byte
+count, and SHA-256.  A worker failure leaves that pair pending and writes a
+diagnostic; it cannot be counted as completion.  The bridge uses a disjoint
+output collection and remains excluded from primary statistics.
+
+At the date of this preregistration, the corrected software, generated notebook,
+source-copy parity, exact archived-reference check, small-frame CPU/GPU frozen
+schedule parity, checkpoint restoration, task expansion, control definitions,
+and analysis interfaces have passed their maintained local tests.  The
+corrected A100 campaign subsequently passed its locked gate with a 30.043-hour
+projection and execution batch 80.  Its repository import contains all 1000
+new primary endpoints and all 150 GPU bridge endpoints in 230 verified shards
+(16,905,617,976 bytes), with zero failed result/completion pairs.  This source
+inventory is fixed by
+\path{imported_endpoints/wall_pump_width_endpoints_s100_v1/DOWNLOAD_MANIFEST.json}.
+An initial exact-control launch was stopped after it exposed the incorrect
+zero-flux-surrogate construction. The corrected implementation rebuilds the
+full exact flux family and reproduced $q_x=(1.000000,-0.99999999)$ in a
+coarse eight-interval live check, with instantaneous closure at $10^{-8}$,
+true-undo error below $3\times10^{-17}$, and source Chern marker $0.999958$.
+No production
+wall-diabatized endpoint result or sensitivity product is claimed until the
+corresponding atomic outputs verify and the locked analysis is complete.
+
+\section{Interpretive boundary}
+
+This is a spectral diagnostic of each saved state.  It is not a physical-time
+Schr\"odinger ramp, online monitored pump, frozen-record replay, or tangent
+cocycle.  Here \emph{diabatic} does not mean a fast quench; it means ignoring
+the internal splitting of distant wall modes while keeping their combined
+subspace isolated from the bulk.  The construction can make the intended
+branch definition reliable.  It cannot manufacture a Chern pump if a saved
+state lacks a resolved topological wall subspace.
+
+\end{document}

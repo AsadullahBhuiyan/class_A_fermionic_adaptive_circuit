@@ -1,0 +1,31 @@
+{
+  "schema_version": 2,
+  "campaign_parent": "final_production_new_designs",
+  "canonical_entry_point": "classA_U1FGTN_gpu.run_markov_circuit",
+  "gpu": "NVIDIA A100 40GB",
+  "bundles": [
+    "01_p1_chern_dynamics",
+    "02_wall_cft_windows",
+    "03_h1_modular_response",
+    "04_maxmix_operator_cft",
+    "05_pure_tangent_stability",
+    "07_log_gram_alpha_scan",
+    "08_h1_endpoint_packet"
+  ],
+  "standalone_contracts": {
+    "01_p1_chern_dynamics": "production_25sample_p1_chern_v4",
+    "02_wall_cft_windows": "production_25sample_wall_windows_v1",
+    "03_h1_modular_response": "production_25sample_h1_modular_response_v1",
+    "04_maxmix_operator_cft": "maxmix_operator_cft_v1",
+    "05_pure_tangent_stability": "pure_tangent_stability_v1",
+    "07_log_gram_alpha_scan": "ambient_log_gram_alpha_scan_v1",
+    "08_h1_endpoint_packet": "production_25sample_h1_endpoint_packet_v4"
+  },
+  "gates": {
+    "01_p1_chern_dynamics": "versioned lean P1: 25-sample cycle-resolved periodic-trijunction Chern dynamics only",
+    "02_wall_cft_windows": "versioned raw hard/soft wall windows: 25 samples, spectra, entropy/charge contours, and x-resolved squared correlators",
+    "04_maxmix_operator_cft": "redesigned G4: independent max-mix Born ensemble, purification/contours, direct operator spectrum, and secondary operator CFT",
+    "05_pure_tangent_stability": "redesigned G5: independent pure Born ensemble with online analytic occupied-empty tangent cocycle; no finite-difference states or saved records",
+    "08_h1_endpoint_packet": "H1-v4: server-verified Drive commits plus 11 pinned H1-v3 shards and 9 v4 shards; unchanged complex128 endpoint-packet science"
+  }
+}

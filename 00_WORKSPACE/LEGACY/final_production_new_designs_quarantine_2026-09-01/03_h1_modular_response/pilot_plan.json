@@ -1,0 +1,14 @@
+{
+  "schema": "h1_a100_preflight_plan_v1",
+  "required_case": "H1_N20x40_soft_a1-1",
+  "required_shard": 0,
+  "measured_trajectories": 5,
+  "measured_cycles": 80,
+  "measured_checkpoints": [40, 48, 56, 64, 72, 80],
+  "safety_rules": [
+    "peak reserved GPU memory must not exceed 80 percent of the detected A100 memory",
+    "one shard scientific products plus record must not exceed 1 GiB",
+    "projected 20-shard active output must not exceed 12 GiB"
+  ],
+  "failure_policy": "stop and report; never reduce sources, checkpoints, samples, cutoffs, or modular-time grids"
+}

@@ -1,0 +1,81 @@
+{
+  "bundle": "03_h1_modular_response",
+  "sampling_revision": "production_25sample_h1_modular_response_v1",
+  "audit_sha256": "f805295a2a22a4ee5b746b1996538d785aaeb546c94ded5d6c4361971c447440",
+  "root_seed": 2026082603,
+  "output_bundle": "03_h1_modular_response",
+  "production_output_collection": "classA_final_production_outputs/production_25sample_h1_modular_response_v1",
+  "pilot_output_collection": "classA_pilot_outputs/production_25sample_h1_modular_response_v1",
+  "locked_contract": {
+    "samples": 25,
+    "sample_shard_size": 5,
+    "Nx": 20,
+    "Ny": 40,
+    "cycles": 80,
+    "checkpoints": [40, 48, 56, 64, 72, 80],
+    "alpha_1_values": [1.0, 3.0],
+    "alpha_2": 30.0,
+    "nshell": 1,
+    "filling_fraction": 0.5,
+    "initial_state": "haar_random_half_filled_slater",
+    "perfect_correction": true,
+    "born_sampling": true,
+    "sequence": "random",
+    "ancilla_occupation": 0.5,
+    "physical_burn_in_cycles": 0,
+    "dtype": "complex128",
+    "canonical_entry_point": "classA_U1FGTN_gpu.run_markov_circuit"
+  },
+  "wall_protocols": {
+    "hard": {"DW": true, "dw_truncation": true, "meas_slab_only": true},
+    "soft": {"DW": true, "dw_truncation": false, "meas_slab_only": false}
+  },
+  "modular_observer": {
+    "traced_region": "[0,Nx) x [0,Ny//2)",
+    "retained_region": "[0,Nx) x [Ny//2,Ny)",
+    "sources_per_wall_checkpoint": 10,
+    "source_seed_key": ["root_seed", "global_sample_id", "checkpoint", "wall"],
+    "response_time_start": 0.0,
+    "response_time_stop": 4.0,
+    "response_time_step": 0.05,
+    "packet_time_start": 0.0,
+    "packet_time_stop": 8.0,
+    "packet_time_step": 0.05,
+    "spectral_clip_eps": [1e-8, 1e-10, 1e-12],
+    "wall_half_widths": [1, 2, 3],
+    "primary_spectral_clip_eps": 1e-10,
+    "primary_wall_half_width": 2,
+    "retarded_fit_window": [0.1, 0.8],
+    "minimum_packet_retention": 0.7
+  },
+  "analysis": {
+    "bootstrap_repetitions": 10000,
+    "bootstrap_seed": 2026082604,
+    "fourier_eta": 0.35,
+    "fourier_eta_sensitivity": [0.2, 0.35, 0.5],
+    "fourier_omega_min": 0.0,
+    "fourier_omega_max": 3.0,
+    "fourier_omega_points": 601,
+    "ridge_omega_window": [0.2, 2.5],
+    "ridge_k_max": 2.6,
+    "checkpoint_reduction": "mean_within_trajectory_before_bootstrap",
+    "bootstrap_unit": "independent_parent_trajectory"
+  },
+  "raw_products": [
+    "restricted_occupation_spectrum",
+    "signed_retarded_modular_response",
+    "source_averaged_handed_response",
+    "localized_packet_drift",
+    "compact_ordered_born_record"
+  ],
+  "retired_products": [
+    "full_covariance",
+    "eigenvectors",
+    "static_susceptibility",
+    "entropy",
+    "chern",
+    "bott",
+    "tangent",
+    "cft_windows"
+  ]
+}

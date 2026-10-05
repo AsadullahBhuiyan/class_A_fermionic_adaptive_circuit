@@ -1,0 +1,15 @@
+# 02_pure_wall_master
+
+S1/T1/B2 master trajectories, live-state H1/H2 descendants, exact G5 fixed-word spectra, and supplemental R1 record statistics.
+
+After all primary explicit-interface and matched-trivial master words are complete at `Ny=20,30,40,50,60`, the optional G5 cell runs a deterministic, receipt-resumable descendant. It initializes the one-particle correlation matrix at `identity/2` only as an algebraic probe of `K K^dagger / Z_K`, records checkpoint natural occupations, oriented caps, factorized spectra, and charge-resolved low levels, and never propagates a Choi state or changes a parent archive. The optional R1 merger remains separately labeled as a supplemental record large-deviation diagnostic. The already versioned R1 stochastic cases remain byte-for-byte unchanged, but G5 does not depend on them and never treats their SCGF as an operator spectrum. The G5 cell searches the current v4 parent directory first and the completed v3 fixed-geometry directory second, so an already finished v3 parent campaign is not rerun.
+
+The compact formula dictionary is: $\rho_R^K=\widehat K\widehat K^\dagger/Z_K$; $p_K(\mathbf{1}/2)=2^{-N_{\rm orb}}Z_K$; $j_i=2\sqrt{\nu_i(1-\nu_i)}$; $\lambda_{\boldsymbol n}=\prod_i\nu_i^{n_i}(1-\nu_i)^{1-n_i}$; and $\sigma_{\boldsymbol n}=\sqrt{Z_K\lambda_{\boldsymbol n}}$. A flip relative to the dominant occupation carries $q_i=1-2n_i^{(0)}$ and singular-amplitude gap $\delta_i=\tfrac12|\log[\nu_i/(1-\nu_i)]|=\operatorname{arcosh}(1/j_i)$. The tower fit is $\Delta_{q,n}=2\pi vL^{-1}(q^2/2k+n)+O(L^{-2})$; the matched-control per-wall leading-level fit is $f_K=f_\infty-\pi c_{\rm eff}v/(12L^2)+O(L^{-4})$.
+
+The notebook defaults to production in checksum-verification/report-only mode. Inspect the resolved queue first, then set `RESUME_REPORT_ONLY=False` to compute only missing shards. Pilot profiles remain available in the runner but are not the default operational path.
+
+Open `run_production_bundle.ipynb` in an A100 Colab runtime. One invocation runs one complete shard and atomically archives it to `MyDrive/classA_final_production_outputs/production_10sample_v4_occupied_frame_cycle_resolved`. Stochastic production cases have two fixed shards of five trajectories. Do not change sample count, duration, sequence, dtype, or physical protocol inside the notebook; select cases through the generated resumable queue. By default it queues every currently listed case and derives the valid shard count for each case; verified existing archives are skipped safely after an interruption. Before every new shard, the storage guard reserves 1 GB of headroom under the 12 GB active-output budget and refuses to launch when outputs must be offloaded.
+
+All active cases resolve `Nx=20` directly; no accepted-width file is consulted.
+
+`production_config.json` is immutable run intent. `src/source_manifest.json` records the canonical engine and helper hashes. Run `_maintenance/sync_bundle_sources.py` from the repository root whenever canonical source changes; never hand-edit the copied engine.

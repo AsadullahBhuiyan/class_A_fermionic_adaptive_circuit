@@ -1,0 +1,139 @@
+\documentclass[aps,prb,twocolumn,superscriptaddress,longbibliography]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=blue,citecolor=blue]{hyperref}
+\IfFileExists{physics.sty}{%
+  \usepackage{physics}%
+}{%
+  \DeclareMathOperator{\Tr}{Tr}%
+}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{bm}
+\usepackage{soul}
+\IfFileExists{bbold.sty}{\usepackage{bbold}}{}
+\usepackage{pifont}
+\usepackage{mathtools}
+\usepackage{tikz}
+\usetikzlibrary{tikzmark,arrows.meta,positioning,shapes.geometric,calc}
+\usepackage{array}
+\IfFileExists{algorithm2e.sty}{\usepackage[ruled,noline]{algorithm2e}}{}
+\usepackage[normalem]{ulem}
+\usepackage{mdframed}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{makecell}
+\usepackage{comment}
+
+\DeclareMathOperator\arctanh{arctanh}
+\DeclareMathOperator{\Sgn}{Sgn}
+
+% ── Shorthands ──
+\newcommand{\ii}{\boldsymbol{\mathrm{i}}}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mr}[1]{\mathrm{#1}}
+\newcommand{\mf}[1]{\mathfrak{#1}}
+\newcommand{\mb}[1]{\mathbb{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\h}[1]{\hat{#1}}
+\newcommand{\Id}{\mb{1}}
+
+% ── Calligraphic / hatted shortcuts ──
+\newcommand{\cT}{\mc{T}}
+\newcommand{\cC}{\mc{C}}
+\newcommand{\cS}{\mc{S}}
+\newcommand{\cU}{\mc{U}}
+\newcommand{\hcT}{\h{\mc{T}}}
+\newcommand{\hcC}{\h{\mc{C}}}
+\newcommand{\hcS}{\h{\mc{S}}}
+\newcommand{\hcN}{\h{\mc{N}}}
+
+% ── Physics objects ──
+\newcommand{\comp}[1]{\underset{#1}{\bigcirc}}
+\newcommand{\bfr}{{\bf r}}
+\newcommand{\TS}{|{\mr{TS}} \rangle\!\rangle}
+\newcommand{\CI}{|{\mr{CI}} \rangle\!\rangle}
+\newcommand{\vac}{|\mr{vac}\rangle\!\rangle}
+\newcommand{\fSWAP}{\mr{fSWAP}}
+\newcommand{\AZK}[1]{\mc{K}_{\mr{#1}}}
+
+% ── Check / x marks ──
+\newcommand{\cmark}{\textcolor{green}{\ding{51}}}
+\newcommand{\xmark}{\textcolor{red}{\ding{55}}}
+
+% ── Draft annotation (single macro per person; all red for submission mode) ──
+\newcommand{\drafthighlight}[1]{\textcolor{red}{#1}}
+\newcommand{\cmjadd}[1]{\drafthighlight{#1}}
+\newcommand{\abadd}[1]{\drafthighlight{#1}}
+\newcommand{\HPadd}[1]{\drafthighlight{#1}}
+\newcommand{\cmjCom}[1]{\textcolor{red}{[CMJ: #1]}}
+\newcommand{\abcom}[1]{\textcolor{purple}{[AB: #1]}}
+\newcommand{\HPcom}[1]{\textcolor{cyan}{[HP: #1]}}
+
+% ── Theorem environments ──
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\setstcolor{magenta}
+\begin{document}
+
+\title{Chiral Critical State Ensembles at Dynamical Topological Domain Walls}
+
+\author{Asadullah Bhuiyan}
+\affiliation{Department of Physics, Cornell University, Ithaca, New York 14853, USA}
+\author{Haining Pan}
+\affiliation{Department of Physics and Astronomy, Center for Materials Theory, Rutgers University, Piscataway, New Jersey 08854, USA}
+\author{Chao-Ming Jian}
+\affiliation{Department of Physics, Cornell University, Ithaca, New York 14853, USA}
+
+\date{\today}
+
+\maketitle
+
+\section{Introduction}
+\abcom{Most of this Ai written, I am currently making a pass to steer narrative, presentation style, and change references.}
+
+A defining feature of topological quantum phases is the appearance of anomalous edge modes at the interface between topologically distinct systems. 
+%At the interface between topologically distinct quantum phases
+%The boundary is where topology becomes observable.  
+In \textit{equilibrium quantum systems}, a mismatch of bulk topological invariants leads to gapless interface modes protected by the bulk topology, as required by the bulk-boundary correspondence. For example, the edge of a Chern insulator carries boundary-localized chiral fermion modes~\cite{Hatsugai1993,HasanKane2010,QiZhang2011,Chiu2016}. 
+
+\textit{Non-equilibrium quantum systems} driven by both measurements and unitary evolution enable a new setting to explore phases in dynamical settings. Such dynamical systems are stochastic in nature and exhibit phases and critical points encoded in individual wavefunction trajectories rather than in the trajectory-averaged density matrix. These phases are typically characterized by the scaling of entanglement entropy with system size, and the transitions between these phases are known as measurement-induced phase transitions~\cite{LiChenFisher2018,Skinner2019,GullansHuse2020,Fisher2023}. 
+
+These measurement-induced phase transitions occur in monitored free fermion systems as well and has been studied intensely. A 
+
+A monitored circuit is specified by more than a schedule of gates.  If the outcome at time $t$ is $m_t$ and later operations may depend on the earlier record $\xi_{<t}$, a complete record $\xi=(m_1,\ldots,m_T)$ defines
+\begin{equation}
+ \begin{gathered}
+ K_\xi=K_{m_T|\xi_{<T},T}\cdots K_{m_1,1},\qquad
+ p_\xi=\Tr(K_\xi\rho_0K_\xi^\dagger),\\
+ \rho_\xi=K_\xi\rho_0K_\xi^\dagger/p_\xi .
+ \end{gathered}
+ \label{eq:instrument}
+\end{equation}
+The physical object is therefore the ensemble of record-conditioned evolution operators together with their Born weights.
+
+The interplay between topology and measurement-induced phases has also been explored in various contexts, including in monitored free-fermion systems~\cite{Kells2023,Oshima2025,XiaoKawabata2026,BhuiyanPanJian2026}. These studies have revealed that topological invariants can be well-defined in the presence of measurements and that topological phases can be stabilized by measurements. Furthermore, the presence of topological invariants can lead to the emergence of gapless boundary modes in the Lyapunov spectrum of the monitored dynamics~\cite{Oshima2025,BhuiyanPanJian2026,XiaoKawabata2026}.
+
+Most work asks how measurements alter bulk entanglement.  Here we ask what becomes of a topological domain wall when the bulk evolution is stochastic, monitored, and noninvertible.  The answer must specify both the topology of the dynamics and the states prepared at its boundary.
+
+A  Following Ref.~\cite{BhuiyanPanJian2026}, we call such a system a \emph{topological monitored quantum dynamics} when a bulk invariant of this complete instrument ensemble remains well defined under local, symmetry-preserving spacetime disorder and is inherited by the steady trajectories.  This notion builds on the correspondence between nonunitary Gaussian circuits, fermionic Gaussian tensor networks, and disordered single-particle problems~\cite{Jian2022,Ludwig2013}.  It is stronger than saying that one selected circuit output happens to be a topological state.
+
+Several familiar descriptions retain only part of Eq.~\eqref{eq:instrument}.  Floquet topology assumes a repeatable unitary and organizes boundary modes through quasienergy and micromotion~\cite{Kitagawa2010,Lindner2011,Rudner2013,Harper2020}; a monitored circuit instead generates a random word of generally singular Kraus maps.  A non-Hermitian Hamiltonian usually represents a no-click or otherwise postselected branch, omitting the complementary outcomes, their probabilities, and feedback~\cite{Gong2018,Fleckenstein2022,Kells2023,Leung2025}.  This omission is substantial because postselection can turn measurement dynamics into a state-preparation algorithm: if the successful Kraus contractions are deliberately chosen to approximate local imaginary-time steps $e^{-\delta\tau h_j}$, their Trotterized product approximates $e^{-\beta H}$ after normalization~\cite{Kosugi2022}.  In this sense a suitably engineered non-Hermitian branch can implement imaginary-time filtering toward a prescribed ground state.  This is not a property of an arbitrary conditioned branch, and prescribing the full favorable record generally has a probability that decreases exponentially with spacetime volume~\cite{LiZou2023,GarrattAltman2024}.  The protocol studied here instead draws every outcome from the Born distribution, retains it, and physically corrects an unfavorable result; it is therefore distinct from forced-measurement and partially postselected dynamics~\cite{JianShapourian2023,Leung2025}.  The unconditional channel $\bar\rho_T=\sum_\xi p_\xi\rho_\xi$ makes the opposite reduction by discarding the record.  Its continuous-time limit may be Lindbladian, but a discrete averaged channel need not be generated by a time-independent Lindbladian.  Dissipative topological preparation is nevertheless an important comparison~\cite{Diehl2011,Bardyn2013,Budich2015,Lieu2020,Altland2021}.  In particular, Goldstein's theorem excludes finite-range quadratic Lindbladians that approach a unique pure Gaussian topological steady state in more than one dimension with a nonvanishing system-size-independent relaxation rate; it does not exclude mixed targets, exponentially local generators, or relaxation rates that close with size~\cite{Goldstein2019}.
+
+Prior work makes the resulting boundary question concrete.  The fermionic-Gaussian-tensor-network construction maps random nonunitary circuits to Hermitian disordered-fermion problems in one higher dimension and relates their entanglement criticality to Altland--Zirnbauer localization physics~\cite{Jian2022}.  Kells, Meidan, and Romito found topological phases in continuously monitored free-fermion chains~\cite{Kells2023}.  Xiao and Kawabata established a dynamical bulk--boundary correspondence in which a topological monitored bulk supports gapless boundary modes in its Lyapunov spectrum~\cite{XiaoKawabata2026}; Oshima \emph{et al.} identified topological Lyapunov sectors at one-dimensional measurement-induced transitions~\cite{Oshima2025}.  The latter construction evolves finite-strength, and hence invertible, measurement matrices; its stated Oseledec condition excludes the exactly projective limit.  Our circuit additionally contains exact projectors and record-conditioned gain and loss, for which the analogous square one-body transfer can be singular.  Pan, Shapourian, and Jian constructed programmable domain-wall modes in genuinely monitored one-dimensional circuits~\cite{PanShapourianJian2025}.  Finally, Ref.~\cite{BhuiyanPanJian2026} developed postselection-free adaptive Chern dynamics in two dimensions and found anomalously slow domain-wall purification.  These works establish dynamical topology but leave open which universal ensemble resides at the two-dimensional wall, whether it is chiral, and how it appears in prepared-state observables.
+
+The microscopic controller turns this question into a problem of local occupation measurements.  A Chern band cannot possess a complete exponentially localized orthonormal Wannier basis, but it admits localized nonorthogonal overcomplete frames~\cite{Brouder2007,DubailRead2015,LiDongLedwithKhalaf2024}.  The circuit measures the occupation of these overcomplete-Wannier modes, assigning lower-band modes to be filled and upper-band modes to be empty.  When a Born-sampled result disagrees with its target, a fermionic SWAP with a refreshed ancillary layer injects or removes a particle; on the enlarged system this is an ordinary unitary exchange, while on the physical layer it realizes record-conditioned gain or loss.  Spatially patterning the measured frames, or terminating their support, creates a domain wall between distinct topological dynamical regions.  Thus fermion counting is both the implementation and the observable output of the controller, rather than an auxiliary counting field imposed on fixed dynamics.  The full-record identity $Z_\xi=p_\xi$ makes its Born weight the partition function of a disordered statistical-mechanics problem.  Finite-size corrections to the quenched free energy $-\langle\log p_\xi\rangle$, with sector-resolved transfer gaps, expose universal data of the dynamics itself: the effective central charge and operator spectrum of the trajectory ensemble~\cite{Zabalo2022}.  This distinguishes the protocol from continuous gain/loss monitoring and conventional full-counting statistics~\cite{Landi2024,Starchl2025,Soares2025}, while connecting it to measurement-based steering and adaptive preparation~\cite{Roy2020,Puente2024,Smith2024,Doerstel2026}.
+
+The wall is not driven toward one wavefunction.  Finite-support measurements generate a charge-fluctuating ensemble of Gaussian trajectories whose microscopic occupations differ while their bulk topology and long-distance boundary physics are shared.  Projective measurements and fermion gain or loss also make an everywhere-invertible transfer matrix an unreliable coordinate: individual branch maps can lose rank.  We instead follow the differential of the normalized covariance update, $\delta G_{t+1}=D\Phi_{\xi_t}[G_t](\delta G_t)$, and accumulate it as a tangent cocycle.  Within Gaussian covariance dynamics this construction requires only a nonzero-probability realized branch that is differentiable on the relevant physical stratum, not an invertible Kraus transfer; it therefore accommodates exact projective measurements and record-conditioned gain and loss.  Its singular values track the survival of single-particle perturbations without constructing the inverse of a singular cumulative transfer matrix.  The trajectory average is a different, mixed object, and nonlinear quantities such as entanglement or squared correlations cannot be recovered by evaluating them on the mean covariance~\cite{ChoiBaoQiAltman2020,GullansHuse2020,Soares2025}.  The measurement-correction schedule resembles active error correction at an architectural level~\cite{HastingsHaah2021,AasenHaahLiMong2023}, but we do not claim a logical code space, a recovery threshold, or coherent protection of arbitrary superpositions.
+
+In this paper, we show that the class-A adaptive dynamics prepares a wall-localized critical ensemble from a broad class of initial states, including the maximally mixed state.  The wall contribution to the entanglement follows a log-chord form with a coefficient consistent with a $c=1$ chiral fermion, while correlations fitted on controlled intermediate windows are consistent with the corresponding scaling dimension $\Delta=2$.  The finite-time tangent cocycle contains a wall-localized near-marginal sector; we use this as a dynamical diagnostic without inferring a thermodynamic gap closing from the available sizes.  Modular-charge packets on oppositely oriented walls acquire oppositely signed drifts, providing evidence for chirality rather than a quantized transport coefficient.  Taken together, these results give a record-resolved dynamical bulk--boundary correspondence: the topology is a property of the monitored bulk evolution, while the boundary is expressed through a universal, charge-fluctuating ensemble of states that the same dynamics prepares and continuously stabilizes.
+
+\bibliographystyle{apsrev4-2}
+\bibliography{references}
+
+\end{document}

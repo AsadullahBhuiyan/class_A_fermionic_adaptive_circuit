@@ -1,0 +1,129 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\src}[1]{\texttt{\detokenize{#1}}}
+
+\begin{document}
+
+\title{Worker 05 Note: Canonical CPU/GPU Dynamics Engines and Reliability Implications}
+\author{Worker 05}
+\date{June 11, 2026}
+
+\begin{abstract}
+I inspected the repository policy, the canonical \src{src/fgtn/} engine sources, and current non-excluded \src{colab*/src/classA_U1FGTN*.py} copies, excluding paths containing \src{haining}, \src{haoyu}, or \src{erroneous}. The central result is that the repository policy defines \src{classA_U1FGTN.run_markov_circuit(...)} and \src{classA_U1FGTN_gpu.run_markov_circuit(...)} as the canonical CPU and GPU adaptive Markov-circuit entry points. The canonical GPU source is a narrow PyTorch implementation of the Markov circuit, with batching, A100-oriented memory budgeting, resumable shard/manifest output, and private grouped-site update machinery hidden below the public driver. However, most current Colab GPU copies are not synchronized with \src{src/fgtn/classA_U1FGTN_gpu.py}; only the regularized-Choi Colab copy is byte-identical. This is a reliability risk for any main-repo statement that treats all Colab GPU artifacts as equivalent to the canonical GPU engine.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+The allowed source set inspected here was:
+\begin{itemize}
+\item \src{REPO_POLICY.md};
+\item \src{src/fgtn/classA_U1FGTN.py};
+\item \src{src/fgtn/classA_U1FGTN_gpu.py};
+\item \src{src/fgtn/__init__.py}, \src{src/fgtn/benchmark.py}, and \src{src/fgtn/support_reduced_markov_update_note.tex} only as members of the allowed directory listing, not as primary dynamics evidence;
+\item \src{colab_charge_fluctuations/src/classA_U1FGTN.py};
+\item \src{colab_charge_fluctuations/src/classA_U1FGTN_gpu.py};
+\item \src{colab_large_entanglement_scaling_N20/src/classA_U1FGTN_gpu.py};
+\item \src{colab_lyapunov/src/classA_U1FGTN_gpu.py};
+\item \src{colab_partial_post-select/src/classA_U1FGTN_gpu.py};
+\item \src{colab_regularized_choi_transfer_matrix/src/classA_U1FGTN_gpu.py};
+\item \src{colab_small_system_testing/src/classA_U1FGTN_gpu.py}.
+\end{itemize}
+No files were edited. No notebooks were executed. No large arrays were loaded.
+
+\section{Findings}
+
+\subsection{Canonical Entry Points}
+
+The repository policy is unambiguous: production adaptive Markov-circuit runs must call \src{classA_U1FGTN.run_markov_circuit(...)} on CPU and \src{classA_U1FGTN_gpu.run_markov_circuit(...)} on GPU. It further forbids GPU notebooks or scripts from duplicating the Markov cycle loop by calling private helpers such as \src{_apply_grouped_site_updates(...)} directly. This makes the public \src{run_markov_circuit} methods the canonical behavioral surface for the main repository message.
+
+The CPU canonical engine exposes \src{run_markov_circuit} at \src{src/fgtn/classA_U1FGTN.py:2438}. Its signature includes history/final-state storage controls, sample parallelization controls, Choi tracking, slab restriction, postselection, perfect correction, and an explicit \src{physical_covariance_update} knob defaulting to \src{rank1}. The method normalizes and stores this physical covariance mode before running the circuit.
+
+The GPU canonical engine exposes \src{run_markov_circuit} at \src{src/fgtn/classA_U1FGTN_gpu.py:2231}. It is a PyTorch implementation with explicit device and dtype resolution, CUDA availability checks, batched execution, snapshot mode, resumable saved runs, optional return-only operation, Choi observers, Lyapunov observers, and private grouped-site update dispatch.
+
+\subsection{CPU Engine Reliability}
+
+The current CPU engine includes a newer rank-one physical covariance update path and metadata describing the covariance-update and Choi contraction formulas. In the CPU \src{run_markov_circuit} configuration, \src{physical_covariance_update} is recorded through a label such as \src{rank1_resolvent_v1}, and the Choi observer path records \src{regularized_resolvent_rank_one_v2}. This is good for reproducibility of algorithmic variants.
+
+One provenance gap remains: in the inspected CPU \src{run_markov_circuit} save configuration, I found detailed algorithmic metadata but did not find a \src{canonical_dynamics_entry_point} key for \src{classA_U1FGTN.run_markov_circuit}. A separate CPU routine, \src{run_markov_channel}, does record \src{canonical_dynamics_entry_point} as \src{classA_U1FGTN.run_markov_channel}. Therefore the policy requirement that every production output record the canonical dynamics entry point appears only partially implemented in the inspected CPU source.
+
+\subsection{GPU Engine Reliability}
+
+The canonical GPU engine is deliberately narrower than the CPU class: its docstring states that it is a ``GPU-focused implementation of the Markov circuit only,'' covering lattice setup, OW spinor construction, top-layer Markov/post-selection updates, and saved history/final-state output. This is consistent with the policy that GPU circuit-simulation methods should live in \src{classA_U1FGTN_gpu}, not in notebook-local private logic.
+
+The GPU driver computes an A100-style batch-size estimate, capped at 40 GiB and adjusted for detected CUDA memory when available. It distinguishes history, snapshot, and final-state storage modes, and adds memory for Choi tracking. It also writes a manifest containing the run configuration and shard records, supports resume only when the manifest configuration matches, and uses CPU-side NumPy arrays only at save/return boundaries. These are reliability-positive design choices for long GPU runs.
+
+As with the CPU engine, I did not find a \src{canonical_dynamics_entry_point} key in the canonical GPU \src{run_markov_circuit} \src{run_config}. The manifest records many physical and numerical details, but the explicit policy-mandated provenance string appears absent from this path.
+
+\subsection{Colab Copy Synchronization}
+
+The current GPU Colab copies are not all synchronized with the canonical GPU engine:
+\begin{itemize}
+\item \src{colab_regularized_choi_transfer_matrix/src/classA_U1FGTN_gpu.py} is byte-identical to \src{src/fgtn/classA_U1FGTN_gpu.py}.
+\item \src{colab_charge_fluctuations/src/classA_U1FGTN_gpu.py}, \src{colab_large_entanglement_scaling_N20/src/classA_U1FGTN_gpu.py}, \src{colab_lyapunov/src/classA_U1FGTN_gpu.py}, \src{colab_partial_post-select/src/classA_U1FGTN_gpu.py}, and \src{colab_small_system_testing/src/classA_U1FGTN_gpu.py} share a different checksum and are shorter than the canonical GPU source.
+\item The older GPU Colab checksum differs in engine-relevant regions: the canonical GPU source contains newer rank-one/resolvent helper code and revised Choi rank-one update logic absent or different in the older copies.
+\item The CPU Colab copy in \src{colab_charge_fluctuations/src/classA_U1FGTN.py} is also not synchronized with \src{src/fgtn/classA_U1FGTN.py}; it is shorter and lacks newer CPU helper and Choi/physical-update machinery.
+\end{itemize}
+
+\section{Interpretation}
+
+For the main repository synthesis, the safest message is that the canonical dynamics are centralized in \src{src/fgtn/classA_U1FGTN.py} and \src{src/fgtn/classA_U1FGTN_gpu.py}, with \src{run_markov_circuit} as the public production entry point. The codebase contains substantial reliability engineering around these drivers: explicit validation, slab-aware active-index reduction, history/final/snapshot storage modes, Choi diagnostics, and GPU batch sharding.
+
+The reliability caveat is equally important: several Colab-ready source copies lag the canonical GPU engine. A result produced by a Colab artifact is therefore only canonically comparable if that artifact used the synchronized GPU source, or if its source checksum is recorded and understood. The policy already states that all non-erroneous \src{classA_U1FGTN_gpu.py} copies should remain synchronized with \src{src/fgtn/classA_U1FGTN_gpu.py}; the current inspected state violates that synchronization rule for most Colab GPU copies.
+
+A second reliability caveat is provenance. The policy asks every production output to record the canonical dynamics entry point. The inspected CPU/GPU Markov-circuit drivers record detailed run configuration, but I did not find an explicit \src{canonical_dynamics_entry_point} field in those \src{run_markov_circuit} configs. The main synthesis should not overclaim provenance completeness unless downstream outputs add this field elsewhere.
+
+\section{Evidence Table}
+
+\begin{table}[h]
+\caption{Line-grounded evidence from the inspected source scope.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.28\linewidth}p{0.18\linewidth}p{0.46\linewidth}}
+Source & Lines & Evidence \\
+\hline
+\src{REPO_POLICY.md} & 5--24 & Defines canonical CPU/GPU production entry points as \src{classA_U1FGTN.run_markov_circuit(...)} and \src{classA_U1FGTN_gpu.run_markov_circuit(...)}; forbids direct GPU use of private helpers; requires production metadata to record the canonical entry point. \\
+\src{REPO_POLICY.md} & 42--45 & Repeats that GPU simulations must use \src{classA_U1FGTN_gpu.run_markov_circuit(...)} and that non-erroneous GPU copies should be synchronized with \src{src/fgtn/classA_U1FGTN_gpu.py}. \\
+\src{src/fgtn/classA_U1FGTN.py} & 2438--2471 & Canonical CPU \src{run_markov_circuit} signature, including save/history controls, sample controls, Choi controls, slab restriction, and \src{physical_covariance_update="rank1"}. \\
+\src{src/fgtn/classA_U1FGTN.py} & 2513--2517 & CPU driver normalizes and stores the physical covariance update mode. \\
+\src{src/fgtn/classA_U1FGTN.py} & 2600--2621 & CPU run configuration records perfect correction, slab indices, Choi diagnostics, Choi formula \src{regularized_resolvent_rank_one_v2}, and physical covariance update label. \\
+\src{src/fgtn/classA_U1FGTN.py} & 2623--2668 & CPU save helpers write compressed NPZ outputs with \src{G_hist} or final-state arrays and JSON run configuration. \\
+\src{src/fgtn/classA_U1FGTN.py} & 2720--2751 & CPU driver handles full-history storage, warns when \src{save_final_G_only} conflicts with \src{G_history=True}, prepares initial top-layer covariance, and initializes Choi state. \\
+\src{src/fgtn/classA_U1FGTN.py} & 3237--3280 & Separate CPU channel routine records \src{canonical_dynamics_entry_point} as \src{classA_U1FGTN.run_markov_channel}, showing the provenance pattern exists elsewhere but not visibly in CPU \src{run_markov_circuit}. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 15--22 & GPU class docstring states its narrow Markov-circuit scope and saved history/final-state role. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 76--125 & GPU engine requires PyTorch, resolves CUDA/CPU device, and raises if CUDA is requested but unavailable. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 228--292 & GPU batch-size estimator targets A100 40 GiB, accounts for detected memory, storage mode, dtype, backend, and Choi tracking. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 1913--2013 & Private grouped-site update helper dispatches postselected, Born-rule Markov, and mixed postselection updates; this is the private machinery policy says notebooks/scripts should not call directly. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 2231--2266 & Canonical GPU \src{run_markov_circuit} signature exposes history/final/snapshot storage, batching, resume, return-data control, observers, and Choi controls. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 2267--2285 & GPU driver validates resume, run-dir style, Choi observer compatibility, and disallows Choi tracking with resume. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 2313--2319 & GPU driver normalizes snapshot and Choi observer cycles and rejects \src{snapshot_cycles} with \src{G_history=True}. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 2383--2430 & GPU \src{run_config} records physical/numerical configuration, including \src{physical_covariance_update}, \src{choi_formula}, active slab indices, dtype, backend, and snapshot settings. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 2456--2490 & GPU saved runs write or resume from a manifest, requiring config equality for resume and storing shard metadata. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 2586--2624 & Public GPU driver owns the cycle loop and calls private \src{_apply_grouped_site_updates}; histories are appended according to \src{save_history_stride}. \\
+\src{src/fgtn/classA_U1FGTN_gpu.py} & 2706--2881 & GPU driver materializes snapshots, histories, or final states from shards or return-only CPU buffers and returns averaged observables plus run metadata. \\
+Checksum audit & N/A & \src{src/fgtn/classA_U1FGTN_gpu.py} and \src{colab_regularized_choi_transfer_matrix/src/classA_U1FGTN_gpu.py} share SHA256 \src{6b90e1e0...a112c5}. Five other Colab GPU copies share SHA256 \src{3196fa36...c2216}. \\
+Line-count audit & N/A & Canonical GPU source has 2881 lines; the older Colab GPU copies have 2831 lines. Canonical CPU source has 5308 lines; \src{colab_charge_fluctuations/src/classA_U1FGTN.py} has 4779 lines. \\
+Focused diff audit & N/A & The canonical GPU source differs from the older Colab GPU copies in rank-one/resolvent helper code and Choi rank-one update logic; the CPU canonical source differs from the Colab CPU copy in physical covariance update and Choi/slab helper machinery. \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+\section{Caveats}
+
+This inspection was intentionally source-only and read-only. I did not execute tests, notebooks, or simulations, and I did not load saved numerical arrays. Therefore I can assess source organization, synchronization, metadata fields visible in code, and likely reliability implications, but not numerical equivalence of outputs.
+
+The checksum conclusions apply only to the current non-excluded \src{colab*/src/classA_U1FGTN*.py} copies visible under the allowed path pattern during this inspection. They do not cover notebooks, scripts outside the allowed source scope, historical commits, or excluded paths.
+
+Line references are to the files as inspected in the current working tree. If files change after this note, the line numbers may drift, but the checksum and synchronization findings describe the inspected state.
+
+\section{Confidence}
+
+Confidence is high for the policy interpretation, canonical entry-point identification, and Colab-copy synchronization findings because these are directly supported by line references, SHA256 checksums, and file line counts. Confidence is moderate-to-high for the provenance caveat: I searched the inspected CPU/GPU Markov-circuit configurations for explicit canonical-entry metadata and found it in a separate channel routine but not in the visible \src{run_markov_circuit} configs. Confidence is moderate for algorithmic implications of the older Colab divergences because I inspected focused diffs showing engine-relevant changes, but did not run numerical comparisons.
+
+\end{document}

@@ -1,0 +1,20 @@
+\providecommand{\PilotStatus}{completed}
+\providecommand{\PilotVerdict}{\texttt{PROMOTE\_TO\_GPU\_COLAB}}
+\providecommand{\PilotParameters}{$4\times 6$, 2 matched seed IDs, 4 cycles, burn-in 2}
+\begin{table}[ht]
+\centering
+\caption{Post-burn-in wall interface-minus-interior revisit loss. Confidence intervals resample trajectories.}
+\begin{tabular}{lcc}\toprule
+schedule & estimate & 95\% CI \\\midrule
+random & 0.0785 & [0.07378,0.08322] \\
+raster\_y & 0.08181 & [0.07309,0.09052] \\
+\bottomrule\end{tabular}
+\end{table}
+\begin{figure}[ht]\centering
+\includegraphics[width=0.72\linewidth]{generated/flag_spectral_flow.pdf}
+\caption{Static filled/empty flag spectral flow. This overlap diagnostic is not a Chern-number estimator.}
+\end{figure}
+\begin{figure}[ht]\centering
+\includegraphics[width=0.72\linewidth]{generated/retention_profiles.pdf}
+\caption{Post-burn-in reset-retention profiles. Static incompatibility and stationary activity are tested separately.}
+\end{figure}

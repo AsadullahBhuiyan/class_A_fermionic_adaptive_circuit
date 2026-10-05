@@ -38,27 +38,30 @@ from tqdm import tqdm
 from fgtn.classA_U1FGTN import classA_U1FGTN
 # ---- Config ----
 NX = 12
-NY_SIM_LIST = [16, 24]
+# Set either list to None to disable that source.
+# NY_SIM_LIST: Ny values to simulate now.
+# NY_LOAD_LIST: Ny values to load from cache.
+NY_SIM_LIST = [16]
 NY_LOAD_LIST = None
 NY_SIM_LIST = [] if NY_SIM_LIST is None else list(NY_SIM_LIST)
 NY_LOAD_LIST = [] if NY_LOAD_LIST is None else list(NY_LOAD_LIST)
 NY_LIST = sorted(set(NY_SIM_LIST + NY_LOAD_LIST))
-CYCLES = 20
+CYCLES = 50
 SAMPLES = 500
 NSHELL = None
 ALPHA_1 = 30.0
 ALPHA_2 = 1.0
-P_MEAS = 1.0
-SEQUENCE = "random"
+SEQUENCE = "dw_symmetric_random"
 INIT_MODE = "default"
-TOP_TRIV_BACK_FORTH = True
 PARALLEL_SAMPLES = True
 def cache_path_for_ny(ny):
+    nshell_tag = "None" if NSHELL is None else str(NSHELL)
     return (
         "cache/G_history_samples/"
         f"N12x{ny}/"
-        f"N12x{ny}_C20_S250_nshNone_DW1_init-default_n_a0.5_seq-random_"
-        "exclNone_pm1.00_tbtf1_tbtflm0_markov_circuit_final.npz"
+        f"N12x{ny}_C{int(CYCLES)}_S{int(SAMPLES)}_nsh{nshell_tag}_DW1_"
+        f"init-{INIT_MODE}_n_a0.5_seq-{SEQUENCE}_"
+        "exclNone_ps0_fm0_pc0_markov_circuit_final.npz"
     )
 
 
@@ -147,9 +150,12 @@ def load_final_from_cache(path):
             G_final = data["G_final"]
         elif "G_hist" in data:
             G_hist = data["G_hist"]
-            if G_hist.ndim != 4:
-                raise ValueError(f"G_hist must have shape (S,T,N,N); got {G_hist.shape}")
-            G_final = G_hist[:, -1]
+            if G_hist.ndim == 4:
+                G_final = G_hist[:, -1]
+            elif G_hist.ndim == 3:
+                G_final = G_hist
+            else:
+                raise ValueError(f"G_hist must have shape (S,T,N,N) or (S,N,N); got {G_hist.shape}")
         else:
             raise KeyError(f"'G_final' or 'G_hist' not found in {path}")
     if G_final.ndim != 3:
@@ -159,6 +165,8 @@ def load_final_from_cache(path):
 
 def main():
     t0 = time.time()
+    if not NY_LIST:
+        raise ValueError("No Ny values selected. Set NY_SIM_LIST and/or NY_LOAD_LIST.")
 
     cfg_names = [
         "Left DW, y_cut_list_1",
@@ -172,7 +180,11 @@ def main():
 
     ny_bar = tqdm(NY_LIST, desc="Ny sweep", unit="Ny")
     for i_ny, NY in enumerate(ny_bar):
-        ny_bar.set_postfix({"Ny": NY, "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, refresh=False)
+        source = "load" if NY in NY_LOAD_LIST else "sim"
+        ny_bar.set_postfix(
+            {"Ny": NY, "src": source, "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")},
+            refresh=False,
+        )
 
         model = classA_U1FGTN(NX, NY, nshell=NSHELL, DW=True, alpha_1=ALPHA_1, alpha_2=ALPHA_2)
         if not (hasattr(model, "DW_loc") and len(model.DW_loc) >= 2):
@@ -183,7 +195,9 @@ def main():
         right_pair = np.array([(x1 - 1) % NX, x1 % NX], dtype=int)
 
         if NY in NY_LOAD_LIST:
-            G_final = load_final_from_cache(DATA_PATH_BY_NY[NY])
+            cache_path = DATA_PATH_BY_NY[NY]
+            print(f"[load] Ny={NY}: {cache_path}")
+            G_final = load_final_from_cache(cache_path)
         else:
             res = model.run_markov_circuit(
                 G_history=False,
@@ -192,11 +206,9 @@ def main():
                 init_mode=INIT_MODE,
                 save=True,
                 samples=SAMPLES,
-                p_meas=P_MEAS,
                 n_jobs=cpu_cap,
                 parallelize_samples=True,
                 sequence=SEQUENCE,
-                top_triv_back_forth=TOP_TRIV_BACK_FORTH,
                 max_in_flight=cpu_cap,
             )
 
@@ -212,11 +224,9 @@ def main():
 
         sample_idx = np.arange(S_tot, dtype=int)
 
-        y_cut_list_1 = np.arange(2, NY // 2, dtype=int)
-        y_cut_list_2 = np.arange(NY // 2, NY - 1, dtype=int)
-        n = min(len(y_cut_list_1), len(y_cut_list_2))
-        y_cut_list_1 = y_cut_list_1[:n]
-        y_cut_list_2 = y_cut_list_2[:n]
+        y_cut_base = np.arange(2, NY // 2, dtype=int)
+        y_cut_list_1 = y_cut_base.copy()
+        y_cut_list_2 = np.sort(NY - y_cut_base)
         Ay_list_1 = NY - y_cut_list_1
         Ay_list_2 = NY - y_cut_list_2
 

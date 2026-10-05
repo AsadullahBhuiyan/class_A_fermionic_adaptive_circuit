@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "status": "non_gating_pilot",
+  "provisional_width": 20,
+  "shard_indices": [
+    0
+  ],
+  "trajectories_per_stochastic_case": 5,
+  "credit_rate_per_a100_hour": 5.3,
+  "available_credits_reference": 1666.0,
+  "available_a100_hours_reference": 314.33962264150944,
+  "rules": [
+    "Pilot archives are written under classA_pilot_outputs/production_10sample_v4_occupied_frame_cycle_resolved, never the production output tree.",
+    "All active production and pilot matrices fix Nx=20 without an accepted-width dependency.",
+    "Pilot samples are diagnostic and are not pooled automatically with the 10-trajectory production matrix.",
+    "Run calibration first and replace planning estimates with manifest-measured synchronized A100 times.",
+    "Each numbered bundle is launched independently; dependency files, not lanes, control eligibility."
+  ],
+  "planning_caps": {
+    "calibration_total_gpu_hours": 35.0,
+    "science_core_total_gpu_hours": 120.0,
+    "h3_representative_diagnostic_total_gpu_hours": 4.0,
+    "science_plus_h3_total_gpu_hours": 124.0,
+    "science_plus_h3_credits": 657.2,
+    "credits_left_from_reference": 1008.8
+  },
+  "frozen_record_flux_insertion": {
+    "default_stage": "single_record_33_point_closed_circle",
+    "pilot_geometry": "N20x40",
+    "pilot_grid_points": 33,
+    "pilot_shards": [0],
+    "parent_records_in_shard": 5,
+    "replayed_record_indices": [0],
+    "replayed_records_per_case": 1,
+    "science_replayed_records_per_case": 1,
+    "science_parent_shards": [0],
+    "production_scope": "one representative frozen record for each of the interface and matched-trivial protocols",
+    "ensemble_frequency_claim": false,
+    "promotion_order": ["one_record_per_protocol_33_points", "optional_65_points", "optional_additional_records", "optional_129_points", "optional_additional_sizes"],
+    "promotion_rule": "Production stops at one representative record per protocol on the 33-point circle. Additional records, grids, or sizes require a separate reviewed campaign revision.",
+    "expanded_h3_matrix_default": false,
+    "collaborator_handoff_recommended_for_dense_grid": true
+  },
+  "profile_case_shard_indices": {
+    "calibration": {},
+    "science": {
+      "02_pure_wall_master": {
+        "MASTER_N20x40_explicit_interface": [0, 1],
+        "MASTER_N20x40_explicit_interface_matched_trivial": [0, 1]
+      },
+      "03_chirality_replay": {
+        "H3_N20x40_explicit_interface_gauge-seam_grid-33_records-1_seam-0": [0],
+        "H3_N20x40_explicit_interface_matched_trivial_gauge-seam_grid-33_records-1_seam-0": [0]
+      }
+    }
+  },
+  "calibration": {
+    "00_validation": [
+      "V0_engine_record_replay_validation"
+    ],
+    "01_p1_chern_dynamics": [
+      "P1_CHERN_L64_nsh-1"
+    ],
+    "01_bulk_width_gate": [
+      "W1_N20x40_explicit_interface",
+      "W1_N20x60_explicit_interface"
+    ],
+    "02_pure_wall_master": [
+      "MASTER_N20x20_explicit_interface",
+      "MASTER_N20x20_explicit_interface_matched_trivial",
+      "MASTER_N20x40_explicit_interface"
+    ],
+    "03_chirality_replay": [
+      "H3_N20x40_explicit_interface_gauge-seam_grid-33_records-1_seam-0"
+    ],
+    "04_maxmix_master": [
+      "P2_N20x20_explicit_interface_init-maxmix",
+      "P2_N20x20_explicit_interface_matched_trivial_init-maxmix"
+    ],
+    "05_scans_and_controls": [
+      "S2_N20x20_alpha_wall_alpha-1p875_init-pure",
+      "S2_N20x20_alpha_wall_alpha-1p875_init-maxmix",
+      "S2_N20x20_support_terminated_alpha_wall_alpha-1p875_init-pure",
+      "M2_N20x40_imperfect_error-0p1",
+      "M3BULK_N20x20_uniform_topological_sigma-0p4"
+    ],
+    "06_b1_controller_frame": [
+      "B1_N20x40_explicit_interface"
+    ],
+    "08_h1_endpoint_packet": [
+      "H1_N20x40_soft_a1-1"
+    ]
+  },
+  "science": {
+    "00_validation": [
+      "V0_engine_record_replay_validation"
+    ],
+    "01_p1_chern_dynamics": [
+      "P1_CHERN_L16_nsh-1",
+      "P1_CHERN_L16_nsh-2",
+      "P1_CHERN_L16_nsh-none",
+      "P1_CHERN_L24_nsh-1",
+      "P1_CHERN_L24_nsh-2",
+      "P1_CHERN_L24_nsh-none",
+      "P1_CHERN_L32_nsh-1",
+      "P1_CHERN_L32_nsh-2",
+      "P1_CHERN_L32_nsh-none",
+      "P1_CHERN_L64_nsh-1",
+      "P1_CHERN_L64_nsh-2",
+      "P1_CHERN_L64_nsh-none"
+    ],
+    "01_bulk_width_gate": [
+      "W1_N20x40_explicit_interface",
+      "W1_N20x40_explicit_interface_matched_trivial",
+      "W1_N20x40_support_terminated",
+      "W1_N20x40_support_terminated_matched_trivial",
+      "W1_N20x60_explicit_interface",
+      "W1_N20x60_explicit_interface_matched_trivial"
+    ],
+    "02_pure_wall_master": [
+      "MASTER_N20x20_explicit_interface",
+      "MASTER_N20x20_explicit_interface_matched_trivial",
+      "MASTER_N20x40_explicit_interface",
+      "MASTER_N20x40_explicit_interface_matched_trivial",
+      "MASTER_N20x40_support_terminated",
+      "MASTER_N20x40_support_terminated_matched_trivial",
+      "R1_N20x20_explicit_interface",
+      "R1_N20x20_explicit_interface_matched_trivial"
+    ],
+    "03_chirality_replay": [
+      "H3_N20x40_explicit_interface_gauge-seam_grid-33_records-1_seam-0",
+      "H3_N20x40_explicit_interface_matched_trivial_gauge-seam_grid-33_records-1_seam-0"
+    ],
+    "04_maxmix_master": [
+      "P2_N20x20_explicit_interface_init-maxmix",
+      "P2_N20x20_explicit_interface_matched_trivial_init-maxmix",
+      "P2_N20x40_explicit_interface_init-maxmix",
+      "P2_N20x40_explicit_interface_matched_trivial_init-maxmix"
+    ],
+    "05_scans_and_controls": [
+      "S2_N20x20_alpha_wall_alpha-1p0_init-pure",
+      "S2_N20x20_alpha_wall_alpha-1p0_init-maxmix",
+      "S2_N20x20_alpha_wall_alpha-1p875_init-pure",
+      "S2_N20x20_alpha_wall_alpha-1p875_init-maxmix",
+      "S2_N20x20_alpha_wall_alpha-2p125_init-pure",
+      "S2_N20x20_alpha_wall_alpha-2p125_init-maxmix",
+      "S2_N20x20_alpha_wall_alpha-3p0_init-pure",
+      "S2_N20x20_alpha_wall_alpha-3p0_init-maxmix",
+      "S2_N20x40_alpha_wall_alpha-1p875_init-pure",
+      "S2_N20x40_alpha_wall_alpha-1p875_init-maxmix",
+      "S2_N20x40_alpha_wall_alpha-2p125_init-pure",
+      "S2_N20x40_alpha_wall_alpha-2p125_init-maxmix",
+      "S2_N20x20_support_terminated_alpha_wall_alpha-1p0_init-pure",
+      "S2_N20x20_support_terminated_alpha_wall_alpha-1p875_init-pure",
+      "S2_N20x20_support_terminated_alpha_wall_alpha-2p125_init-pure",
+      "S2_N20x20_support_terminated_alpha_wall_alpha-3p0_init-pure",
+      "S2_N20x40_support_terminated_alpha_wall_alpha-1p875_init-pure",
+      "S2_N20x40_support_terminated_alpha_wall_alpha-2p125_init-pure",
+      "M2_N20x40_perfect",
+      "M2_N20x40_imperfect_error-0p1",
+      "M2_N20x40_imperfect_error-0p5",
+      "M3BULK_N20x20_uniform_topological_sigma-0p0",
+      "M3BULK_N20x20_uniform_topological_sigma-0p2",
+      "M3BULK_N20x20_uniform_topological_sigma-0p4",
+      "M3BULK_N20x20_uniform_topological_sigma-0p7"
+    ],
+    "06_b1_controller_frame": [
+      "B1_N20x40_explicit_interface",
+      "B1_N20x40_explicit_interface_matched_trivial"
+    ],
+    "08_h1_endpoint_packet": [
+      "H1_N20x40_hard_a1-1",
+      "H1_N20x40_soft_a1-1",
+      "H1_N20x40_hard_a1-3",
+      "H1_N20x40_soft_a1-3"
+    ]
+  }
+}

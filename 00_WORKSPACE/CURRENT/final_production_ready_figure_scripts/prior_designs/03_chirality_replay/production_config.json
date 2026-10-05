@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "bundle": "03_chirality_replay",
+  "sampling_revision": "production_10sample_v4_occupied_frame_cycle_resolved_h3_representative_record",
+  "audit_sha256": "d0173317608b2da2a45f6185d15a85237e11265917a0ceed6ff79dc761261de9",
+  "root_seed": 2026081703,
+  "fixed_geometry": {"Nx": 20, "Ny_scaling": [20, 30, 40, 50, 60]},
+  "requires": ["pure_wall_parent_manifest.json"],
+  "locked_contract": {
+    "samples": 10,
+    "sample_shard_size": 5,
+    "cycles_rule": "2*Ny",
+    "physical_burn_in_cycles": 0,
+    "sequence": "random",
+        "dtype": "complex128",
+        "canonical_entry_point": "classA_U1FGTN_gpu.run_markov_circuit"
+  },
+  "H3": {
+    "Ny": [40],
+    "pilot_Ny": 40,
+    "pilot_grid_points": 33,
+    "pilot_record_indices": [0],
+    "phi_denominator": 32,
+    "phi_indices": "0..32 inclusive",
+    "representative_Ny": 40,
+    "representative_grid_points": [33, 65, 129],
+    "seam_shifts": [0, 1],
+    "tracked_entanglement_modes": 24,
+    "entanglement_cut_fraction": 0.5,
+    "wall_assignment_half_width": 2,
+    "complete_circle_per_parent_shard": true,
+    "production_records_per_protocol": 1,
+    "statistical_scope": "representative_frozen_record_per_protocol",
+    "ensemble_frequency_claim": false,
+    "production_contract": {
+      "Ny": 40,
+      "grid_points": 33,
+      "gauge": "seam",
+      "seam_shift": 0,
+      "parent_shards": [0],
+      "record_indices_within_parent_shard": [0],
+      "protocols": ["explicit_interface", "explicit_interface_matched_trivial"]
+    }
+  }
+}

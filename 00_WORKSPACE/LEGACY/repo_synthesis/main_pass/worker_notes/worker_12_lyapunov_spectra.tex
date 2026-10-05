@@ -1,0 +1,221 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\Dlambda}{\Delta_{\lambda}}
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\Nlayer}{N_{\rm layer}}
+\newcommand{\pathref}[1]{\path{#1}}
+
+\begin{document}
+
+\title{Worker 12 Note: Lyapunov-Spectrum Evidence in the Class-A Adaptive Fermionic Circuit}
+\author{Worker 12}
+\date{\today}
+
+\begin{abstract}
+I inspected the non-excluded Lyapunov-spectrum evidence, with primary emphasis on
+\path{colab_lyapunov/}.  The repository evidence supports a clear qualitative
+separation between the uniform topological geometry and the domain-wall geometry.
+In the uniform geometry, the finite-time single-particle Lyapunov spectrum is
+reported as strictly contracting and separated from zero, with
+$\Dlambda=\min_i|\lambda_i|\simeq 0.72$--$0.77$ under perfect correction and
+$\simeq 0.95$ under post-selection.  In the domain-wall geometry, the same
+diagnostic is suppressed by more than an order of magnitude, decreases over
+$N_y=30,40,50$, and is correlated with deviations of the real-space Chern marker
+from integer quantization.  The strongest interpretation is that the Lyapunov
+calculation detects a slow or marginal single-particle transfer direction tied
+to the chiral domain-wall sector.  The principal caveat is that the computation
+is finite-time, covers only three circumferences with $T=N_y$, and measures a
+single-particle transfer-frame spectrum rather than the full Hermitian
+covariance tangent space.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+I read \path{REPO_POLICY.md} before inspecting the repository.  I excluded every
+path containing \texttt{haining}, \texttt{haoyu}, or \texttt{erroneous}, case
+insensitively, and did not read anything under
+\path{repo_synthesis/main_pass/worker_notes}, \path{supervisor_notes}, or
+\path{boss}.  I did not edit files, execute notebooks, or load large binary
+arrays.  The main sources were the Lyapunov writeup
+\path{colab_lyapunov/docs/lyapunov_analysis.tex}, the observer/helper script
+\path{colab_lyapunov/src/lyapunov_observables_gpu.py}, the Ny-sweep campaign
+manifest and run index under \path{colab_lyapunov/gpu_data/lyapunov_spectra/},
+and notebook text from the data-generation and characterization notebooks.  I
+also noted the older \path{lyapunov_analysis_v2/majorana_choi_transfer_spectrum.ipynb}
+as historical transfer-spectrum context, but did not use its cached arrays.
+
+\section{Findings}
+
+\subsection{What Spectrum Is Being Measured}
+
+The Lyapunov spectrum in the Colab campaign is not the full tangent spectrum on
+Hermitian covariance perturbations $\delta G\in{\rm Herm}(\Nlayer)$.  The
+writeup states that the Benettin frame has columns in the top-layer
+single-particle Hilbert space, and that the resulting exponents are those of the
+linearized single-particle transfer matrix of the circuit, not of the full
+many-body/covariance tangent space.  QR reorthogonalization is performed once
+per Markov cycle, and the exponents are normalized by cycle count.  The primary
+gap proxy is
+\begin{equation}
+  \Dlambda(T)=\min_i |\lambda_i(T)| ,
+\end{equation}
+the final finite-time exponent closest to zero.  This is a stability diagnostic:
+an $O(1)$ gap indicates all measured tangent-frame directions contract on a
+cycle scale, while a closing $\Dlambda$ indicates a slow, marginal, or
+nearly-marginal direction.
+
+\subsection{Uniform Topological Geometry}
+
+For DW off, the evidence is internally consistent.  The writeup reports all
+finite-time exponents as strictly negative, with a final-cycle gap
+$\Dlambda\simeq0.722(11),0.748(8),0.768(9)$ for $N_y=30,40,50$ under perfect
+correction, and $\Dlambda\simeq0.945,0.955,0.952$ under post-selection.  The
+document further states that $\Dlambda(t)$ rapidly reaches a plateau within
+roughly ten cycles and has no discernible $N_y$ dependence over the available
+sizes.  This supports an ergodic-transfer interpretation for the measured
+single-particle frame: perturbations are exponentially forgotten and the circuit
+flows to the expected Chern-$1$ steady state.
+
+\subsection{Domain-Wall Geometry}
+
+For DW on, the gap is much smaller.  The final-cycle values reported in the
+writeup are
+\begin{align}
+  \Dlambda_{\rm PC}(N_y=30,40,50)&\simeq (0.027,0.024,0.020),\\
+  \Dlambda_{\rm PS}(N_y=30,40,50)&\simeq (0.021,0.0076,0.0078).
+\end{align}
+The perfect-correction series decreases monotonically over the three sizes; the
+post-selection values are single-trajectory data and are noisier, but remain
+well below the DW-off gaps.  The writeup states that the DW-on gap does not
+clearly plateau within $T=N_y$ cycles.  This is important: the evidence points
+toward a slow or marginal direction, but the finite-time asymptotic regime is
+not definitively established.
+
+\subsection{Chern Marker and Localization Evidence}
+
+The real-space Chern marker is reported to remain quantized at $\calC\simeq 1$
+for DW off, while DW on gives sub-integer final values:
+$\calC_{\rm PC}\simeq0.978(6),0.954(16),0.954(17)$ and
+$\calC_{\rm PS}\simeq0.662,0.863,0.883$ for $N_y=30,40,50$.  The writeup also
+reports a sample-by-sample correlation: smaller final Chern marker values tend
+to coincide with smaller Lyapunov gaps.  This links the near-zero Lyapunov mode
+to the domain-wall sector rather than to a generic QR-frame artifact.  The saved
+minimum-$|\lambda|$ vector is described as sharply weighted near the domain-wall
+columns $x=5,15$ and extended along $y$, matching a chiral boundary-channel
+interpretation.
+
+\section{Interpretation}
+
+The most defensible interpretation is transfer stability rather than a direct
+many-body Lyapunov statement.  DW off appears to have a stable, isolated
+attracting fixed point in the measured single-particle transfer dynamics.  DW on
+has a parametrically slower direction whose gap is suppressed by roughly one to
+two orders of magnitude and decreases with circumference.  Because the
+domain-wall geometry contains chiral boundary degrees of freedom, the natural
+physical assignment is a neutral tangent perturbation that shifts charge or
+correlations along the wall.  The Chern-marker correlation and reported
+domain-wall localization of the min-gap vector materially strengthen this
+assignment.
+
+The evidence does not yet determine the scaling law.  The writeup explicitly
+leaves open whether $\Dlambda\sim N_y^{-1}$, another power law, or a logarithmic
+closing.  The available data are sufficient for the qualitative conclusion
+``DW-on is near-marginal relative to DW-off,'' but insufficient for an exponent
+or continuum-limit universality claim.
+
+\section{Evidence Table}
+
+\begin{ruledtabular}
+\begin{tabular}{p{0.32\linewidth}p{0.18\linewidth}p{0.42\linewidth}}
+Source & Lines & Evidence used \\
+\midrule
+\pathref{colab_lyapunov/docs/lyapunov_analysis.tex}
+& 142--172, 183--204, 206--221
+& Defines single-particle tangent propagation, QR accumulation, cycle
+normalization, and $\Dlambda=\min_i|\lambda_i|$; states the saved min-gap vector. \\
+\pathref{colab_lyapunov/docs/lyapunov_analysis.tex}
+& 223--230
+& Campaign parameters: $N_x=20$, $N_y=30,40,50$, $T=N_y$, $S=25$ for perfect
+correction, $S=1$ post-selection, complex128 A100, canonical GPU entry point. \\
+\pathref{colab_lyapunov/docs/lyapunov_analysis.tex}
+& 258--269, 292--301
+& DW-off spectra are strictly negative and gapped; DW-on spectra develop
+near-zero modes and shrink with $N_y$. \\
+\pathref{colab_lyapunov/docs/lyapunov_analysis.tex}
+& 306--320, 347--355
+& Final gap values: DW off $O(0.7$--$0.95)$, DW on $O(0.007$--$0.027)$; scaling
+form unresolved. \\
+\pathref{colab_lyapunov/docs/lyapunov_analysis.tex}
+& 383--403, 464--469
+& DW-off Chern marker is quantized; DW-on marker is sub-integer and correlated
+sample-by-sample with the Lyapunov gap. \\
+\pathref{colab_lyapunov/docs/lyapunov_analysis.tex}
+& 478--499, 563--617, 675--688
+& Min-gap vector is interpreted as a neutral tangent mode localized at
+domain-wall interfaces; protocol dependence and physical interpretation are
+discussed. \\
+\pathref{colab_lyapunov/src/lyapunov_observables_gpu.py}
+& 13--15, 206--215, 267--287, 328--350
+& Helper version and canonical entry point; stored arrays include spectra, Chern
+marker, charge, min-abs value/index/vector; payload description gives top-layer
+complex orbital basis. \\
+\pathref{colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/campaign_manifest.json}
+& 1--18, 225--228, 229--420
+& Manifest records geometry set, channel order, canonical dynamics entry point,
+cycles rule, helper version, and actual sample counts. \\
+\pathref{colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/run_index.csv}
+& 1--13
+& Run index confirms all 12 DW/protocol/size cases, $n_{\rm vec}=1200,1600,2000$,
+and actual samples: 25 for perfect correction, 1 for post-selection. \\
+\pathref{colab_lyapunov/notebooks/data_generation/run_lyapunov_spectra_N20_Ny30-50_S25_cyclesNy.ipynb}
+& 33--35, 117--147, 174, 357--404
+& Notebook text states the campaign purpose, verifies the
+\texttt{lyapunov\_observer} signature, uses canonical
+\texttt{run\_markov\_circuit}, and saves spectra/min-vector/Chern/charge outputs. \\
+\pathref{lyapunov_analysis_v2/majorana_choi_transfer_spectrum.ipynb}
+& 9, 15--20
+& Older historical notebook describes Choi/Majorana transfer-spectrum analysis
+from cached Lyapunov-related files; useful context but not primary evidence here. \\
+\end{tabular}
+\end{ruledtabular}
+
+\section{Caveats}
+
+First, the spectra are finite-time spectra with $T=N_y$, and the DW-on gap is
+reported not to have cleanly plateaued.  Longer runs such as $T\gg N_y$ are
+needed before quoting asymptotic exponents.
+
+Second, the tangent frame lives in the single-particle top-layer orbital space.
+This is a meaningful transfer diagnostic, but it is not the complete tangent
+spectrum of the nonlinear covariance map on Hermitian matrices.
+
+Third, the size range is narrow.  Three circumferences can show suppression and
+a monotone trend, but cannot distinguish $1/N_y$, another power law, or
+logarithmic closing.
+
+Fourth, post-selection is deterministic in these runs, with one actual
+trajectory.  Its values are useful for protocol comparison but should not be
+read as ensemble statistics.
+
+Fifth, the reported localization of the min-gap vector is strong supporting
+evidence, but I did not inspect the underlying vector arrays or figures as
+binary data.  I relied on the writeup, metadata, and notebook text.
+
+\section{Confidence}
+
+My confidence is high that the repository contains a coherent Lyapunov-spectrum
+story: DW off is strongly contracting in the measured transfer frame, while DW
+on has a suppressed near-zero direction tied to the domain-wall sector.  My
+confidence is moderate, not high, that this already establishes a true
+thermodynamic marginal fixed direction.  The finite-time nature, limited sizes,
+and single-particle-frame definition are real caveats and should be preserved in
+any synthesis.
+\end{document}

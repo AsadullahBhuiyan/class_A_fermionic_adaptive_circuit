@@ -228,23 +228,21 @@ def main():
     right_xs = [(x1 - 1) % Nx, x1 % Nx, (x1 + 1) % Nx]
     left_pair = [x0 % Nx, (x0 + 1) % Nx]
     right_pair = [(x1 - 1) % Nx, x1 % Nx]
-    p_meas = 1
+    cycles_eff = int(cycles)
     res = model.run_markov_circuit(
             G_history=True,
-            cycles=cycles,
+            cycles=cycles_eff,
             progress=True,
             G_init=G_init,
             save=True,  
             samples=250,
-            p_meas=p_meas,
             n_jobs=cpu_cap,
             parallelize_samples=True,
-            sequence="random",
-            top_triv_back_forth=True,
+            sequence="dw_symmetric_random",
             max_in_flight=max(1, 9*cpu_cap//10),
             save_suffix='_slope_drift_testing'
         )
-    print(f"Completed p_meas={p_meas}")
+    print("Completed run_markov_circuit")
 
     G_hist = res.get("G_hist")
     if G_hist is None:
@@ -266,7 +264,7 @@ def main():
         cache_key = os.path.splitext(os.path.basename(save_path))[0]
         pdf_name = f"{cache_key}_plots.pdf"
     else:
-        pdf_name = f"markov_p_sweep_plots_pm{p_meas:.2f}.pdf"
+        pdf_name = "markov_p_sweep_plots.pdf"
     pdf_path = os.path.join(figs_dir, pdf_name)
 
     with PdfPages(pdf_path) as pdf:
@@ -310,11 +308,9 @@ def main():
         plt.close(fig)
 
         # characterization to match plot_integrated_contour_by_Ay.py
-        y_cut_list_1 = np.arange(2, Ny // 2)
-        y_cut_list_2 = np.arange(Ny // 2, Ny - 1)
-        n = min(len(y_cut_list_1), len(y_cut_list_2))
-        y_cut_list_1 = y_cut_list_1[:n]
-        y_cut_list_2 = y_cut_list_2[:n]
+        y_cut_base = np.arange(2, Ny // 2)
+        y_cut_list_1 = y_cut_base.copy()
+        y_cut_list_2 = np.sort(Ny - y_cut_base)
         Ay_list_1 = Ny - y_cut_list_1
         Ay_list_2 = Ny - y_cut_list_2
 

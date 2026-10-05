@@ -1,0 +1,107 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+\begin{document}
+\title{Imaginary-time density memory of a domain-wall parent ground state}
+\author{Numerical benchmark notes}
+\date{\today}
+\begin{abstract}
+We compute connected equilibrium density autocorrelations for the half-filled
+ground state of the signed overcomplete-Wannier parent. The calculation is
+deterministic and distinct from conditional purification or Born-averaged
+adaptive-circuit dynamics. Both local density memory and column-charge memory
+are obtained without many-body time stepping.
+\end{abstract}
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+\section{Parent and state}
+With an overcomplete Wannier (OW) basis, define the single-particle parent
+\begin{equation}
+ h_{\rm flat}=\sum_R(P_{A+}+P_{B+}-P_{A-}-P_{B-}),\qquad
+ \hat H=\sum_{ij}(h_{\rm flat})_{ij}\hat c_i^\dagger\hat c_j.
+\end{equation}
+No subsequent replacement of energies by their signs is made. Distinct OW
+projectors need not commute. We retain hard support truncation, $N_x=20$,
+$N_y=30$, $\alpha_1=1$, $\alpha_2=30$, $n_{\rm shell}=1$, and trial orbital $X$.
+The spatial benchmark's regulator transforms representative OW columns at
+$k+10^{-7}/N_y$ but retains the periodic untwisted Bloch basis. This is the
+occupation-regulator convention, not a flux-threading protocol. We diagonalize
+the resulting regulated parent in thirty $40\times40$ blocks and fill the
+lowest 600 modes. The same energies and eigenvectors define propagation.
+Write the ground state as $\lvert\Omega\rangle\!\rangle$, its energy as $E_0$,
+and $G_{ij}=\langle\!\langle\Omega\rvert\hat c_i^\dagger\hat c_j
+\lvert\Omega\rangle\!\rangle$. In the code, the occupied projector is $P=G^{\mathsf T}$.
+
+\section{Density fluctuations and spectral evaluation}
+For a Hermitian single-particle matrix $D$, let
+$\hat O=\sum_{ij}D_{ij}\hat c_i^\dagger\hat c_j$ and
+$\delta\hat O=\hat O-\langle\hat O\rangle\hat{\mathbf{1}}$.
+For $\tau\geq0$ the connected equilibrium correlator is
+\begin{align}
+ C_O(\tau)&=\langle\delta\hat O(\tau)\delta\hat O(0)\rangle,
+ &\hat O(\tau)&=e^{\tau\hat H}\hat Oe^{-\tau\hat H},\\
+ C_O(\tau)&=\langle\!\langle\Omega\rvert\delta\hat O
+ e^{-\tau(\hat H-E_0\hat{\mathbf{1}})}\delta\hat O
+ \lvert\Omega\rangle\!\rangle.
+\end{align}
+A one-body insertion creates only particle--hole excitations. With $a$ occupied
+and $b$ empty this gives exactly
+\begin{equation}
+ C_O(\tau)=\sum_{a\in\mathrm{occ},b\in\mathrm{empty}}
+ |u_b^\dagger D u_a|^2e^{-\tau(\epsilon_b-\epsilon_a)}.
+\end{equation}
+The weights and excitation energies are nonnegative. Therefore each
+autocorrelation is nonnegative and nonincreasing. At contact,
+\begin{equation}
+ C_O(0)=\operatorname{tr}[PD(\mathbf{1}-P)D].
+\end{equation}
+For total charge $D=\mathbf{1}$ this vanishes, as it must for a fixed-number
+Slater determinant. Imaginary time has inverse-parent-energy units; no
+identification with circuit cycles is assumed.
+
+\section{Local and column observables}
+Let $\hat n_{x,y}=\sum_\mu\hat c_{x,y,\mu}^\dagger\hat c_{x,y,\mu}$.
+We retain both
+\begin{align}
+ C_x^{\rm local}(\tau)&=\frac1{N_y}\sum_y
+ \langle\delta\hat n_{x,y}(\tau)\delta\hat n_{x,y}(0)\rangle,\\
+ C_x^{\rm column}(\tau)&=\frac1{N_y}
+ \langle\delta\hat Q_x(\tau)\delta\hat Q_x(0)\rangle,
+ &\hat Q_x&=\sum_y\hat n_{x,y}.
+\end{align}
+Translation symmetry makes the local origin average exact. Writing the Bloch
+eigenvectors as $v_{ka}$, local transition weights at fixed $x$ are
+$|\sum_\mu v_{kb,x\mu}^*v_{k'a,x\mu}|^2/N_y^2$.
+Column weights instead conserve momentum and are
+$\delta_{kk'}|\sum_\mu v_{kb,x\mu}^*v_{k'a,x\mu}|^2/N_y$.
+The observables consequently probe different momentum sectors.
+
+The existing spatial benchmark plots
+$B_x(r)=\tfrac12\sum_{\mu\nu}|G_{(x,0,\mu),(x,r,\nu)}|^2$.
+Wick contraction gives, for distinct cells,
+$\langle\delta\hat n_{x,0}\delta\hat n_{x,r}\rangle=-2B_x(r)$.
+At $r=0$ the contact term adds $\langle\hat n_{x,0}\rangle$.
+Thus the positive spatial proxy must not be mistaken for the signed density
+correlator, nor for the positive imaginary-time autocorrelation.
+
+\section{Relation to filtering and numerical interpretation}
+Normalized imaginary-time filtering evolves a state according to
+\begin{equation}
+ \hat\rho(\tau)=\frac{e^{-\tau\hat H}\hat\rho(0)e^{-\tau\hat H}}
+ {\operatorname{Tr}[e^{-2\tau\hat H}\hat\rho(0)]}.
+\end{equation}
+This operation alone does not define the two density insertions above.
+Furthermore, a finite ordered product of noncommuting postselected OW
+measurements is not automatically $e^{-\tau\hat H}$. The present benchmark
+contains neither such a measurement record nor an adaptive-channel average.
+
+We save $\tau=0$ and 240 logarithmically spaced positive times from $10^{-3}$
+to $10^3$, using double precision throughout. Ratios $C_x(\tau)/C_x(0)$ are
+undefined when the equal-time variance is at most $10^{-12}$; raw data are
+never floored. There is no sampling SEM. A finite system has a discrete
+particle--hole spectrum, and a small gap matters only if its density matrix
+element is appreciable. No power-law exponent is fitted automatically.
+\end{document}

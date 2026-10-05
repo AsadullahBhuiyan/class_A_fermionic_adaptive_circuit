@@ -1,0 +1,85 @@
+{
+  "schema": "kato_overlap_continuation_campaign_v1",
+  "campaign_id": "N20x24_N24x24_kato_overlap_continuation_s25_v1",
+  "sources": {
+    "N20x24": {
+      "campaign_id": "N20x24_state_projector_pump_s100_v1",
+      "config": "campaign_config.state_projector_pump_n20x24_s100_v1.json",
+      "output_root": "results/N20x24_state_projector_pump_s100_v1",
+      "legacy_grid64_root": "results/N20x24_state_projector_pump_s100_v1",
+      "legacy_grid128_config": "campaign_config.state_projector_pump_n20x24_grid128_s100_v1.json",
+      "legacy_grid128_root": "results/N20x24_state_projector_pump_grid128_s100_v1",
+      "Nx": 20,
+      "Ny": 24,
+      "wall_x": [5, 15],
+      "left_x_stop_exclusive": 10
+    },
+    "N24x24": {
+      "campaign_id": "N24x24_state_projector_pump_s100_v1",
+      "config": "campaign_config.state_projector_pump_n24x24_s100_v1.json",
+      "output_root": "results/N24x24_state_projector_pump_s100_v1",
+      "legacy_grid64_root": "results/N24x24_state_projector_pump_s100_v1",
+      "Nx": 24,
+      "Ny": 24,
+      "wall_x": [6, 18],
+      "left_x_stop_exclusive": 12
+    }
+  },
+  "endpoint_selection": {
+    "sample_ids": [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96],
+    "selection_rule": "every fourth preregistered endpoint ID, independent of prior pump outcome"
+  },
+  "continuation": {
+    "grid_intervals": 128,
+    "regulator": 1e-7,
+    "directions": {"ccw": 1, "cw": -1},
+    "branch_selection": "largest previous-projector overlap with legacy energy tie-break",
+    "spectral_parent": "H(phi) from H0 = 1 - 2 F0 F0^dagger with minimum-image y twist",
+    "projector_derivative": "analytic selected-excluded spectral sum",
+    "transport_equation": "dF/dphi = [dP_spec/dphi, P_spec] F",
+    "integrator": "adaptive classical RK4 with step doubling",
+    "adaptive_tolerance": 1e-8,
+    "adaptive_safety": 0.9,
+    "adaptive_min_scale": 0.2,
+    "adaptive_max_scale": 2.0,
+    "minimum_step_fraction_of_interval": 0.000244140625,
+    "initial_step_fraction_of_interval": 1.0,
+    "frame_stabilization": "symmetric polar orthonormalization after accepted steps",
+    "reproject_after_step": false,
+    "dtype": "complex128"
+  },
+  "ensemble": {
+    "sizes": ["N20x24", "N24x24"],
+    "walls": ["soft", "hard"],
+    "samples_per_wall_and_size": 25,
+    "directions_per_endpoint": 2,
+    "paths_total": 200,
+    "independent_sampling_unit": "saved monitored endpoint trajectory"
+  },
+  "execution": {
+    "cpu_list": "28-55",
+    "workers": 28,
+    "blas_threads": 1,
+    "checkpoint_every_intervals": 8
+  },
+  "analysis": {
+    "legacy_event_threshold": 0.5,
+    "strong_transport_threshold": 0.75,
+    "compare_raw_directions_separately": true,
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 2026090601,
+    "confidence_level": 0.95
+  },
+  "acceptance": {
+    "input_gram_tolerance": 1e-8,
+    "orthonormality_tolerance": 1e-10,
+    "charge_conservation_tolerance": 1e-9,
+    "transported_selected_projector_mismatch_tolerance": 1e-7,
+    "adaptive_tolerance": 1e-8,
+    "smoke_tight_tolerance": 2.5e-9,
+    "smoke_path_qx_difference_tolerance": 1e-4,
+    "quantization_is_acceptance_gate": false,
+    "legacy_classification_agreement_is_gate": false,
+    "width_dependence_is_gate": false
+  }
+}

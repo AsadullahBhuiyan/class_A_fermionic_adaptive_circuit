@@ -1,0 +1,140 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\ket}[1]{\left|#1\right\rangle}
+\newcommand{\bra}[1]{\left\langle#1\right|}
+\newcommand{\braket}[2]{\left\langle #1\,\middle|\,#2\right\rangle}
+
+\begin{document}
+
+\title{Worker 03 Note: OW Form-Factor Obstruction, Finite \texorpdfstring{$n_{\rm shell}$}{nshell}, and Perturbative Update Intuition}
+\author{Worker 03}
+\date{\today}
+
+\begin{abstract}
+I inspected only \texttt{form\_factor\_analysis/} and \texttt{perturbative\_expansion/}, excluding paths containing \texttt{haining}, \texttt{haoyu}, or \texttt{erroneous}, and without reading repo-synthesis worker, supervisor, or boss notes.  The allowed sources support a coherent message: finite overcomplete Wannier (OW) truncation should be judged by the effective overlap form factor with the target Chern band, not by the Chern number of the compact-support spinor itself.  For the studied two-band Chern model, the $n_{\rm shell}=1$ square mask keeps nearly all OW norm and preserves the overlap zero and winding, although the zero is displaced.  Perturbatively, a rank-one Wannier measurement linearized about its own fixed branch maps $\delta G\mapsto (I-P)\delta G(I-P)$, and a raster cycle composes these projections as $\delta G\mapsto L\delta G L^\dagger$.  Thus the local intuition is contractive projection away from measured OW modes, while the global OW obstruction remains encoded in the finite-shell form-factor zero.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+The inspection was restricted to the following allowed source families:
+\begin{itemize}
+\item \texttt{form\_factor\_analysis/docs/windowed\_chern.tex} and associated non-executed figure references.
+\item \texttt{perturbative\_expansion/README.md}.
+\item Text, code, and saved small outputs in the notebooks under \texttt{perturbative\_expansion/}, read as JSON only.  No notebooks were executed and no large arrays were loaded.
+\end{itemize}
+No files were edited.
+
+\section{Findings}
+
+\subsection{OW Form-Factor Obstruction}
+
+The form-factor note defines the target-band overlap
+\begin{equation}
+f(\bm{k})=\braket{u_{\bm{k}}}{\tau},
+\end{equation}
+and states that its phase winding records the Chern obstruction,
+\begin{equation}
+C=-\frac{1}{2\pi i}\oint_{\rm BZ}d\bm{k}\cdot\nabla_{\bm{k}}\ln f(\bm{k}).
+\end{equation}
+A finite real-space OW mask $g(\bm{r})$ produces an effective overlap form factor
+\begin{equation}
+f^{(g)}(\bm{k}')=
+\frac{1}{N}\sum_{\bm{k}\in{\rm BZ}}
+\tilde g(\bm{k}'-\bm{k})e^{-i(\bm{k}'-\bm{k})\cdot\bm{R}}
+f(\bm{k})\braket{u_{\bm{k}'}}{u_{\bm{k}}}.
+\end{equation}
+Thus finite support acts as a Bloch-overlap-dressed, or ``twisted'', convolution in momentum space.  The relevant obstruction for the adaptive circuit is the zero and winding of this overlap function, not an intrinsic Chern number assigned to the truncated spinor.
+
+\subsection{Finite \texorpdfstring{$n_{\rm shell}$}{nshell}}
+
+The code-facing square mask is identified as the actual \texttt{nshell} truncation: $|d_x|\le n_{\rm shell}$ and $|d_y|\le n_{\rm shell}$, with the $n_{\rm shell}=1/2$ case retaining a five-site cross.  The analytic intuition is scale based: if the real-space window is large compared with the OW RMS spread, the momentum kernel is narrow and the form-factor zero survives up to displacement; if the window is too aggressive, broad momentum mixing can fill or reorganize the zero.
+
+For the $\alpha=1$ two-band model with $X$ trial spinor, the note reports
+\begin{equation}
+\xi_{\rm top}=0.564190a,\qquad
+\xi_{\rm rms}=0.673521a,\qquad
+\xi_{\rm exp}=1.442695a.
+\end{equation}
+The distinction matters: $\xi_{\rm exp}$ controls the asymptotic tail, not the retained norm or the survival of the zero.  The $n_{\rm shell}=1$ square mask retains $0.992155$ of the untruncated OW norm, and the explicit continuum form-factor check gives a shifted zero at
+\begin{equation}
+\bm{k}_{*,1}/\pi\simeq(0.4922,0),
+\end{equation}
+near the unwindowed zero $(0.5,0)$.  The $n_{\rm shell}=0$ onsite limit instead forms a full Brillouin-zone average and moves the zero far away, with an accidental continuum location near $(0.2093,0)$.
+
+\subsection{Compact-Support Spinor Versus Overlap Winding}
+
+The finite-support spinor
+\begin{equation}
+\ket{\psi_n(\bm{k})}
+=
+\sum_{\bm{r}\in{\rm supp}(g_n)}
+e^{-i\bm{k}\cdot\bm{r}}C_{\bm{r}}\ket{\tau}
+\end{equation}
+is a different object from the scalar overlap $f_n^{\rm eff}(\bm{k})=\braket{u_-(\bm{k})}{\psi_n(\bm{k})}$.  If $\psi_n(\bm{k})$ is smooth, periodic, and nowhere zero on the torus, it is a global section and its own line-bundle Chern number is zero.  The source explicitly warns that a nonzero coarse FHS integer for this compact spinor can be a resolution artifact.  The reported stable FHS values for $n_{\rm shell}=0,1/2,1,2$ are zero, while the overlap winding $\nu_n$ remains $-1$.
+
+\subsection{Perturbative Update Intuition}
+
+The perturbative folder states the single-rank-one result directly.  For $P=\ket{W}\bra{W}$ and $Q=I-P$, linearization of the fixed branch about a state satisfying
+\begin{equation}
+G_*P=PG_*=sP,\qquad s=\pm1,
+\end{equation}
+gives
+\begin{equation}
+\delta G' = Q\,\delta G\,Q.
+\end{equation}
+The result is independent of whether the branch is occupied or unoccupied.  The raster-sweep notebook then composes the one-mode maps into
+\begin{equation}
+\delta G\mapsto L\delta G L^\dagger,\qquad
+L=Q_m\cdots Q_2Q_1,
+\end{equation}
+with the order following \texttt{run\_markov\_circuit(..., sequence="raster\_y")}.  This gives the useful intuition that one deterministic cycle suppresses perturbations by repeatedly projecting out measured OW directions.  The saved outputs report largest singular values below one for all inspected examples, including finite-shell DW-truncated cases.
+
+\section{Interpretation}
+
+The main technical message supported by these sources is that finite $n_{\rm shell}$ does not automatically destroy the OW topological obstruction.  The obstruction is not the Chern number of the compact-support trigonometric spinor; it is the winding of its overlap with the target Chern-band frame.  For the studied model, $n_{\rm shell}=1$ is already wide compared with the RMS OW spread and retains the zero/winding diagnostic, despite being shorter than the asymptotic tail length.  Perturbatively, each successful rank-one update removes linearized covariance components in the measured OW mode, so a raster cycle is naturally understood as a product of such complementary projections.  The relation to the broader repo message is therefore: finite-shell OW measurements can still encode the Chern obstruction while providing a locally contractive perturbative mechanism for purification or stabilization.
+
+\section{Evidence Table}
+
+\begin{table}[h]
+\small
+\begin{tabular}{p{0.30\textwidth}p{0.18\textwidth}p{0.44\textwidth}}
+\toprule
+Source & Lines & Evidence \\
+\midrule
+\texttt{form\_factor\_analysis/docs/windowed\_chern.tex} & 46--60 & Defines $f(\bm{k})$, its Chern winding, and connects \texttt{nshell} to OW real-space truncation. \\
+\texttt{form\_factor\_analysis/docs/windowed\_chern.tex} & 83--100 & Gives the central effective form-factor convolution and distinguishes overlap winding from the Chern number of the windowed state. \\
+\texttt{form\_factor\_analysis/docs/windowed\_chern.tex} & 123--152 & Narrow kernels preserve zeros by continuity; broad kernels generically fill the original zero. \\
+\texttt{form\_factor\_analysis/docs/windowed\_chern.tex} & 154--181 & Separates $\xi_{\rm top}$, $\xi_{\rm rms}$, and $\xi_{\rm exp}$ and warns not to use the tail length as the truncation criterion. \\
+\texttt{form\_factor\_analysis/docs/windowed\_chern.tex} & 339--352 & Documents the square \texttt{nshell} mask and its Dirichlet-kernel effective form factor. \\
+\texttt{form\_factor\_analysis/docs/windowed\_chern.tex} & 358--396 & Reports $\xi_{\rm rms}=0.673521a$, $\xi_{\rm exp}=1.442695a$, and retained norms $0.992155$ for $n_{\rm shell}=1$ and $0.999137$ for $n_{\rm shell}=2$. \\
+\texttt{form\_factor\_analysis/docs/windowed\_chern.tex} & 414--437 & Explains why $n_{\rm shell}=0$ is a full BZ average and why its zero is accidental and far displaced. \\
+\texttt{form\_factor\_analysis/docs/windowed\_chern.tex} & 439--453 & Gives shifted zeros for $n_{\rm shell}=1,2$, near $k_x/\pi\simeq0.492$. \\
+\texttt{form\_factor\_analysis/docs/windowed\_chern.tex} & 455--470 & Expands finite-shell $f_n^{\rm eff}$ near the original zero and gives the Rouche-continuity survival argument. \\
+\texttt{form\_factor\_analysis/docs/windowed\_chern.tex} & 522--544 & Gives the compact-support global-section argument and the FHS-resolution caveat. \\
+\texttt{form\_factor\_analysis/docs/windowed\_chern.tex} & 550--559 & Reports $\nu_n=-1$ but $C_{\psi_n}^{\rm FHS}=0$ for finite support cases listed. \\
+\texttt{perturbative\_expansion/README.md} & 10--18 & Identifies the validation notebooks and the raster product $L=\prod_i(I-P_i)$. \\
+\texttt{perturbative\_expansion/README.md} & 26--37 & States the main rank-one result $\delta G'=(I-P)\delta G(I-P)$ and its raster composition. \\
+\texttt{perturbative\_expansion/perturbative\_fixed\_point\_validation\_no\_dw.ipynb} & JSON lines 10--18, 214--218, 490 & Notebook text states the fixed-point expansion and final conclusion for both $s=\pm1$. \\
+\texttt{perturbative\_expansion/raster\_y\_Q\_product\_wannier\_sequence.ipynb} & JSON lines 8--18, 123--125, 323, 759--761 & Defines $\delta G\mapsto L\delta G L^\dagger$, the rank-one implementation of $L$, and the singular-value contraction bound. \\
+\texttt{perturbative\_expansion/pump\_in\_purity\_check.ipynb} & JSON lines 8--24, 172--180, 280 & Shows pump-in preserves purity only after the measured mode is already vacuum and decoupled. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Caveats}
+
+This note is based on source inspection only.  I did not re-run notebooks, regenerate figures, execute simulations, or inspect any main-pass synthesis notes.  Notebook line references are to pretty-printed JSON search output rather than a hand-authored text file.  The finite-shell numerical claims are therefore accepted as saved source claims, not independently recomputed results.  The obstruction conclusion is strongest for the documented $\alpha=1$, $X$-trial, square-mask example; other projectors, gauges, disorder/domain-wall choices, or very small shells require their own effective-form-factor check.
+
+\section{Confidence}
+
+Confidence is high for the conceptual distinction between overlap winding and compact-spinor Chern number, high for the stated perturbative rank-one map, and moderate-to-high for the $n_{\rm shell}=1$ numerical conclusion because it is explicitly reported in the form-factor note but was not recomputed here.
+
+\end{document}

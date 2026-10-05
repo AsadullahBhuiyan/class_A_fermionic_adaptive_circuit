@@ -1,0 +1,34 @@
+universe = container
+container_image = /cvmfs/singularity.opensciencegrid.org/htc/pytorch:2.3.1-cuda11.8
+
+executable = run_wrapper.sh
+arguments  = slope_vs_system_size $(Process)
+
+transfer_input_files = \
+    run_wrapper.sh, \
+    scripts/install_packages.sh, \
+    scripts/run_slope_vs_system_size.py, \
+    scripts/classA_U1FGTN_gpu.py, \
+    scripts/strip_entropy_streaming_gpu.py
+
+log    = logs/slope_vs_size_$(Cluster)_$(Process).log
+error  = logs/slope_vs_size_$(Cluster)_$(Process).err
+output = logs/slope_vs_size_$(Cluster)_$(Process).out
+
+# output dir is local to the job; HTCondor tars it back
+transfer_output_files   = output
+transfer_output_remaps  = "output=results/slope_vs_system_size/job_$(Process)"
+
++JobDurationCategory = "Long"
+
+gpus_minimum_capability = 8.0
+gpus_maximum_capability = 8.0
+gpus_minimum_memory     = 40000
+
+request_gpus   = 1
+request_cpus   = 4
+request_memory = 32 GB
+request_disk   = 20 GB
+
+# 7 jobs: job 0->Ny=30, 1->Ny=40, 2->Ny=50, 3->Ny=60, 4->Ny=80, 5->Ny=100, 6->Ny=120
+queue 7

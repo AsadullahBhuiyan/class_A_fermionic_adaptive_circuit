@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""Figure 11: preserved mean-state observables plus saved channel gaps and fits."""
+import argparse
+import csv
+import hashlib
+import json
+from pathlib import Path
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+import numpy as np
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA = ROOT / 'data/mean_channel'
+STEM = 'Figure_11_mean_channel'
+
+
+def sha(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def read_json(filename):
+    return json.loads((DATA / filename).read_text())
+
+
+def read_csv(filename):
+    with (DATA / filename).open() as handle:
+        return list(csv.DictReader(handle))
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--output-dir', type=Path, default=ROOT)
+    args = parser.parse_args()
+    out = args.output_dir.resolve()
+    out.mkdir(parents=True, exist_ok=True)
+    for name, expected in read_json('provenance.json')['compact_inputs_sha256'].items():
+        assert sha(DATA / name) == expected, f'Compact input changed: {name}'
+    spectral_summary = read_json('spectrum_summary.json')
+    correlator_summary = read_json('correlator_summary.json')
+    for alpha in (1, 3):
+        spectrum = spectral_summary[f'alpha{alpha}_hard']
+        correlator = correlator_summary['cases'][str(alpha)]
+        assert spectrum['source_sha256'] == correlator['input_sha256']
+        assert spectrum['config'] == correlator['config']
+
+    plt.rcParams.update({'font.family': 'CMU Sans Serif', 'font.size': 8,
+                         'xtick.direction': 'in', 'ytick.direction': 'in',
+                         'pdf.fonttype': 42, 'ps.fonttype': 42})
+    fig, axes = plt.subplots(4, 1, figsize=(3.375, 10.9))
+    top, correlator_ax, gap_ax, fit_ax = axes
+    displayed_distances = {}
+    panel_b_rows = []
+    with np.load(DATA / 'spectra.npz', allow_pickle=False) as spectra, \
+            np.load(DATA / 'curves.npz', allow_pickle=False) as curves:
+        r = np.arange(1, 33)
+        xx = np.log((64 / np.pi) * np.sin(np.pi * r / 64))
+        for alpha, color, marker, size, ls in (
+            (1, '#2468ad', 'o', 10, '-'), (3, '#c0392b', '^', 8, ':')
+        ):
+            occupations = spectra[f'alpha{alpha}_hard']
+            assert occupations.shape == (64, 40)
+            top.scatter(np.repeat(spectra['ky'] / np.pi, 40), occupations.ravel(),
+                        s=size, marker=marker, facecolors='none', edgecolors=color,
+                        linewidths=.55, label=rf'$\alpha_1={alpha}$',
+                        zorder=3 if alpha == 3 else 2)
+            values = curves[f'alpha{alpha}_xavg'][1:]
+            displayed = values > correlator_summary['display_cutoff']
+            displayed_distances[str(alpha)] = r[displayed].tolist()
+            assert displayed_distances[str(alpha)] == [1, 2, 3, 4]
+            yy = np.full(values.shape, np.nan)
+            yy[displayed] = np.log(values[displayed])
+            correlator_ax.plot(xx, yy, color=color, marker=marker, ls=ls, ms=3.5,
+                               mfc='white', mew=.65, lw=.75, label=rf'$\alpha_1={alpha}$')
+            panel_b_rows += [{'alpha_1': alpha, 'r_y': int(d), 'log_chord': x,
+                              'squared_mean_correlator': value, 'log_correlator': y}
+                             for d, x, value, y in zip(r[displayed], xx[displayed], values[displayed], yy[displayed])]
+    top.axhline(.5, color='.5', ls='--', lw=.7, zorder=0)
+    top.set(xlabel=r'$k_y/\pi$', ylabel=r'Occupation $\nu_a(k_y)$',
+            xlim=(-1.03, 1.03), ylim=(-.035, 1.035))
+    top.set_xticks([-1, -.5, 0, .5, 1])
+    top.set_yticks([0, .25, .5, .75, 1])
+    top.legend(loc='center left', frameon=False, handletextpad=.3)
+    correlator_ax.set(xlabel=r'$\log d_{64}(r_y)$',
+                      ylabel=r'$\log C_{\overline{G}}^{\mathrm{av}}(r_y)$',
+                      xlim=(-.06, 3.08), ylim=(np.log(1e-8) - .3, -2.5))
+    correlator_ax.set_xticks([0, 1, 2, 3])
+    correlator_ax.set_yticks([-15, -10, -5])
+    correlator_ax.legend(loc='lower right', frameon=False, handletextpad=.3)
+
+    rows = read_csv('multiplier_gaps.csv')
+    assert len(rows) == 105 and all(r['status'] == 'resolved_positive' and int(r['Nx']) == 20 for r in rows)
+    for size, color, marker, style in zip(
+        (20, 40, 60, 80, 100), ('#c0392b', '#23934c', '#2468ad', '#8e44ad', '#d17b0f'),
+        ('^', 's', 'o', 'D', 'v'), (':', '--', '-', '-.', (0, (3, 1, 1, 1)))
+    ):
+        selected = sorted((r for r in rows if int(r['Ny']) == size), key=lambda r: float(r['alpha_1']))
+        alpha = np.array([float(r['alpha_1']) for r in selected])
+        gaps = np.array([float(r['g_C']) for r in selected])
+        np.testing.assert_allclose(alpha, np.arange(10, 31) / 10, rtol=0, atol=1e-14)
+        np.testing.assert_allclose(gaps, 1 - np.array([float(r['rho_A']) for r in selected])**2, rtol=0, atol=1e-14)
+        np.testing.assert_allclose(gaps, -np.expm1(-np.array([float(r['decay_rate']) for r in selected])), rtol=0, atol=1e-14)
+        gap_ax.plot(alpha, gaps, color=color, marker=marker, ls=style, mfc='white',
+                    ms=3, lw=.8, label=str(size))
+    gap_ax.set(xlabel=r'$\alpha_1$', ylabel=r'$g_C=1-\rho(A)^2$')
+    gap_ax.set_yticks(np.arange(.775, .951, .025))
+    gap_ax.legend(title=r'$N_y$ ($N_x=20$)', frameon=False, loc='lower right',
+                  handletextpad=.4, labelspacing=.25, borderpad=.3)
+
+    fits = read_json('multiplier_fits.json')['results']
+    fit_rows = read_csv('multiplier_fit_inputs.csv')
+    handles, checked_fits = [], {}
+    for alpha, color, marker in ((1, '#2468ad', 'o'), (3, '#c0392b', '^')):
+        selected = sorted((r for r in fit_rows if int(r['alpha_1']) == alpha), key=lambda r: int(r['Ny']))
+        n = np.array([int(r['Ny']) for r in selected])
+        y = np.array([float(r['g_C']) for r in selected])
+        np.testing.assert_array_equal(n, [20, 40, 60, 80, 100])
+        for row in selected:
+            scan_row = next(r for r in rows if float(r['alpha_1']) == alpha and r['Ny'] == row['Ny'])
+            np.testing.assert_allclose(float(scan_row['g_C']), float(row['g_C']), rtol=0, atol=1e-14)
+        saved = fits[str(alpha)]
+        saved_coefficients = [saved['g_infinity'], saved['a']]
+        coefficients = np.polynomial.polynomial.polyfit(1 / n, y, 1)
+        np.testing.assert_allclose(coefficients, saved_coefficients, rtol=0, atol=1e-12)
+        limit, correction = saved_coefficients
+        residual = y - (limit + correction / n)
+        r2 = 1 - float(residual @ residual) / float((y - y.mean()) @ (y - y.mean()))
+        np.testing.assert_allclose(r2, saved['r_squared'], rtol=0, atol=1e-14)
+        fit_ax.plot(1 / n, y, ls='none', marker=marker, mfc='white', color=color, ms=4, zorder=3)
+        x = np.linspace(0, .05, 200)
+        fit_ax.plot(x, limit + correction * x, color=color, ls='-', lw=1)
+        fit_ax.plot(0, limit, marker='s', color=color, ms=3.5)
+        fit_ax.text(.07, .34 if alpha == 1 else .79,
+                    rf'$g_\infty={limit:.5f}$' + '\n' + rf'$R^2={r2:.6f}$',
+                    color=color, transform=fit_ax.transAxes, va='top', fontsize=8)
+        handles.append(Line2D([], [], color=color, ls='none', marker=marker, mfc='white', ms=4,
+                              label=rf'$\alpha_1={alpha}$'))
+        checked_fits[str(alpha)] = {'g_infinity': limit, 'a': correction, 'r_squared': r2,
+                                    'sizes': n.tolist(), 'maximum_refit_coefficient_difference':
+                                    float(np.max(np.abs(coefficients - saved_coefficients)))}
+    handles.append(Line2D([], [], color='.3', ls='-', lw=1,
+                          label=r'Fit: $g_\infty+a/N_y$'))
+    fit_ax.set(xlabel=r'$1/N_y$', ylabel=r'$g_C=1-\rho(A)^2$',
+                xlim=(-.001, .052), ylim=(.82, .98))
+    fit_ax.set_yticks(np.arange(.82, .981, .02))
+    fit_ax.legend(handles=handles, frameon=False, loc='center right',
+                   handlelength=1.8, handletextpad=.5, borderpad=.3)
+    for ax, letter in zip(axes, 'abcd'):
+        ax.tick_params(top=True, right=True)
+        ax.text(-.19, 1.04, f'({letter})', transform=ax.transAxes, fontsize=9)
+    fig.subplots_adjust(left=.20, right=.975, top=.977, bottom=.045, hspace=.45)
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    boxes = [ax.get_tightbbox(renderer) for ax in axes]
+    assert all(b.x0 >= 0 and b.y0 >= 0 and b.x1 <= fig.bbox.width and b.y1 <= fig.bbox.height for b in boxes)
+    assert all(boxes[i].y0 > boxes[i+1].y1 for i in range(3)), 'Panels overlap'
+    for ext in ('pdf', 'png'):
+        fig.savefig(out / f'{STEM}.{ext}', dpi=300)
+    plt.close(fig)
+
+    # Keep a readable numerical receipt, including the actual displayed A/B selection.
+    if out == ROOT:
+        with (DATA / 'panel_b_plotted_data.csv').open('w') as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(panel_b_rows[0]))
+            writer.writeheader()
+            writer.writerows(panel_b_rows)
+    receipt = {
+        'layout': [4, 1], 'figure_inches': [3.375, 10.9], 'dpi': 300,
+        'panels_ab_same_arrays_axes_and_estimators': True,
+        'panel_b_display_cutoff': correlator_summary['display_cutoff'],
+        'panel_b_displayed_separations': displayed_distances,
+        'panel_c_scan_points': len(rows), 'Nx': 20, 'Ny': [20, 40, 60, 80, 100],
+        'gap_definition': 'g_C=1-rho(A)^2', 'gap_units': 'dimensionless',
+        'panel_d_fit_objective': 'unweighted least squares on g_C; all five sizes',
+        'panel_d_saved_fits_recovered': checked_fits,
+        'text_within_canvas_and_panels_separated': True,
+        'outputs': {f'{STEM}.{ext}': sha(out / f'{STEM}.{ext}') for ext in ('pdf', 'png')},
+    }
+    receipt_path = DATA / 'validation.json' if out == ROOT else out / 'validation.json'
+    receipt_path.write_text(json.dumps(receipt, indent=2) + '\n')
+    print(out / f'{STEM}.pdf')
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,379 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\src}[1]{\begingroup\ttfamily\Urlmuskip=0mu plus 1mu\relax\nolinkurl{#1}\endgroup}
+\newcommand{\avg}[1]{\overline{#1}}
+\newcommand{\Gtraj}{G_{\xi}}
+\newcommand{\Gbar}{\avg{G_{\xi}}}
+\newcommand{\Gps}{G_{\rm ps}}
+\newcommand{\calL}{\mathcal L}
+\newcommand{\calE}{\mathcal E}
+\newcommand{\dd}{\mathrm d}
+\newcommand{\Tr}{\operatorname{Tr}}
+
+\begin{document}
+
+\title{Trajectory-Averaged and Lindbladian Evolution in the Domain-Wall Adaptive-Circuit Program}
+\author{Boss Synthesis Addendum}
+\date{June 11, 2026}
+
+\begin{abstract}
+This note interprets the two attached external summaries,
+\src{project_summary.pdf} and \src{paper_style_draft.pdf}, together with the
+completed worker/supervisor synthesis for this repository.  The attached
+summaries describe a related Lindbladian domain-wall Chern-insulator workspace:
+a deterministic covariance evolution with gain, loss, and optional decoherence
+develops wall-localized mixed-state structure, including covariance-spectrum
+branches, strip-like local-marker patterns, wall-centered current response, and
+entanglement-like signatures.  The local worker hierarchy already reached the
+necessary taxonomy: such trajectory-averaged Markov-channel or Lindblad
+evolution is a channel-level control, not the sampled perfect-correction
+ensemble.  The right interpretation is therefore not to demote the
+trajectory-resolved story, but to use the trajectory-averaged sector as a
+diagnostic of which domain-wall topological structures survive covariance
+averaging, and as the natural bridge to dissipative Chern-insulator and
+mixed-state topology literature.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Status and Scope}
+
+This addendum uses three source strata.  First, the completed local hierarchy in
+\src{repo_synthesis/main_pass/worker_notes},
+\src{repo_synthesis/main_pass/supervisor_notes}, and
+\src{repo_synthesis/main_pass/boss/master_repo_synthesis.tex} gives the
+protocol taxonomy for this repository.  Second, the local source
+\src{src/fgtn/classA_U1FGTN.py} contains the deterministic
+\src{run_markov_channel} routine, whose docstring identifies it as a
+trajectory-averaged Markov channel.  Third, \src{scripts/legacy/CI_Lindblad_DW.py} contains a
+single-layer Lindbladian helper that builds gain, loss, decoherence, RK4
+evolution, and a vectorized affine generator for covariance evolution.
+
+The two attached PDFs are treated as secondary summaries of a related
+workspace, not as primary audited data products of this repository.  Their main
+scientific content is nevertheless directly relevant: they describe a
+Lindbladian domain-wall Chern-insulator setting in which a mixed covariance
+state retains interface-localized structure.  The attached summaries also warn
+about code-version drift and cache-label ambiguity, so their role here is
+interpretive.  They sharpen what trajectory-averaged or Lindbladian evolution
+can mean physically; they do not override the local hierarchy's conclusion that
+the flagship adaptive-circuit claims are trajectory-resolved.
+
+\section{The Three Inequivalent Objects}
+
+The central mathematical point is that a stochastic Gaussian trajectory
+\(\Gtraj(t)\), its covariance average \(\Gbar(t)\), and a forced postselected
+branch \(\Gps(t)\) are different objects.  For a nonlinear observable \(O\),
+\begin{equation}
+  \avg{O[\Gtraj(t)]}
+  \neq
+  O[\Gbar(t)]
+  \neq
+  O[\Gps(t)] .
+  \label{eq:three_objects}
+\end{equation}
+This is the core distinction emphasized by Worker 07, Supervisor 02,
+Supervisor 03, and the master synthesis.  Perfect correction remains a
+Born-sampled stochastic process with deterministic feedback after mismatch
+events.  It does not collapse the ensemble to a deterministic covariance.
+
+For a linear one-body observable \(A\), covariance averaging is harmless:
+\begin{equation}
+  \avg{\Tr(A C_{\xi})}=\Tr(A \bar C),
+  \qquad
+  C_{\xi}=\frac{1+\Gtraj}{2},
+  \qquad
+  \bar C = \frac{1+\Gbar}{2}.
+\end{equation}
+For entropy, contours, Chern-marker regularizations, and squared correlations,
+the order of operations matters.  The simplest diagnostic identity is
+\begin{equation}
+  \avg{|C_{\xi}(r,r')|^2}
+  =
+  |\bar C(r,r')|^2
+  +
+  \avg{|C_{\xi}(r,r')-\bar C(r,r')|^2}.
+  \label{eq:square_corr_split}
+\end{equation}
+The second term is the trajectory-to-trajectory fluctuation contribution.  A
+mean-channel or Lindblad calculation deletes this term by construction.  That
+deletion is useful when the question is what the averaged covariance does; it is
+fatal if the question is whether the sampled ensemble has trajectory-resolved
+criticality.
+
+\section{Mean Markov Channel}
+
+The local CPU class implements a deterministic map
+\begin{equation}
+  \Gbar_{n+1}=\Phi(\Gbar_n),
+  \label{eq:mean_markov}
+\end{equation}
+through \src{classA_U1FGTN.run_markov_channel(...)}.  In the language of the
+summary note, this routine evolves a single covariance by the Born-rule averaged
+local channel and computes \(O[\Gbar]\), not
+\(\avg{O[\Gtraj]}\).  This is the discrete-time trajectory-averaged evolution
+available in this repository.
+
+The mean Markov channel is scientifically useful for three reasons.
+First, it tests whether the local OW/domain-wall update rule has the intended
+average drift toward the Chern-insulator covariance.  Second, it identifies
+which spatial structures are robust after measurement-record fluctuations are
+integrated out.  Third, it provides a controlled comparison for nonlinear
+trajectory observables: if a feature survives in \(O[\Gbar]\), it is a
+mean-covariance feature; if it appears only in \(\avg{O[\Gtraj]}\), it is a
+genuinely distributional feature of the sampled ensemble.
+
+This is especially important for the paper narrative.  The near-\(1/3\)
+entropy slopes and charge-sector phenomenology under perfect correction are
+trajectory claims.  A mean-channel plot can support the mechanism, but it
+cannot establish the same statement because the entropy of \(\Gbar\) and the
+average entropy of \(\Gtraj\) answer different questions.
+
+\section{Lindblad Limit}
+
+The Lindblad helper in \src{scripts/legacy/CI_Lindblad_DW.py} implements a continuous-time
+mean-channel control.  In the notation of a local elementary channel
+\(\Phi_{\dd t}\),
+\begin{equation}
+  \Phi_{\dd t}=1+\dd t\,\calL+O(\dd t^2),
+  \qquad
+  \partial_t \Gbar = \calL[\Gbar].
+  \label{eq:lindblad_limit}
+\end{equation}
+The code realizes this with gain, loss, and optional decoherence pieces, and
+also constructs a vectorized affine generator
+\begin{equation}
+  \frac{\dd}{\dd t}\operatorname{vec}(G)
+  =
+  s + L\,\operatorname{vec}(G),
+  \label{eq:affine_generator}
+\end{equation}
+with an optional homogeneous lifted representation.  This is not a pathwise
+stochastic adaptive circuit.  It is the continuous-time channel that describes
+the averaged covariance in a weak-update limit.
+
+The attached PDFs are valuable because they show what such a Lindblad sector can
+look like when taken seriously in a domain-wall Chern geometry.  Their strongest
+reported observations are:
+\begin{enumerate}
+\item covariance eigenmodes localized near the two domain walls of the strip;
+\item \(k_y\)-resolved branches interpolating between near-empty and near-filled
+occupation sectors;
+\item strip-like local Chern-marker organization in the mixed covariance;
+\item wall-centered current-like response;
+\item entanglement-like and correlation diagnostics that follow the same
+interface geometry.
+\end{enumerate}
+The conservative interpretation is mixed-state interface phenomenology: the
+averaged covariance retains a wall sector that is visible spectrally, spatially,
+and in response-like observables.  The stronger interpretation, a rigorously
+quantized mixed-state invariant or protected chiral steady-state edge, requires
+more work and cleaner provenance.
+
+\section{How the Attached Lindblad Results Change the Interpretation}
+
+The attached summaries do not make the adaptive-circuit story less interesting.
+They make the role of the mean-channel sector more precise.  They suggest that
+even after measurement-record fluctuations are averaged away, the domain-wall
+geometry can retain a coherent mixed-state interface structure.  Thus the
+trajectory-averaged sector is not merely a boring baseline; it is a meaningful
+diagnostic of the deterministic skeleton beneath the stochastic ensemble.
+
+The resulting picture is layered:
+\begin{enumerate}
+\item The exact DW and OW flattened-Hamiltonian calculations define the
+target-state geometry and the chiral domain-wall benchmark.
+\item The mean Markov channel tests whether the adaptive update has the correct
+average covariance drift and whether the wall sector survives covariance
+averaging.
+\item The Lindblad limit interprets that averaged drift as a dissipative
+Chern-insulator preparation problem in continuous time.
+\item The sampled perfect-correction ensemble adds the missing distributional
+physics: charge fluctuations, nonlinear entropy averages, and trajectory
+fluctuation terms such as Eq.~\eqref{eq:square_corr_split}.
+\end{enumerate}
+
+This layering also clarifies the novelty claim.  Dissipative Chern preparation
+and mixed-state topology are not new in themselves
+\cite{DiehlRicoBaranovZoller2011,BudichZollerDiehl2015,BudichDiehl2015,BardynEtAl2018,WawerFleischhauer2021,Goldstein2019}.
+The defensible angle is the comparison between a finite-range adaptive measurement circuit and its
+mean-channel/Lindblad controls in an internal domain-wall geometry.  If the
+mean-channel or Lindblad sector shows wall-localized mixed-state structure while
+the sampled perfect-correction ensemble shows charge-sharpened near-\(c/3\)
+trajectory entanglement, then the paper can claim something sharper than either
+sector alone: the same domain-wall OW geometry organizes both deterministic
+average covariance flow and stochastic trajectory-resolved criticality, but the
+two objects are observably inequivalent.
+
+The specific diagnostics proposed by the attached PDFs also have established
+provenance.  Real-space marker language descends from the Bianco-Resta local
+Chern marker \cite{BiancoResta2011}, while current/transport and boundary-state
+comparisons in dissipative or domain-wall Chern settings connect naturally to
+Shavit-Goldstein, Yang-Molignini-Bergholtz, and quantum-anomalous-Hall
+domain-wall transport work
+\cite{ShavitGoldstein2020,YangMoligniniBergholtz2023,UpadhyayaTserkovnyak2016,RosenEtAl2017}.
+These references support the comparison class, not a broad novelty claim.
+
+\section{What Should Be Claimed}
+
+The strongest safe claim is:
+\begin{quote}
+Trajectory-averaged Markov-channel and Lindbladian evolutions provide a
+deterministic mixed-state control showing that the domain-wall geometry retains
+interface-localized covariance structure under averaging.  This control supports
+the mechanism behind the adaptive preparation, but it does not replace the
+trajectory-resolved perfect-correction ensemble, where nonlinear observables
+must be averaged over sampled corrected trajectories.
+\end{quote}
+
+For a paper, the trajectory-averaged section should answer four questions.
+First, what does the averaged covariance flow toward?  Second, does the
+domain-wall sector remain visible in \(\Gbar\) or in the Lindblad steady sector?
+Third, which observables agree between \(\avg{O[\Gtraj]}\) and \(O[\Gbar]\)?
+Fourth, which observables disagree, and is that disagreement physically
+meaningful?
+
+The attached PDFs suggest that the answer to the second question is yes in the
+related Lindblad workspace: the domain wall remains visible in covariance
+spectra, spatial markers, and current-like maps.  The local hierarchy suggests
+that the fourth question is central in this repository: entropy and squared
+correlations are nonlinear, so disagreement between sampled trajectories and
+mean covariance is expected and should be presented as physics, not as a
+technical nuisance.
+
+\section{Recommended Manuscript Section}
+
+A manuscript section could be organized as follows.
+
+\subsection{Mean Covariance Flow}
+
+Define the sampled adaptive trajectory \(\Gtraj\), the mean covariance \(\Gbar\),
+and the deterministic map \(\Phi\).  State explicitly that
+\src{run_markov_channel} computes Eq.~\eqref{eq:mean_markov}.  Use one
+figure comparing trajectory-resolved and mean-covariance diagnostics, ideally
+including a linear observable where the two agree and a nonlinear observable
+where they do not.
+
+\subsection{Lindblad Control and Mixed-State Interface}
+
+Introduce Eq.~\eqref{eq:lindblad_limit} as the weak-update limit of the mean
+channel.  Present the Lindblad domain-wall evidence as a control: wall-localized
+covariance modes, \(k_y\)-resolved occupation branches, local-marker strip
+structure, and wall-centered current response.  The language should be
+``mixed-state interface sector'' rather than ``proved topological invariant''
+unless the invariant is explicitly defined and numerically shown to be robust.
+
+\subsection{What Averaging Removes}
+
+Use Eq.~\eqref{eq:square_corr_split} as the clean mathematical warning.  The
+mean channel removes trajectory-to-trajectory fluctuations.  Therefore it can
+diagnose deterministic covariance structure, but it cannot establish
+trajectory-resolved entanglement scaling or charge-sector fluctuation physics.
+
+\subsection{Role in the Overall Paper}
+
+The mean-channel/Lindblad section should sit after the target-state section and
+before, or immediately after, the perfect-correction trajectory data.  Its job
+is to show that the wall physics is not an artifact of a rare postselected
+branch, while also making clear that the final physical claim lives in
+\(\avg{O[\Gtraj]}\).
+
+\section{Caveats}
+
+\begin{enumerate}
+\item The attached PDFs explicitly report code-version drift and cache-label
+ambiguity in the external workspace.  Treat their results as interpretive
+support until the figure provenance is rebuilt.
+\item The Lindblad control is a continuous-time mean-channel object.  Discrete
+\(p=1\) Markov-channel data are not automatically a controlled Lindblad
+extrapolation.
+\item Local Chern markers and purity/occupation spectra in a mixed covariance
+are diagnostics.  They should not be called quantized invariants without a
+separate invariant definition and robustness check.
+\item Entanglement, entanglement contours, squared correlations, and nonlinear
+regularized markers do not commute with trajectory averaging.
+\item The paper should not claim novelty for dissipative Chern preparation in
+general.  The possible niche is the internal domain-wall geometry and the
+comparison between deterministic mixed-state controls and sampled adaptive
+trajectories.
+\end{enumerate}
+
+\section{Conclusion}
+
+The trajectory-averaged and Lindbladian material is not peripheral; it is the
+right deterministic control layer for the adaptive-circuit story.  The attached
+summaries indicate that a Lindbladian domain-wall Chern construction can retain
+a mixed-state interface sector visible across spectra, markers, currents, and
+entanglement-like diagnostics.  The worker/supervisor hierarchy then supplies
+the essential correction: this averaged covariance sector is not the physical
+perfect-correction ensemble.  It is the channel-level skeleton.  The paper
+should use it to explain why the domain wall is the organizing structure, while
+using trajectory-resolved perfect-correction data to establish the charge and
+critical-entanglement phenomenology of the sampled adaptive state.
+
+\begin{thebibliography}{99}
+
+\bibitem{DiehlRicoBaranovZoller2011}
+S.~Diehl, E.~Rico, M.~A. Baranov, and P.~Zoller,
+``Topology by dissipation in atomic quantum wires,''
+Nature Physics \textbf{7}, 971--977 (2011).
+
+\bibitem{BudichZollerDiehl2015}
+J.~C. Budich, P.~Zoller, and S.~Diehl,
+``Dissipative preparation of Chern insulators,''
+Phys. Rev. A \textbf{91}, 042117 (2015).
+
+\bibitem{BudichDiehl2015}
+J.~C. Budich and S.~Diehl,
+``Topology of density matrices,''
+Phys. Rev. B \textbf{91}, 165140 (2015).
+
+\bibitem{BardynEtAl2018}
+C.-E. Bardyn, L.~Wawer, A.~Altland, M.~Fleischhauer, and S.~Diehl,
+``Probing the Topology of Density Matrices,''
+Phys. Rev. X \textbf{8}, 011035 (2018).
+
+\bibitem{WawerFleischhauer2021}
+L.~Wawer and M.~Fleischhauer,
+``Chern number and Berry curvature for Gaussian mixed states of fermions,''
+Phys. Rev. B \textbf{104}, 094104 (2021).
+
+\bibitem{BiancoResta2011}
+R.~Bianco and R.~Resta,
+``Mapping topological order in coordinate space,''
+Phys. Rev. B \textbf{84}, 241106(R) (2011).
+
+\bibitem{Goldstein2019}
+M.~Goldstein,
+``Dissipation-induced topological insulators: A no-go theorem and a recipe,''
+SciPost Phys. \textbf{7}, 067 (2019).
+
+\bibitem{ShavitGoldstein2020}
+G.~Shavit and M.~Goldstein,
+``Topology by dissipation: Transport properties,''
+Phys. Rev. B \textbf{101}, 125412 (2020).
+
+\bibitem{YangMoligniniBergholtz2023}
+F.~Yang, P.~Molignini, and E.~J. Bergholtz,
+``Dissipative boundary state preparation,''
+Phys. Rev. Research \textbf{5}, 043229 (2023).
+
+\bibitem{UpadhyayaTserkovnyak2016}
+P.~Upadhyaya and Y.~Tserkovnyak,
+``Domain wall in a quantum anomalous Hall insulator as a magnetoelectric piston,''
+Phys. Rev. B \textbf{94}, 020411(R) (2016).
+
+\bibitem{RosenEtAl2017}
+I.~T. Rosen \textit{et al.},
+``Chiral transport along magnetic domain walls in the quantum anomalous Hall effect,''
+npj Quantum Materials \textbf{2}, 69 (2017).
+
+\end{thebibliography}
+
+\end{document}

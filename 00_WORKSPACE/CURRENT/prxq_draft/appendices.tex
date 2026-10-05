@@ -1,0 +1,2037 @@
+\appendix
+
+\section{Microscopic instrument and exact perfect correction}
+\label{app:microscopic-instrument}
+
+This appendix fixes the microscopic convention used throughout the paper.  In
+the main text, a controller channel carries the BPJ label
+\(j=(\bfr,\nu,\sigma)\), with \(\nu=A,B\), \(\sigma=\pm\), localized operator
+\(\h\chi_{\bfr,\nu,\sigma}\), and occupation
+\(\hcN_{\bfr,\nu,\sigma}=\h\chi_{\bfr,\nu,\sigma}^\dagger
+\h\chi_{\bfr,\nu,\sigma}\).  The coefficient column of that operator is
+denoted by the corresponding plain symbol \(\chi_j\) below.  Thus the generic
+notation \(a_\chi\) and \(n_\chi\) used in the derivations is precisely
+\(\h\chi_j\) and \(\hcN_j\) for a selected BPJ channel, not an additional
+fermion mode.  We consider \(N\) complex fermion modes with
+\begin{equation}
+    \{c_i,c_j^\dagger\}=\delta_{ij},
+    \qquad
+    \{c_i,c_j\}=0,
+\end{equation}
+and use the number-conserving two-point matrix and centered covariance
+\begin{equation}
+    C_{ij}=\langle c_i^\dagger c_j\rangle,
+    \qquad
+    G=2C-\Id .
+    \label{eq:app-C-G-convention}
+\end{equation}
+Thus \(0\le C\le\Id\), while the eigenvalues of \(G\) lie in
+\([-1,1]\).  A pure Slater determinant obeys \(C^2=C\), equivalently
+\(G^2=\Id\).  All formulas below act on the physical one-particle space; an
+orbital projector is denoted by \(P_\chi=\chi\chi^\dagger\), with
+\(\chi^\dagger\chi=1\).
+
+\subsection{Occupation measurement and branch probabilities}
+
+For the normalized orbital
+\begin{equation}
+    a_\chi=\sum_j\chi_j c_j,
+    \qquad
+    n_\chi=a_\chi^\dagger a_\chi,
+\end{equation}
+the two projectors are
+\begin{equation}
+    \Pi_1=n_\chi,
+    \qquad
+    \Pi_0=\Id-n_\chi=a_\chi a_\chi^\dagger.
+    \label{eq:app-occupation-projectors}
+\end{equation}
+It is convenient to write \(\eta_m=2m-1\), so that \(\eta_m=+1\)
+for an occupied result and \(\eta_m=-1\) for an empty result.  On a
+Gaussian state the Born probabilities are
+\begin{equation}
+    p_m(G)=\Tr(\rho\Pi_m)
+    =\frac{1+\eta_m g_\chi}{2},
+    \qquad
+    g_\chi=\chi^\dagger G\chi.
+    \label{eq:app-binary-born-probability}
+\end{equation}
+Only outcomes with \(p_m>0\) define normalized branches.  A formal pole at
+\(p_m=0\) is therefore a zero-probability branch, not a failure of the
+Gaussian update.
+
+Let \(s\in\{0,1\}\) be the target occupation assigned by the controller.
+For the upper-band controller \(s=0\), while for the lower-band controller
+\(s=1\).  Perfect correction is represented by the two system Kraus
+operators
+\begin{equation}
+    \begin{array}{c|cc}
+      &m=0&m=1\\ \hline
+      s=0&K_{0|0}=\Pi_0&K_{1|0}=a_\chi\\[1mm]
+      s=1&K_{0|1}=a_\chi^\dagger&K_{1|1}=\Pi_1
+    \end{array}.
+    \label{eq:app-perfect-correction-kraus-table}
+\end{equation}
+These operators satisfy, branch by branch,
+\begin{align}
+    K_{m|s}^\dagger K_{m|s}&=\Pi_m,
+    &\Pi_sK_{m|s}&=K_{m|s},\nonumber\\
+    \sum_mK_{m|s}^\dagger K_{m|s}&=\Id.
+    \label{eq:app-perfect-correction-checks}
+\end{align}
+The first identity shows that correction does not alter the Born probability.
+The second shows that the measured orbital has the target occupation after
+every nonzero branch.  Randomness remains in the conditional state of the
+overlapping orbitals; perfect correction does not collapse the full circuit
+to a deterministic wavefunction.
+
+\subsection{Fresh-ancilla dilation and deterministic fSWAP correction}
+
+Introduce one fresh ancillary mode \(d\), and define
+\begin{align}
+    U_{\mathrm{fSWAP}}
+    &=\fSWAP(a_\chi,d)
+      =\exp\!\left[
+      \ii\frac{\pi}{2}(a_\chi^\dagger-d^\dagger)(a_\chi-d)\right]
+      \nonumber\\
+    &=\Id-n_\chi-n_d+a_\chi^\dagger d+d^\dagger a_\chi.
+    \label{eq:app-fswap-unitary}
+\end{align}
+It leaves \(\lvert00\rangle\) invariant, exchanges
+\(\lvert01\rangle\) and \(\lvert10\rangle\), and gives the fermionic
+exchange sign on \(\lvert11\rangle\).  After the occupation measurement,
+the physical mode is already in the definite state \(\lvert m\rangle_\chi\).
+If \(m\ne s\), the ancilla is prepared in \(\lvert s\rangle_d\) and
+fSWAP is applied.  Consequently,
+\begin{equation}
+    \lvert m\rangle_\chi\lvert s\rangle_d
+    \xrightarrow{\ U_{\mathrm{fSWAP}}\ }
+    \lvert s\rangle_\chi\lvert m\rangle_d,
+    \qquad m\ne s.
+    \label{eq:app-fswap-deterministic-action}
+\end{equation}
+The outgoing ancilla has a known occupation and factorizes from the physical
+system.  It may therefore be discarded, or locally reset and reused, without
+postselection.  Taking the appropriate ancilla matrix element reproduces the
+odd entries in Eq.~\eqref{eq:app-perfect-correction-kraus-table},
+\begin{equation}
+    {}_d\!\langle0|U_{\mathrm{fSWAP}}|1\rangle_d=a_\chi^\dagger,
+    \qquad
+    {}_d\!\langle1|U_{\mathrm{fSWAP}}|0\rangle_d=a_\chi,
+    \label{eq:app-fswap-matrix-elements}
+\end{equation}
+but these matrix elements are a derivation of the reduced Kraus map, not an
+instruction to postselect the ancilla.  Total charge is conserved on the
+enlarged system--ancilla Hilbert space.
+
+\subsection{Mixed fresh ancilla and Markovian bath control}
+\label{app:mixed-fresh-ancilla}
+
+A distinct control replaces the target Fock-state ancilla by a freshly drawn
+mixed mode
+\begin{equation}
+    \rho_a(\bar n_a)
+    =(1-\bar n_a)\lvert0\rangle\!\langle0\rvert_a
+      +\bar n_a\lvert1\rangle\!\langle1\rvert_a,
+    \qquad 0\leq \bar n_a\leq1 .
+    \label{eq:app-mixed-ancilla-state}
+\end{equation}
+Apply the same fSWAP as in Eq.~\eqref{eq:app-fswap-unitary}, now between the
+system orbital selected by \(P=P_\chi\) and this ancilla, and trace out the
+outgoing ancilla.  With \(Q=\Id-P\), the reduced system covariance is
+\begin{equation}
+    \boxed{
+    \mathcal B_{\bar n_a}(G)
+    =QGQ+(2\bar n_a-1)P .}
+    \label{eq:app-mixed-ancilla-channel}
+\end{equation}
+Thus the selected system mode is replaced by the bath occupation and all of
+its incoming correlations with the complementary modes leave with the
+discarded ancilla.
+
+Equivalently, one may first sample the classical preparation label
+\(a\in\{0,1\}\) of Eq.~\eqref{eq:app-mixed-ancilla-state}.  Writing
+\(\eta_a=2a-1\), the two conditional replacement maps are
+\begin{align}
+    G'_+&=QGQ+P,
+    &p_+&=\bar n_a,\nonumber\\
+    G'_-&=QGQ-P,
+    &p_-&=1-\bar n_a,
+    \label{eq:app-mixed-ancilla-unravelling}
+\end{align}
+whose classical average is Eq.~\eqref{eq:app-mixed-ancilla-channel}.  These
+branches are generally mixed even for a pure incoming system, because tracing
+the outgoing ancilla discards any initial entanglement of the selected mode.
+They remain pure only when the input is pure and the selected mode is already
+uncorrelated with its complement, \(QGP=0\).  Alternatively, conditioning on
+an occupation measurement of the outgoing ancilla restores a pure-state
+measurement trajectory but gives the nonlinear conditional map of
+Eq.~\eqref{eq:app-perfect-correction-G-map}, not
+Eq.~\eqref{eq:app-mixed-ancilla-unravelling}.
+
+Equation~\eqref{eq:app-mixed-ancilla-channel} is therefore a Markovian bath or
+noise control, not the production perfect-correction rule: the latter chooses
+the definite target occupation \(s\) after observing the system outcome.
+Fresh preparation (or a complete reset) is essential.  Reusing the outgoing
+ancilla without resetting it feeds the previous system mode back into later
+steps and produces a non-Markovian instrument.
+
+\appendixplaceholderfigure{fig:app-instrument}{Perfect-correction instrument and its local dilation}{
+Panel (a): occupation measurement of a finite-support orbital, with the two
+Born outcomes.  Panel (b): the four entries of
+Eq.~\eqref{eq:app-perfect-correction-kraus-table}.  Panel (c): deterministic
+gain and loss realized by an occupied or empty fresh ancilla followed by
+fSWAP.  The final artwork should distinguish the retained physical record
+from a postselected ancilla port and should indicate that the outgoing
+ancilla is factorized and recyclable.}
+
+\subsection{Conditional covariance map}
+
+Let \(P=P_\chi\), \(Q=\Id-P\), and retain only a nonzero outcome \(m\).
+The conditional measurement followed by perfect reset to \(s\) acts on the
+centered covariance as
+\begin{equation}
+    \boxed{
+    \Phi_{m|s}(G)
+    =Q\bigl(\Id+\eta_m GP\bigr)^{-1}GQ+\eta_sP .}
+    \label{eq:app-perfect-correction-G-map}
+\end{equation}
+The inverse is only a rank-one resolvent.  The Sherman--Morrison form makes
+the probability denominator explicit,
+\begin{equation}
+    \bigl(\Id+\eta_m GP\bigr)^{-1}
+    =\Id-\frac{\eta_m GP}{1+\eta_m g_\chi}.
+    \label{eq:app-rank-one-resolvent}
+\end{equation}
+Equation~\eqref{eq:app-perfect-correction-G-map} applies equally to pure and
+mixed Gaussian inputs.  The last term is set by the target, whereas the
+state-dependent contraction of the orthogonal complement is selected by the
+actual measurement result.
+
+For reference, the unconditional perfect-correction channel for this one
+orbital is especially simple.  Summing the unnormalized branches gives the
+replacement channel
+\begin{equation}
+    \mathcal E_s(\rho)
+    =\sum_mK_{m|s}\rho K_{m|s}^\dagger
+    =\lvert s\rangle\!\langle s\rvert_\chi
+      \mathbin{\widehat\otimes}\Tr_\chi\rho,
+    \label{eq:app-reset-channel-density}
+\end{equation}
+where \(\widehat\otimes\) denotes the graded fermionic product.  Its affine
+covariance action is
+\begin{equation}
+    \mathbb E_m\!\left[\Phi_{m|s}(G)\right]
+    =QGQ+\eta_sP.
+    \label{eq:app-reset-channel-G}
+\end{equation}
+This form is used on the parity-even, number-conserving states of the present
+protocol; the graded tensor factorization is part of the statement.
+The nonlinear conditioned map and the linear averaged channel must not be
+interchanged in trajectory observables.
+
+For an ordered record
+\(\xi=(m_1,\ldots,m_D)\), with prescribed targets \(s_t\) and orbitals
+\(\chi_t\), define
+\begin{equation}
+    G_t=\Phi_{m_t|s_t}(G_{t-1}).
+\end{equation}
+The complete Born weight is the chronological product
+\begin{equation}
+    \boxed{
+    p_\xi(G_0)
+    =\prod_{t=1}^{D}
+      \frac{1+\eta_{m_t}\chi_t^\dagger G_{t-1}\chi_t}{2}.}
+    \label{eq:app-record-born-weight}
+\end{equation}
+All later factors are evaluated on the state produced by the earlier
+outcomes.  Evaluating every probability at \(G_0\), or attaching additional
+weights to already Born-sampled trajectories, would give a different
+ensemble.
+
+The chronological channel convention is also part of the model.  At each
+active unit cell, the manuscript follows BPJ and visits
+\begin{align}
+    \mathcal Q_{\rm BPJ}
+    &=\bigl((A,-),(A,+),(B,-),(B,+)\bigr),
+    \nonumber\\
+    (s_q)_{q\in\mathcal Q_{\rm BPJ}}&=(1,0,1,0).
+    \label{eq:app-bpj-channel-order}
+\end{align}
+Equivalently, the circuit fills the lower OW mode and then depletes the upper
+OW mode for \(\nu=A\), before repeating the same pair for \(\nu=B\).
+Because overlapping occupations do not generally commute, a word with the
+same four labels in another order defines a different finite-range
+instrument and cannot be identified with Eq.~\eqref{eq:app-bpj-channel-order}
+by relabeling its output.
+
+\section{Finite-support controllers and programmed domain walls}
+\label{app:finite-support-controller}
+
+This appendix supplies the Fourier conventions, the effect of real-space
+windowing, and the implementation details suppressed in Sec.~\ref{sec:model}.
+The distinction among the target-band Chern number, the winding of a
+windowed mode's overlap with that band, and the Chern number of the compact
+mode itself is particularly important.
+
+\subsection{Uniform parent and projected frame}
+
+On a finite periodic lattice, the real-space band projector associated with
+Eq.~\eqref{eq:parent-bloch-projectors} is
+\begin{equation}
+    P_b(\mathbf r-\mathbf r';\alpha)
+    =\frac{1}{N_xN_y}\sum_{\mathbf k}
+      e^{i\mathbf k\cdot(\mathbf r-\mathbf r')}
+      P_b(\mathbf k;\alpha).
+    \label{eq:app-real-space-band-projector}
+\end{equation}
+For the orthonormal cell-local trials
+\(\tau_A=(1,1)^{\mathsf T}/\sqrt2\) and
+\(\tau_B=(1,-1)^{\mathsf T}/\sqrt2\), define the conventional projected
+one-particle OW vector.  The appendix uses a generic band label \(b=\pm\);
+it is the sign \(\sigma=\pm\) in the BPJ channel label of the main text:
+\begin{equation}
+    \lvert\widetilde W_{\mathbf R,\nu,b}\rangle
+    =P_b(\alpha)\lvert\mathbf R,\tau_\nu\rangle.
+    \label{eq:app-projected-frame-vector}
+\end{equation}
+The corresponding unnormalized annihilation operator is
+\begin{align}
+    \hat{\widetilde\chi}_{\mathbf R,\nu,b}
+    &=\sum_{\mathbf r,\mu}
+      \langle\widetilde W_{\mathbf R,\nu,b}\vert
+      \mathbf r,\mu\rangle c_{\mathbf r\mu}
+      \nonumber\\
+    &=\frac{1}{\sqrt{N_xN_y}}\sum_{\mathbf k}
+      e^{i\mathbf k\cdot\mathbf R}
+      \tau_\nu^\dagger P_b(\mathbf k;\alpha)\mathbf c_{\mathbf k}.
+    \label{eq:app-ow-operator-fourier}
+\end{align}
+The normalized BPJ operator is
+\begin{equation}
+    \h\chi^{(\infty)}_{\mathbf R,\nu,b}
+    =\frac{\hat{\widetilde\chi}_{\mathbf R,\nu,b}}
+    {\|\widetilde W_{\mathbf R,\nu,b}\|}.
+    \label{eq:app-normalized-ow-operator}
+\end{equation}
+Writing \(N_c=N_xN_y\), the vector stored by the numerical covariance code is
+the coefficient column
+\begin{equation}
+    \widetilde\chi_{\mathbf R\nu b}(\mathbf r,\mu)
+    =\frac{1}{N_c}\sum_{\mathbf k}
+      e^{-i\mathbf k\cdot(\mathbf r-\mathbf R)}
+      \bigl[P_b(\mathbf k;\alpha)\tau_\nu\bigr]^*_{\mu}.
+    \label{eq:app-stored-coefficient-convention}
+\end{equation}
+It equals
+\(\langle\widetilde W_{\mathbf R,\nu,b}\vert\mathbf r,\mu\rangle\).
+This conjugation is why the filled-lower-band covariance in the convention
+\(C_{ij}=\langle c_i^\dagger c_j\rangle\) is
+\(C_{\rm CI}(\mathbf k)=P_-^*(\mathbf k)\).  The physical one-particle
+projector is recovered as \(C_{\rm CI}^{\mathsf T}=P_-\); hence the target
+Chern number remains \(+1\) when the same convention is used in the marker.
+The transpose must be retained when comparing analytic one-particle kets with
+code covariance projectors.
+
+The word ``overcomplete'' is made precise by the unnormalized tight-frame
+identity
+\begin{align}
+    \sum_{\mathbf R,\nu}
+      \lvert\widetilde W_{\mathbf R,\nu,b}\rangle
+      \langle\widetilde W_{\mathbf R,\nu,b}\rvert
+    &=P_b\left(\sum_{\mathbf R,\nu}
+      \lvert\mathbf R,\tau_\nu\rangle
+      \langle\mathbf R,\tau_\nu\rvert\right)P_b
+      \nonumber\\
+    &=P_b.
+    \label{eq:app-tight-frame-proof}
+\end{align}
+There are two projected vectors per cell for a one-band subspace of one state
+per cell.  They span that subspace without constituting an orthogonal Wannier
+basis.  After normalizing every nonzero full-support mode, the filled lower
+band obeys the common target relations in
+Eq.~\eqref{eq:ow-stabilizer-target}.
+
+\subsection{Atomic large-mass limit}
+\label{app:atomic-large-mass-limit}
+
+The large positive trivial mass has a simple gauge-independent limit.  For
+the Bloch vector in Eq.~\eqref{eq:parent-bloch-projectors},
+\begin{equation}
+    \mathbf d(\mathbf k;\alpha)
+    =\bigl(\sin k_x,\sin k_y,
+      \alpha-\cos k_x-\cos k_y\bigr),
+\end{equation}
+the spectral projectors may be written
+\begin{equation}
+    P_\pm(\mathbf k;\alpha)
+    =\frac12\left[\Id\pm
+      \widehat{\mathbf d}(\mathbf k;\alpha)\cdot\boldsymbol\sigma\right].
+    \label{eq:app-projector-unit-vector}
+\end{equation}
+At fixed momentum,
+\begin{equation}
+    \widehat{\mathbf d}(\mathbf k;\alpha)
+    =\widehat{\mathbf z}+O(\alpha^{-1}),
+    \qquad
+    P_\pm(\mathbf k;\alpha)
+    =\frac12(\Id\pm\sigma_z)+O(\alpha^{-1})
+    \label{eq:app-large-mass-projectors}
+\end{equation}
+as \(\alpha\to+\infty\).  The leading correction is momentum dependent and
+off diagonal in the orbital basis, while the diagonal correction begins at
+higher order.
+
+Fourier transforming Eq.~\eqref{eq:app-large-mass-projectors} gives
+\begin{equation}
+    P_\pm(\mathbf r-\mathbf r';\alpha)
+    =\delta_{\mathbf r,\mathbf r'}
+      \frac{\Id\pm\sigma_z}{2}+O(\alpha^{-1}).
+    \label{eq:app-atomic-projector-kernel}
+\end{equation}
+Consequently the normalized projected trial vectors of
+Eq.~\eqref{eq:app-projected-frame-vector} collapse onto the corresponding
+onsite orbital whenever the trial has nonzero overlap with that orbital.  The
+choice \(\alpha_{\rm triv}=30\) is therefore a controlled proxy for an atomic
+trivial exterior.  The support-terminated controller of
+Eq.~\eqref{eq:app-support-terminated-interface} is nevertheless a separate
+active boundary condition: masking a topological OW frame and omitting
+exterior centers is not identical to evolution with any finite value of
+\(\alpha_{\rm triv}\), even though the infinite-mass limit motivates the
+hard-boundary interpretation.
+
+\subsection{Truncate--then--renormalize rule}
+
+For integer shell radius \(n\), let
+\begin{equation}
+    M_{\mathbf R}^{(n)}(\mathbf r)
+    =\mathbf 1\!\left[
+      |d_{N_x}(x,R_x)|\leq n\ \text{and}\
+      |d_{N_y}(y,R_y)|\leq n\right].
+    \label{eq:app-square-support}
+\end{equation}
+The measured operator coefficient is obtained by applying every geometric
+mask and only then normalizing,
+\begin{equation}
+    \chi^{(n)}_{\mathbf R\nu b}
+    =\frac{M_{\mathbf R}^{(n)}\widetilde\chi_{\mathbf R\nu b}}
+    {\|M_{\mathbf R}^{(n)}\widetilde\chi_{\mathbf R\nu b}\|},
+    \qquad
+    a^{(n)}_{\mathbf R\nu b}
+    =\sum_{\mathbf r,\mu}
+      \chi^{(n)}_{\mathbf R\nu b}(\mathbf r,\mu)c_{\mathbf r\mu}.
+    \label{eq:app-finite-support-frame}
+\end{equation}
+Thus \(n=1\) is a \(3\times3\)-cell square with at most 18 microscopic
+modes.  The special half-shell option is instead the five-cell cross
+\(\{(0,0),(\pm1,0),(0,\pm1)\}\).  Normalization is performed independently
+for every \((\mathbf R,\nu,b)\).  Windowing introduces out-of-band weight,
+so the compact occupations cease to be a mutually compatible set of exact
+stabilizers even though the controller remains strictly local.
+
+\subsection{Windowed overlap and the surviving obstruction}
+
+Let \(\lvert u_b(\mathbf k)\rangle\) be a normalized Bloch eigenstate and
+\(f_{\nu b}(\mathbf k)=\langle u_b(\mathbf k)\vert\tau_\nu\rangle\) its
+trial-state form factor.  Multiplication by a real-space window becomes a
+twisted convolution.  For a mode centered at the origin, its overlap with
+the target band is
+\begin{equation}
+    f^{(n)}_{\nu b}(\mathbf k')
+    =\frac{1}{N_xN_y}\sum_{\mathbf k}
+      \widetilde M_n(\mathbf k'-\mathbf k)
+      f_{\nu b}(\mathbf k)
+      \langle u_b(\mathbf k')\vert u_b(\mathbf k)\rangle,
+    \label{eq:app-windowed-twisted-convolution}
+\end{equation}
+where the square window has
+\begin{align}
+    \widetilde M_n(\mathbf q)&=D_n(q_x)D_n(q_y),
+    \nonumber\\
+    D_n(q)&=\sum_{j=-n}^{n}e^{-iqj}
+    =\frac{\sin[(n+\tfrac12)q]}{\sin(q/2)}.
+    \label{eq:app-square-dirichlet-kernel}
+\end{align}
+Restoring a nonzero center adds only the translation phases displayed in the
+full derivation of the windowed controller.  Dividing the compact mode by its
+real-space norm multiplies Eq.~\eqref{eq:app-windowed-twisted-convolution}
+by a positive constant and therefore does not change its zeros or phase
+winding.
+
+For a small positively oriented loop \(\Gamma\) enclosing an isolated zero,
+define
+\begin{equation}
+    \nu_{\rm ov}^{(n)}(\Gamma)
+    =\frac{1}{2\pi i}\oint_\Gamma
+      \dd\mathbf k\cdot\boldsymbol\nabla_{\mathbf k}
+      \log f^{(n)}_{\nu,-}(\mathbf k).
+    \label{eq:app-overlap-winding}
+\end{equation}
+For the unwindowed form factor, the convention of
+Eq.~\eqref{eq:parent-bloch-projectors} gives
+\(\mathcal C[P_-]=-\nu_{\rm ov}^{(\infty)}\).  At
+\(\alpha=1\), the $A$ trial has its unwindowed zero at
+\(\mathbf k_0/\pi=(0.5,0)\).  Direct evaluation of the square-window
+convolution gives
+\begin{equation}
+    \begin{array}{c|c|c|c}
+      n_{\rm shell}&\text{support}&
+      \|M^{(n)}\widetilde W\|^2/\|\widetilde W\|^2&
+      \mathbf k_*^{(n)}/\pi\\ \hline
+      1&3\times3&0.992155&(0.4922,0)\\
+      2&5\times5&0.999137&(0.4925,0)
+    \end{array}
+    \label{eq:app-windowed-overlap-results}
+\end{equation}
+For both rows, the descendant zero has \(\nu_{\rm ov}^{(n)}=-1\).  The zero
+is displaced rather than filled.  Its local form remains
+\(f^{(n)}(\mathbf k_*+\mathbf p)=A_n(p_x-ip_y)+O(p^2)\), which fixes the
+reported winding.  Equation~\eqref{eq:app-windowed-overlap-results}, rather
+than the retained norm alone, is the finite-window check relevant to the
+controller.
+
+For a reproducible discrete audit, sample a loop
+\(\Gamma=(\mathbf k_0,\ldots,\mathbf k_{N_\Gamma}=\mathbf k_0)\) and compute
+\begin{equation}
+    \nu_{\rm loop}^{(n)}
+    =\frac{1}{2\pi}\sum_{j=0}^{N_\Gamma-1}
+      \operatorname{Arg}\!\left[
+      \frac{f^{(n)}(\mathbf k_{j+1})}{f^{(n)}(\mathbf k_j)}\right].
+    \label{eq:app-discrete-overlap-winding}
+\end{equation}
+The loop must avoid the zero and remain within a region containing no other
+zeros.  The result is checked under increasing momentum resolution, several
+loop radii, and smooth gauge changes of \(u_-(\mathbf k)\); the phase ratios
+make the final integer gauge invariant when the loop is closed consistently.
+
+The overlap winding is not the Chern number of the compact-support spinor.
+Writing its Bloch transform as the two-component trigonometric polynomial
+\begin{align}
+    \lvert\psi_n(\mathbf k)\rangle
+    &=\sum_{\mathbf r\in\operatorname{supp}M^{(n)}}
+      e^{-i\mathbf k\cdot\mathbf r}C_{\mathbf r}\lvert\tau_\nu\rangle,
+    \nonumber\\
+    C_{\mathbf r}&=\int_{\rm BZ}\frac{\dd^2q}{(2\pi)^2}
+      e^{i\mathbf q\cdot\mathbf r}P_-(\mathbf q),
+    \label{eq:app-compact-spinor}
+\end{align}
+one sees that, whenever \(\psi_n(\mathbf k)\neq0\) throughout the Brillouin
+torus, its normalized version is a smooth periodic global section.  Direct
+minimization for the \(n=1\) mode gives
+\(\min_{\mathbf k}\|\psi_1(\mathbf k)\|=5.106\times10^{-2}\), so this
+condition is satisfied.  Hence
+\begin{equation}
+    \mathcal C_{\rm target}=+1,
+    \qquad \nu_{\rm ov}^{(1)}=-1,
+    \qquad \mathcal C_{\rm compact}^{(1)}=0.
+    \label{eq:app-three-topological-objects}
+\end{equation}
+A coarse Fukui--Hatsugai--Suzuki discretization of an almost-vanishing compact
+spinor can cross its admissibility bound and return a spurious integer.  We
+therefore apply FHS to the reconstructed ket-space target projector
+\(C_{\rm CI}^{\mathsf T}=P_-\), and evaluate real-space markers with the same
+transpose/orientation convention.  The loop winding instead diagnoses the
+overlap of that target with the compact controller; the two estimators are not
+identified~\cite{FukuiHatsugaiSuzuki2005}.
+
+\appendixplaceholderfigure{fig:app-windowed-controller}{Finite window and overlap obstruction}{
+Panel (a): real-space weight of the unwindowed $A-$ mode and the $3\times3$
+window.  Panel (b): $|f^{(n)}_{A,-}(k_x,0)|$ for the unwindowed, $n=1$, and
+$n=2$ modes, marking the displaced zeros.  Panel (c): phase circulation on
+loops surrounding the $n=1$ zero.  Panel (d): target-band FHS invariant,
+overlap winding, and compact-spinor FHS result shown as three explicitly
+different diagnostics.}
+
+\subsection{Exact implementation of the two walls}
+
+Let
+\(\mathcal R_{\rm top}=\{\mathbf R:x_L\leq R_x\leq x_R\}\), with the
+endpoints stated explicitly for every geometry.  The explicit-interface
+circuit uses
+\begin{align}
+    \alpha_{\mathbf R}&=
+    \begin{cases}
+      \alpha_{\rm top},&\mathbf R\in\mathcal R_{\rm top},\\
+      \alpha_{\rm triv},&\mathbf R\notin\mathcal R_{\rm top},
+    \end{cases}
+    \nonumber\\
+    \chi^{(n),{\rm exp}}_{\mathbf R\nu b}
+    &=\frac{M_{\mathbf R}^{(n)}\widetilde\chi_{\mathbf R\nu b}
+      (\alpha_{\mathbf R})}
+    {\|M_{\mathbf R}^{(n)}\widetilde\chi_{\mathbf R\nu b}
+      (\alpha_{\mathbf R})\|}.
+    \label{eq:app-explicit-interface}
+\end{align}
+All centers remain active.  Each center uses a projector from one of two
+\emph{uniform} parents, and its compact tail may cross the interface.  It is
+therefore inaccurate to describe Eq.~\eqref{eq:app-explicit-interface} as
+the spectral frame of a single spatially inhomogeneous Hamiltonian.
+
+The code constructs the more general same-region mask
+\begin{equation}
+    D_{\mathbf R}(\mathbf r)
+    =\Theta_{\rm top}(\mathbf R)\Theta_{\rm top}(\mathbf r)
+    +[1-\Theta_{\rm top}(\mathbf R)]
+     [1-\Theta_{\rm top}(\mathbf r)].
+    \label{eq:app-same-region-mask}
+\end{equation}
+The support-terminated protocol studied in the paper then restricts the
+active set to \(\mathbf R\in\mathcal R_{\rm top}\), for which
+\(D_{\mathbf R}(\mathbf r)=\Theta_{\rm top}(\mathbf r)\), and uses
+\begin{equation}
+    \chi^{(n),{\rm term}}_{\mathbf R\nu b}
+    =\frac{D_{\mathbf R}M_{\mathbf R}^{(n)}
+      \widetilde\chi_{\mathbf R\nu b}(\alpha_{\rm top})}
+    {\|D_{\mathbf R}M_{\mathbf R}^{(n)}
+      \widetilde\chi_{\mathbf R\nu b}(\alpha_{\rm top})\|},
+    \qquad \mathbf R\in\mathcal R_{\rm top}.
+    \label{eq:app-support-terminated-interface}
+\end{equation}
+Both \(D_{\mathbf R}\) and \(M_{\mathbf R}^{(n)}\) are diagonal real-space
+multiplication operators, so they commute.  The order in
+Eq.~\eqref{eq:app-support-terminated-interface} is merely notational: the
+product mask defines the orbital before the circuit begins, and the result is
+normalized once.  Exterior canonical orbitals are measured once to prepare a
+Born-sampled onsite product state and are omitted from subsequent OW cycles.
+The exterior outcome word \(\zeta\), its probability \(p_\zeta\), and the
+conditional state \(\rho_{0|\zeta}\) are stored separately; the complete
+trajectory weight is
+\(p_{\zeta,\xi|\pi}=p_\zeta p_{\xi|\pi,\zeta}\).
+A two-sided hard-truncation protocol that continues to update exterior
+centers is a different circuit and is not pooled with the support-terminated
+data.
+
+On a periodic lattice the inclusive cell interval \([x_L,x_R]\) places the
+physical interfaces on the bonds \(x_L-\tfrac12\) and
+\(x_R+\tfrac12\).  Quoted wall widths must use these explicit endpoints;
+implementation-dependent default fractions of \(N_x\) are not part of the
+model definition.  Finally, the exact-$H$ benchmark is obtained by
+diagonalizing a genuinely inhomogeneous single-particle Hamiltonian.  It
+tests the expected finite-geometry boundary theory but is neither
+Eq.~\eqref{eq:app-explicit-interface} nor
+Eq.~\eqref{eq:app-support-terminated-interface}.
+
+
+\section{Singular normalized tangent cocycle}
+\label{app:tangent-cocycle}
+
+The appropriate linear response of a conditioned trajectory is the
+derivative of the normalized covariance map.  Differentiating
+Eq.~\eqref{eq:app-perfect-correction-G-map} at a nonzero branch gives
+\begin{equation}
+    D\Phi_{m|s}\big|_G[H]
+    =J_m(G)^\dagger HJ_m(G),
+    \label{eq:app-tangent-congruence}
+\end{equation}
+with the half-Jacobian
+\begin{equation}
+    \boxed{
+    J_m(G)
+    =Q-\eta_m\frac{PGQ}{1+\eta_m g_\chi}.}
+    \label{eq:app-projective-half-jacobian}
+\end{equation}
+The target \(s\) does not enter this derivative: correction replaces the
+measured mode by a constant covariance, while the realized outcome controls
+the response of its complement.  In particular,
+\begin{equation}
+    J_m(G)\chi=0.
+    \label{eq:app-half-jacobian-null}
+\end{equation}
+Exact projectors therefore produce a semi-invertible cocycle.  No inverse of
+the accumulated product is required.
+
+For a normalized many-body map
+\(\rho'=K\rho K^\dagger/p_K\), the same statement follows from the quotient
+rule
+\begin{equation}
+    \delta\rho'
+    =\frac{1}{p_K}\left[
+      K\delta\rho K^\dagger
+      -\rho'\Tr(K\delta\rho K^\dagger)
+    \right].
+    \label{eq:app-many-body-quotient-rule}
+\end{equation}
+The subtraction removes the norm-changing direction.  It is precisely this
+Born normalization that distinguishes \(J_m(G)\) from a bare one-particle
+transfer matrix.
+
+\subsection{Chronological order and QR accumulation}
+
+Along a fixed record, let \(J_t=J_{m_t}(G_{t-1})\).  Repeated use of
+Eq.~\eqref{eq:app-tangent-congruence} yields
+\begin{equation}
+    \delta G_D
+    =\widetilde J_D^\dagger\delta G_0\widetilde J_D,
+    \qquad
+    \boxed{\widetilde J_D=J_1J_2\cdots J_D.}
+    \label{eq:app-chronological-half-cocycle}
+\end{equation}
+The first-applied factor is leftmost in \(\widetilde J_D\).  A column QR
+implementation propagates the adjoint factors in the reverse-looking, but
+equivalent, order:
+\begin{equation}
+    Y_t=J_t^\dagger Q_{t-1}=Q_tR_t,
+    \qquad
+    \widetilde J_t^\dagger Q_0
+    =Q_tR_tR_{t-1}\cdots R_1.
+    \label{eq:app-qr-order}
+\end{equation}
+This identity fixes the convention and prevents an accidental reversal of a
+noncommuting word.
+
+If QR is performed once per circuit cycle, the finite-time one-leg growth
+rates in units of cycles are
+\begin{equation}
+    \ell_a^{(T)}(\xi)
+    =\frac{1}{T}\sum_{t=1}^{T}\log |(R_t)_{aa}|.
+    \label{eq:app-finite-time-lyapunov}
+\end{equation}
+The diagonal phases of \(R_t\) are absorbed into \(Q_t\), so the reported
+diagonal is nonnegative.  A rank loss gives an exact zero and hence
+\(-\infty\); a numerical implementation should report null or censored
+counts separately rather than silently replacing them by a physical finite
+rate.
+
+The Oseledets interpretation requires more than the algebra above.  For each
+finite lattice one first takes \(T\to\infty\) along a stationary ergodic
+Born process, subject to the logarithmic integrability assumptions of the
+multiplicative ergodic theorem~\cite{Oseledec1968}.  Only after this temporal
+limit is controlled should one take the thermodynamic limit.  For \(S\)
+independent trajectories the quenched estimator is
+\begin{equation}
+    \overline{\ell_a^{(T)}}
+    =\frac{1}{S}\sum_{\xi=1}^{S}
+      \frac{1}{T}\sum_t\log |(R_{t,\xi})_{aa}|.
+    \label{eq:app-quenched-lyapunov-estimator}
+\end{equation}
+It is neither the logarithm of an averaged product nor the rate obtained from
+the singular values of \(\mathbb E_\xi\widetilde J_T\).  When the leading
+physical rates are nonpositive, the corresponding one-leg decay rates are
+\(\gamma_a=-\ell_a\).  The covariance derivative is a congruence, so its
+asymptotic growth rates are the allowed pair sums \(\ell_a+\ell_b\), not the
+individual one-leg values.  Every reported ``tangent gap'' must state which
+of these two spectra is used.  A burn-in interval evolves the base covariance
+without accumulating \(R_t\).  The tangent frame is then initialized, evolved
+through a declared alignment interval, and retained while its QR log
+accumulator is reset before the observation window begins.
+
+\subsection{Maximally mixed input and endpoint identities}
+
+The maximally mixed covariance is \(C_0=\Id/2\), or \(G_0=0\).  For a
+regular even word with one-particle transfer product \(M_D\), normalized
+state evolution gives the finite-time identity
+\begin{equation}
+    \widetilde J_D
+    =2M_D\bigl(\Id+M_D^\dagger M_D\bigr)^{-1}.
+    \label{eq:app-maxmix-regular-bridge}
+\end{equation}
+Thus a transfer singular value \(s=e^x\) maps to
+\begin{equation}
+    j=\frac{2s}{1+s^2}=\operatorname{sech}x.
+    \label{eq:app-radial-tangent-map}
+\end{equation}
+This relation identifies \(s\) and \(s^{-1}\); the tangent response retains
+the distance from \(s=1\), not its radial orientation.  Equation
+\eqref{eq:app-maxmix-regular-bridge} must not be applied letter by letter to
+a word containing exact projectors or gain/loss.
+
+There is, however, an exact endpoint statement for an arbitrary nonzero
+Gaussian word.  Let its normalized Choi occupied plane have a reduced frame
+\begin{equation}
+    F_K=\begin{pmatrix}A_K\\ B_K\end{pmatrix},
+    \qquad \mathcal G_K=F_K^\dagger F_K.
+\end{equation}
+Then, up to a phase that drops out of the congruence,
+\begin{equation}
+    \boxed{
+    C_D=B_K\mathcal G_K^{-1}B_K^\dagger,
+    \qquad
+    \widetilde J_D=2A_K\mathcal G_K^{-1}B_K^\dagger,}
+    \label{eq:app-maxmix-endpoint-frame}
+\end{equation}
+and purity of the Choi projector implies
+\begin{equation}
+    \boxed{
+    \widetilde J_D^\dagger\widetilde J_D
+    =4C_D(\Id-C_D).}
+    \label{eq:app-endpoint-cocycle-occupation}
+\end{equation}
+The cocycle kernel locates every constrained output direction, while the
+endpoint covariance labels that direction occupied or empty.  This is the
+precise maximally mixed relation used in the singular theory.
+
+\subsection{Regulated rank-one Choi-covariance composition}
+\label{app:regulated-choi-composition}
+
+The rank loss in Eq.~\eqref{eq:app-half-jacobian-null} may also be handled
+directly at the level of pure Gaussian Choi covariances.  Write the incoming
+two-leg covariance and the local rank-one relation as
+\begin{equation}
+    \Sigma=
+    \begin{pmatrix}
+      \Sigma_{LL}&\Sigma_{LR}\\
+      \Sigma_{RL}&\Sigma_{RR}
+    \end{pmatrix},
+    \qquad
+    \mathcal K(\eta_1,\eta_2)=
+    \begin{pmatrix}
+      \eta_1P&Q\\ Q&\eta_2P
+    \end{pmatrix},
+    \label{eq:app-local-choi-relation}
+\end{equation}
+where \(P=\lvert\chi\rangle\langle\chi\rvert\), \(Q=\Id-P\), and
+\(\eta_1,\eta_2\in\{+1,-1\}\) encode the selected and reset occupations.
+Let
+\begin{equation}
+    R=\Sigma_{RR},
+    \qquad
+    d=\Tr(PR)-\eta_1 .
+    \label{eq:app-choi-rank-one-denominator}
+\end{equation}
+
+\paragraph*{Proposition (finite regulated contraction).}
+Replace the singular incoming block by the projector-adapted regulator
+\begin{equation}
+    \mathcal K_{LL}^{(\epsilon)}=\eta_1P+\epsilon Q.
+    \label{eq:app-projector-adapted-regulator}
+\end{equation}
+If \(d\neq0\), the \(\epsilon\to0\) contraction exists and is
+\begin{equation}
+\boxed{
+\begin{aligned}
+\Sigma'_{LL}
+&=\Sigma_{LL}-\frac{\Sigma_{LR}P\Sigma_{RL}}{d},\\
+\Sigma'_{LR}
+&=\Sigma_{LR}Q-\frac{\Sigma_{LR}PRQ}{d},\\
+\Sigma'_{RL}
+&=Q\Sigma_{RL}-\frac{QRP\Sigma_{RL}}{d},\\
+\Sigma'_{RR}
+&=\eta_2P+QRQ-\frac{QRPRQ}{d}.
+\end{aligned}}
+\label{eq:app-regulated-choi-update}
+\end{equation}
+The regulator acts only on \(\operatorname{Ran}Q\) and retains finite terms generated by
+the divergent complementary inverse.  Equation~\eqref{eq:app-regulated-choi-update}
+therefore cannot be obtained by blindly replacing the singular block by its
+Moore--Penrose pseudoinverse.  When \(d=0\), the displayed finite limit does
+not exist; this is a zero-overlap or singular selected branch and requires a
+separate rescaled-limit analysis.
+
+If \(\Sigma=\Sigma^\dagger\) and \(\Sigma^2=\Id\), then
+Eq.~\eqref{eq:app-regulated-choi-update} obeys
+\begin{equation}
+    \Sigma'=\Sigma'^\dagger,
+    \qquad
+    (\Sigma')^2=\Id .
+    \label{eq:app-regulated-choi-involution}
+\end{equation}
+Indeed, choose a basis adapted to \(Q\oplus P\) and reorder the covariance as
+\((L\oplus Q)\oplus P\).  Then
+\begin{equation}
+    \widetilde\Sigma=
+    \begin{pmatrix}X&y\\y^\dagger&r\end{pmatrix},
+    \qquad
+    \widetilde\Sigma'=
+    \begin{pmatrix}T&0\\0&\eta_2\end{pmatrix},
+    \qquad
+    T=X-\frac{yy^\dagger}{r-\eta_1},
+    \label{eq:app-choi-involution-proof-blocks}
+\end{equation}
+with \(r=\Tr(PR)\).  The original involution gives
+\begin{equation}
+    X^2+yy^\dagger=\Id,
+    \qquad Xy+ry=0,
+    \qquad y^\dagger y+r^2=1 .
+\end{equation}
+Using these identities and \(\eta_1^2=1\),
+\begin{align}
+    T^2
+    &=\Id+\left[-1+\frac{2r}{d}
+      +\frac{1-r^2}{d^2}\right]yy^\dagger
+      =\Id,
+    \label{eq:app-choi-Schur-involution}
+\end{align}
+because \(-d^2+2rd+1-r^2=1-\eta_1^2=0\); together with
+\(\eta_2^2=1\), this proves Eq.~\eqref{eq:app-regulated-choi-involution}.
+
+For completeness, the same pure Choi covariance supplies two complementary
+transfer charts without assigning an inverse to a projected direction.  For
+equal-dimensional legs write
+\begin{equation}
+    \Sigma=\begin{pmatrix}A&B\\B^\dagger&D\end{pmatrix}.
+\end{equation}
+On their respective finite sectors, the particle and hole charts are
+\begin{equation}
+    \mathcal T_p=-(\Id+A)^{-1}B,
+    \qquad
+    \mathcal T_h=(\Id-A^{\mathsf T})^{-1}B^* .
+    \label{eq:app-particle-hole-transfer-charts}
+\end{equation}
+The particle chart has an endpoint pole at \(A=-\Id\), whereas the hole chart
+has the complementary pole at \(A=+\Id\).  For every nonzero finite coupled
+singular value,
+\begin{equation}
+    s_j(\mathcal T_h)=s_j(\mathcal T_p)^{-1}.
+    \label{eq:app-particle-hole-reciprocity}
+\end{equation}
+Thus a projected endpoint is covered by the complementary chart together
+with its occupied or empty cap.  Equations~\eqref{eq:app-particle-hole-transfer-charts}
+and \eqref{eq:app-particle-hole-reciprocity} are only the chart transition;
+the quotient-core and radial-response data are given below and are not
+reconstructed here.
+
+\subsection{Caps, quotient core, and trace anchor}
+\label{app:cap-core-anchor}
+
+A singular Gaussian word is more naturally a Choi relation than a square
+transfer matrix.  For the reduced frame above, define the occupied plane
+\begin{equation}
+    W_K=\{(A_Kv,B_Kv):v\in\mathbb C^{r_K}\}
+    \subset\mathcal H_L\oplus\mathcal H_R.
+\end{equation}
+Its four intrinsic one-leg cap spaces are
+\begin{equation}
+    \begin{aligned}
+      \mathcal O_R&=B_K\ker A_K,
+      &\mathcal E_R&=(\operatorname{Ran}B_K)^\perp,\\
+      \mathcal O_L&=A_K\ker B_K,
+      &\mathcal E_L&=(\operatorname{Ran}A_K)^\perp.
+    \end{aligned}
+    \label{eq:app-four-caps}
+\end{equation}
+They are respectively the exact one- and zero-eigenspaces of the diagonal
+Choi covariance blocks.  After these forced directions are removed, the
+remaining relation is the graph of an invertible quotient map
+\begin{equation}
+    R_{\rm core}:\mathcal H_{\rm in}^{f}
+    \longrightarrow\mathcal H_{\rm out}^{f},
+    \qquad
+    T_{\rm core}=R_{\rm core}^\dagger.
+    \label{eq:app-quotient-core}
+\end{equation}
+The final datum is the trace anchor
+\begin{equation}
+    \nu_K=2^{-N}\Tr(K^\dagger K),
+    \label{eq:app-trace-anchor}
+\end{equation}
+which is absent from the normalized Choi plane but indispensable for absolute
+Born probabilities.  Caps plus \(R_{\rm core}\) determine the normalized
+endpoint geometry; they do not determine \(\nu_K\).
+
+The centered Choi covariance
+\begin{equation}
+    \mathcal S_K=2\mathcal C_K-\Id,
+    \qquad
+    \mathcal S_K^\dagger=\mathcal S_K,
+    \qquad
+    \mathcal S_K^2=\Id,
+    \label{eq:app-auxiliary-scatterer}
+\end{equation}
+may be read as an auxiliary scattering matrix.  On a free singular channel
+of \(T_{\rm core}\) with \(s=e^x\), it reduces to
+\begin{equation}
+    \mathcal S(x)=
+    \begin{pmatrix}
+      -\tanh x&\operatorname{sech}x\\
+      \operatorname{sech}x&\tanh x
+    \end{pmatrix}.
+    \label{eq:app-radial-scatterer}
+\end{equation}
+The transmission amplitude is the maximally mixed tangent singular value in
+Eq.~\eqref{eq:app-radial-tangent-map}.  Occupied and empty caps are perfectly
+reflecting channels with opposite orientation.
+
+This scattering interpretation is auxiliary: \(\mathcal S_K\) is a
+coordinate representation of a Choi boundary relation, not the physical
+time-evolution operator of the fermions.  The actual reservoir operation is
+the local fSWAP in Eq.~\eqref{eq:app-fswap-unitary}.  Away from maximally
+mixed input the tangent factors are dressed by the evolving trajectory and
+cannot be identified with fixed transmission blocks.  Likewise, a
+topological invariant of an auxiliary scatterer is meaningful only after
+its locality, symmetry, gap, and stability have been established; it is not
+implied merely by writing Eq.~\eqref{eq:app-auxiliary-scatterer}.
+
+\appendixplaceholderfigure{fig:app-cap-core}{Singular Choi geometry and normalized response}{
+Panel (a): the four occupied/empty cap spaces and the finite transmitted
+quotient core.  Panel (b): radial free-channel block, showing that
+\(s\leftrightarrow s^{-1}\) reverses reflection orientation but leaves the
+tangent transmission \(2s/(1+s^2)\) unchanged.  Panel (c): the chronological
+state-dressed tangent product and QR accumulation.  The caption should state
+explicitly that the Choi scatterer is auxiliary and that the physical
+source/drain primitive is fSWAP with a fresh local ancilla.}
+
+
+\section{Entangling capacity of the local adaptive circuit}
+\label{app:adaptive-depth-bound}
+
+We record the preparation bound of Lu, Lessa, Kim, and
+Hsieh~\cite{LuLessaKimHsieh2022} in a form adapted to the present singular
+instrument.  Consider a pure trajectory and a bipartition
+\(\mathcal H_A\widehat\otimes\mathcal H_{\bar A}\).  Let \(\chi_A\) be its
+Schmidt rank and \(S_0(A)=\log\chi_A\) its Hartley entropy.  A branch
+operator supported entirely within \(A\) or \(\bar A\) cannot increase
+\(\chi_A\).  If a crossing operator has operator-Schmidt decomposition
+\begin{equation}
+    O_j=\sum_{\alpha=1}^{r_j}
+    \sigma_{j\alpha}O^A_{j\alpha}\otimes O^{\bar A}_{j\alpha},
+    \label{eq:app-operator-schmidt-decomposition}
+\end{equation}
+then it can multiply the state Schmidt rank by at most \(r_j\).  Consequently
+every nonzero adaptive branch obeys
+\begin{equation}
+    \boxed{
+    S_0^{\rm out}(A)-S_0^{\rm in}(A)
+    \le\sum_{j\ {\rm crossing}\ \partial A}\log r_j.}
+    \label{eq:app-exact-cut-capacity}
+\end{equation}
+Normalization by the branch probability is a scalar and does not affect this
+bound.  Neither invertibility nor a lower bound on the Born probability is
+assumed.
+
+For a depth-\(D\) circuit whose layers consist of nonoverlapping,
+bounded-support gates, the number of crossing gates per layer is
+\(O(|\partial A|)\), while \(r_j=O(1)\).  Equation
+\eqref{eq:app-exact-cut-capacity} then gives
+\begin{equation}
+    S_0^{\rm out}(A)-S_0^{\rm in}(A)
+    \le O(D|\partial A|).
+    \label{eq:app-Lu-area-depth-bound}
+\end{equation}
+For a pure product input, \(S_0^{\rm in}=0\), and every positive-index
+R\'enyi entropy satisfies
+\begin{equation}
+    S_n^{\rm out}(A)\le S_0^{\rm out}(A)
+    \le O(D|\partial A|),\qquad n>0.
+    \label{eq:app-Renyi-depth-bound}
+\end{equation}
+The product-input qualification is essential.  A Haar-random Slater
+determinant is already spatially entangled, while the maximally mixed state
+is not a pure state to which Eq.~\eqref{eq:app-Renyi-depth-bound} directly
+applies.  The latter may be treated by adjoining a colocated purifier, but
+the cut and the retained reference modes must then be specified.
+
+\subsection{Operator-Schmidt refinement for a corrected orbital}
+
+The rank-one fermion instrument permits a sharper count.  Across a spatial
+cut, decompose \(a_\chi\) in the graded tensor product as
+\begin{equation}
+    a_\chi=a_A\otimes\Id+(-1)^{F_A}\otimes a_{\bar A}.
+    \label{eq:app-fermion-cut-decomposition}
+\end{equation}
+It follows that
+\begin{equation}
+    r(a_\chi),\,r(a_\chi^\dagger)\le2,
+    \qquad
+    r(n_\chi),\,r(\Id-n_\chi)\le4.
+    \label{eq:app-branch-operator-schmidt-ranks}
+\end{equation}
+Let \(N_=^\partial(\xi)\) count crossing measurements whose result already
+equals the target, and \(N_{\ne}^\partial(\xi)\) count crossing measurements
+that are corrected by gain or loss.  Equations
+\eqref{eq:app-perfect-correction-kraus-table} and
+\eqref{eq:app-exact-cut-capacity} give the branchwise bound
+\begin{equation}
+    \boxed{
+    S_0^\xi(A,T)-S_0(A,0)
+    \le 2\log2\,N_=^\partial(\xi)
+      +\log2\,N_{\ne}^\partial(\xi).}
+    \label{eq:app-record-resolved-cut-bound}
+\end{equation}
+This is a useful implementation check because every quantity on the
+right-hand side is available from the same trajectory-resolved record.
+
+\subsection{Full-width strip and the two-dimensional resource}
+
+The entropy used to diagnose the wall is computed for the full-width strip
+\begin{equation}
+    A_\ell=\{(x,y):0\le x<N_x,\ 0\le y<\ell\}.
+    \label{eq:app-full-width-strip}
+\end{equation}
+On a torus, \(\partial A_\ell\) contains two transverse cuts of length
+\(N_x\).  Thus \(|\partial A_\ell|=O(N_x)\), not \(O(1)\).  A subsequent
+restriction of the entanglement contour to a window in \(x\) does not change
+the subsystem and is not itself the entropy of a wall-only region.
+
+Suppose four rank-one controller orbitals are applied at every active center,
+their square support has radius \(r\), and the active slab has transverse
+width \(W\).  Away from the short-interval regime in which the two cuts
+overlap, at most \(2r\) center rows cross each cut.  Hence one complete sweep
+contains at most
+\begin{equation}
+    N_\partial(T)\le16rWT
+    \label{eq:app-crossing-event-count}
+\end{equation}
+crossing letters after \(T\) sweeps.  From a pure product input,
+\begin{equation}
+    S_n(A_\ell,T)\le32rWT\log2.
+    \label{eq:app-strip-capacity-bound}
+\end{equation}
+For two oppositely oriented complex-fermion walls, the proposed CFT form is
+\begin{equation}
+    S_1(A_\ell)
+    =b(N_x)+\frac{c_L+c_R}{6}
+      \log\!\left[
+      \frac{N_y}{\pi a}\sin\!\left(\frac{\pi\ell}{N_y}\right)
+      \right]+\cdots ,
+    \label{eq:app-two-wall-CFT-form}
+\end{equation}
+with \(c_L=c_R=1\) in the ideal benchmark.  If this form is established
+from a pure product input, Eqs.~\eqref{eq:app-strip-capacity-bound} and
+\eqref{eq:app-two-wall-CFT-form} imply the asymptotic resource tradeoff
+\begin{equation}
+    WT=\Omega(\log N_y).
+    \label{eq:app-width-time-tradeoff}
+\end{equation}
+The intrinsic one-dimensional result \(D=\Omega(\log N_y)\) is recovered
+when the transverse resource is fixed.  In a two-dimensional aspect-ratio
+limit, the growing transverse boundary supplies entangling capacity.
+
+\subsection{Raster sweeps and finite-color schedules}
+
+The variable \(T\) in Eq.~\eqref{eq:app-crossing-event-count} counts complete
+controller sweeps; it is not automatically the circuit depth \(D\) in
+Eq.~\eqref{eq:app-Lu-area-depth-bound}.  A raster sweep applies overlapping
+OW projectors in a prescribed serial order.  Because neighboring projectors
+are generically noncommuting, reproducing that precise word has an extensive
+causal depth.
+
+For \(n_{\rm shell}=1\), let \(u=(x,y)\) denote an update center and write its
+cell support as
+\begin{equation}
+    \mathcal S_u
+    =\bigl\{u+(\delta_x,\delta_y):
+      \delta_x,\delta_y\in\{-1,0,1\}\bigr\},
+    \label{eq:app-nshell-one-support}
+\end{equation}
+with both coordinates understood periodically.  The support-conflict graph
+\(\mathcal G_{\rm conf}=(\mathcal V,\mathcal E)\) has one vertex for each
+active center and an edge \((u,v)\in\mathcal E\) precisely when
+\(\mathcal S_u\cap\mathcal S_v\ne\varnothing\).  In terms of the cyclic
+distance
+\begin{equation}
+    d_L(a,b)=\min_{m\in\mathbb Z}|a-b+mL|,
+\end{equation}
+two distinct centers conflict if and only if
+\begin{equation}
+    d_{N_x}(x,x')\le2
+    \quad\hbox{and}\quad
+    d_{N_y}(y,y')\le2.
+    \label{eq:app-conflict-condition}
+\end{equation}
+The degree is therefore at most \(24\), so a finite coloring with at most
+\(25\) colors exists even without using the translational structure.
+
+On a torus for which \(q_x\mid N_x\), \(q_y\mid N_y\), and
+\(q_x,q_y\ge3\), the residue map
+\begin{equation}
+    c(x,y)=(x\bmod q_x,y\bmod q_y)
+    \label{eq:app-residue-coloring}
+\end{equation}
+is a proper \(q_xq_y\)-coloring.  Indeed, two distinct centers of the same
+color differ by a nonzero multiple of \(q_x\) or \(q_y\) in at least one
+coordinate.  Their cyclic separation in that coordinate is at least three,
+so Eq.~\eqref{eq:app-conflict-condition} fails and the supports are disjoint.
+Thus a commensurate \(3\times3\) coloring gives nine colors.  For the proposed
+sequence
+\begin{equation}
+    N_x=20,
+    \qquad N_y\in\{24,32,40,48,64,80\},
+\end{equation}
+the conservative choice \(q_x=q_y=4\) wraps periodically and gives
+\begin{equation}
+    \chi_{\rm conf}\le16.
+    \label{eq:app-sixteen-color-bound}
+\end{equation}
+
+All centers of a fixed color can be updated in parallel.  If the four
+controller orbitals are kept as separate instrument blocks and one
+occupation-measurement--feedforward--fSWAP block has bounded physical depth
+\(d_{\rm inst}=O(1)\), a complete colored sweep obeys
+\begin{equation}
+    d_{\rm cyc}
+    \le4\chi_{\rm conf}d_{\rm inst}
+    \le64d_{\rm inst}.
+    \label{eq:app-colored-cycle-depth}
+\end{equation}
+The bound is independent of \(N_x\) and \(N_y\).  Consequently
+\(D=d_{\rm cyc}T_{\rm cyc}\), and the two-wall entropy
+\(S_1\sim\frac13\log N_y\), together with
+Eq.~\eqref{eq:app-Lu-area-depth-bound}, implies
+\begin{equation}
+    T_{\rm cyc}
+    \gtrsim
+    \frac{\log N_y}{3\kappa d_{\rm cyc}N_x}
+    \ge
+    \frac{\log N_y}{192\kappa d_{\rm inst}N_x},
+    \label{eq:app-colored-cycle-Lu-bound}
+\end{equation}
+where \(\kappa\) absorbs the local operator-Schmidt constants and the two
+components of \(\partial A_\ell\).  At fixed \(N_x\), this rules out a
+sublogarithmic number of colored cycles for preparation from a product state,
+but its unknown prefactor is far too weak to prescribe a practical burn-in.
+The constant bound in Eq.~\eqref{eq:app-colored-cycle-depth} is per colored
+sweep only.  It does not make the total depth \(D\) size independent, and the
+BPJ result on rapid bulk preparation cannot be transferred without proof to
+the additional logarithmically entangled wall sector.
+
+This implementation is not a reinterpretation of raster data.  If \(u\) and
+\(v\) overlap, their conditional instruments generally satisfy
+\begin{equation}
+    \mathcal M_u\circ\mathcal M_v
+    \ne
+    \mathcal M_v\circ\mathcal M_u.
+    \label{eq:app-instrument-noncommutativity}
+\end{equation}
+Changing from the raster word to color blocks therefore defines a different
+microscopic circuit, even though both use the same local controller.  An
+orientation-unbiased implementation may draw a fresh permutation of the
+color blocks each cycle, updating all sites within one block in parallel;
+the color order and its random seed must be recorded.  Raster and
+reverse-raster schedules remain useful artifact controls.  The colored
+protocol can replace the serial protocol in production only after topology,
+entanglement and charge coefficients, chirality, and the tangent slow sector
+agree within predeclared finite-size confidence intervals.
+
+\subsection{Finite wall separation and hybridization}
+
+On a periodic transverse direction there are two oppositely oriented walls.
+If their minimum separation is \(w_{\min}\), exponentially localized edge
+modes generically acquire a hybridization mass
+\begin{equation}
+    m(w_{\min})\simeq m_0e^{-w_{\min}/\xi_\perp}.
+    \label{eq:app-wall-hybridization-mass}
+\end{equation}
+The corresponding low-energy two-wall Hamiltonian has the Dirac form
+\begin{equation}
+    h_{\rm edge}(k_y)=v k_y\tau_z+m(w_{\min})\tau_x.
+    \label{eq:app-two-wall-Dirac}
+\end{equation}
+Critical finite-size scaling on a circumference \(N_y\) requires the
+hybridization scale to remain below the level spacing,
+\begin{equation}
+    m(w_{\min})\ll\frac{2\pi v}{N_y}.
+\end{equation}
+Therefore an effectively decoupled-wall sequence should satisfy
+\begin{equation}
+    \boxed{
+    w_{\min}\gtrsim\xi_\perp
+    \log\!\left(\frac{m_0N_y}{2\pi v}\right).}
+    \label{eq:app-wall-width-condition}
+\end{equation}
+This physical width requirement mirrors
+Eq.~\eqref{eq:app-width-time-tradeoff}.  A controlled test should extract
+\(\xi_\perp\) independently from the transverse wall profile and seek a
+collapse in the variable \(N_ye^{-w_{\min}/\xi_\perp}\).
+
+\appendixplaceholderfigure{fig:app-resource-bound}{Where the preparation resource resides}{
+Panel (a): a full-width strip with its two transverse entanglement cuts and
+two domain walls.  Panel (b): crossing branch operators counted in
+Eq.~\eqref{eq:app-record-resolved-cut-bound}.  Panel (c): raster versus
+finite-color scheduling.  Panel (d): the two-wall hybridization crossover
+controlled by \(N_y e^{-w_{\min}/\xi_\perp}\).  All plotted curves and fit
+parameters are placeholders until the corresponding campaigns are complete.}
+
+
+\section{Exact-Hamiltonian benchmark and boundary twists}
+\label{app:exact-H-benchmark}
+
+The equilibrium reference is the two-band class-A lattice Hamiltonian
+\begin{equation}
+    h(\mathbf k;\alpha)
+    =\sin k_x\,\sigma_x+\sin k_y\,\sigma_y
+     +\bigl(\alpha-\cos k_x-\cos k_y\bigr)\sigma_z.
+    \label{eq:app-QWZ-Hamiltonian}
+\end{equation}
+A spatial profile \(\alpha(x)\) is Fourier transformed only in the
+translation-invariant direction, or assembled directly as a real-space
+Hermitian matrix \(H_{\rm ex}\) on \(2N_xN_y\) orbitals.  The exact benchmark
+contains no Born sampling and no feedback.
+
+At half filling, diagonalize
+\begin{equation}
+    H_{\rm ex}V=V\,\operatorname{diag}(\varepsilon_1,\ldots,\varepsilon_{2N_xN_y}),
+    \qquad
+    \varepsilon_1\le\cdots\le\varepsilon_{2N_xN_y},
+\end{equation}
+and occupy exactly \(N_xN_y\) orbitals,
+\begin{align}
+    P_{\rm ex}&=V_{\rm occ}V_{\rm occ}^\dagger,
+    &C_{\rm ex}&=P_{\rm ex}^*,\nonumber\\
+    G_{\rm ex}&=2C_{\rm ex}-\Id,
+    &V_{\rm occ}&=(v_1,\ldots,v_{N_xN_y}).
+    \label{eq:app-exact-half-filled-projector}
+\end{align}
+Here \(P_{\rm ex}\) is the ket-space spectral projector, whereas
+\(C_{\rm ex}\) is the matrix stored with the convention of
+Eq.~\eqref{eq:app-C-G-convention}.  Topological estimators act on
+\(P_{\rm ex}=C_{\rm ex}^{\mathsf T}\); covariance observables act on
+\(C_{\rm ex}\).
+Selecting states merely by the sign of \(\varepsilon\) is ambiguous when a
+finite-size wall level sits at zero.  Fixed particle number is the primary
+half-filling convention.  Any residual degeneracy at the Fermi level must be
+resolved by a stated symmetry, an infinitesimal twist, or explicit
+subspace tracking.
+
+\subsection{Physical and modular current densities}
+\label{app:physical-modular-current}
+
+For a general number-conserving quadratic Hamiltonian, introduce the orbital
+spinor \(\Psi_{\mathbf r}\) in cell \(\mathbf r\) and write
+\begin{equation}
+    H=\sum_{\mathbf r,\mathbf r'}
+      \Psi_{\mathbf r}^\dagger
+      h_{\mathbf r\mathbf r'}\Psi_{\mathbf r'},
+    \qquad
+    n_{\mathbf r}=\Psi_{\mathbf r}^\dagger\Psi_{\mathbf r}.
+    \label{eq:app-general-quadratic-H}
+\end{equation}
+Hermiticity requires
+\(h_{\mathbf r'\mathbf r}=h_{\mathbf r\mathbf r'}^\dagger\).  The
+Heisenberg equation gives the lattice continuity equation
+\begin{equation}
+    \dot n_{\mathbf r}
+    +\sum_{\mathbf r'}J_{\mathbf r\to\mathbf r'}=0,
+    \label{eq:app-lattice-continuity}
+\end{equation}
+with the positively oriented, outward bond-current operator
+\begin{equation}
+    J_{\mathbf r\to\mathbf r'}
+    =\ii\Psi_{\mathbf r}^\dagger
+       h_{\mathbf r\mathbf r'}\Psi_{\mathbf r'}
+     -\ii\Psi_{\mathbf r'}^\dagger
+       h_{\mathbf r'\mathbf r}\Psi_{\mathbf r}.
+    \label{eq:app-bond-current-operator}
+\end{equation}
+Using the covariance convention of Eq.~\eqref{eq:app-C-G-convention}, its
+Gaussian expectation value is
+\begin{equation}
+    \boxed{
+    j_{\mathbf r\to\mathbf r'}
+    =2\,\operatorname{Im}\Tr\!\left[
+      h_{\mathbf r\mathbf r'}C_{\mathbf r'\mathbf r}\right],}
+    \qquad
+    j_{\mathbf r\to\mathbf r'}=-j_{\mathbf r'\to\mathbf r}.
+    \label{eq:app-bond-current-expectation}
+\end{equation}
+For the exact QWZ benchmark of Eq.~\eqref{eq:app-QWZ-Hamiltonian}, the two
+positively oriented nearest-neighbor currents are therefore
+\begin{align}
+    j_x(\mathbf r)
+    &=2\,\operatorname{Im}\Tr\!\left[
+      h_{\mathbf r,\mathbf r+\widehat x}
+      C_{\mathbf r+\widehat x,\mathbf r}\right],\nonumber\\
+    j_y(\mathbf r)
+    &=2\,\operatorname{Im}\Tr\!\left[
+      h_{\mathbf r,\mathbf r+\widehat y}
+      C_{\mathbf r+\widehat y,\mathbf r}\right].
+    \label{eq:app-QWZ-link-currents}
+\end{align}
+
+The same construction defines a modular current for a subsystem \(A\).  On
+the entanglement-active support \(0<C_A<\Id_A\), the one-body modular
+Hamiltonian is
+\begin{align}
+    h_A^{\rm mod}
+    &=\log\!\left[(\Id_A-C_A)C_A^{-1}\right]\nonumber\\
+    &=-2\arctanh(G_A),
+    &G_A&=2C_A-\Id_A .
+    \label{eq:app-modular-Hamiltonian}
+\end{align}
+Replacing \(h_{\mathbf r\mathbf r'}\) in
+Eq.~\eqref{eq:app-bond-current-expectation} by the corresponding blocks of
+\(h_A^{\rm mod}\), while retaining \(C_A\), gives the modular-current map.
+Exact eigenvalues \(0\) or \(1\) lie outside this finite chart.  Numerically
+they are either removed by restricting to the entanglement-active support or
+clipped to \([\epsilon,1-\epsilon]\); any spatial current claim must be stable
+as \(\epsilon\) is reduced.
+
+Equations~\eqref{eq:app-lattice-continuity}--\eqref{eq:app-QWZ-link-currents}
+are source free for exact-Hamiltonian and modular evolution.  The adaptive
+system alone exchanges charge with measured and fSWAP ancillas, so a
+circuit-time balance law contains a local source term,
+\begin{equation}
+    \Delta n_{\mathbf r}
+    +(\nabla_{\rm lat}\!\cdot j)_{\mathbf r}
+    =s_{\mathbf r}^{\rm anc}.
+    \label{eq:app-adaptive-current-source}
+\end{equation}
+Consequently a source-free physical current is not inferred from the
+measurement/feedforward occupancy change; charge conservation holds instead
+on the enlarged system--ancilla Hilbert space.
+
+\subsection{Twisted boundary condition}
+
+A twist \(\phi_y\) is inserted into the same Hamiltonian by multiplying the
+forward hopping across one \(y\)-seam by \(e^{i\phi_y}\) and the reverse
+hopping by \(e^{-i\phi_y}\).  A uniform gauge distributes the phase as
+\(e^{i\phi_y/N_y}\) over all forward \(y\)-links and is unitarily
+equivalent.  The spatial profile, disorder realization, and every other
+parameter are held fixed as \(\phi_y\) varies.
+
+Let \(V_j=V_{\rm occ}(\phi_j)\) be an orthonormal occupied frame.  Neighboring
+frames are aligned through the singular-value decomposition
+\begin{equation}
+    M_j=V_j^\dagger V_{j+1}=L_j\Sigma_jR_j^\dagger,
+    \qquad
+    \mathcal U_j=L_jR_j^\dagger .
+    \label{eq:app-overlap-polar-link}
+\end{equation}
+Multiplying \(V_{j+1}\) by \(R_jL_j^\dagger\) makes the overlap with \(V_j\)
+positive and fixes a discrete parallel-transport gauge.  The Wilson
+holonomy and its many-body phase are
+\begin{equation}
+    \mathcal W_y=\mathcal U_0\mathcal U_1\cdots\mathcal U_{N_\phi-1},
+    \qquad
+    \gamma_y=\arg\det\mathcal W_y.
+    \label{eq:app-exact-Wilson-holonomy}
+\end{equation}
+This polar alignment is a gauge choice for one continuous family.  It cannot
+turn independently sampled Hamiltonians or independently sampled circuit
+records into such a family.
+
+If the half-filled gap remains open, \(P_{\rm ex}(\phi_y)\) defines a smooth
+ground-state bundle.  At an exact spectral crossing, there are two distinct
+questions: the instantaneous half-filled ground-state projector may switch
+discontinuously, whereas a maximally overlapping tracked subspace follows a
+spectral-flow branch and need not remain the instantaneous ground state.
+Both are useful, but they must be labeled separately.
+
+For a two-twist grid \(\boldsymbol\phi=(\phi_x,\phi_y)\), a gauge-invariant
+lattice Chern number is obtained from determinant links
+\begin{equation}
+    U_\mu(\boldsymbol\phi)
+    =\frac{\det[V^\dagger(\boldsymbol\phi)
+      V(\boldsymbol\phi+\widehat\mu)]}
+    {|\det[V^\dagger(\boldsymbol\phi)
+      V(\boldsymbol\phi+\widehat\mu)]|},
+    \label{eq:app-FHS-link}
+\end{equation}
+and plaquette curvature
+\begin{align}
+    F_{xy}(\boldsymbol\phi)
+    &=\operatorname{Arg}\!\left[
+      U_x(\boldsymbol\phi)
+      U_y(\boldsymbol\phi+\widehat x)
+      U_x(\boldsymbol\phi+\widehat y)^{-1}
+      U_y(\boldsymbol\phi)^{-1}\right],\nonumber\\
+    C_{\rm tw}&=\frac{1}{2\pi}\sum_{\boldsymbol\phi}F_{xy}.
+    \label{eq:app-twist-Chern-number}
+\end{align}
+The mesh must be refined until the admissibility condition and the integer
+are stable~\cite{FukuiHatsugaiSuzuki2005}.
+
+The exact benchmark comparison should report separately: the half-filled
+spectrum and wall velocity, the transverse localization length, the strip
+entropy and contour, the local or twisted-boundary Chern diagnostic, and the
+finite-width hybridization gap.  Agreement of a circuit observable with one
+benchmark does not imply equality of the two states.
+
+\appendixplaceholderfigure{fig:app-exact-benchmark}{Exact Hamiltonian, half filling, and twist tracking}{
+Panel (a): the real-space domain-wall profile and exact low-energy spectrum.
+Panel (b): occupied-subspace tracking under a boundary twist, including the
+distinction between instantaneous ground-state filling and a spectral-flow
+branch.  Panel (c): convergence of the twist-mesh Chern estimator.  Panel
+(d): proposed circuit-versus-exact comparisons.  Numerical values are left
+blank until established.}
+
+
+\section{Trajectory estimators and averaging conventions}
+\label{app:estimators}
+
+Every stochastic estimator below is evaluated on independently Born-sampled
+records.  Equal sample weights therefore estimate the physical Born ensemble;
+no second factor of \(p_\xi\) is inserted.  We use an overbar for this Monte
+Carlo average,
+\begin{equation}
+    \overline{X_\xi}=\frac{1}{S}\sum_{\xi=1}^{S}X_\xi.
+    \label{eq:app-Born-sample-average}
+\end{equation}
+Nonlinear functions are evaluated trajectory by trajectory unless an
+explicitly annealed quantity is stated.
+
+\subsection{Entropy and entanglement contour}
+
+For a Gaussian trajectory and a spatial subsystem \(A\), let
+\(C_{\xi,A}\) be the restricted two-point matrix.  The Gaussian von Neumann
+entropy is
+\begin{align}
+    S_\xi(A)
+    &=-\operatorname{tr}[C_{\xi,A}\log C_{\xi,A}]\nonumber\\
+    &\quad-\operatorname{tr}[(\Id_A-C_{\xi,A})
+      \log(\Id_A-C_{\xi,A})].
+    \label{eq:app-Gaussian-entropy}
+\end{align}
+If
+\(C_{\xi,A}u_{\xi,\alpha}=\nu_{\xi,\alpha}u_{\xi,\alpha}\), define
+\(h(\nu)=-\nu\log\nu-(1-\nu)\log(1-\nu)\).  A site-resolved contour is
+\begin{equation}
+    s_{\xi,A}(i)
+    =\sum_\alpha |u_{\xi,\alpha}(i)|^2h(\nu_{\xi,\alpha})
+    =\bigl[h(C_{\xi,A})\bigr]_{ii}.
+    \label{eq:app-entanglement-contour}
+\end{equation}
+Internal orbitals in one unit cell are summed only after
+Eq.~\eqref{eq:app-entanglement-contour}.  It follows exactly that
+\begin{equation}
+    S_\xi(A)=\sum_{i\in A}s_{\xi,A}(i).
+\end{equation}
+For a mixed trajectory, Eq.~\eqref{eq:app-Gaussian-entropy} is the entropy of
+the reduced mixed state, not an entanglement measure.  Purity, or an
+appropriate mixed-state entanglement diagnostic, must accompany any such
+interpretation.
+
+For the full-width strip \(A_\ell\), a wall-window contour sum is
+\begin{equation}
+    \mathcal S_{\xi,I_x}(\ell)
+    =\sum_{x\in I_x}\sum_{y=0}^{\ell-1}
+      \sum_\mu s_{\xi,A_\ell}(x,y,\mu).
+    \label{eq:app-windowed-contour}
+\end{equation}
+Only \(I_x=[0,N_x-1]\) gives the entropy of \(A_\ell\).  A narrow \(I_x\)
+is a localization diagnostic for the contour of the same full-width
+subsystem; it is not the entropy of a narrow tube.
+
+The primary trajectory estimator is
+\begin{equation}
+    \overline{S(A_\ell)}
+    =\frac1S\sum_\xi S_\xi(A_\ell),
+    \label{eq:app-average-trajectory-entropy}
+\end{equation}
+which generally differs from both \(S[\overline{C_A}]\) and the entropy of
+the averaged many-body density matrix.  A proposed two-wall CFT fit uses
+\begin{align}
+    d_{N_y}(\ell)
+    &=\frac{N_y}{\pi}
+      \sin\!\left(\frac{\pi\ell}{N_y}\right),\nonumber
+    \\
+    \overline{S(A_\ell)}
+    &=b+\frac{c_L+c_R}{6}\log d_{N_y}(\ell)+\cdots .
+    \label{eq:app-entropy-log-chord-fit}
+\end{align}
+Fit windows, endpoint exclusions, finite-size corrections, and covariance of
+the fitted points must be specified.  A coefficient inferred from
+\(\mathcal S_{I_x}\) for one wall is supporting contour evidence, not a
+standalone entropy measurement.
+
+\subsection{Conditional mutual information and the tripartite reduction}
+\label{app:entropy-tmi-relation}
+
+Let \(A,B,C\) be adjacent intervals in the periodic wall direction, with each
+region extending across the same full transverse width.  For every trajectory
+\(\xi\), define the mutual information between the separated intervals and
+the standard tripartite information by
+\begin{align}
+    I_{2,\xi}(A,C)
+    &=S_\xi(A)+S_\xi(C)-S_\xi(A\cup C),\nonumber\\
+    I_{3,\xi}(A,B,C)
+    &=S_\xi(A)+S_\xi(B)+S_\xi(C)\nonumber\\
+    &\quad-S_\xi(A\cup B)-S_\xi(A\cup C)\nonumber\\
+    &\quad-S_\xi(B\cup C)+S_\xi(A\cup B\cup C).
+    \label{eq:app-I2-I3-definitions}
+\end{align}
+Their difference eliminates the disconnected-region entropy exactly:
+\begin{align}
+    \mathcal I_\xi(A:C|B)
+    &\equiv I_{2,\xi}(A,C)-I_{3,\xi}(A,B,C)\nonumber\\
+    &=S_\xi(A\cup B)+S_\xi(B\cup C)\nonumber\\
+    &\quad-S_\xi(B)-S_\xi(A\cup B\cup C)\nonumber\\
+    &=I_\xi(A:C|B),
+    \label{eq:app-TMI-CMI-identity}
+\end{align}
+so the quantity called the ``tripartite reduction'' is precisely a
+conditional mutual information and is nonnegative by strong subadditivity.
+
+For a common interval family governed by a one-dimensional CFT, the averaged
+entropy has the finite-ring form~\cite{CalabreseCardy2004}
+\begin{equation}
+    \overline{S(X)}
+    =\kappa\log d_L(\ell_X)+s_0+\cdots,
+    \qquad
+    d_L(\ell)=\frac{L}{\pi}\sin\!\left(\frac{\pi\ell}{L}\right),
+    \label{eq:app-CFT-entropy-common-family}
+\end{equation}
+where \(\kappa\) includes the number and orientation-independent content of
+the wall branches intersected by the chosen geometry.  Substitution into
+Eq.~\eqref{eq:app-TMI-CMI-identity} cancels \(s_0\) and gives
+\begin{equation}
+    \overline{\mathcal I(A:C|B)}
+    =\kappa\log\!\left[
+      \frac{d_L(A\cup B)d_L(B\cup C)}
+           {d_L(B)d_L(A\cup B\cup C)}\right]+\cdots .
+    \label{eq:app-CMI-chord-ratio}
+\end{equation}
+Define the chord cross ratio
+\begin{equation}
+    x=\frac{d_L(A)d_L(C)}
+            {d_L(A\cup B)d_L(B\cup C)}.
+    \label{eq:app-CMI-cross-ratio}
+\end{equation}
+For adjacent lengths \(\ell_A,\ell_B,\ell_C\), the elementary identity
+\begin{equation}
+    \sin(a+b)\sin(b+c)-\sin a\sin c
+    =\sin b\sin(a+b+c)
+\end{equation}
+with \(a=\pi\ell_A/L\), \(b=\pi\ell_B/L\), and
+\(c=\pi\ell_C/L\) implies
+\begin{equation}
+    d_L(A\cup B)d_L(B\cup C)-d_L(A)d_L(C)
+    =d_L(B)d_L(A\cup B\cup C).
+    \label{eq:app-chord-cross-ratio-identity}
+\end{equation}
+Consequently,
+\begin{equation}
+    \boxed{
+    \overline{I_2-I_3}
+    =\kappa\log\!\left(\frac{1}{1-x}\right)+\cdots .}
+    \label{eq:app-TMI-cross-ratio-scaling}
+\end{equation}
+
+The estimator order is part of this statement.  Each of the four entropies in
+Eq.~\eqref{eq:app-TMI-CMI-identity} is computed from the same trajectory
+covariance before forming \(\mathcal I_\xi\), and only then is the equal-weight
+Born average taken:
+\begin{equation}
+    \overline{\mathcal I(A:C|B)}
+    =\frac1S\sum_{\xi=1}^{S}\mathcal I_\xi(A:C|B).
+    \label{eq:app-trajectory-first-CMI-average}
+\end{equation}
+Using \(S[\overline C]\), or mixing entropies drawn from independently sampled
+records, defines a different quantity.  For a genuine single complex chiral
+wall with \(c_L+c_R=1\), Eq.~\eqref{eq:app-TMI-cross-ratio-scaling} has
+\(\kappa=1/6\).  A full-width strip intersecting the two oppositely oriented
+walls has \(\kappa=1/3\).  This factor of two counts wall branches and does not
+measure their propagation direction.
+
+The archived exact-domain-wall ground state provides a deterministic
+calibration of this estimator at \(N_x\times N_y=20\times40\), with
+\(\ell_A=\ell_C=3\).  The fitted slopes are summarized in
+Table~\ref{tab:app-exact-TMI-calibration}.
+\begin{table}[t]
+\caption{Exact-Hamiltonian calibration of
+\(I_2-I_3\) against \(\log[1/(1-x)]\).  Absolute fit uncertainties are
+displayed explicitly.}
+\label{tab:app-exact-TMI-calibration}
+\centering
+\footnotesize
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Estimator & Fitted slope [CFT] & \(R^2\)\\
+\midrule
+\makecell[l]{Each wall-window\\contour sum}
+& \makecell{\(0.166967668\)\\\(\pm0.000027005\) \([1/6]\)}
+& \(0.99999945\)\\
+Full-width CMI
+& \makecell{\(0.334232464\)\\\(\pm0.000095377\) \([1/3]\)}
+& \(0.99999829\)\\
+\bottomrule
+\end{tabular}
+\end{table}
+Only the full-width row is a conditional mutual information of spatial
+subsystems.  In the first row the subsystem is still defined over the full
+transverse width and only the final entanglement-contour sum is restricted to
+one wall; those values test localization and the factor of two, not a
+standalone one-wall CMI.  Both rows are deterministic exact-Hamiltonian
+calibrations.  They do not constitute a production Born-trajectory result for
+the adaptive circuit, and Eq.~\eqref{eq:app-TMI-cross-ratio-scaling} is not an
+independent central-charge estimator when it is assembled from the same
+entropies used in Eq.~\eqref{eq:app-entropy-log-chord-fit}.
+
+\subsection{Quantum charge variance, full counting statistics, and current algebra}
+
+For
+\(N_A=\sum_{i\in A}c_i^\dagger c_i\), the charge expectation and the
+within-trajectory quantum variance are
+\begin{align}
+    \langle N_A\rangle_\xi&=\operatorname{tr}C_{\xi,A},\nonumber\\
+    F_{\xi,A}^{(q)}
+    &=\langle(N_A-\langle N_A\rangle_\xi)^2\rangle_\xi\nonumber\\
+    &=\operatorname{tr}\!\left[C_{\xi,A}(\Id_A-C_{\xi,A})\right].
+    \label{eq:app-quantum-charge-variance}
+\end{align}
+The total variance obtained by first drawing a Born trajectory and then
+measuring \(N_A\) obeys the law of total variance,
+\begin{equation}
+    F_A^{\rm total}
+    =\overline{F_{\xi,A}^{(q)}}
+     +\operatorname{Var}_\xi\!\left(\operatorname{tr}C_{\xi,A}\right).
+    \label{eq:app-total-charge-variance}
+\end{equation}
+The second term is classical record-to-record charge noise.  It must not be
+included in a Kac--Moody coefficient intended to characterize quantum charge
+fluctuations of the conditional state.
+
+The trajectory full-counting-statistics generator is the determinant
+\begin{equation}
+    \mathcal Z_{\xi,A}(\lambda)
+    =\left\langle e^{i\lambda N_A}\right\rangle_\xi
+    =\det\!\left[\Id_A-C_{\xi,A}
+      +e^{i\lambda}C_{\xi,A}\right],
+    \label{eq:app-FCS-determinant}
+\end{equation}
+with cumulants
+\begin{equation}
+    \kappa_{n,\xi}^{(q)}
+    =(-i\partial_\lambda)^n
+      \log\mathcal Z_{\xi,A}(\lambda)\big|_{\lambda=0}.
+    \label{eq:app-FCS-cumulants}
+\end{equation}
+The Born-ensemble characteristic function
+\(\overline{\mathcal Z_{\xi,A}}\) describes the two-stage physical sampling
+experiment.  The typical generator
+\(\exp[\overline{\log\mathcal Z_{\xi,A}}]\) is a different, quenched
+quantity.
+
+With current normalization
+\begin{equation}
+    \langle J(z)J(0)\rangle=\frac{k}{z^2},
+    \label{eq:app-KM-normalization}
+\end{equation}
+a single chiral branch at level \(k\) contributes
+\begin{equation}
+    \overline{F_{\xi,A_\ell}^{(q)}}
+    =b_F+\frac{k}{2\pi^2}\log d_{N_y}(\ell)+\cdots .
+    \label{eq:app-single-wall-charge-fluctuation}
+\end{equation}
+For two independent opposite walls, the coefficients add:
+\begin{equation}
+    \overline{F_{\xi,A_\ell}^{(q)}}
+    =b_F+\frac{k_L+k_R}{2\pi^2}
+      \log d_{N_y}(\ell)+\cdots .
+    \label{eq:app-two-wall-charge-fluctuation}
+\end{equation}
+The ideal complex-fermion benchmark has \(k_L=k_R=1\).  In that free
+benchmark the leading terms satisfy
+\begin{equation}
+    S_{\rm wall}=\frac{\pi^2}{3}F_{\rm wall}^{(q)}+\cdots .
+    \label{eq:app-entropy-fluctuation-ratio}
+\end{equation}
+The paper should treat Eqs.~\eqref{eq:app-two-wall-charge-fluctuation} and
+\eqref{eq:app-entropy-fluctuation-ratio} as tests to be performed, rather
+than as consequences of the observed entropy coefficient.
+
+\subsection{Correlations and spatial mode densities}
+
+Wick's theorem gives the connected density correlator on one trajectory,
+\begin{equation}
+    \langle\delta n_i\,\delta n_j\rangle_\xi
+    =\delta_{ij}C_{\xi,ii}-|C_{\xi,ij}|^2.
+    \label{eq:app-density-correlation}
+\end{equation}
+For separated cells one may therefore use the positive squared-correlation
+diagnostic
+\begin{equation}
+    \mathcal C_\xi(x,r)
+    =\frac{1}{N_y}\sum_y\sum_{\mu,\nu}
+      \left|C_{\xi,(x,y,\mu),(x,y+r,\nu)}\right|^2.
+    \label{eq:app-squared-correlation}
+\end{equation}
+The annealed and typical correlations are respectively
+\begin{equation}
+    \mathcal C_{\rm ann}(x,r)=\overline{\mathcal C_\xi(x,r)},
+    \qquad
+    \mathcal C_{\rm typ}(x,r)
+    =\exp\!\left[\overline{\log\mathcal C_\xi(x,r)}\right].
+    \label{eq:app-annealed-typical-correlation}
+\end{equation}
+They need not share an exponent in a broad stochastic ensemble.  In
+particular,
+\begin{equation}
+    \overline{|C_{\xi,ij}|^2}
+    \ne |\overline{C_{\xi,ij}}|^2.
+    \label{eq:app-correlation-average-order}
+\end{equation}
+Every reported log--log fit must state whether it uses
+\(\log\overline{\mathcal C_\xi}\) or
+\(\overline{\log\mathcal C_\xi}\).
+
+For a normalized tangent or endpoint vector \(v_{\xi,a}\), the physical
+component-summed spatial density is
+\begin{equation}
+    \rho_a(x,y)
+    =\frac1S\sum_{\xi=1}^{S}\sum_\mu
+      |v_{\xi,a}(x,y,\mu)|^2,
+    \qquad
+    \sum_{x,y}\rho_a(x,y)=1.
+    \label{eq:app-tangent-mode-density}
+\end{equation}
+Normalizing each internal component \(\mu\) separately before averaging
+instead produces the spatial distribution conditioned on that component and
+discards its physical relative weight.  Such a visualization, if used, must
+be labeled accordingly.
+
+Statistical uncertainty is estimated over independent trajectories, not over
+spatial points reused within one trajectory.  Translation averages reduce
+variance but do not create additional independent samples.  Bootstrap or
+jackknife resampling should preserve the full trajectory as the elementary
+block.
+
+
+\section{Born-ensemble response and fixed-record holonomy}
+\label{app:response-holonomy}
+
+\subsection{The score term in a physical response}
+
+Let a perturbation parameter \(u\) modify the microscopic circuit, and let
+\(O_\xi(u)\) be an observable on the normalized trajectory selected by
+\(\xi\).  The Born-ensemble expectation is
+\begin{equation}
+    \langle O\rangle_{\rm B}(u)
+    =\sum_\xi p_\xi(u)O_\xi(u).
+\end{equation}
+Differentiating gives the exact likelihood-ratio identity
+\begin{equation}
+    \boxed{
+    \partial_u\langle O\rangle_{\rm B}
+    =\overline{\partial_uO_\xi}
+     +\overline{O_\xi\,\partial_u\log p_\xi}.}
+    \label{eq:app-full-Born-response}
+\end{equation}
+Since \(\overline{\partial_u\log p_\xi}=0\), the second term may equivalently
+be written as a covariance with the score.  The first term is the
+fixed-record conditional response; the second accounts for the change in
+the probability of drawing that record.  Dropping it does not give the
+linear response of the physical Born ensemble.
+
+The score is accumulated chronologically,
+\begin{equation}
+    \partial_u\log p_\xi
+    =\sum_t\partial_u\log
+      p_{m_t}\!\left(G_{t-1}(u),\chi_t(u)\right),
+    \label{eq:app-record-score-sum}
+\end{equation}
+where the derivative is total and includes the perturbed earlier covariance.
+For the binary measurement of Eq.~\eqref{eq:app-binary-born-probability},
+\begin{equation}
+    \partial_u\log p_{m_t}
+    =\frac{\eta_{m_t}\,\partial_u g_{\chi_t}}
+    {1+\eta_{m_t}g_{\chi_t}},
+    \label{eq:app-binary-score}
+\end{equation}
+with
+\begin{equation}
+    \partial_u g_{\chi}
+    =\chi^\dagger(\partial_uG)\chi
+     +2\operatorname{Re}
+      \left[(\partial_u\chi)^\dagger G\chi\right].
+\end{equation}
+The tangent recursion supplies \(\partial_uG\), while the second term is
+retained when the perturbation changes the measured orbital itself.
+
+For a wall-density response to a localized potential,
+\begin{equation}
+    \chi_{\rm B}(x,t)
+    =\left.\frac{\delta\,\overline{\langle n(x,t)\rangle_\xi}}
+    {\delta V(0,0)}\right|_{V=0},
+    \label{eq:app-Born-wall-response}
+\end{equation}
+Eq.~\eqref{eq:app-full-Born-response} fixes the estimator.  Fourier
+transformation along the wall may then be used to search for a low-energy
+ridge in \(\chi_{\rm B}(k,\omega)\).  A one-sided slope and its reversal
+under wall-orientation reversal would diagnose chirality; no quantized
+transport coefficient follows from the ridge alone.
+
+\subsection{Fixed-record twist family}
+
+For a circuit record \(\xi\), insert a twist \(\phi\) into the same
+finite-support orbitals and fSWAP couplings while holding the sequence of
+outcome labels fixed:
+\begin{equation}
+    K_\xi(\phi)
+    =K_{m_D|s_D}(\phi)\cdots K_{m_1|s_1}(\phi).
+    \label{eq:app-fixed-record-word}
+\end{equation}
+The normalized state
+\begin{equation}
+    \rho_\xi(\phi)
+    =\frac{K_\xi(\phi)\rho_0K_\xi(\phi)^\dagger}
+    {p_\xi(\phi)}
+    \label{eq:app-fixed-record-state}
+\end{equation}
+defines a continuous family only on intervals where \(p_\xi(\phi)>0\) and
+the relevant occupied rank is constant.  A zero of the branch probability
+is a genuine singularity of this normalized family.
+
+For a pure Gaussian branch with occupied frame \(V_{\xi,j}\) on a twist
+mesh, use the polar links of Eq.~\eqref{eq:app-overlap-polar-link} and form
+\begin{equation}
+    \mathcal W_\xi
+    =\prod_j\operatorname{polar}
+      \!\left(V_{\xi,j}^\dagger V_{\xi,j+1}\right),
+    \qquad
+    \gamma_\xi=\arg\det\mathcal W_\xi.
+    \label{eq:app-fixed-record-holonomy}
+\end{equation}
+For a mixed Gaussian state, the appropriate object is instead a specified
+purification, Uhlmann holonomy, or a spectral projector of the modular
+Hamiltonian; these choices are not interchangeable.
+
+Independently resampling a Hamiltonian, record, or ground state at every
+\(\phi\) does not define Berry transport.  SVD alignment can fix the gauge
+within one family, but it cannot manufacture continuity between unrelated
+samples.  A single \(0\le\phi_y\le2\pi\) loop measures a holonomy or spectral
+flow.  A Chern number requires a two-dimensional twist family, such as
+Eq.~\eqref{eq:app-twist-Chern-number}, or an independently justified
+real-space invariant.
+
+
+\section{Conditioned trajectories, mean channel, and record weights}
+\label{app:ensemble-distinctions}
+
+For one adaptive step, denote the unnormalized branch map by
+\begin{equation}
+    \mathcal K_{m|s}(\rho)
+    =K_{m|s}\rho K_{m|s}^\dagger.
+\end{equation}
+There are three distinct objects:
+\begin{align}
+    \rho_{m|s}
+    &=\frac{\mathcal K_{m|s}(\rho)}
+      {\Tr\mathcal K_{m|s}(\rho)}
+      &&\text{conditioned trajectory},\\
+    \mathcal E_s(\rho)
+    &=\sum_m\mathcal K_{m|s}(\rho)
+      &&\text{unconditional channel},\\
+    \rho_{m_\star}
+    &=\frac{\Pi_{m_\star}\rho\Pi_{m_\star}}
+      {\Tr(\rho\Pi_{m_\star})}
+      &&\text{postselected outcome}.
+    \label{eq:app-three-ensemble-objects}
+\end{align}
+The protocol uses the first object with Born-distributed \(m\) and
+deterministic feedback.  A no-click non-Hermitian Hamiltonian or forced
+measurement retains only a selected branch and is not the same instrument.
+
+The one-step perfect-correction average is the Gaussian replacement channel
+in Eq.~\eqref{eq:app-reset-channel-density}.  More general convex mixtures
+of Gaussian Kraus maps need not preserve Gaussianity, especially when future
+operations depend on coarse-grained records.  In either case the conceptual
+distinction remains:
+\begin{equation}
+    \overline{S(C_\xi)}\ne S(\overline C),
+    \qquad
+    \overline{|C_{\xi,ij}|^2}\ne|\overline C_{ij}|^2.
+    \label{eq:app-mean-trajectory-nonlinearity}
+\end{equation}
+Even when \(\overline\rho\) happens to be Gaussian, its entropy is the
+entropy of the mixed mean state, not the average trajectory entanglement.
+The tangent cocycle is the derivative of the normalized conditioned map and
+is not the spectrum of \(\mathcal E_s\).
+
+The full trajectory-resolved record also defines classical information-theoretic
+observables.  With
+\begin{equation}
+    Z_\xi=p_\xi,
+    \qquad
+    I_\xi=-\log p_\xi,
+    \label{eq:app-record-self-information}
+\end{equation}
+the Shannon record entropy and the replicated sums are
+\begin{align}
+    H_{\rm rec}&=-\sum_\xi p_\xi\log p_\xi
+    =\overline{I_\xi},\nonumber\\
+    \mathcal Z_n&=\sum_\xi p_\xi^n,
+    &H_n^{\rm rec}&=\frac{\log\mathcal Z_n}{1-n}.
+    \label{eq:app-record-Renyi}
+\end{align}
+Here \(\overline{I_\xi}\) is exactly the Shannon self-information.  Naming it
+a quenched free energy does not by itself supply a statistical-mechanics
+theory.  The required bridge is
+\begin{equation}
+    -\left.\partial_n\log\mathcal Z_n\right|_{n=1}=H_{\rm rec},
+    \label{eq:app-record-replica-derivative}
+\end{equation}
+together with an explicit replicated transfer normalization and boundary
+conditions for \(\mathcal Z_n\).  Extracting a central charge or operator
+content from finite-size corrections then requires an independent record
+velocity, aspect-ratio convergence, and charge-resolved transfer sectors,
+following, for example, Ref.~\cite{Zabalo2022}; it is not implied by the
+state entanglement fit.
+
+
+\section{Robustness protocol and numerical controls}
+\label{app:robustness}
+
+The numerical claims in the main text should be supported by a common set of
+controls.  The following list defines the intended tests; no outcome is
+assumed here.
+
+\paragraph*{Initial states and convergence time.}
+In addition to a generic pure Gaussian state and the maximally mixed state,
+use onsite Fock product states
+\begin{equation}
+    G_{\rm prod}=\operatorname{diag}(2n_1-1,\ldots,2n_N-1),
+    \qquad n_i\in\{0,1\}.
+    \label{eq:app-product-initial-covariance}
+\end{equation}
+Vacuum, deterministic half-filled patterns, and random onsite occupations
+test distinct charge sectors without importing initial spatial entanglement.
+For each observable \(X\), define a tolerance-based convergence time
+\begin{equation}
+    \begin{aligned}
+    T_\epsilon(X)=\min\bigl\{T:\ &
+      \max_{T'\in[T,T+\Delta T]}\\[-0.25em]
+      &|X(T')-X_{\rm late}|<\epsilon\bigr\}.
+    \end{aligned}
+    \label{eq:app-convergence-time}
+\end{equation}
+Its scaling with \(N_x,N_y\) must be measured rather than fixed by choosing
+the final cycle proportional to system size.
+
+\paragraph*{Locality and support.}
+Repeat the analysis for several finite \(n_{\rm shell}\), and compare with
+the dense frame only as a nonlocal reference.  A trend with support radius
+must be separated from a trend with system size.  Compare the explicit
+interface and support-terminated protocols as distinct microscopic
+families.
+
+\paragraph*{Schedule.}
+Compare raster, randomized, and finite-color schedules at matched numbers of
+local letters and at matched physical layer depth.  Record both the gate
+count and the nonoverlapping circuit depth.  Universality under schedule
+changes is stronger evidence than agreement after merely relabeling one
+sweep as one unit of time.
+
+\paragraph*{Imperfect feedback and ancilla noise.}
+Let \(\epsilon_{\rm a}\) be the probability that the fresh ancilla is
+prepared with the wrong occupation, and let \(p_{\rm g}\) and \(p_{\rm l}\)
+be the success probabilities of gain and loss.  The ideal point is
+\begin{equation}
+    \epsilon_{\rm a}=0,
+    \qquad p_{\rm g}=p_{\rm l}=1.
+\end{equation}
+Vary these independently, because a symmetric reduction can hide a
+particle--hole-asymmetric instability.  A coherent fSWAP angle error
+\(\theta=\pi/2+\delta\theta\) should be tested separately from classical
+ancilla preparation error.
+
+\paragraph*{Wall separation and aspect ratio.}
+Vary both separations on the torus, not only \(N_y\).  Test the scaling
+variable in Eq.~\eqref{eq:app-wall-width-condition} using an independently
+measured \(\xi_\perp\), and compare against a domain-wall-off control at the
+same dimensions and observation time.
+
+\paragraph*{Tangent numerics.}
+Report burn-in and observation windows, QR cadence, the number of propagated
+vectors, singular tolerance, null counts, and censored trajectories.
+Compare the direct chronological product at small size with QR accumulation.
+At every fixed finite size, extend or extrapolate the QR observation time
+before fitting any size dependence.  Randomize the initial tangent frame and
+localize the projector onto the complete near-marginal subspace rather than
+one basis-dependent QR vector.
+For a half-strip, count \(N_=^\partial,N_{\ne}^\partial\) and verify
+Eq.~\eqref{eq:app-record-resolved-cut-bound} from a pure product input.
+
+\paragraph*{Fit and sampling stability.}
+For entropy, charge fluctuations, and correlations, vary the fit window and
+include the full trajectory bootstrap.  Report the number of independent
+Born trajectories at every size.  Heatmaps are secondary localization
+diagnostics and should not substitute for integrated wall weight, inverse
+participation ratios, or transverse localization-length fits.
+
+\appendixplaceholderfigure{fig:app-robustness}{Robustness and control matrix}{
+Proposed panels: finite-support convergence; product, generic-Gaussian, and
+maximally mixed initial states; raster versus finite-color schedules;
+feedback and ancilla errors; wall-separation scaling; and null/censor
+statistics for the tangent QR.  This is a placeholder layout only.  The final
+figure should display all actual run parameters and should not combine data
+from microscopically different domain-wall constructions without labels.}

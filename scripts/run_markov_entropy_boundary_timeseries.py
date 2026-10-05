@@ -16,14 +16,14 @@ import time
 from datetime import datetime
 
 # Keep CPU allocation behavior aligned with run_markov_p_sweep.py
-cpu_cap = 52
+cpu_cap = 20
 os.environ["MY_CPU_COUNT"] = str(1)
 os.environ["OMP_NUM_THREADS"] = str(1)
 os.environ["OPENBLAS_NUM_THREADS"] = str(1)
 os.environ["MKL_NUM_THREADS"] = str(1)
 os.environ["NUMEXPR_MAX_THREADS"] = str(1)
 try:
-    os.sched_setaffinity(0, set(range(cpu_cap)))
+    os.sched_setaffinity(0, set(range(20,20+cpu_cap)))
 except Exception as exc:
     print(f"CPU affinity not set: {exc}")
 try:
@@ -36,10 +36,9 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from tqdm import tqdm
 
-import fgtn.classA_U1FGTN as classA_U1FGTN
 import importlib
-
-importlib.reload(classA_U1FGTN)
+_class_mod = importlib.import_module("fgtn.classA_U1FGTN")
+importlib.reload(_class_mod)
 from fgtn.classA_U1FGTN import classA_U1FGTN
 def entanglement_contour_batch(Gtt_batch, Nx, Ny):
     """
@@ -82,10 +81,9 @@ def main():
     t0 = time.time()
 
     # Lattice + DW parameters
-    Nx, Ny = 12, 31
+    Nx, Ny = 16, 21
     alpha_1, alpha_2 = 30, 1
     cycles = 50
-    p_meas = 1.0
     samples = 100
 
     model = classA_U1FGTN(Nx, Ny, nshell=2, DW=True, alpha_1=alpha_1, alpha_2=alpha_2)
@@ -96,9 +94,10 @@ def main():
     x1 = int(model.DW_loc[1]) % Nx
     left_pair = [x0 % Nx, (x0 + 1) % Nx]
     right_pair = [x1 % Nx, (x1 - 1) % Nx]
+    extra_xs = [x for x in (2, 6, 10) if 0 <= x < Nx]
 
     # 1) Run Markov circuit from maximally mixed initial state
-    init_mode = "maxmix"
+    init_mode = "default"
     strict_maxmix_check = False  # set True to hard-fail if t=0 is not maxmix
     res = model.run_markov_circuit(
         G_history=True,
@@ -107,15 +106,13 @@ def main():
         init_mode=init_mode,
         save=True,
         samples=samples,
-        p_meas=p_meas,
         n_jobs=cpu_cap,
         parallelize_samples=True,
-        sequence="random",
-        top_triv_back_forth=True,
+        sequence="dw_symmetric_random",
         max_in_flight=9*cpu_cap//10,
         save_suffix="_entropy_boundary_timeseries",
     )
-    print(f"Completed p_meas={p_meas:.2f}")
+    print("Completed run_markov_circuit")
 
     G_hist = res.get("G_hist")
     if G_hist is None:
@@ -149,21 +146,58 @@ def main():
                 raise RuntimeError(msg)
             print(f"[warn] {msg}")
 
-    # 2,3,4) Whole-system contour, boundary sums, trajectory averages
+    # 2,3,4) Contour setup:
+    # - maxmix: whole-system contour (no partial trace)
+    # - default: trace out all x for y >= Ny//2, then contour on the kept subsystem
+    if init_mode == "maxmix":
+        sub_indices = None
+        ny_eff = Ny
+        contour_mode_text = "whole system (no partial trace)"
+        contour_mode_tag = "ec_whole"
+        ylabel_lin = r"$\sum_y s(x,y)$"
+        ylabel_log = r"$\sum_y s(x,y)$"
+    else:
+        y_cut = Ny // 2
+        y_keep = np.arange(0, y_cut, dtype=int)  # keep bottom half; traced out: y >= Ny//2
+        sub_indices = []
+        for y in y_keep:
+            base = 2 * Nx * y
+            for x in range(Nx):
+                sub_indices.append(base + 2 * x)
+                sub_indices.append(base + 2 * x + 1)
+        sub_indices = np.asarray(sub_indices, dtype=int)
+        ny_eff = len(y_keep)
+        contour_mode_text = f"subsystem with y < Ny//2 (kept rows={ny_eff})"
+        contour_mode_tag = "ec_subsys_yltNy2"
+        ylabel_lin = r"$\sum_{y \in A} s_A(x,y)$"
+        ylabel_log = r"$\sum_{y \in A} s_A(x,y)$"
+
+    print(f"[info] Contour characterization mode: {contour_mode_text}")
+
+    # 2,3,4) Boundary/x-column sums, trajectory averages
     left_by_sample = np.zeros((S, T), dtype=float)
     right_by_sample = np.zeros((S, T), dtype=float)
+    extra_by_sample = {x: np.zeros((S, T), dtype=float) for x in extra_xs}
 
     tbar = tqdm(range(T), desc="Boundary contour vs cycle", unit="t")
     for t_idx in tbar:
         tbar.set_postfix_str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), refresh=False)
-        s_batch = entanglement_contour_batch(G_hist[:, t_idx], Nx, Ny)  # (S, Nx, Ny)
+        if sub_indices is None:
+            s_batch = entanglement_contour_batch(G_hist[:, t_idx], Nx, Ny)  # (S, Nx, Ny)
+        else:
+            G_sub = G_hist[:, t_idx][:, sub_indices][:, :, sub_indices]
+            s_batch = entanglement_contour_batch(G_sub, Nx, ny_eff)  # (S, Nx, ny_eff)
         left_by_sample[:, t_idx] = np.sum(s_batch[:, left_pair, :], axis=(1, 2))
         right_by_sample[:, t_idx] = np.sum(s_batch[:, right_pair, :], axis=(1, 2))
+        for x in extra_xs:
+            extra_by_sample[x][:, t_idx] = np.sum(s_batch[:, x, :], axis=1)
 
     left_avg = np.mean(left_by_sample, axis=0)
     right_avg = np.mean(right_by_sample, axis=0)
     left_stderr = _stderr(left_by_sample, axis=0)
     right_stderr = _stderr(right_by_sample, axis=0)
+    extra_avg = {x: np.mean(extra_by_sample[x], axis=0) for x in extra_xs}
+    extra_stderr = {x: _stderr(extra_by_sample[x], axis=0) for x in extra_xs}
 
     # 5,6) Plot integrated contour vs cycle (linear and log-y subplots)
     t_vals = np.arange(T, dtype=int)
@@ -173,9 +207,9 @@ def main():
     save_path = res.get("save_path")
     if save_path:
         cache_key = os.path.splitext(os.path.basename(save_path))[0]
-        pdf_name = f"{cache_key}_boundary_entropy_vs_cycle.pdf"
+        pdf_name = f"{cache_key}_{contour_mode_tag}_boundary_entropy_vs_cycle.pdf"
     else:
-        pdf_name = f"markov_p_sweep_boundary_entropy_pm{p_meas:.2f}.pdf"
+        pdf_name = f"markov_p_sweep_{contour_mode_tag}_boundary_entropy.pdf"
     pdf_path = os.path.join(figs_dir, pdf_name)
 
     with PdfPages(pdf_path) as pdf:
@@ -187,9 +221,20 @@ def main():
         ax_lin.errorbar(
             t_vals, right_avg, yerr=right_stderr, marker="o", lw=1.5, capsize=3, label=f"Right boundary (x={right_pair})"
         )
+        for x in extra_xs:
+            ax_lin.errorbar(
+                t_vals,
+                extra_avg[x],
+                yerr=extra_stderr[x],
+                marker="o",
+                lw=1.2,
+                ms=3,
+                capsize=3,
+                label=f"x={x}",
+            )
         ax_lin.set_xlabel("cycle t")
-        ax_lin.set_ylabel(r"$\sum_y s(x,y)$")
-        ax_lin.set_title("Integrated contour vs cycle (linear y)")
+        ax_lin.set_ylabel(ylabel_lin)
+        ax_lin.set_title(f"Integrated contour vs cycle (linear y)\n{contour_mode_text}")
         ax_lin.grid(alpha=0.3)
         ax_lin.legend(fontsize=8)
 
@@ -211,10 +256,21 @@ def main():
             capsize=3,
             label=f"Right boundary (x={right_pair})",
         )
+        for x in extra_xs:
+            ax_log.errorbar(
+                t_vals,
+                extra_avg[x],
+                yerr=_safe_log_yerr(extra_avg[x], extra_stderr[x]),
+                marker="o",
+                lw=1.2,
+                ms=3,
+                capsize=3,
+                label=f"x={x}",
+            )
         ax_log.set_yscale("log")
         ax_log.set_xlabel("cycle t")
-        ax_log.set_ylabel(r"$\sum_y s(x,y)$")
-        ax_log.set_title("Integrated contour vs cycle (log y)")
+        ax_log.set_ylabel(ylabel_log)
+        ax_log.set_title(f"Integrated contour vs cycle (log y)\n{contour_mode_text}")
         ax_log.grid(alpha=0.3)
         ax_log.legend(fontsize=8)
 

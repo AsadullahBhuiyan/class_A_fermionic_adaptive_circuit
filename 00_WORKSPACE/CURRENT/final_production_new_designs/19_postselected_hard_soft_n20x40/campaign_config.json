@@ -1,0 +1,39 @@
+{
+  "sampling_revision": "postselected_maxmix_hard_soft_alpha1_3_nx20_ny40_s1_4ny_contours_gpu_v2",
+  "root_seed": 2026092401,
+  "Nx": 20,
+  "Ny": 40,
+  "cycles": 160,
+  "construction_order": ["hard", "soft"],
+  "samples": 1,
+  "nshell": 1,
+  "alpha_1": 1.0,
+  "alpha_1_values": [1.0, 3.0],
+  "alpha_2": 30.0,
+  "trial_orbitals": "X",
+  "init_mode": "maxmix",
+  "sequence": "raster_y",
+  "postselect": true,
+  "postselect_probability": 1.0,
+  "perfect_correction": false,
+  "dtype": "complex128",
+  "device": "cuda:0",
+  "backend": "local",
+  "state_representation": "covariance",
+  "checkpoint_stride_cycles": 10,
+  "gpu_memory_minimum_gib": 38.0,
+  "constructions": {
+    "hard": {
+      "DW": true,
+      "dw_truncation": true,
+      "meas_slab_only": true,
+      "expected_active_modes": 880
+    },
+    "soft": {
+      "DW": true,
+      "dw_truncation": false,
+      "meas_slab_only": false,
+      "expected_active_modes": 1600
+    }
+  }
+}

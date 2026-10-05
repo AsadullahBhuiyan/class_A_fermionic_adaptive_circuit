@@ -1,0 +1,856 @@
+\documentclass[aps,prb,twocolumn,floatfix]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\graphicspath{{../figures/}}
+
+\newcommand{\Hflat}{H_{\rm flat}}
+\newcommand{\Pocc}{P_{\rm occ}}
+\newcommand{\Cmat}{C}
+\newcommand{\Ns}{N_s}
+\newcommand{\Ny}{N_y}
+\newcommand{\Nx}{N_x}
+\newcommand{\qorb}{q}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\Heff}{h_{\rm ent}}
+\newcommand{\ceff}{c_{\rm eff}}
+
+\begin{document}
+
+\title{Gaussian Entanglement Renormalization of the Flattened Domain-Wall Hamiltonian}
+
+\date{\today}
+
+\begin{abstract}
+We describe a quasi-one-dimensional Gaussian entanglement renormalization
+procedure for the half-filled ground state of the overcomplete-Wannier flattened
+Hamiltonian in the domain-wall Chern-insulator geometry.  The two-dimensional
+system is regarded as a one-dimensional chain in the \(y\) direction, with each
+row carrying \(q=2N_x\) complex-fermion orbitals.  A binary RG layer groups
+neighboring rows, diagonalizes the restricted correlation matrix in each
+two-row block, keeps the natural orbitals with largest \(n(1-n)\), and projects
+the global Gaussian state into the retained subspace.  This construction is
+not a scale-invariant MERA: no disentangler is optimized and the block
+isometries are allowed to depend on layer and position.  Its purpose is instead
+a smoke test for the MERA hypothesis.  If the domain-wall flattened state has
+the expected infrared structure, local Gaussian mode sorting should polarize
+gapped bulk modes while retaining mixed modes localized near the two domain
+walls, and the full-\(x\) strip entropy should remain compatible with
+\(c_{\rm eff}=1\).
+\end{abstract}
+
+\maketitle
+
+\section{Flattened Hamiltonian target state}
+
+The microscopic single-particle Hilbert space has dimension
+\begin{equation}
+  N_{\rm layer}=2N_xN_y,
+\end{equation}
+where the factor of two is the internal Chern-insulator orbital index.  We use
+the same domain-wall benchmark geometry as in the flattened-Hamiltonian
+analysis: \(N_x=20\), \(N_y=40\), \(\alpha_1=1\), \(\alpha_2=30\),
+\(\mathrm{DW}=\mathrm{True}\), and DW-sector truncation enabled.  The
+overcomplete-Wannier spinors are denoted
+\begin{equation}
+  W_{A+},\quad W_{B+},\quad W_{A-},\quad W_{B-},
+\end{equation}
+where \(A,B\) label the two trial spinors and \(\pm\) labels the Chern-insulator
+band projector used in constructing the Wannier orbital.  After reshaping each
+family into a matrix whose columns are Wannier orbitals, the flattened
+single-particle Hamiltonian is
+\begin{equation}
+  \Hflat =
+  W_{A+}W_{A+}^{\dagger}
+  +W_{B+}W_{B+}^{\dagger}
+  -W_{A-}W_{A-}^{\dagger}
+  -W_{B-}W_{B-}^{\dagger}.
+  \label{eq:hflat}
+\end{equation}
+In the notebook this matrix is explicitly Hermitian symmetrized,
+\begin{equation}
+  \Hflat \leftarrow \frac{1}{2}\left(\Hflat+\Hflat^\dagger\right),
+\end{equation}
+before diagonalization.  Let
+\begin{equation}
+  \Hflat u_a = \epsilon_a u_a,\qquad
+  \epsilon_1\leq\epsilon_2\leq\cdots\leq\epsilon_{N_{\rm layer}}.
+\end{equation}
+The half-filled Gaussian ground state is obtained by occupying
+\begin{equation}
+  N_{\rm occ}=N_{\rm layer}/2
+\end{equation}
+single-particle modes.  Equivalently, its occupied-band projector is
+\begin{equation}
+  \Pocc = \sum_{a=1}^{N_{\rm occ}} u_a u_a^\dagger.
+  \label{eq:pocc}
+\end{equation}
+If the number of strictly negative eigenvalues is not exactly \(N_{\rm occ}\),
+the notebook falls back to filling the lowest \(N_{\rm occ}\) eigenvectors.
+
+For the RG calculation we use the standard complex-fermion correlation matrix
+\begin{equation}
+  C_{ij}=\langle c_j^\dagger c_i\rangle,
+  \qquad C=\Pocc.
+  \label{eq:cdef}
+\end{equation}
+The equivalent \(\pm 1\) covariance convention used elsewhere in the repository is
+\begin{equation}
+  G = 2C^* - I.
+\end{equation}
+The entanglement calculations below are performed directly with \(C\), because
+the eigenvalues of a restricted correlation matrix are the occupation numbers
+entering the Gaussian entropy.
+
+\section{Entropy from a restricted Gaussian state}
+
+For any set \(A\) of single-particle orbitals, let \(R_A\) be the rectangular
+restriction matrix that selects those orbitals.  The restricted correlation
+matrix is
+\begin{equation}
+  C_A = R_A C R_A^\dagger.
+  \label{eq:restricted-c}
+\end{equation}
+If \(\lambda_\ell\in[0,1]\) are the eigenvalues of \(C_A\), the von Neumann
+entropy of the many-body Gaussian reduced density matrix is
+\begin{equation}
+  S(A)= -\sum_{\ell}
+  \left[
+    \lambda_\ell\ln\lambda_\ell
+    +(1-\lambda_\ell)\ln(1-\lambda_\ell)
+  \right].
+  \label{eq:entropy}
+\end{equation}
+This follows from the Gaussian normal form
+\begin{equation}
+  \rho_A = Z_A^{-1}\exp\left(-\sum_\ell \xi_\ell f_\ell^\dagger f_\ell\right),
+  \qquad
+  \lambda_\ell = \frac{1}{1+e^{\xi_\ell}},
+  \label{eq:rho-gaussian}
+\end{equation}
+where the \(f_\ell\) are natural fermion modes of the subsystem.
+
+The diagnostic subsystem is a full-\(x\) strip of height \(A_y\),
+\begin{equation}
+  A(y_0,A_y)=
+  [0,N_x)\times[y_0,y_0+A_y)
+\end{equation}
+with periodic wrapping in \(y\).  In the thermodynamic infrared limit expected
+for two counter-propagating domain-wall channels, the averaged strip entropy
+obeys
+\begin{equation}
+  \overline{S}(A_y)
+  = m \log\left[
+      \frac{N_y}{\pi}\sin\left(\frac{\pi A_y}{N_y}\right)
+    \right]+b,
+  \qquad
+  c_{\rm est}=3m.
+  \label{eq:logchord}
+\end{equation}
+For the full-\(x\) strip in the physical domain-wall benchmark, the target is
+\begin{equation}
+  c_{\rm est}\to c_{\rm eff}=1.
+  \label{eq:target-c}
+\end{equation}
+This value is not the chiral central charge of a single edge.  It is the
+Calabrese-Cardy effective central charge seen by a quasi-one-dimensional cut
+that intersects both domain-wall channels.
+
+\section{Supersite representation}
+
+The RG is performed along \(y\).  We combine all orbitals in a fixed row into a
+single supersite.  A microscopic orbital index is written as
+\begin{equation}
+  i=(y,\mu),
+  \qquad
+  y=0,\ldots,N_y-1,
+  \qquad
+  \mu=1,\ldots,q,
+  \qquad
+  q=2N_x.
+  \label{eq:supersite-index}
+\end{equation}
+In the code, \(\mu\) is the combined \((x,\sigma)\) index.  With this ordering
+the correlation matrix is a block matrix
+\begin{equation}
+  C_{y\mu,y'\nu}.
+\end{equation}
+At RG layer \(\ell\), the number of supersites is \(N_y^{(\ell)}\), while the
+number of retained orbitals per supersite is kept fixed at \(q=2N_x\).  The
+default sequence is therefore
+\begin{equation}
+  N_y^{(0)}=40,\qquad
+  N_y^{(1)}=20,\qquad
+  N_y^{(2)}=10.
+  \label{eq:ny-flow}
+\end{equation}
+
+\section{Block natural-orbital RG}
+
+A binary RG layer groups neighboring supersites,
+\begin{equation}
+  B_j=\{2j,2j+1\},
+  \qquad
+  j=0,\ldots,N_y^{(\ell)}/2-1.
+\end{equation}
+The corresponding two-row block contains \(2q\) fermion modes.  Let \(R_j\) be
+the \(2q\times qN_y^{(\ell)}\) restriction matrix selecting those modes.  The
+local block correlation matrix is
+\begin{equation}
+  C_{B_j} = R_j C^{(\ell)} R_j^\dagger.
+  \label{eq:block-c}
+\end{equation}
+It is diagonalized as
+\begin{equation}
+  C_{B_j}=V_j n_j V_j^\dagger,
+  \qquad
+  n_j=\diag(n_{j,1},\ldots,n_{j,2q}).
+  \label{eq:natural-orbitals}
+\end{equation}
+The columns of \(V_j\) define natural orbitals
+\begin{equation}
+  d_{j,a}=\sum_{\beta=1}^{2q}(V_j)_{\beta a}^\dagger c_{B_j,\beta},
+\end{equation}
+with occupations
+\begin{equation}
+  \langle d_{j,a}^\dagger d_{j,a}\rangle=n_{j,a}.
+\end{equation}
+For a Gaussian state, \(n_{j,a}\) has a direct entanglement interpretation.  If
+\(n_{j,a}\) is close to \(0\) or \(1\), then that natural mode is nearly pure
+inside the block and weakly entangled with the complement.  If
+\(n_{j,a}\approx 1/2\), the mode is strongly mixed and carries long-distance
+entanglement.
+
+The notebook ranks modes using
+\begin{equation}
+  \chi_{j,a}=n_{j,a}(1-n_{j,a}).
+  \label{eq:chi}
+\end{equation}
+This quantity is maximal at \(n=1/2\) and vanishes at \(n=0,1\).  In each
+two-row block, the \(q\) modes with largest \(\chi_{j,a}\) are retained.  If
+\(K_j\) denotes this set of retained natural-orbital labels, the local isometry
+is
+\begin{equation}
+  W_j =
+  \begin{pmatrix}
+    | & & | \\
+    v_{j,a_1} & \cdots & v_{j,a_q} \\
+    | & & |
+  \end{pmatrix},
+  \qquad
+  a_1,\ldots,a_q\in K_j,
+  \label{eq:local-isometry}
+\end{equation}
+where \(v_{j,a}\) is the \(a\)-th column of \(V_j\).  Thus
+\begin{equation}
+  W_j^\dagger W_j=I_q.
+\end{equation}
+The global isometry is the block direct sum
+\begin{equation}
+  W^{(\ell)}=\bigoplus_j W_j.
+  \label{eq:global-isometry}
+\end{equation}
+It maps the fine layer's \(qN_y^{(\ell)}\) modes to the coarse layer's
+\(qN_y^{(\ell+1)}\) modes, with
+\begin{equation}
+  N_y^{(\ell+1)}=N_y^{(\ell)}/2.
+\end{equation}
+The coarse correlation matrix is
+\begin{equation}
+  C^{(\ell+1)}
+  =
+  \left(W^{(\ell)}\right)^\dagger
+  C^{(\ell)}
+  W^{(\ell)}.
+  \label{eq:coarse-c}
+\end{equation}
+This is the central update of the notebook.
+
+It is useful to also keep track of the embedding of each coarse mode into the
+original microscopic Hilbert space.  Define
+\begin{equation}
+  E^{(0)}=I,
+\end{equation}
+and recursively
+\begin{equation}
+  E^{(\ell+1)}=E^{(\ell)}W^{(\ell)}.
+  \label{eq:embedding}
+\end{equation}
+The \(x\)-profile plotted in the notebook is
+\begin{equation}
+  p^{(\ell)}(x)
+  =
+  \frac{
+    \sum_{y,\sigma,a}
+    \left|E^{(\ell)}_{(x,y,\sigma),a}\right|^2
+  }{
+    \sum_{x',y,\sigma,a}
+    \left|E^{(\ell)}_{(x',y,\sigma),a}\right|^2
+  }.
+  \label{eq:x-profile}
+\end{equation}
+If the retained subspace is dominated by the domain-wall edge channels, this
+profile should place enhanced weight near the two domain-wall positions.
+
+\section{Relation to MERA}
+
+The update in Eq.~\eqref{eq:coarse-c} has the same algebraic form as a Gaussian
+MERA coarse graining after setting all disentanglers to the identity:
+\begin{equation}
+  C^{(\ell+1)}
+  =
+  \left(W^{(\ell)}\right)^\dagger
+  \left(U^{(\ell)} C^{(\ell)} U^{(\ell)\dagger}\right)
+  W^{(\ell)},
+  \qquad
+  U^{(\ell)}=I.
+  \label{eq:mera-with-u}
+\end{equation}
+A genuine scale-invariant Gaussian MERA would go further.  One would optimize
+local Gaussian unitaries \(U\) across block boundaries and local isometries
+\(W\), then reuse the same tensors at every layer, at least after microscopic
+transients.  In such a construction \(U\) and \(W\) are variational parameters
+chosen to minimize the energy, maximize local disentangling, or impose an
+approximate fixed-point condition on the coarse-grained correlation matrix.
+
+The present RG deliberately avoids that harder variational problem.  Its
+limitations are:
+\begin{enumerate}
+\item no boundary disentangler is optimized;
+\item the isometries \(W_j\) are determined independently in each block;
+\item the isometries are layer dependent;
+\item the procedure is diagnostic rather than a compact ansatz for the whole
+      many-body state.
+\end{enumerate}
+For this reason the notebook should be interpreted as a Gaussian entanglement
+RG, not as a completed MERA construction.
+
+\section{Scale-invariant Gaussian MERA prototype}
+
+The companion notebook \texttt{scale\_invariant\_gaussian\_mera.ipynb}
+implements the first variational step beyond the smoke-test RG.  The goal is
+not to optimize an unconstrained \(U(80)\times{\rm Stiefel}(80,40)\) ansatz,
+but to test whether a single repeated Gaussian layer can behave as an
+approximately scale-invariant coarse grainer for the domain-wall state.
+
+\subsection{Repeated layer geometry}
+
+At a fixed RG layer, write the quasi-one-dimensional state as \(C\) on
+\(N_y\) supersites with internal dimension \(q=2N_x\).  A binary MERA layer has
+two staggered operations.  First, a repeated boundary disentangler
+\(u\in U(2q)\) acts on the pairs
+\begin{equation}
+  (1,2),\;(3,4),\ldots,\;(N_y-1,0),
+  \label{eq:boundary-pairs}
+\end{equation}
+where the final pair uses periodic wrapping.  The corresponding global unitary
+is
+\begin{equation}
+  U = \bigoplus_{j=0}^{N_y/2-1} u_{(2j+1,\,2j+2)}.
+  \label{eq:global-disentangler}
+\end{equation}
+Second, a repeated isometry \(w\in\mathbb{C}^{2q\times q}\) with
+\begin{equation}
+  w^\dagger w=I_q
+  \label{eq:w-isometry}
+\end{equation}
+acts on the block pairs
+\begin{equation}
+  (0,1),\;(2,3),\ldots,\;(N_y-2,N_y-1).
+  \label{eq:block-pairs}
+\end{equation}
+The global isometry is
+\begin{equation}
+  W = \bigoplus_{j=0}^{N_y/2-1} w_{(2j,\,2j+1)}.
+  \label{eq:global-repeated-isometry}
+\end{equation}
+The single-particle correlation matrix is then updated by
+\begin{equation}
+  C' = W^\dagger U C U^\dagger W.
+  \label{eq:si-mera-update}
+\end{equation}
+Equation~\eqref{eq:si-mera-update} is the finite-correlation-matrix form of a
+Gaussian MERA layer.  Its difference from Eq.~\eqref{eq:coarse-c} is not the
+algebraic form, but the variational restriction: the same \(u\) and \(w\) are
+reused at every block and, in the scale-invariant test, at every layer.
+
+\subsection{Initialization of the repeated isometry}
+
+The repeated isometry is initialized from the translation-averaged two-row
+correlation matrix on the block pairing in Eq.~\eqref{eq:block-pairs}.  Define
+\begin{equation}
+  \overline{C}_{B}
+  =
+  \frac{2}{N_y}
+  \sum_{j=0}^{N_y/2-1}
+  R_{2j,2j+1} C R_{2j,2j+1}^\dagger,
+  \label{eq:avg-block-c}
+\end{equation}
+where \(R_{a,b}\) restricts to the two supersites \(a,b\).  Diagonalize
+\begin{equation}
+  \overline{C}_B = V_B n_B V_B^\dagger,
+\end{equation}
+rank the \(2q\) natural orbitals by
+\begin{equation}
+  \chi_a = n_a(1-n_a),
+\end{equation}
+and form \(w\) from the \(q\) columns of \(V_B\) with largest \(\chi_a\).
+Thus the repeated isometry is the translationally averaged analogue of the
+block-dependent natural-orbital map used in the smoke-test RG.
+
+\subsection{Fixed-point covariance objective}
+
+To test approximate scale invariance, the notebook compares translation-averaged
+block correlators before and after coarse graining.  For the fine state define
+\begin{equation}
+  \overline{C}_{0r}
+  =
+  \frac{1}{N_y}
+  \sum_{y=0}^{N_y-1}
+  R_y C R_{y+r}^\dagger,
+  \label{eq:avg-correlator}
+\end{equation}
+where \(R_y\) restricts to the \(q\) orbitals on supersite \(y\).  For the
+coarse state \(C'\), the analogous object is \(\overline{C}'_{0r}\).  A
+scale-invariant layer should map coarse separation \(r\) to fine separation
+\(2r\), so the loss is
+\begin{equation}
+  \mathcal{L}
+  =
+  \sum_{r=0}^{r_{\max}}
+  \omega_r
+  \frac{
+    \left\|
+      \overline{C}'_{0r}-\overline{C}_{0,2r}
+    \right\|_F^2
+  }{
+    \left\|
+      \overline{C}_{0,2r}
+    \right\|_F^2+\epsilon
+  }.
+  \label{eq:fixed-point-loss}
+\end{equation}
+The implementation uses \(\omega_r=(1+r)^{-1}\).  This objective is
+gauge-sensitive because the retained coarse modes define an internal basis.
+Consequently the fixed-point loss is interpreted together with the physical
+diagnostics: the log-chord entropy coefficient, the entanglement spectrum, and
+the retained \(x\)-profile.
+
+\subsection{Active-subspace disentangler}
+
+The first optimized disentangler is restricted to a small active subspace of
+the boundary pair.  Let
+\begin{equation}
+  \overline{C}_{\partial}
+  =
+  \frac{2}{N_y}
+  \sum_{j=0}^{N_y/2-1}
+  R_{2j+1,2j+2} C R_{2j+1,2j+2}^\dagger
+  \label{eq:avg-boundary-c}
+\end{equation}
+be the averaged two-row correlation matrix on the disentangler pairing.  Its
+natural orbitals with largest \(\chi=n(1-n)\) define an orthonormal matrix
+\begin{equation}
+  B\in\mathbb{C}^{2q\times m},\qquad B^\dagger B=I_m,
+\end{equation}
+with \(m=12\) in the default run and \(m=4\) in smoke tests.  A small unitary on
+this subspace is parameterized as
+\begin{equation}
+  u_{\rm act}=\exp K,\qquad K^\dagger=-K.
+  \label{eq:active-exp}
+\end{equation}
+It is embedded into the full two-supersite disentangler by
+\begin{equation}
+  u = I_{2q} + B\left(u_{\rm act}-I_m\right)B^\dagger.
+  \label{eq:active-embed}
+\end{equation}
+The entries of the anti-Hermitian generator \(K\) are optimized with
+\texttt{scipy.optimize.minimize} using the fixed-point loss in
+Eq.~\eqref{eq:fixed-point-loss}.  This gives a controlled, low-dimensional
+variational step toward a true Gaussian MERA without attempting a fragile
+full-matrix optimization.
+
+\subsection{Acceptance diagnostics}
+
+The scale-invariant MERA prototype is considered successful only if several
+diagnostics agree.  The fixed-point loss should decrease after optimizing the
+active disentangler; the repeated-layer entropy should remain close to
+\(c_{\rm eff}=1\); the retained subspace should remain localized near the two
+domain walls in \(x\); and the half-chain entanglement spectrum near
+\(\lambda=1/2\) should be preserved under repeated coarse graining.  A reduced
+loss without these physical signatures would be treated as a gauge artifact, not
+as evidence for an infrared MERA fixed point.
+
+\section{Self-consistent MERA v2}
+
+The first scale-invariant prototype is useful because it exposes a failure mode.
+It applies a microscopic natural-orbital isometry repeatedly, but the output of
+one layer is not guaranteed to be a pure Gaussian fixed-point state in the same
+internal gauge.  If the discarded modes remain entangled with the retained
+subspace, the raw compressed matrix
+\begin{equation}
+  C_{\rm raw}'=W^\dagger U C U^\dagger W
+  \label{eq:raw-compression}
+\end{equation}
+has eigenvalues spread through \([0,1]\), rather than being close to a
+projector.  Repeating this mixed compression can create spurious interval
+entropy unrelated to the edge CFT.  This is precisely the pathology that the
+second notebook version is designed to diagnose.
+
+\subsection{Raw and purified coarse states}
+
+The v2 notebook separates the raw compressed matrix from the pure Gaussian
+teacher state used for repeated-layer diagnostics.  After Eq.~\eqref{eq:raw-compression},
+one constructs
+\begin{equation}
+  C_{\rm pure}'=\Pi_{1/2}(C_{\rm raw}'),
+  \label{eq:pure-projection}
+\end{equation}
+where \(\Pi_{1/2}\) denotes diagonalizing \(C_{\rm raw}'\) and occupying the
+largest half of its eigenmodes.  Thus \(C_{\rm pure}'\) is the nearest
+half-filled projector in the eigenbasis of \(C_{\rm raw}'\).  The raw matrix is
+not discarded: the notebook reports the idempotency defect
+\begin{equation}
+  \delta_{\rm idem}(C_{\rm raw}')
+  =
+  \frac{\left\|C_{\rm raw}'{}^2-C_{\rm raw}'\right\|_F}
+       {\sqrt{\dim C_{\rm raw}'}}.
+  \label{eq:idem-defect}
+\end{equation}
+If this defect is large, the layer has not yet learned a true MERA
+disentangler-isometry pair, even if the purified teacher state has stable
+long-distance observables.
+
+\subsection{Discarded-sector diagnostics}
+
+Let \(d\in\mathbb{C}^{2q\times q}\) be an orthonormal complement to the retained
+isometry \(w\), so that \((w,d)\) is unitary on a two-supersite block.  For the
+post-disentangler local block correlation \(C_B^U\), define
+\begin{align}
+  C_{KK} &= w^\dagger C_B^U w, &
+  C_{DD} &= d^\dagger C_B^U d, &
+  C_{KD} &= w^\dagger C_B^U d .
+\end{align}
+The discarded-sector occupations are the eigenvalues \(n_{d,a}\) of \(C_{DD}\).
+A successful layer should make these modes nearly pure and weakly coupled to
+the retained sector:
+\begin{equation}
+  \overline{\chi}_{D}
+  =
+  \frac{1}{q}\sum_{a=1}^{q} n_{d,a}(1-n_{d,a})
+  \approx 0,
+  \qquad
+  \|C_{KD}\|_F^2 \approx 0.
+  \label{eq:discard-diagnostics}
+\end{equation}
+These quantities directly test the local MERA requirement that discarded modes
+be disentangled, rather than merely removed.
+
+\subsection{Self-consistent isometry update}
+
+The v2 notebook also avoids blindly reusing the microscopic \(w\).  Starting
+from the averaged natural-orbital isometry, it performs a teacher iteration:
+\begin{enumerate}
+\item apply one raw MERA layer using the current \(w\);
+\item project the coarse matrix to \(C_{\rm pure}'\);
+\item extract a new averaged natural-orbital isometry \(w_{\rm next}\) from
+      \(C_{\rm pure}'\);
+\item align \(w_{\rm next}\) to the old output gauge by a Procrustes/polar
+      rotation;
+\item damp-update \(w\) and re-orthonormalize.
+\end{enumerate}
+The gauge alignment solves
+\begin{equation}
+  R_*=\arg\min_{R^\dagger R=I_q}\|w_{\rm next}R-w\|_F,
+  \label{eq:procrustes}
+\end{equation}
+implemented by the polar factor of \(w_{\rm next}^\dagger w\).  The damped
+update is
+\begin{equation}
+  w \leftarrow {\rm qf}\!\left[(1-\eta)w+\eta\,w_{\rm next}R_*\right],
+  \label{eq:damped-w}
+\end{equation}
+where \({\rm qf}\) denotes QR re-orthonormalization and \(\eta\) is the damping
+parameter.
+
+\subsection{Composite v2 objective}
+
+The active-subspace disentangler in v2 is optimized against a composite loss
+whose leading terms enforce local MERA consistency:
+\begin{equation}
+  \mathcal{L}_{\rm v2}
+  =
+  \lambda_{\rm idem}\delta_{\rm idem}^2
+  +\lambda_{\rm disc}\overline{\chi}_{D}
+  +\lambda_{\rm cross}\overline{\|C_{KD}\|_F^2}
+  +\lambda_{\rm fp}\mathcal{L}_{\rm corr}.
+  \label{eq:v2-loss}
+\end{equation}
+The default notebook weights are
+\begin{equation}
+  \lambda_{\rm idem}=1,\qquad
+  \lambda_{\rm disc}=2,\qquad
+  \lambda_{\rm cross}=1,\qquad
+  \lambda_{\rm fp}=0.05.
+\end{equation}
+The small coefficient of \(\mathcal{L}_{\rm corr}\) reflects the fact that the
+block-correlator fixed-point loss is gauge-sensitive.  For a first MERA smoke
+test, purity and discarded-sector polarization are more direct indicators that
+the layer is learning a legitimate coarse graining.
+
+The v2 construction remains a controlled prototype.  It is not a full
+unconstrained optimization over \(u\in U(2q)\) and
+\(w\in{\rm Stiefel}(2q,q)\).  Its purpose is to determine whether the visible
+domain-wall subspace can be made stable under repeated quasi-one-dimensional
+Gaussian coarse graining before attempting a more expensive variational MERA.
+
+\section{Finite-depth Gaussian MERA attempt}
+
+The follow-up notebook
+\texttt{finite\_depth\_gaussian\_mera.ipynb} removes the strongest assumption
+in the scale-invariant prototypes: it does not force a single microscopic
+tensor pair to act at every scale.  Instead, each layer has its own Gaussian
+maps
+\begin{equation}
+  C^{(\ell+1)}
+  =
+  W_\ell^\dagger U_\ell C^{(\ell)} U_\ell^\dagger W_\ell,
+  \qquad
+  \ell=0,1,\ldots ,
+  \label{eq:finite-depth-layer}
+\end{equation}
+with \(U_\ell=\oplus_B u_{\ell,B}\) acting on the odd-even block boundaries and
+\(W_\ell=\oplus_B w_{\ell,B}\) acting on the even-odd blocks that are then
+coarse grained.  In the translationally averaged version used in the notebook,
+all \(u_{\ell,B}\) in a given layer are tied to the same active-subspace
+unitary \(u_\ell\), and all \(w_{\ell,B}\) are tied to the same two-row
+isometry \(w_\ell\).  The crucial difference from a scale-invariant ansatz is
+that \(u_0,w_0\) and \(u_1,w_1\) are learned independently.
+
+For a fixed layer, the notebook first applies a candidate boundary
+disentangler,
+\begin{equation}
+  C_U^{(\ell)}=U_\ell C^{(\ell)}U_\ell^\dagger ,
+\end{equation}
+and then forms the averaged two-row block covariance
+\begin{equation}
+  \overline{C}_{B}^{(\ell)}
+  =
+  \frac{2}{N_y^{(\ell)}}\sum_{j=0}^{N_y^{(\ell)}/2-1}
+  R_{2j,2j+1}C_U^{(\ell)}R_{2j,2j+1}^\dagger .
+\end{equation}
+The isometry \(w_\ell\) is extracted only after this disentangling step, by
+diagonalizing \(\overline{C}_B^{(\ell)}\) and retaining the \(q\) orbitals with
+largest \(\chi_a=n_a(1-n_a)\).  This ordering is closer to the MERA logic:
+the disentangler should make the discarded sector locally pure before the
+isometry chooses which modes to keep.
+
+The active \(u_\ell\) search used here is deliberately modest.  An active basis
+is chosen from the most mixed eigenvectors of the averaged boundary covariance,
+and random anti-Hermitian generators \(K=-K^\dagger\) are exponentiated inside
+that subspace,
+\begin{equation}
+  u_\ell
+  =
+  I_{2q}
+  +B_\ell\left(e^K-I_m\right)B_\ell^\dagger .
+\end{equation}
+Each accepted trial lowers the local objective
+\begin{equation}
+  \mathcal{L}_{\rm fd}
+  =
+  \lambda_{\rm idem}\delta_{\rm idem}^2
+  +\lambda_{\rm disc}\overline{\chi}_{D}
+  +\lambda_{\rm cross}\overline{\|C_{KD}\|_F^2}
+  +\lambda_{\rm fp}\mathcal{L}_{\rm corr}.
+  \label{eq:finite-depth-loss}
+\end{equation}
+The objective is the same physical test as in Eq.~\eqref{eq:v2-loss}, but it
+is now applied separately at each scale rather than to a repeated fixed-point
+map.
+
+The full \(N_x=20,N_y=40\) run gives an instructive outcome.  The independent
+finite-depth natural-orbital flow with \(u_\ell=I\) remains nearly pure through
+two layers, with raw idempotency defects of order \(10^{-5}\), and its fitted
+central charge stays close to one:
+\begin{equation}
+  c_{\rm est}^{(0)}\simeq1.0000,\qquad
+  c_{\rm est}^{(1)}\simeq1.0538,\qquad
+  c_{\rm est}^{(2)}\simeq1.0162 .
+\end{equation}
+This is the first positive MERA-like result: the catastrophic layer-two
+entropy blowup of the repeated scale-invariant ansatz is not present once the
+isometry is allowed to change with scale.  The retained \(x\)-profile remains
+peaked near the domain walls, and the discarded natural-orbital occupations
+are strongly polarized.
+
+The active random disentangler does not yet improve the raw finite-depth flow.
+With the present small active search it slightly worsens the second-layer
+entropy drift, while a purified-teacher variant gives \(c_{\rm est}\approx1\)
+only because the state is explicitly projected back to a half-filled Gaussian
+projector after each layer.  Thus the main lesson is not that the active
+optimizer is successful, but that the scale-invariance constraint was the
+dominant failure mode.  A practical next step is to use the learned finite-depth
+\(\{w_\ell\}\) as data: gauge-align them across layers, compare their
+difference, and only then fit a reusable scale-invariant tensor.
+
+\subsection{Attempted scale-invariant fit from finite-depth tensors}
+
+The notebook now performs this last diagnostic explicitly.  Let \(w_0\) be the
+isometry learned for the \(40\to20\) step and \(w_1\) the isometry learned for
+the \(20\to10\) step.  Since the output basis of each isometry is arbitrary,
+the first comparison removes the right output gauge by solving
+\begin{equation}
+  R_*=\arg\min_{R^\dagger R=I_q}\|w_1R-w_0\|_F .
+\end{equation}
+Equivalently, if \(w_1^\dagger w_0=U\Sigma V^\dagger\), then
+\(R_*=UV^\dagger\).  The notebook records
+\begin{equation}
+  \Delta_{\rm out}
+  =
+  \frac{\|w_1R_*-w_0\|_F}{\|w_0\|_F},
+  \qquad
+  \Delta_P
+  =
+  \frac{\|w_1w_1^\dagger-w_0w_0^\dagger\|_F}{\sqrt q},
+\end{equation}
+together with the principal singular values of \(w_0^\dagger w_1\).
+
+For the full run the layer tensors are not close:
+\begin{equation}
+  \Delta_{\rm out}\simeq0.875,\qquad
+  \Delta_P\simeq0.957
+  \qquad
+  \text{for the } u=I \text{ finite-depth flow}.
+\end{equation}
+Even the active and purified variants only reduce these numbers to roughly
+\(\Delta_{\rm out}\simeq0.77\)--\(0.78\) and
+\(\Delta_P\simeq0.85\)--\(0.86\).  This is too large to interpret the two
+finite-depth layers as small gauge deformations of a single scale-invariant
+isometry.
+
+As a direct stress test, the notebook constructs an averaged candidate
+\begin{equation}
+  w_* = {\rm qf}\!\left[\frac{1}{2}(w_0+w_1R_*)\right],
+\end{equation}
+and reuses \(w_*\) as a repeated scale-invariant tensor.  This fails
+immediately: for the \(u=I\) finite-depth tensors the repeated fit gives
+\(c_{\rm est}\sim 3.8\times10^2\) after one layer and has raw idempotency
+defect of order \(10^{-1}\).  Thus the finite-depth construction is a positive
+real-space RG, but it is not yet evidence for an ordinary one-site-periodic
+scale-invariant MERA.  A viable scale-invariant construction would need either
+a better coarse-site gauge, a nontrivial repeating disentangler optimized
+together with \(w\), or a larger unit cell in scale.
+
+\subsection{Canonical gauge, period-two test, and reduced wall channels}
+
+The finite-depth notebook was extended with three further tests of this
+obstruction.  First, each coarse state is put in a canonical onsite gauge.
+For a layer-\(\ell\) covariance, define the translation-averaged onsite and
+nearest-neighbor matrices
+\begin{equation}
+  \overline C_0^{(\ell)}
+  =
+  \frac{1}{N_y^{(\ell)}}\sum_y C_{y,y}^{(\ell)},
+  \qquad
+  \overline C_1^{(\ell)}
+  =
+  \frac{1}{N_y^{(\ell)}}\sum_y C_{y,y+1}^{(\ell)} .
+\end{equation}
+The unitary \(G_\ell\) is chosen to diagonalize \(\overline C_0^{(\ell)}\),
+with residual near-degenerate subspaces fixed by the Hermitian part of
+\(\overline C_1^{(\ell)}\).  The layer isometry is then compared in the
+gauge-fixed form
+\begin{equation}
+  \widetilde w_\ell
+  =
+  (G_\ell^\dagger\oplus G_\ell^\dagger)\,
+  w_\ell\,G_{\ell+1}.
+\end{equation}
+This asks whether the apparent scale dependence was merely a poor choice of
+coarse orbital basis.
+
+It was not.  For the \(N_y=40\) run the canonical-gauge mismatch between the
+two finite-depth layers is still order one:
+\begin{equation}
+  \Delta_{\rm out}\simeq0.878,\qquad
+  \Delta_P\simeq0.957
+  \qquad (u=I).
+\end{equation}
+The active and purified variants only reduce this to
+\(\Delta_{\rm out}\simeq0.78\)--\(0.80\).  Thus canonical onsite gauge fixing
+does not turn the finite-depth tensors into a one-tensor fixed point.
+
+Second, an optional \texttt{GENTRG\_DEEP\_NY80=1} run performs
+\(80\to40\to20\to10\), with active disentangler optimization disabled so that
+the deeper finite-depth natural-orbital flow is affordable.  The entropy flow
+remains good: \(c_{\rm est}\simeq1.113,1.059,1.027\) after the three coarse
+layers, with raw idempotency defects of order \(10^{-5}\).  However, the
+period-two hypothesis also fails.  Comparing layer \(0\) and layer \(2\) in
+canonical gauge gives
+\begin{equation}
+  \Delta_{\rm out}^{(0,2)}\simeq0.869,\qquad
+  \Delta_P^{(0,2)}\simeq0.940 .
+\end{equation}
+The finite-depth flow is therefore not a simple period-two scale-invariant
+cycle in this row-orbital basis.
+
+Third, the notebook tests a deliberately simple domain-wall-channel projection:
+keep only the microscopic orbitals with \(x\) within one lattice spacing of
+each domain wall, giving \(q_{\rm eff}=12\), purify the projected covariance to
+a half-filled Gaussian projector, and run the same natural-orbital finite-depth
+RG.  This projection is too crude.  The initial projected state already has
+\(c_{\rm est}\simeq2\), and under coarse graining it drifts to values between
+roughly \(3\) and \(5\).  Although the retained subspace is by construction
+wall-localized, the simple real-space wall window does not isolate the single
+low-energy Dirac channel.  A useful reduced theory must be built from
+Hamiltonian or correlation eigenchannels localized at the walls, not from a
+hard \(x\)-space window.
+
+\section{Why this is a useful smoke test}
+
+The physical question is whether the flattened-Hamiltonian ground state has an
+infrared decomposition into gapped two-dimensional bulk modes plus gapless
+domain-wall modes.  The smoke-test logic is:
+\begin{align}
+  \text{gapped local bulk mode}
+  &\Longrightarrow n\approx0 \text{ or }1
+  \Longrightarrow \chi=n(1-n)\approx0,
+  \\
+  \text{IR entangled edge mode}
+  &\Longrightarrow n\approx1/2
+  \Longrightarrow \chi\approx1/4.
+\end{align}
+Thus a successful local Gaussian mode sort should discard polarized modes and
+retain mixed modes.  The retained subspace should then be localized near the
+domain walls in \(x\), while the strip entropy should continue to fit the
+periodic log-chord form with \(c_{\rm est}\) close to one.
+
+Failure is also informative.  If the retained modes are not wall localized, the
+full-\(x\) entropy slope rapidly drifts, or the discarded modes are not
+polarized, then an optimized scale-invariant MERA is premature.  The likely
+fixes would be to include explicit disentanglers, enlarge the local block with
+buffer rows, first project onto an edge-mode subspace, or increase the system
+size to reduce finite-size mixing between the two domain walls.
+
+\section{Notebook observables}
+
+The notebook records four primary diagnostics at each layer:
+\begin{enumerate}
+\item the averaged full-\(x\) strip entropy and the fit
+      \(c_{\rm est}=3m\);
+\item the kept and discarded natural-orbital occupation spectra;
+\item the retained-subspace \(x\)-profile \(p^{(\ell)}(x)\);
+\item the half-chain entanglement spectrum near \(\lambda=1/2\).
+\end{enumerate}
+Together these observables test the minimal necessary ingredients for a future
+scale-invariant Gaussian MERA: local mode polarization, wall localization of
+the retained modes, and persistence of the expected \(c_{\rm eff}=1\) infrared
+entanglement coefficient.
+
+\end{document}

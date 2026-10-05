@@ -1,0 +1,19 @@
+{
+  "schema_version": 2,
+  "campaign": "mean_channel_lindblad_cpu_v2_hybrid_response",
+  "backend": "numpy_scipy_cpu_complex128",
+  "trajectory_samples": 0,
+  "schedule_samples": 0,
+  "permanent_covariance_bytes": 0,
+  "files": {
+    "README.md": "e574ef23381ed2b6e775d925138fd08cf20cbefe93d11a84cc4e97c1fb8bdc8e",
+    "analyze_campaign.py": "cf6c259f720e114e482b2493c1030340310b907919dbc30089fa2caecfef9af2",
+    "campaign_config.json": "aa2956995cac5fd48dbee09010cdd7afa8395dc6155dba9ce4b760f299e4ffc6",
+    "mean_channel_lindblad_cpu.py": "3efc79ee1434110bf092927096db7de94bdd2862e5aaefd609e8205d28e36647",
+    "run_campaign.py": "113c4e204a5889536a4713b4010563f6b614ddc3387637e86b86cc56f211ed11"
+  },
+  "documents": {
+    "../experiment_review/numerical_campaign_legacy_working.pdf": "163b5b952096aa5f5f25c6ecfb9d387ef4b4b23e9de5ed0c3c451bae571a46af",
+    "../experiment_review/legacy_evidence_figure_atlas/legacy_evidence_figure_atlas.pdf": "ad64955fd814adb7eb8cf5a9a81bad1e47d139e6c6d9f040f4eeee98801f7e32"
+  }
+}

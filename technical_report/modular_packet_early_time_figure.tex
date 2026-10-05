@@ -1,0 +1,34 @@
+% Optional drop-in; requires graphicx and the report's existing graphicspath.
+% Previous stacked figure files and the main manuscript remain unchanged.
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.98\textwidth]{modular_handedness_n20x32_y8_v2.pdf}
+    \caption{\textbf{Opposite directed modular drift and control comparison.}
+    Hard-wall $20\times32$ endpoints with $n_{\rm shell}=1$, $\alpha_2=30$,
+    and $S=100$ independent trajectories per $\alpha_1$. Random pure states
+    with Born-conditioned exterior product preparation undergo 64 raster-ordered
+    cycles with perfect correction in complex128. Each of 32 translated cuts
+    retains all $x$ columns and 16 consecutive $y$ rows. Independent charge-2
+    packets occupy both orbitals at $(x,y_{\rm rel})=(5,8),(15,8)$.
+    (a,b) For $\alpha_1=1$, evolved density is summed within periodic $x$
+    distance 2 of each source wall and normalized by instantaneous retained
+    charge, separately for every trajectory and cut. Conditional probabilities
+    are averaged over cuts within each trajectory and then trajectories.
+    Maps share a linear probability scale. Position $y_{\rm rel}-8$ is relative
+    to injection, not the cut origin; dashed guides mark zero. Colored curves
+    give the maps' first moments. (c) Mean displacement from injection for both
+    ensembles: orange/blue denote $\alpha_1=1$, gray/black the $\alpha_1=3$
+    control, solid/dashed the $x=5,15$ sources. (d) The wall contrast
+    $D_\chi=(\Delta y_5-\Delta y_{15})/2$ is formed within each trajectory
+    before averaging. Bands are $\pm$ one trajectory SEM; cuts are not
+    independent samples, and the ensembles are not paired. Evolution uses
+    $\exp(-iK_A t_{\rm mod})$, with
+    $K_A=-2\operatorname{arctanh}(2C_A-\mathbf{1}_A)$ and centered eigenvalues
+    clipped to $[-1+10^{-10},1-10^{-10}]$. Signs persist across the tested
+    cutoffs, while magnitudes and ripple periods are cutoff dependent.
+    The control is weakly mobile, not exactly stationary; $D_\chi$ is not a
+    topological invariant. Curves span $0\leq t_{\rm mod}\leq1$ at spacing
+    $0.01$, without smoothing, unwrapping, or velocity fits. Modular time is
+    not physical circuit time.}
+    \label{fig:HardWallEarlyTimeModularPackets}
+\end{figure*}

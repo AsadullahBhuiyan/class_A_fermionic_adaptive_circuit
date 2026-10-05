@@ -1,0 +1,146 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+\begin{document}
+\title{Unequal-time density correlations in Gaussian adaptive circuits}
+\author{Working derivation}
+\date{September 27, 2026}
+\begin{abstract}
+We distinguish Gaussian states at individual times from a jointly Gaussian
+space-time process. We derive the usual Wick expression when the latter applies
+and an exact Gaussian-probe representation of ordered density correlations for
+an adaptive Markov circuit. Neither endpoint covariance nor the modular
+Hamiltonian alone determines correlations in physical circuit time.
+\end{abstract}
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Observable and convention}
+Let $\hat n_i=\hat c_i^\dagger\hat c_i$ and
+$G_{ij}(s)=\operatorname{Tr}[\hat\rho_s\hat c_i^\dagger\hat c_j]$.
+Here $i=(x,y,\mu)$ includes the orbital index, and $G$ denotes the ordinary
+occupation correlator, not the centered covariance called \texttt{G} in saved files.
+For a fixed initial state at $s$ and the subsequent trace-preserving circuit
+channel $\mathcal E_{t:s}$, define the ordered, connected correlator
+\begin{align}
+K_{ij}(t,s)&=\operatorname{Tr}\!\left[\hat n_i
+  \mathcal E_{t:s}(\hat n_j\hat\rho_s)\right],\\
+C_{ij}(t,s)&=K_{ij}(t,s)-\langle\hat n_i(t)\rangle\langle\hat n_j(s)\rangle.
+\end{align}
+The map is extended linearly to the generally non-Hermitian insertion
+$\hat n_j\hat\rho_s$. This is the circuit regression definition for fresh
+ancillas/Markov dynamics; any feedback memory must be retained or fixed by
+conditioning on the past record. It is not the correlation of two invasive
+projective density measurements. The real part is the symmetrized connected
+correlator. A cell-density correlation sums $C_{ij}$ over both orbital indices.
+
+\section{Jointly Gaussian dynamics: Wick reduction}
+For a number-conserving jointly Gaussian process, introduce
+\begin{equation}
+F_{ij}(t,s)=\langle\hat c_i^\dagger(t)\hat c_j(s)\rangle,
+\qquad H_{ij}(t,s)=\langle\hat c_i(t)\hat c_j^\dagger(s)\rangle.
+\end{equation}
+The anomalous contractions vanish. Wick's theorem gives
+\begin{equation}\boxed{C_{ij}(t,s)=F_{ij}(t,s)H_{ij}(t,s).}\end{equation}
+This is an elementwise product, not a matrix product or generally a modulus
+squared. In particular,
+$C_{ij}(s,s)=G_{ij}(\delta_{ij}-G_{ji})$:
+the diagonal equals $G_{ii}(1-G_{ii})$, whereas distinct-mode correlations equal
+$-|G_{ij}|^2$.
+
+For quadratic unitary evolution write
+$\hat{\bm c}(t)=U(t,s)\hat{\bm c}(s)$. Direct substitution gives
+\begin{equation}\boxed{
+C_{ij}(t,s)=[U^*G(s)]_{ij}
+ [U(\mathbf 1-G(s)^{\mathsf T})]_{ij}.}
+\end{equation}
+The same expression with $U$ replaced by $X$ applies to a number-conserving
+Gaussian dilation $\hat{\bm c}(t)=X\hat{\bm c}(s)+\hat{\bm\eta}$
+with independent, zero-mean Gaussian incoming noise and a Gaussian joint input.
+Dynamic correlations in quadratic open fermionic systems with linear
+Lindblad operators provide a standard setting for this construction
+\cite{KosProsen}.
+
+Gaussian conditional states alone do not guarantee these assumptions after
+averaging a measurement record. For example, a single mode with occupation
+$p$ subjected to an equally weighted identity/parity unitary has vanishing
+averaged one-body propagator. Nevertheless its density is conserved and
+$C_{nn}=p(1-p)$. Multiplying the separately averaged one-body contractions would
+incorrectly give zero. Gaussianity also does not fix a power-law exponent:
+the same Gaussian initial state can be evolved under different dynamics.
+
+\section{Exact Gaussian probes for the adaptive circuit}
+The following identities do not assume the nonselective channel is Gaussian.
+Define two perturbed initial states at $s$:
+\begin{align}
+\hat\rho_\epsilon^{\rm f}
+ &=\frac{e^{\epsilon\hat n_j/2}\hat\rho_s e^{\epsilon\hat n_j/2}}
+ {\operatorname{Tr}(e^{\epsilon\hat n_j}\hat\rho_s)},\\
+\hat\rho_\epsilon^{\rm p}
+ &=e^{-i\epsilon\hat n_j}\hat\rho_s e^{i\epsilon\hat n_j},\qquad
+f_i^{a}(\epsilon)=\operatorname{Tr}[\hat n_i\mathcal E_{t:s}(\hat\rho_\epsilon^{a})].
+\end{align}
+Both inputs remain Gaussian when $\hat\rho_s$ is Gaussian. Differentiating
+the normalized filter and the unitary phase rotation yields
+\begin{equation}\boxed{
+\operatorname{Re}C_{ij}=\left.\partial_\epsilon f_i^{\rm f}\right|_0,
+\qquad
+\operatorname{Im}C_{ij}=\frac12\left.\partial_\epsilon f_i^{\rm p}\right|_0.}
+\end{equation}
+Indeed the two state derivatives are
+$\{\hat n_j,\hat\rho_s\}/2-G_{jj}\hat\rho_s$ and
+$-i[\hat n_j,\hat\rho_s]$, respectively. Hermiticity preservation relates
+the two operator orderings by complex conjugation.
+
+These probes have explicit single-particle formulas. With
+$P_j=|j\rangle\langle j|$, $u=e^\epsilon-1$, $p=G_{jj}$, and
+$D=e^{\epsilon P_j/2}$,
+\begin{align}
+G^{\rm f}_\epsilon
+ &=D\left[G-\frac{u}{1+up}GP_jG\right]D,\\
+G^{\rm p}_\epsilon&=e^{i\epsilon P_j}G e^{-i\epsilon P_j},\\
+\left.\partial_\epsilon G^{\rm f}_\epsilon\right|_0
+ &=\tfrac12(P_jG+GP_j)-GP_jG.
+\end{align}
+The first identity follows by Wick contraction and
+$e^{\epsilon\hat n_j}=\hat{\mathbf 1}+u\hat n_j$; it also holds for pure
+Gaussian states by continuity.
+
+For each probe, evolve the \emph{same circuit rule} with its own correct Born
+probabilities, not a frozen sequence of outcomes without likelihood weights.
+The difference quotient at $\pm\epsilon$ approximates the derivatives above;
+finite-$\epsilon$ convergence and Monte Carlo uncertainty must be tested.
+Common random numbers can couple runs, but outcome probabilities must still
+be recomputed. At $s>0$, one may condition on a Gaussian past trajectory.
+To obtain the full ensemble connected correlator, average the unconnected
+correlators first and subtract ensemble means: averaging conditional connected
+correlators alone misses the covariance of conditional means.
+
+\section{Implications for the present data}
+The stored spectra, entropy contours, and final covariance determine equal-time
+observables but not the two-time propagator or the operator-insertion channel.
+The physical-time propagator is not $e^{-i h_{\rm modular}(t-s)}$ unless that
+evolution is explicitly chosen. New probe evolution or a faithful recorded
+instrument with insertion propagation is required for the circuit correlator.
+The scalar entropy histories can instead supply classical trajectory-level
+two-time statistics; those are different observables and are nonstationary
+during purification. Power-law-looking purification is not by itself evidence
+of a stationary power-law quantum correlator.
+
+\paragraph{Validation.}
+\texttt{test\_unequal\_time\_gaussian.py} checks the Wick expression, both
+single-particle probe updates, and the complete complex density correlator
+against exact three-mode Fock-space calculations for quadratic unitary evolution
+and a mixture of Gaussian unitaries. It also checks the dephasing counterexample.
+
+\begin{thebibliography}{1}
+\bibitem{KosProsen} P. Kos and T. Prosen,
+\emph{Time-dependent Correlation Functions in Open Quadratic Fermionic Systems},
+(2017),
+\href{https://doi.org/10.1088/1742-5468/aa9681}{doi:10.1088/1742-5468/aa9681};
+\href{https://arxiv.org/abs/1708.06919}{arXiv:1708.06919}.
+\end{thebibliography}
+\end{document}

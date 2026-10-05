@@ -1,0 +1,449 @@
+\documentclass[aps,prx,twocolumn,superscriptaddress,longbibliography,nofootinbib,floatfix]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,array}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\Occ}{\mathrm{o}}
+\newcommand{\Emp}{\mathrm{e}}
+
+\hypersetup{
+  pdftitle={Gaussian Trajectory Geometry: Reference Anisotropy, Occupied Frames, and Conditional Spectra},
+  pdfauthor={Class-A fermionic adaptive-circuit project}
+}
+
+\begin{document}
+
+\title{Gaussian Trajectory Geometry: Reference Anisotropy, Occupied Frames, and Conditional Spectra}
+\date{August 29, 2026}
+
+\begin{abstract}
+We collect the Gaussian formalism behind three complementary numerical probes of an
+adaptive class-A fermion circuit.  Pure trajectories are evolved as orthonormal occupied
+frames, while maximally mixed trajectories are retained as correlation matrices.  For a
+fixed nonzero-probability measurement record, differentiation of the normalized
+correlation-matrix M\"obius map gives an exact congruence cocycle.  We prove that this
+cocycle is the Jacobian of the occupied-frame evolution after quotienting the frame's
+unitary gauge, and that its physical pure-state singular values are pairwise products of
+occupied and empty one-leg singular values.  This identifies the invariant spectrum
+targeted by the pure-state G5 estimator and distinguishes it from the trajectory-operator
+spectrum reconstructed by the maximally mixed G4 calculation.  We also give the
+charge-conserving Gaussian reference construction used to calibrate spacetime anisotropy
+and work through the completed coarse-audit matching estimator without promoting it to a
+final result.
+\end{abstract}
+
+\maketitle
+
+\section{Gaussian coordinates and native occupied frames}
+
+For complex fermions satisfying
+$\{\hat\psi_i^\dagger,\hat\psi_j\}=\delta_{ij}$, the canonical correlation
+matrix is
+\begin{equation}
+ G_{ij}=\Tr(\hat\rho\,\hat\psi_i^\dagger\hat\psi_j),
+ \qquad 0\leq G\leq\Id .
+ \label{eq:canonical-G}
+\end{equation}
+The implementation uses the transposed one-body convention
+$C=G^{\mathsf T}$ and the centered covariance
+\begin{equation}
+ \Gamma=2C-\Id .
+ \label{eq:centered}
+\end{equation}
+Transpose does not alter the spectra or Frobenius singular values discussed below.
+A pure charge-conserving Gaussian state obeys $C^2=C$ and is represented by an
+orthonormal occupied frame $F\in\mathbb C^{N\times r}$,
+\begin{equation}
+ \begin{gathered}
+ F^\dagger F=\Id_r,\qquad C=FF^\dagger,\\
+ F\sim FU,\qquad U\in U(r).
+ \end{gathered}
+ \label{eq:frame}
+\end{equation}
+Thus $F$ is a Stiefel representative of a point on $\operatorname{Gr}(r,N)$;
+the right-unitary freedom is numerical gauge, not a physical degree of freedom.
+
+Let $\chi$ be a normalized measured orbital, $P_\chi=\chi\chi^\dagger$, and
+$Q_\chi=\Id-P_\chi$.  The occupied and empty Born probabilities are
+$n_\chi=\chi^\dagger C\chi$ and $1-n_\chi$.  The two primitive rank-changing
+frame operations have correlation matrices
+\begin{align}
+ C_{\rm gain}
+ &=C+\frac{[(\Id-C)\chi][(\Id-C)\chi]^\dagger}{1-n_\chi},
+ \label{eq:gain}\\
+ C_{\rm loss}
+ &=C-\frac{(C\chi)(C\chi)^\dagger}{n_\chi}.
+ \label{eq:loss}
+\end{align}
+Numerically, gain appends the normalized residual $(\Id-C)\chi$ to $F$.
+Loss computes $a=F^\dagger\chi$, applies a complex Householder reflector that
+rotates $a$ to the last frame coordinate, and deletes that column.  An occupied
+projector is loss followed by deterministic gain; an empty projector is gain
+followed by deterministic loss.  These compositions give
+\begin{align}
+ C_{1}&=C-\frac{CP_\chi C}{n_\chi}+P_\chi,\nonumber\\
+ C_{0}&=C+\frac{(\Id-C)P_\chi(\Id-C)}{1-n_\chi}-P_\chi.
+ \label{eq:pure-projectors}
+\end{align}
+Thin QR is invoked only when the Gram residual warrants it.  The CPU engine stores one
+variable-rank frame, whereas the GPU engine stores trajectory-dependent ranks in a padded
+batch and applies the same append/Householder algebra selectively.  Frame-native trajectory
+evolution therefore avoids repeatedly materializing an $N\times N$ covariance.  These
+identities are the frame-level realization of charge-conserving Gaussian measurements
+and feedforward~\cite{Bravyi2005,BhuiyanPanJian2026}.
+
+\section{Normalized M\"obius tangent and the frame Jacobian}
+
+Write the selected measurement outcome as $m\in\{0,1\}$,
+$\eta_m=2m-1$, and the controller target as $s\in\{0,1\}$.  On the code-side
+centered covariance, one normalized measurement followed by reset is
+\begin{align}
+ \Phi_{m|s}(\Gamma)
+ &=Q_\chi(\Id+\eta_m\Gamma P_\chi)^{-1}\Gamma Q_\chi
+   +\eta_sP_\chi,\nonumber\\
+ p_m&=\frac{1+\eta_m g}{2},\qquad g=\tr(P_\chi\Gamma),
+ \label{eq:mobius}
+\end{align}
+For $p_m>0$, the rank-one inverse is exact and
+\begin{equation}
+ L_m(\Gamma)=Q_\chi(\Id+\eta_m\Gamma P_\chi)^{-1}
+ =Q_\chi-\frac{\eta_m Q_\chi\Gamma P_\chi}{1+\eta_m g}.
+ \label{eq:L}
+\end{equation}
+Put $M=\Id+\eta_m\Gamma P_\chi$.  At fixed $P_\chi,m,s$, the identity
+$\delta M^{-1}=-M^{-1}(\eta_mXP_\chi)M^{-1}$ gives
+\begin{align}
+ \delta\Phi
+ &=Q_\chi M^{-1}X
+ [\Id-\eta_mP_\chi M^{-1}\Gamma]Q_\chi\nonumber\\
+ &=L_mXL_m^\dagger ,
+ \label{eq:derivative-step}
+\end{align}
+because $[\Id-\eta_mP_\chi M^{-1}\Gamma]Q_\chi
+=(\Id+\eta_mP_\chi\Gamma)^{-1}Q_\chi=L_m^\dagger$.  Thus
+\begin{equation}
+ \boxed{D_\Gamma\Phi_{m|s}[X]=L_mXL_m^\dagger.}
+ \label{eq:event-tangent}
+\end{equation}
+The reset term is constant, so its target $s$ drops out.  Exact projectors really are
+singular: $P_\chi L_m=0$ and, for pure $\Gamma$,
+$\ker L_m=\operatorname{span}\{(\Id+\eta_m\Gamma)\chi\}$.  This vector lies in
+the selected $\eta_m$ eigenspace: that one-leg block loses one rank, whereas the opposite
+block is injective.  Such nulls are not pseudoinverted.  A unitary event
+$\Gamma\mapsto U\Gamma U^\dagger$ has one-leg factor $L=U$.  Writing $L_t$ for either
+kind of event factor, a fixed ordered record gives
+\begin{align}
+ A_{T:0}&=L_{T-1}\cdots L_1L_0,\nonumber\\
+ X_T&=A_{T:0}X_0A_{T:0}^\dagger .
+ \label{eq:cocycle}
+\end{align}
+This is a branchwise derivative of the normalized conditional state, not a derivative
+through the outcome sampler and not a Born-score response.
+
+We now make precise in what sense Eq.~\eqref{eq:cocycle} is the frame Jacobian.  Let
+$f_{m|s}$ denote the exact gain/loss frame update and
+$\pi_r(F)=2FF^\dagger-\Id$.  If $r'=r+s-m$, the state-level square commutes:
+\begin{equation}
+ \begin{array}{ccc}
+ F&\xrightarrow{\ f_{m|s}\ }&F'\\[-1mm]
+ {\scriptstyle\pi_r}\downarrow&&\downarrow{\scriptstyle\pi_{r'}}\\[-1mm]
+ \Gamma&\xrightarrow{\ \Phi_{m|s}\ }&\Gamma'
+ \end{array}
+ \label{eq:state-square}
+\end{equation}
+Equivalently, $\pi_{r'}\circ f_{m|s}=\Phi_{m|s}\circ\pi_r$; differentiation gives the
+commuting Jacobian relation
+\begin{equation}
+ D\pi_{r',F'}\circ Df_{m|s,F}
+ =D\Phi_{m|s,\Gamma}\circ D\pi_{r,F}.
+ \label{eq:commuting}
+\end{equation}
+Vertical variations $\delta F=F\Omega$, $\Omega^\dagger=-\Omega$, lie in
+$\ker D\pi_{r,F}$.  A horizontal variation satisfies $F^\dagger\delta F=0$ and
+\begin{align}
+ D\pi_{r,F}[\delta F]
+ &=2(\delta F F^\dagger+F\delta F^\dagger),\nonumber\\
+ \|D\pi_{r,F}[\delta F]\|_F^2&=8\|\delta F\|_F^2.
+ \label{eq:isometry}
+\end{align}
+The same metric factor appears at input and output, including for rectangular,
+rank-changing branches.  Hence the horizontal quotient derivative
+$\mathcal H_{F'}Df_{m|s,F}|_{\mathcal H_F}$ and the covariance derivative restricted to
+the pure-state tangent have identical singular values.  A raw derivative of Householder
+or QR representatives also contains vertical gauge conventions and pivot choices and is
+not the invariant object in this statement.
+
+For completeness, the one-leg factors also intertwine the initial and final pure
+covariances:
+\begin{equation}
+ \boxed{\Gamma' L_m=L_m\Gamma.}
+ \label{eq:intertwine}
+\end{equation}
+To verify this directly, put $\eta=\eta_m$, $d=1+\eta g$, and use the
+$P_\chi\oplus Q_\chi$ decomposition
+\begin{align}
+ \Gamma&=\begin{pmatrix}g&w^\dagger\\w&B\end{pmatrix},\nonumber\\
+ Bw&=-gw,\qquad w^\dagger w=1-g^2.
+ \label{eq:pure-block}
+\end{align}
+Purity $\Gamma^2=\Id$ gives the two middle relations.  Equations
+\eqref{eq:mobius}--\eqref{eq:L} become
+\begin{align}
+ L_m&=\begin{pmatrix}0&0\\-\eta w/d&\Id\end{pmatrix},\nonumber\\
+ \Gamma'&=\begin{pmatrix}\eta_s&0\\0&B-\eta ww^\dagger/d\end{pmatrix}.
+ \label{eq:block-L}
+\end{align}
+Because $(B-\eta ww^\dagger/d)w=-\eta w$, multiplication proves
+Eq.~\eqref{eq:intertwine}.  Thus $L_m$ maps occupied and empty eigenspaces of
+$\Gamma$ into the corresponding eigenspaces of $\Gamma'$, including exact nulls.
+The intertwining identity uses $\Gamma^2=\Id$ and need not hold for a mixed state.
+
+\section{G5: pure-state physical tangent spectrum}
+
+At a pure state, a physical Hermitian tangent obeys $X^\dagger=X$ and
+$\{\Gamma,X\}=0$.  If $U_{\Occ}$ and $U_{\Emp}$ are complete occupied and
+empty frames, every such tangent is uniquely parameterized by a complex matrix $K$:
+\begin{equation}
+ X=2\bigl(U_{\Occ}KU_{\Emp}^\dagger
+          +U_{\Emp}K^\dagger U_{\Occ}^\dagger\bigr).
+ \label{eq:pure-tangent}
+\end{equation}
+Set $B_b=A_{T:0}U_b$ for $b\in\{\Occ,\Emp\}$.  The intertwining identity keeps
+the two images in orthogonal final eigenspaces, and
+\begin{equation}
+ X_T=2\bigl(B_{\Occ}KB_{\Emp}^\dagger+\mathrm{h.c.}\bigr).
+ \label{eq:evolved-tangent}
+\end{equation}
+With singular-value decompositions
+$B_b=W_b\Sigma_bR_b^\dagger$, vectorization gives
+\begin{equation}
+ \operatorname{vec}(B_{\Occ}KB_{\Emp}^\dagger)
+ =(B_{\Emp}^{*}\otimes B_{\Occ})\operatorname{vec}K.
+ \label{eq:vec}
+\end{equation}
+Therefore the physical tangent singular spectrum is the pair product
+\begin{align}
+ \sigma_{ij}^{\rm phys}&=\sigma_i^{\Occ}\sigma_j^{\Emp},\nonumber\\
+ \lambda_{ij}^{\rm phys}
+ &=\frac{\log\sigma_i^{\Occ}+\log\sigma_j^{\Emp}}{T_{\rm obs}}.
+ \label{eq:pair-rates}
+\end{align}
+Over the real Hermitian tangent space, the real and imaginary parts of each $K_{ij}$
+give two equal real singular directions; G5 stores the complex pair once.
+
+The numerical G5 experiment implements the pair-product estimator~\eqref{eq:pair-rates} without forming an
+$N^2\times N^2$ superoperator.  Each trajectory begins from an independently seeded
+Haar-random, half-filled Slater frame and is evolved natively with batch size one.  The
+tangent initializer forms and diagonalizes the restricted $FF^\dagger$ once at cycle zero
+to build complete occupied and empty bases; subsequent live updates are analytic and
+matrix-free.  It QR-stabilizes the two blocks
+separately after every cycle while multiplying the corresponding triangular factors into
+scaled cumulative cores.  Cycles $1,\ldots,N_y$ align the frames; at $N_y$ only the cores
+and log accumulators are reset, not the aligned bases.  At the declared integer-rounded
+quarter-, half-, three-quarter-, and full-window checkpoints, direct SVDs give cumulative
+core singular values.  All occupied--empty sums are formed before the
+16 rates closest to zero are selected.  Core values below threshold enter as $-\infty$;
+only finite pair rates are eligible.  The observer records branch/Born minima and QR
+null masks; invalid branches deactivate, while core-SVD residual and physical-pair Gram
+tolerances are hard acceptance gates.  Per-cycle QR diagonals are diagnostics, not
+substitutes for the finite-window core SVD.  Exact null masks are legitimate, not failures.
+After an exact null, however, a QR null-space completion supports the fresh-window
+physical interpretation only if the preserved blocks remain complete current eigenspace
+bases; a rigorous restart would rebuild them from the current frame.
+Production uses $N_x=20$, $N_y=20,30,40,50,60$, $T=2N_y$, and 25 independent Born
+trajectories for each wall and matched-trivial case.  No $\pm\epsilon$ trajectories,
+replayable record, Choi state, or Born-score tangent is generated.
+
+\section{G4: max-mix trajectory-operator spectrum}
+
+G4 extracts a different object.  Start from
+$\hat\rho_0=\hat{\mathbf{1}}/2^{N_{\rm orb}}$ and let
+$\hat V_{\boldsymbol m}$ be the many-body evolution operator (mEO) for one realized
+record.  The normalized endpoint and its weight are
+\begin{equation}
+ \hat\rho_{\boldsymbol m}
+ =\frac{\hat V_{\boldsymbol m}\hat V_{\boldsymbol m}^\dagger}{Z_{\boldsymbol m}},
+ \qquad
+ Z_{\boldsymbol m}=2^{N_{\rm orb}}p_{\boldsymbol m}.
+ \label{eq:maxmix-state}
+\end{equation}
+If $\nu_i$ are its natural occupations, Gaussian factorization gives every normalized
+many-body eigenvalue and absolute mEO singular value:
+\begin{align}
+ \lambda_{\boldsymbol n}
+ &=\prod_i\nu_i^{n_i}(1-\nu_i)^{1-n_i},\nonumber\\
+ \sigma_{\boldsymbol n}(\hat V_{\boldsymbol m})
+ &=\sqrt{Z_{\boldsymbol m}\lambda_{\boldsymbol n}}.
+ \label{eq:maxmix-spectrum}
+\end{align}
+Define
+\begin{align}
+ e_i&=\log\frac{1-\nu_i}{\nu_i},&n_i^{(0)}&=\mathbf1_{\nu_i>1/2},\nonumber\\
+ q_i&=1-2n_i^{(0)},&\delta_i&=\frac{|e_i|}{2}.
+ \label{eq:operator-costs}
+\end{align}
+For a flipped subset $\mathcal S$, the tower consists of sums $\sum_{i\in\mathcal S}\delta_i$
+sorted at fixed charge $q(\mathcal S)=\sum_{i\in\mathcal S}q_i$.  Its leading level is
+\begin{align}
+ \log\sigma_0=\frac12\biggl[&N_{\rm orb}\log2+\log p_{\boldsymbol m}\nonumber\\
+ &+\sum_i\log\max(\nu_i,1-\nu_i)\biggr].
+ \label{eq:leading-sigma}
+\end{align}
+Exact caps $\nu_i=0,1$ have infinite flip cost and retain an occupied/empty orientation.
+
+Numerically, G4 evolves centered max-mix covariances in GPU batches of at most five.  The
+streaming observer records convergence and impurity summaries every cycle but performs a
+full natural-occupation eigendecomposition only at declared early, logarithmic, and
+$N_y,3N_y/2,2N_y$ checkpoints.  It stores per-cycle conditional log-probability
+increments, cumulative sums, and event counts; the cumulative $\log p_{\boldsymbol m}$ in
+Eq.~\eqref{eq:maxmix-state} supplies $Z_{\boldsymbol m}$.  The occupations define the full
+factorized Fock spectrum, but the implementation saves its leading scale and a low
+charge-resolved subset-sum tower, not an explicit $2^{N_{\rm orb}}$ list.  Eigenpair and
+natural-orbital Gram residuals are acceptance gates.  G4 uses the same sizes, duration,
+and 25-trajectory wall/control counts as G5, but saves no covariance history, tangent
+cocycle, Choi state, or replayable ordered-outcome record.
+
+For a fixed max-mix record there is also an exact endpoint dictionary for the normalized
+half-Jacobian $A$:
+\begin{align}
+ AA^\dagger&=4C_T(\Id-C_T)=\Id-\Gamma_T^2,\nonumber\\
+ j_i&=2\sqrt{\nu_i(1-\nu_i)}=\operatorname{sech}\delta_i.
+ \label{eq:maxmix-dictionary}
+\end{align}
+It explains why max-mix occupations determine tangent magnitudes, but it does not equate
+G4 with G5: their initial states, Born measures, seeds, records, normalizations, and
+reported spectra differ.
+
+\section{Reference ancillas and spacetime anisotropy}
+
+The two-dimensional topological slab supplies one-dimensional domain-wall boundaries,
+whose low-energy theory is a $1+1$-dimensional CFT: one edge coordinate $y$ plus time.
+Here $L_y$ is the circumference of one boundary.  The transverse size $N_x$ controls
+slab width and edge--edge coupling, not the CFT circumference; the two domain walls carry
+separate, oppositely chiral edge copies.  For dynamical exponent $z=1$, the expected
+scaling is $t_\star\propto L_y$.  For a primary field of dimension $\Delta$, write
+$z'=\alpha_{\rm st}t+\ii y$.  The cylinder correlators have spatial and temporal factors
+$\sin(\pi\Delta y/L_y)$ and $\sinh(\pi\alpha_{\rm st}t/L_y)$:
+\begin{align}
+ g_{\rm sp}(\Delta y,0)&=\left(\frac{\pi}{L_y}\right)^{2\Delta}
+ \left[\sin\left(\frac{\pi\Delta y}{L_y}\right)\right]^{-2\Delta},
+ \label{eq:g-space}\\
+ g_{\rm tm}(0,t)&=\left(\frac{\pi}{L_y}\right)^{2\Delta}
+ \left[\sinh\left(\frac{\pi\alpha_{\rm st}t}{L_y}\right)\right]^{-2\Delta}.
+ \label{eq:g-time}
+\end{align}
+At $\Delta y=L_y/2$, the sine is unity.  Matching the spatial and temporal factors
+cancels $\Delta$ and gives~\cite{Zabalo2022}
+\begin{equation}
+ \boxed{\alpha_{\rm st}
+ =\frac{\operatorname{arsinh}(1)L_y}{\pi t_\star}
+ =\frac{\log(1+\sqrt2)L_y}{\pi t_\star}.}
+ \label{eq:alpha-st}
+\end{equation}
+The subscript distinguishes this spacetime conversion from the circuit parameters
+$\alpha_1$ and $\alpha_2$.
+
+The numerical proxy is mutual information between two spectator references.  For each of
+the two canonical modes of a wall cell, first measure its occupation $m$, append a
+reference mode in occupation $1-m$, and apply the number-conserving beam splitter
+\begin{equation}
+ \begin{pmatrix}\hat f'\\\hat r'\end{pmatrix}
+ =\frac1{\sqrt2}\begin{pmatrix}1&1\\-1&1\end{pmatrix}
+ \begin{pmatrix}\hat f\\\hat r\end{pmatrix}.
+ \label{eq:beam-splitter}
+\end{equation}
+Each pair contains one fermion and has reference entropy $\log2$ for either outcome.  One
+reference subsystem therefore contains two modes and has fresh entropy $2\log2$; two
+insertions append four spectator rows to the live occupied frame.  Subsequent controller
+measurements have support only on the original physical rows, but physical--reference
+correlations continue to evolve through the common frame.  If $\zeta_a$ are eigenvalues
+of a reduced reference correlation matrix,
+\begin{align}
+ S(A)&=-\sum_a\bigl[\zeta_a\log\zeta_a
+ +(1-\zeta_a)\log(1-\zeta_a)\bigr],\nonumber\\
+ I(R_1{:}R_2)&=S(R_1)+S(R_2)-S(R_1R_2).
+ \label{eq:reference-mi}
+\end{align}
+Only $2\times2$ and $4\times4$ matrices are diagonalized.
+The late-time matching point is defined operationally, before any curve fit, by
+\begin{equation}
+ I_{\rm tm}(t_\star)=I_{\rm sp}(L_y/2).
+ \label{eq:mi-match}
+\end{equation}
+It asks how many circuit cycles give the same effective separation as halfway around the
+edge.  Equation~\eqref{eq:alpha-st} converts this point under the CFT cylinder hypothesis;
+the matching equality itself is not evidence for CFT behavior.
+
+The $L_y=24$ CPU audit evaluates the matching estimator directly, not by fitting
+Eqs.~\eqref{eq:g-space}--\eqref{eq:g-time}.  For each $m=2,3,4,6$, 32 complete Born
+trajectories are equilibrated to $mL_y$.  From each reused checkpoint, $R_1$ is inserted
+at a sampled wall cell.  The spatial branch inserts $R_2$ simultaneously at separation
+$L_y/2=12$; the temporal branches insert it at the same cell after
+$\Delta t\in\{1,3,6,9,12,15,18\}$.  After the second insertion the same branch is followed
+for $3L_y=72$ cycles.  Relative cycles 49--72, the final $L_y=24$ values, are averaged
+first within each trajectory and then arithmetically over the 32 trajectories.  The
+estimator requires the shortest temporal point to exceed the spatial mean and takes the
+first adjacent downward crossing on the ordered sampled grid, linearly interpolated;
+global monotonicity is not assumed.
+
+For example, at equilibration $2L_y$, the saved coarse means are
+$I_{\rm sp}=0.32858$, $I_{\rm tm}(1)=0.51091$, and
+$I_{\rm tm}(3)=0.20135$.  Hence
+\begin{align}
+ t_\star&=1+\frac{0.51091-0.32858}{0.51091-0.20135}(3-1)\nonumber\\
+ &=2.178.
+ \label{eq:worked-crossing}
+\end{align}
+Applying the identical operation to all completed coarse checkpoint files gives
+Table~\ref{tab:coarse}.
+
+\begin{table}[t]
+\caption{Worked coarse-audit point estimates.  These arithmetic means and interpolations
+are an estimator example, not calibrated values of $t_\star$.}
+\label{tab:coarse}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}cccc@{}}
+\toprule
+equil. & $I_{\rm sp}$ & temporal bracket & interpolated $t_\star$\\
+\midrule
+$2L_y$ & 0.32858 & $I(1)=0.51091$, $I(3)=0.20135$ & 2.178\\
+$3L_y$ & 0.12656 & $I(6)=0.19559$, $I(9)=0.07446$ & 7.710\\
+$4L_y$ & 0.28096 & $I(1)=0.44209$, $I(3)=0.20006$ & 2.331\\
+$6L_y$ & 0.22691 & $I(1)=0.47091$, $I(3)=0.18730$ & 2.721\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The $3L_y$ row illustrates sensitivity to the measured spatial baseline: its unusually
+low $I_{\rm sp}$ moves the first crossing from the $1$--$3$ interval to $6$--$9$.
+Table~\ref{tab:coarse} excludes refinement points $\Delta t=2,7,8$ and the paired
+trajectory bootstrap and convergence gates.  It therefore carries no uncertainty
+interval and is not converted into a reported $\alpha_{\rm st}$.
+Evidence for the CFT interpretation would additionally require collapse of full spatial
+and temporal curves under this rescaling at multiple $L_y$.
+
+\section{Distinctions}
+
+The three calculations answer different questions.  G4 uses a maximally mixed input to
+reconstruct the absolute singular spectrum of a realized mEO, including its normalization
+and charge-resolved many-body tower.  G5 uses independent pure trajectories to estimate
+the Grassmannian Jacobian of the normalized covariance dynamics over a late finite-time
+window.  The reference calculation instead compares a state observable at two spacetime
+separations to calibrate the conversion between circuit cycles and the spatial cylinder.
+The frame/M\"obius equivalence relates two coordinate descriptions of G5; neither it nor
+the max-mix endpoint identity collapses these three estimators into one object.
+
+\clearpage
+\bibliographystyle{apsrev4-2}
+\bibliography{references}
+
+\end{document}

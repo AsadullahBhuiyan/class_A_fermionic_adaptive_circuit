@@ -1,0 +1,5 @@
+# Purification through 2Ny with retained 4Ny heatmap
+
+Panels (a,b) display the original sample means and SEM through cycle/Ny=2. Panel (c) uses saved bundle-13 occupations at exactly T=2Ny for each size; the minimum absolute finite-time exponent is calculated per trajectory before averaging 100 trajectories. The power-law fit uses all seven sizes and SEM-weighted log-space regression. Panel (d) is deliberately unchanged at T=4Ny, explicitly labeled: the Ny=30 bundle-07 data retain full covariance only at cycle 120, not cycle 60.
+
+The separate x-profile figure uses bundle 13 at Ny=30,T=60. For each of 100 trajectories select the unique mode minimizing absolute lambda, sum its probability over y and orbitals, then average over trajectories. Error bars are sample SEM. Each profile sums to one. This is not a reconstructed (x,y) heatmap and not an average over the 16 saved modes. All ensembles are hard-wall, Nx=20, maxmix initialization, perfect correction, no postselection; alpha1=1 except the explicitly labeled alpha1=3 control in (a). No new simulations.

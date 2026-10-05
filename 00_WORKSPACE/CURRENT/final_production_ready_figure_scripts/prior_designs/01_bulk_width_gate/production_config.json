@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "bundle": "01_bulk_width_gate",
+  "sampling_revision": "production_10sample_v4_occupied_frame_cycle_resolved",
+  "audit_sha256": "d0173317608b2da2a45f6185d15a85237e11265917a0ceed6ff79dc761261de9",
+  "root_seed": 2026081701,
+  "locked_contract": {
+    "samples": 10,
+    "sample_shard_size": 5,
+    "cycles_rule": "2*Ny",
+    "physical_burn_in_cycles": 0,
+    "sequence": "random",
+        "dtype": "complex128",
+        "convergence_diagnostic": "frobenius(G_cycle-G_previous_cycle)/Nlayer",
+        "canonical_entry_point": "classA_U1FGTN_gpu.run_markov_circuit"
+  },
+  "base_protocol": {
+    "nshell": 1,
+    "alpha_top": 1.0,
+    "alpha_triv": 30.0,
+    "perfect_correction": true,
+    "postselect": false,
+    "backend": "local"
+  },
+  "P1": {
+    "enabled": false,
+    "completion_source": "01_p1_existing_completion",
+    "campaign_revision": "shell_sweep_v2",
+    "square_sizes": [12, 16, 20, 24, 28, 32],
+    "pure_protocols": ["uniform_topological", "uniform_trivial"],
+    "maxmix_sizes": [20, 28],
+    "maxmix_protocols": ["uniform_topological", "uniform_trivial"],
+    "nshell_values": [2, 1, null],
+    "backend_by_nshell": {"2": "local", "1": "local", "None": "dense"},
+    "family_count": 48,
+    "checkpoints_rule": ["Ny/4", "Ny/2", "3Ny/4", "Ny", "3Ny/2", "2Ny"],
+    "observables": [
+      "purity_spectrum",
+      "purity_gap",
+      "local_chern_marker",
+      "real_space_chern",
+      "bott_index",
+      "density"
+    ]
+  },
+  "W1": {
+    "Nx": 20,
+    "Ny": [20, 30, 40, 50, 60],
+    "constructions": [
+      "explicit_interface",
+      "explicit_interface_matched_trivial",
+      "support_terminated",
+      "support_terminated_matched_trivial"
+    ],
+    "family_count_total": 20,
+    "non_gating": true,
+    "checkpoints_rule": ["Ny/4", "Ny/2", "3Ny/4", "Ny", "5Ny/4", "3Ny/2", "7Ny/4", "2Ny"],
+    "completion_manifest": "fixed_geometry_baseline_manifest.json"
+  }
+}

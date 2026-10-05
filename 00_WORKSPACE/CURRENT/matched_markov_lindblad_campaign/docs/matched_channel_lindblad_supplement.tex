@@ -1,0 +1,206 @@
+\documentclass[aps,prb,onecolumn,nofootinbib]{revtex4-2}
+\usepackage{amsmath,amssymb,mathtools,bm}
+\usepackage{booktabs,tabularx,longtable,graphicx,microtype}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\graphicspath{{figures/}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Diss}{\mathcal D}
+\newcommand{\id}{\mathbf{1}}
+\newcommand{\campaignfigure}[2]{\includegraphics[width=#2]{figures/#1}}
+
+\begin{document}
+
+\title{Supplement: matched perfect-correction Markov channel and continuous Lindblad campaign}
+\author{Internal campaign summary}
+\date{Production supplement; completed August 22, 2026}
+\maketitle
+
+\section{Notation and local-map derivation}
+
+This supplement uses the overcomplete Wannier (OW) conventions of
+Bhuiyan--Pan--Jian.  For a normalized OW state
+$|\widetilde W_{\boldsymbol r,\nu,n}\rangle$, set
+$P=|\widetilde W\rangle\langle\widetilde W|$ and
+$\hat N=\hat\chi^\dagger\hat\chi$.  The number-dephasing adjoint action closes on the
+two-point correlation matrix:
+\begin{equation}
+ \Diss^\dagger[\hat N](G)=PGP-\frac12\{P,G\}.
+\end{equation}
+Unit perfect filling and depletion contribute, respectively,
+\begin{equation}
+ P-\frac12\{P,G\},\qquad -\frac12\{P,G\}.
+\end{equation}
+Writing $\mathcal I$ for the identity superoperator, adding the number-dephasing term
+gives the exact filled and empty reset identities
+\begin{align}
+ \mathcal R_{P,-}-\mathcal I
+ &=\Diss^\dagger[\hat\chi^\dagger]+\Diss^\dagger[\hat N],\\
+ \mathcal R_{P,+}-\mathcal I
+ &=\Diss^\dagger[\hat\chi]+\Diss^\dagger[\hat N].
+\end{align}
+Thus each exact reset has the form $\mathcal R_a=\mathcal I+\mathcal L_a$.
+The canonical within-cell order is $A+$ (loss), $A-$ (gain), $B+$ (loss), and
+$B-$ (gain).  By contrast, $\mathcal I+\Diss^\dagger[\hat\chi]$ and
+$\mathcal I+\Diss^\dagger[\hat\chi^\dagger]$ at unit coefficient are formal Euler
+increments, not exact completely positive reset maps.  Expanding a product of weakened
+reset maps $\mathcal R_{P}(p)=\mathcal I+p[\mathcal R_P-\mathcal I]$ gives
+\begin{equation}
+ \prod_a\mathcal R_{P_a}(p)=\mathcal I
+ +p\sum_a[\mathcal R_{P_a}-\mathcal I]+O(p^2),
+\end{equation}
+which fixes the continuous generator and shows why its first derivative is independent
+of site order even though the finite product is not.
+For the physical unit-step sweep,
+$\mathcal E_{\boldsymbol s}=\mathcal R_M\cdots\mathcal R_1
+=\mathcal I+\mathcal L_{{\rm cycle},\boldsymbol s}$ is also an exact identity, but
+$\mathcal L_{{\rm cycle},\boldsymbol s}=\mathcal E_{\boldsymbol s}-\mathcal I$
+contains schedule-ordered cross terms.  The matched infinitesimal generator is instead
+$\sum_a\mathcal L_a$ (or the corresponding dephasing-deleted sum).
+
+\section{Translation twirl and global momentum weights}
+
+The spatial sliding estimator is the finite-group conditional expectation
+\begin{equation}
+ \mathcal T_y[G]=\frac1{N_y}\sum_{q=0}^{N_y-1}T_y^qGT_y^{-q}.
+\end{equation}
+It is Hermiticity preserving, trace preserving, positive, idempotent, and exactly
+translation invariant.  These properties are tested directly.  They do not imply that
+the untwirled ordered channel commutes with $T_y$.
+
+For global eigenmodes, Parseval normalization gives
+\begin{equation}
+ \sum_{k_y}Z_j(k_y)=
+ \sum_{x,y,\mu}|\phi_j(x,y,\mu)|^2=1.
+\end{equation}
+The archive retains both the global occupations and $Z_j(k_y)$ so that a
+momentum-weighted spectral function can be reconstructed without assuming symmetry.
+
+\section{Exact case matrix}
+
+The configuration expands to 105 unique case specifications.  Endpoint scans include
+DW-support truncation on and off; alpha scans include truncation on only.  Counts are
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+Dynamics & Dephasing & Cases\\
+\midrule
+Ordered Markov channel & on & 27\\
+Continuous Lindblad & off & 39\\
+Continuous Lindblad & on & 39\\
+\bottomrule
+\end{tabular}
+\end{center}
+One of the 27 channel case specifications is a grouped $S=10$ schedule-seed control;
+the main-grid copy of the same physical parameters retains its single matched seed.
+Response is computed for exactly 22 endpoint cases: finite $n_{\rm shell}=1$ at
+$N_y=32,48,64$ with truncation on/off for each of the three arms, and full-frame
+continuous cases at $N_y=64$ with truncation on/off.  Alpha scans,
+$n_{\rm shell}=2$, and the grouped schedule control intentionally omit response arrays.
+
+\section{Array-level storage contract}
+
+Every cycle-resolved observable has leading logical axes $(s,c)$, with exact sample IDs
+and $c=0,1,\ldots,2N_y$.  Only inexpensive traces, norms, and translation diagnostics
+are evaluated at every cycle.  Occupation spectra and entropy proxies are evaluated at
+the explicit checkpoint cycle list in the configuration.  Final and late-average dense
+correlation matrices are checkpoint-resolved and retain their sample axis.
+
+The response product retains
+\texttt{response\_density\_source\_wall\_time\_y} with logical shape
+$(s,y_0,a,t,y)$ before source averaging.  The derived source-mean profile has shape
+$(s,a,t,y)$.  Channel and continuous time coordinates are saved explicitly and are not
+silently treated as identical grids.
+
+Each completed case directory contains exactly one compressed observable file, one JSON
+metadata file, and a success marker.  A failed case has a failure record and failure
+marker.  Temporary directories are renamed atomically; existing case and run roots are
+never overwritten.  The run manifest pins configuration, solver, adapter, canonical
+class, reference-code, and git-state hashes.
+
+\section{Validation matrix}
+
+\begin{longtable}{p{0.31\textwidth}p{0.62\textwidth}}
+\toprule
+Gate & Acceptance rule\\
+\midrule
+\endhead
+Grid & Exactly 105 case specifications and arm counts $27,39,39$.\\
+Seeds & Every main-grid channel variant at fixed $N_y$ has the same schedule-match key
+and seed; the grouped control has ten unique, replayable seeds.\\
+Geometry & Both engines use $N_x=20$, walls $5,15$, and identical shell/DW-mask
+recipes.  Gauge-dependent raw-OW hashes are audited but are not treated as physical
+projector invariants; three warnings are retained in the analysis JSON.\\
+Local algebra & Random physical small-system matrices reproduce all canonical local
+perfect-correction updates.\\
+Continuous derivative & Central finite differences of weakened local maps converge to
+the implemented generator with both dephasing settings.\\
+Physicality & Full-dephasing channel and both continuous arms obey
+$-\epsilon\le\nu\le1+\epsilon$ at all spectral checkpoints.\\
+Translation & Continuous late states meet the configured exact-symmetry tolerance;
+channel residuals are recorded rather than required to vanish.\\
+Twirl & Hermiticity, trace, positivity, idempotence, and translation invariance hold to
+complex128 tolerance.\\
+Time grid & Every cheap observable contains every sample and cycle with no duplicates or
+gaps; spectral checkpoints match the declared sparse coordinate.\\
+RK4 & The representative $\delta t=0.1,0.05,0.025$ comparison exhibits fourth-order
+global convergence before production.\\
+Response & Analytic tangent and finite $\pm\epsilon$ central difference agree; source
+averaging occurs only after source-resolved retention.\\
+Provenance & All source and result hashes match before and after analysis; the legacy
+archive remains byte-identical.\\
+Document & Main text is at most nine pages, with no overfull boxes, undefined references,
+or unembedded fonts.\\
+\bottomrule
+\end{longtable}
+
+\section{Production convergence and schedule diagnostics}
+
+\begin{figure}[t]
+\centering
+\campaignfigure{cycle_convergence_diagnostics.pdf}{0.96\linewidth}
+\caption{Cycle diagnostics for the canonical $N_y=64$, $n_{\rm shell}=1$,
+DW-truncated endpoint.  The continuous arms reach machine-level successive-state and
+translation residuals by approximately $c/N_y=0.5$.  The random ordered channel retains
+a nonzero cycle-to-cycle distance and translation residual, so its reported stationary
+spectrum is explicitly based on the late temporal average and translation twirl.  The
+twirl deletes off-diagonal momentum coherences and is not a schedule average; the main
+text separately plots the raw untwirled global eigenvalues in ascending order.  The
+remaining panels show checkpoint midpoint gap, Gaussian entropy and charge-variance
+proxies, and occupation extrema.}
+\label{fig:supp-cycle}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\campaignfigure{schedule_control_diagnostics.pdf}{0.96\linewidth}
+\caption{Ten independent random schedules at the canonical channel endpoint.  The raw
+translation residual ranges from $0.01035$ to $0.01237$, while the twirled midpoint gap
+is $0.01731\pm0.00018$.  Wall slopes are stable,
+$s_1=-0.58513\pm0.00272$ and $s_2=+0.58647\pm0.00152$, even though the final-to-late
+distance remains $0.05439\pm0.00095$.  Uncertainties are sample standard deviations
+over the ten schedules.}
+\label{fig:supp-schedule}
+\end{figure}
+
+\section{Legacy reconciliation}
+
+The prior stationary solver used dephasing-free gain and loss with equal coefficient
+$1/2$.  The new dephasing-free perfect-correction continuous generator has equal unit
+coefficients.  Hence
+\begin{equation}
+ \mathcal L_{\rm old}=\frac12\mathcal L_{\rm PC}^{(0)},
+ \qquad G_{\rm ss,old}=G_{\rm ss,PC}^{(0)}
+\end{equation}
+when the geometry and OW projectors match.  State-only stationary estimators can be used
+as cross-checks.  Relaxation rates, fixed-time response, and the old auxiliary Strang
+map cannot be relabeled as results of the requested dynamics.
+
+\section{Claim discipline}
+
+A channel twirl is not an exact symmetry of a fixed ordered sweep.  A natural-occupation
+crossing is not a zero Liouvillian decay rate.  A signed density-lobe velocity is not a
+Hamiltonian group velocity or quantized Hall coefficient.  Ten schedules quantify only
+the specified schedule ensemble at the canonical endpoint.  These distinctions remain
+in captions, tables, and machine-readable analysis metadata.
+
+\end{document}

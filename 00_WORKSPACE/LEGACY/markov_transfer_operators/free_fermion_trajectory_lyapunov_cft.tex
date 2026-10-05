@@ -1,0 +1,3996 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\I}{\mathbf{1}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\spec}{\operatorname{spec}}
+\newcommand{\artanh}{\operatorname{artanh}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ket}[1]{\lvert #1\rangle}
+\newcommand{\bra}[1]{\langle #1\rvert}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cC}{\mathcal{C}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\cK}{\mathcal{K}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cT}{\mathcal{T}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\bxi}{{\boldsymbol{\xi}}}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\makeatletter
+\let\@bibdataout@init\relax
+\let\@bibdataout@rev\relax
+\makeatother
+
+\begin{document}
+
+\title{Free-Fermion Trajectory Lyapunov Spectroscopy with Gain and Loss}
+\author{Asadullah Bhuiyan}
+\date{\today}
+
+\begin{abstract}
+This note spells out how the trajectory-transfer construction used to extract
+operator scaling dimensions at measurement-induced transitions simplifies for
+number-conserving Gaussian fermion circuits.  The many-body Kraus operator of a
+fixed measurement record is replaced, wherever possible, by one-body
+determinants, covariance updates, and singular values of one-body products.
+This simplification is not merely computational: it also exposes which
+``transfer matrix'' is being diagonalized.  We distinguish Born-sampled
+covariance trajectories, the trajectory-averaged mean channel, cumulative
+Gaussian/Kraus operator data, Choi particle and hole transfer charts, and the
+tangent cocycle used in finite-time Lyapunov simulations.  Particular care is
+given to gain and loss.  Single-fermion creation and annihilation branches are
+odd Gaussian amplitudes rather than ordinary invertible even Gaussian
+operators; exact projected branches therefore generate zero or infinite
+directions in one transfer chart.  The correct finite diagnostic is the
+finite-sector particle or hole spectrum together with the null-sector
+occupation and multiplicity.  With this bookkeeping in place, the usual
+cylinder formulas for the effective central charge, scaling dimensions, and
+multifractal moment exponents can be stated without conflating distinct
+operators.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Introduction}
+
+Zabalo \emph{et al.} showed that a monitored circuit trajectory can be treated
+as a sample of a disordered statistical mechanics model by the identification
+\begin{equation}
+  Z_\bxi = p_\bxi ,
+  \label{eq:intro-Z-p}
+\end{equation}
+where \(\bxi\) is the measurement record and \(p_\bxi\) is its Born
+probability~\cite{Zabalo2022}.  The logarithm of \(p_\bxi\) is then a sample
+free energy, and the subleading singular values of the trajectory Kraus
+operator play the role of transfer-matrix eigenvalues.  At a scale-invariant
+point, finite-size corrections of these Lyapunov data give the effective
+central charge and low-lying scaling dimensions of the corresponding
+non-unitary conformal field theory (CFT).
+
+For an interacting random circuit, this is a many-body calculation.  A
+trajectory operator acts on a Hilbert space of dimension exponential in system
+size, and its leading singular values must be extracted by a many-body
+iteration.  In a number-conserving free-fermion circuit, the same conceptual
+construction has a much sharper form.  A trajectory built from Gaussian
+operations remains Gaussian, so its probabilities are determinants and its
+finite transfer spectra are controlled by one-particle matrices or by
+covariance-matrix Schur complements.  This is the sense in which the
+Zabalo--Gullans--Huse--Pixley spectroscopy becomes a free-fermion Lyapunov
+problem.
+
+The purpose of this note is not to claim that every finite-time Lyapunov gap
+currently measured in the class-A adaptive circuit is already a universal CFT
+number.  The purpose is to make the route precise enough that a numerical
+extraction cannot accidentally identify different objects.  This matters
+especially in the adaptive circuit, where local feedback contains particle
+gain and loss.  Those branches are perfectly legitimate Gaussian trajectory
+amplitudes, but they live on singular boundaries of the usual invertible
+particle-transfer chart.
+
+The universal objects used below are standard but come from several
+literatures.  Cylinder finite-size scaling and operator dimensions are reviewed
+in Refs.~\cite{Cardy1986,DiFrancesco1997}; entanglement central charge is a
+different use of conformal data~\cite{CalabreseCardy2004}.  Quenched
+Lyapunov spectra are governed by multiplicative ergodic theory
+\cite{Oseledets1968,FurstenbergKesten1960}, while multifractal spectra at
+disordered critical points are reviewed in Ref.~\cite{EversMirlin2008}.  The
+free-fermion monitored-circuit context is developed in
+Refs.~\cite{JianBauerKeselmanLudwig2022,AlbertonBuchholdDiehl2021,Fava2023,
+Poboiko2023,ChahineBuchhold2024}, and the topological Lyapunov/boundary-mode
+language relevant to class A appears in
+Refs.~\cite{LudwigSchulzBaldesStolz2013,XiaoKawabata2024,BhuiyanPanJian2026}.
+
+\section{Object Dictionary}
+\label{sec:dictionary}
+
+The word ``transfer'' is overloaded.  Table~\ref{tab:dictionary} fixes the
+objects used below.
+
+\begin{table}[h]
+\caption{\label{tab:dictionary}
+Distinct objects that should not be identified without an explicit map.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.23\linewidth}p{0.31\linewidth}p{0.34\linewidth}}
+Object & Definition & What it can diagnose \\
+\colrule
+Born trajectory \(G_\bxi(t)\) &
+State covariance evolved by the sampled record \(\bxi\) &
+Trajectory-resolved nonlinear observables such as entropy, Chern markers, and
+correlators \\
+Mean channel \(\bar G(t)\) &
+Deterministic covariance obtained after Born averaging the channel &
+Linear observables of the average state and mixed-state spectral skeletons \\
+Cumulative Kraus/Gaussian operator &
+Unnormalized amplitude \(\hat K_\bxi(t)\) or its one-body representative when
+the branch is even and regular &
+Born probability, operator singular values, and trajectory free energy \\
+Choi particle/hole transfer data &
+Doubled Gaussian covariance of \(\hat K_\bxi(t)\), represented in particle or
+hole charts plus endpoint data &
+Finite-sector singular values and singular gain/loss null sectors \\
+Tangent cocycle &
+Linearization of \(G_{t+1}=F_{\alpha_t}(G_t)\) along a realized trajectory &
+Stability exponents of covariance perturbations; near-marginal directions \\
+CFT data &
+Universal finite-size coefficients of the trajectory ensemble at a critical
+point &
+\(c_{\rm eff}\), scaling dimensions, and multifractal spectra \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+The distinction between the third and fifth rows is essential.  The cumulative
+Kraus or Choi transfer object asks for singular values of a realized operator.
+The tangent cocycle asks how an infinitesimal state perturbation evolves along
+the nonlinear stochastic covariance map.  They may display the same slow
+physical sector, but they are not the same operator.
+
+\section{Gaussian State Conventions}
+\label{sec:gaussian-state-conventions}
+
+Let \(c_i,c_i^\dagger\), \(i=1,\ldots,N\), be complex fermions on the
+one-particle Hilbert space \(\cH\simeq \mathbb C^N\).  For a Gaussian state
+\(\rho\), define
+\begin{equation}
+  C_{ij}=\Tr(\rho\,c_i^\dagger c_j),
+  \qquad
+  G=2C-\I .
+  \label{eq:C-G-definition}
+\end{equation}
+For a pure Slater determinant with occupied one-particle frame
+\(Q\in\mathbb C^{N\times q}\), \(Q^\dagger Q=\I_q\),
+\begin{equation}
+  \ket{\Psi_Q}=
+  \prod_{a=1}^{q} c^\dagger(Q_a)\ket{0},
+  \qquad
+  C=QQ^\dagger .
+  \label{eq:slater-frame}
+\end{equation}
+Hence
+\begin{equation}
+  C^2=C,
+  \qquad
+  G^2=(2C-\I)^2=\I .
+  \label{eq:pure-identities}
+\end{equation}
+Conversely, a Hermitian \(C\) with \(C^2=C\) is the one-body projector onto
+the occupied subspace of a fixed-charge pure Gaussian state.  The covariance
+language is therefore equivalent to the Slater-frame language, but it is more
+convenient for measurements and feedback.
+
+\section{Occupation Measurements as Determinantal Updates}
+\label{sec:occupation-measurements}
+
+Let
+\begin{equation}
+  \ket{\chi}\in\cH,
+  \qquad
+  P=\ket{\chi}\bra{\chi},
+  \qquad
+  Q_\chi=\I-P,
+  \qquad
+  \hat n_\chi=\hat\chi^\dagger\hat\chi ,
+  \label{eq:rank-one-mode}
+\end{equation}
+with \(\|\chi\|=1\).  The two projective measurement outcomes are
+\(\hat n_\chi=1\) and \(\hat n_\chi=0\).  Their Born probabilities follow
+immediately from Eq.~\eqref{eq:C-G-definition}:
+\begin{equation}
+  p_1=\Tr(PC)=\bra{\chi}C\ket{\chi},
+  \qquad
+  p_0=1-p_1=\Tr[P(\I-C)] .
+  \label{eq:single-mode-born}
+\end{equation}
+
+The conditional covariance can be derived by choosing a basis in which
+\(\chi\) is the first orbital and writing
+\begin{equation}
+  C=
+  \begin{pmatrix}
+    c & v^\dagger\\
+    v & R
+  \end{pmatrix},
+  \qquad
+  c=\bra{\chi}C\ket{\chi}.
+  \label{eq:C-block-for-conditioning}
+\end{equation}
+For the occupied outcome, Wick contraction conditioned on \(n_\chi=1\) gives
+\begin{equation}
+  C^{(1)}_{\rm rest}=R-\frac{vv^\dagger}{c}.
+  \label{eq:occupied-schur}
+\end{equation}
+For the empty outcome, the determinantal complement gives
+\begin{equation}
+  C^{(0)}_{\rm rest}=R+\frac{vv^\dagger}{1-c}.
+  \label{eq:empty-schur}
+\end{equation}
+Restoring basis-independent notation,
+\begin{align}
+  C^{(1)}
+  &=
+  P+Q_\chi C Q_\chi
+  -
+  \frac{Q_\chi C P C Q_\chi}{\Tr(PC)},
+  \label{eq:C-occupied-update}\\
+  C^{(0)}
+  &=
+  Q_\chi C Q_\chi
+  +
+  \frac{Q_\chi C P C Q_\chi}{1-\Tr(PC)} .
+  \label{eq:C-empty-update}
+\end{align}
+The cross blocks with the measured mode vanish because the measured mode is
+now a classical definite occupation.
+
+For several commuting measured modes with projector \(P_S\), the same
+calculation gives determinant minors.  If \(S\) denotes the set of modes
+conditioned to be occupied, then
+\begin{equation}
+  \Prob(S\ {\rm occupied})
+  =
+  \det(C_S),
+  \label{eq:minor-occupied}
+\end{equation}
+where \(C_S=P_S C P_S\) restricted to \(\operatorname{Ran}P_S\).  Empty
+conditions are obtained by replacing \(C\) with \(\I-C\), or by using the
+usual determinantal point-process conditional kernel.  This is the first
+free-fermion simplification of \(Z_\bxi=p_\bxi\): the trajectory weight is
+assembled from determinant factors rather than from a many-body tensor
+contraction.
+
+\section{Even Gaussian Branches: Normalization and One-Body Singular Values}
+\label{sec:even-gaussian-branches}
+
+Consider an even number-conserving Gaussian branch whose action on creation
+operators is represented by a one-body matrix \(A\):
+\begin{equation}
+  \hat K_A\,c^\dagger(\phi)\,\hat K_A^{-1}
+  =
+  c^\dagger(A\phi),
+  \label{eq:even-branch-conjugation}
+\end{equation}
+with \(A\) invertible for the moment.  Acting on a Gaussian density matrix
+with covariance \(C\), the unnormalized output \(\hat K_A\rho\hat K_A^\dagger\)
+has normalization
+\begin{equation}
+  p_A(C)
+  =
+  \Tr(\hat K_A\rho\hat K_A^\dagger)
+  =
+  \det\!\left(\I-C+ACA^\dagger\right),
+  \label{eq:gaussian-branch-determinant}
+\end{equation}
+up to the scalar prefactor used to normalize \(\hat K_A\).  The normalized
+output covariance is
+\begin{equation}
+  C'
+  =
+  ACA^\dagger
+  \left(\I-C+ACA^\dagger\right)^{-1}.
+  \label{eq:gaussian-covariance-update}
+\end{equation}
+Thus the single-particle version of the many-body trace
+\(\Tr(\hat K_A\rho\hat K_A^\dagger)\) is not a one-body trace.  It is the
+determinant in Eq.~\eqref{eq:gaussian-branch-determinant}.  In the
+\(G=2C-\I\) convention this same normalization is
+\begin{equation}
+  p_A(G)
+  =
+  \det\!\left[
+    \frac{\I-G}{2}
+    +
+    A\frac{\I+G}{2}A^\dagger
+  \right].
+  \label{eq:gaussian-branch-determinant-G}
+\end{equation}
+With the convention of Eq.~\eqref{eq:even-branch-conjugation}, the mixed-state
+formula is \(\det(\I-C+ACA^\dagger)\).  One should not replace it by
+\(\det(\I-C+C A^\dagger A)\) in a mixed state unless an additional convention
+or commutation relation justifies the reordering.  The \(A^\dagger A\) form
+appears cleanly after restricting to the occupied Slater frame, as in
+Eq.~\eqref{eq:pure-slater-even-branch} below.
+Equation~\eqref{eq:gaussian-covariance-update} is fixed by two checks.  First,
+if \(A\) is unitary, it reduces to \(C'=ACA^\dagger\).  Second, in a basis
+where both \(C\) and \(A^\dagger A\) are diagonal, each occupation mode is
+reweighted by the ordinary Bernoulli factor
+\begin{equation}
+  n_a'=\frac{s_a^2 n_a}{1-n_a+s_a^2 n_a},
+  \label{eq:bernoulli-reweighting}
+\end{equation}
+where \(s_a\) is the corresponding singular value of \(A\).
+
+For a pure Slater determinant, Eq.~\eqref{eq:slater-frame} gives the simpler
+Gram-determinant formula
+\begin{equation}
+  p_A(Q)=\det\!\left(Q^\dagger A^\dagger A Q\right),
+  \qquad
+  C'=
+  A Q\left(Q^\dagger A^\dagger A Q\right)^{-1}Q^\dagger A^\dagger ,
+  \label{eq:pure-slater-even-branch}
+\end{equation}
+provided \(AQ\) has rank \(q\).  This formula is just the norm and projector
+of the transported occupied frame.
+
+For a trajectory \(\bxi=(\alpha_1,\ldots,\alpha_t)\) made only of regular even
+branches, the one-body product is
+\begin{equation}
+  A_\bxi(t)=A_{\alpha_t}\cdots A_{\alpha_1}.
+  \label{eq:one-body-product}
+\end{equation}
+If
+\begin{equation}
+  s_a[A_\bxi(t)]\sim \exp\!\left(t\gamma_a\right),
+  \label{eq:one-body-lyapunov}
+\end{equation}
+then the many-body Fock-space singular values of the second-quantized operator
+are products of the one-body singular values.  Indeed, singular-value
+decomposing \(A_\bxi=U\diag(s_1,\ldots,s_N)V^\dagger\), the second-quantized
+unitaries \(\Gamma(U)\) and \(\Gamma(V)\) do not change singular values, while
+\(\Gamma(\diag s)\) acts on a Fock basis state \(\ket{I}\) as
+\begin{equation}
+  \Gamma(\diag s)\ket{I}
+  =
+  \left(\prod_{a\in I}s_a\right)\ket{I}.
+  \label{eq:fock-product-singular}
+\end{equation}
+Thus
+\begin{equation}
+  \lambda_I
+  =
+  \lim_{t\to\infty}\frac{1}{t}
+  \log \sigma_I^2
+  =
+  2\sum_{a\in I}\gamma_a ,
+  \label{eq:many-body-additive-lyapunov}
+\end{equation}
+apart from any trajectory-independent scalar normalization convention.  In a
+fixed-charge sector, the allowed sets \(I\) have fixed cardinality.
+
+\subsection{One-Body Spectra Versus Fock-Space Spectra}
+\label{sec:one-body-many-body-spectra}
+
+It is useful to state the spectral dictionary without CFT language.  Let
+\(A_\bxi(t)\) be any finite one-body Gaussian transfer matrix associated with
+a fixed trajectory and a fixed particle/hole chart.  Write its singular values
+as
+\begin{equation}
+  s_1(t)\ge s_2(t)\ge\cdots\ge s_N(t)>0,
+  \qquad
+  \kappa_a=\lim_{t\to\infty}\frac{1}{t}\log s_a(t).
+  \label{eq:one-body-kappa}
+\end{equation}
+The induced operator on the \(q\)-particle sector is the exterior power
+\(\bigwedge^q A_\bxi(t)\).  Its singular values are
+\begin{equation}
+  s_I^{(q)}(t)
+  =
+  \prod_{a\in I}s_a(t),
+  \qquad
+  I\subset\{1,\ldots,N\},
+  \qquad |I|=q,
+  \label{eq:exterior-power-singular-values}
+\end{equation}
+and its Lyapunov exponents are
+\begin{equation}
+  \kappa_I^{(q)}
+  =
+  \sum_{a\in I}\kappa_a .
+  \label{eq:exterior-power-exponents}
+\end{equation}
+Thus the many-body spectrum is not a new diagonalization problem once the
+one-body singular data are known, but neither is it identical to the one-body
+list.  It is the additive spectrum of the appropriate exterior-power or
+Fock-space representation.
+
+The universal gaps are gaps relative to the dominant many-body configuration
+in the sector being measured.  If \(I_0\) maximizes \(\kappa_I^{(q)}\) in the
+chosen \(q\)-particle sector, then
+\begin{equation}
+  \mu_{I\leftarrow I_0}^{(q)}
+  =
+  \kappa_{I_0}^{(q)}-\kappa_I^{(q)}
+  =
+  \sum_{a\in I_0}\kappa_a-\sum_{a\in I}\kappa_a
+  \ge 0 .
+  \label{eq:many-body-gap-difference-of-sums}
+\end{equation}
+For example, a single particle-hole replacement \(a\in I_0\to b\notin I_0\)
+has
+\begin{equation}
+  \mu_{a\to b}^{(q)}=\kappa_a-\kappa_b .
+  \label{eq:particle-hole-gap}
+\end{equation}
+Only in a convention where the low-energy one-body data have already been
+converted to positive excitation rapidities
+\(\epsilon_\nu\) measured relative to \(I_0\) does the many-body tower take the
+simple form
+\begin{equation}
+  \mu_A=\sum_\nu n_\nu(A)\epsilon_\nu .
+  \label{eq:excitation-rapidity-tower}
+\end{equation}
+This is the convention used by the finite-gap estimator in the CPU analysis
+script.  The integer pattern \(n_\nu(A)\) is not fixed by linear algebra alone:
+it is fixed by the charge, parity, particle/hole chart, boundary condition,
+and observable sector.  The default choice ``add the lowest one positive
+rapidity'' is therefore a sector assumption, not a theorem.
+
+If the trajectory transfer carries a scalar normalization
+\(c_\bxi(t)\Gamma(A_\bxi(t))\), then \(t^{-1}\log|c_\bxi(t)|\) shifts every
+many-body exponent in the sector by the same amount.  It affects absolute
+free-energy densities but cancels from the gaps
+\(\mu_{I\leftarrow I_0}^{(q)}\).  This is why CFT dimensions are extracted
+from many-body gaps, while \(c_{\rm eff}\) is extracted separately from the
+trajectory probability free energy.
+
+\section{Gain and Loss: Odd Branches and Singular Transfer Charts}
+\label{sec:gain-loss}
+
+The adaptive class-A circuit also uses feedback that supplies or removes a
+fermion from a measured mode.  These operations are not ordinary even
+invertible Gaussian branches.  On a pure Slater state they are
+\begin{equation}
+  \hat K_+=\hat\chi^\dagger,
+  \qquad
+  \hat K_-=\hat\chi ,
+  \label{eq:odd-state-branches}
+\end{equation}
+possibly composed with surrounding even Gaussian evolution.  If the branch
+has nonzero amplitude, creation and annihilation update the physical covariance
+by
+\begin{align}
+  C_{\rm add}
+  &=
+  C+
+  \frac{(\I-C)P(\I-C)}
+       {\Tr[(\I-C)P]},
+  \label{eq:addition-update}\\
+  C_{\rm rem}
+  &=
+  C-
+  \frac{CPC}
+       {\Tr(CP)} .
+  \label{eq:removal-update}
+\end{align}
+Equation~\eqref{eq:addition-update} says that creation fills the component of
+\(\chi\) that was empty; Eq.~\eqref{eq:removal-update} says that annihilation
+removes the component of \(\chi\) that was occupied.  The denominators are the
+corresponding branch probabilities.
+\begin{equation}
+  p_+(C)=\Tr[P(\I-C)]=1-\bra{\chi}C\ket{\chi},
+  \qquad
+  p_-(C)=\Tr(PC)=\bra{\chi}C\ket{\chi}.
+  \label{eq:gain-loss-probabilities}
+\end{equation}
+In the \(G=2C-\I\) convention these become
+\begin{equation}
+  p_+(G)=\frac{1-\bra{\chi}G\ket{\chi}}{2},
+  \qquad
+  p_-(G)=\frac{1+\bra{\chi}G\ket{\chi}}{2}.
+  \label{eq:gain-loss-probabilities-G}
+\end{equation}
+
+\subsection{How Odd Branches Compose}
+\label{sec:odd-composition}
+
+The important point for transfer matrices is that gain and loss do compose
+with the transfer product, but not as ordinary multiplication by another
+invertible one-body matrix in the same charge sector.  Let
+\(\cH_1\) be the one-particle Hilbert space and let \(\Gamma(A)\) denote the
+second-quantized even Gaussian operator induced by a one-body map \(A\).  On
+the \(q\)-particle sector \(\bigwedge^q\cH_1\), define exterior multiplication
+and contraction by
+\begin{align}
+  \varepsilon_\chi \Psi &= \chi\wedge\Psi,
+  &
+  \varepsilon_\chi&:\bigwedge^q\cH_1\to\bigwedge^{q+1}\cH_1,
+  \label{eq:exterior-creation-map}\\
+  \iota_\chi(v_1\wedge\cdots\wedge v_q)
+  &=
+  \sum_{a=1}^{q}(-1)^{a-1}
+  \langle\chi|v_a\rangle\,
+  v_1\wedge\cdots\widehat{v_a}\cdots\wedge v_q,
+  &
+  \iota_\chi&:\bigwedge^q\cH_1\to\bigwedge^{q-1}\cH_1 .
+  \label{eq:interior-annihilation-map}
+\end{align}
+Here \(\widehat v_a\) means that \(v_a\) is omitted.  The odd Kraus branches
+are precisely these charge-changing maps, up to the scalar normalization and
+fermion-ordering convention:
+\begin{equation}
+  \hat\chi^\dagger \leftrightarrow \varepsilon_\chi,
+  \qquad
+  \hat\chi \leftrightarrow \iota_\chi .
+  \label{eq:odd-branch-exterior-interior}
+\end{equation}
+They obey the exact composition identities
+\begin{align}
+  \Gamma(A)\,\varepsilon_\chi
+  &=
+  \varepsilon_{A\chi}\,\Gamma(A),
+  \label{eq:even-creation-composition}\\
+  \iota_\chi\,\Gamma(A)
+  &=
+  \Gamma(A)\,\iota_{A^\dagger\chi}.
+  \label{eq:even-annihilation-composition}
+\end{align}
+Thus, for two even segments \(A_1,A_2\), a gain insertion between them gives
+\begin{equation}
+  \Gamma(A_2)\,\varepsilon_\chi\,\Gamma(A_1)
+  =
+  \varepsilon_{A_2\chi}\,\Gamma(A_2A_1),
+  \label{eq:gain-insertion-composition}
+\end{equation}
+while a loss insertion gives
+\begin{equation}
+  \Gamma(A_2)\,\iota_\chi\,\Gamma(A_1)
+  =
+  \Gamma(A_2A_1)\,\iota_{A_1^\dagger\chi}.
+  \label{eq:loss-insertion-composition}
+\end{equation}
+Equations~\eqref{eq:gain-insertion-composition} and
+\eqref{eq:loss-insertion-composition} are the mechanical reason gain/loss
+cannot be represented as a harmless extra factor in the same one-body transfer
+matrix product.  The trajectory transfer is a word in even maps and
+charge-changing exterior/interior maps,
+\begin{equation}
+  \widehat{\cT}_\bxi
+  =
+  \Gamma(A_m)\,\mathcal O_m\,
+  \Gamma(A_{m-1})\,\mathcal O_{m-1}\cdots
+  \mathcal O_1\,\Gamma(A_0),
+  \qquad
+  \mathcal O_j\in\{\varepsilon_{\chi_j},\iota_{\chi_j}\},
+  \label{eq:odd-even-transfer-word}
+\end{equation}
+so its many-body singular spectrum is a charge-sector-changing Fock-space
+spectrum.  If one insists on a fixed particle-transfer chart, each
+\(\varepsilon_\chi\) or \(\iota_\chi\) forces a rank-one direction to an
+endpoint or to a null direction, and the remaining finite block is the
+reduced transfer matrix used below.  The missing endpoint occupation is not
+lost information; it is the record of which exterior/interior map occurred.
+
+\subsection{Several Odd Insertions: Same-Type Blocks and Mixed Words}
+\label{sec:several-odd-insertions}
+
+The single-insertion discussion is enough to identify the obstruction, but it
+is not enough for an actual adaptive trajectory.  A trajectory can contain
+several gains, several losses, or a mixed ordered string of both.  The
+correct rule is not to commute the odd events into a convenient order.  The
+correct rule is to keep the chronological exterior-algebra word.
+
+First consider a block containing only gains.  For
+\begin{equation}
+  \widehat{\cT}_{+}
+  =
+  \Gamma(A_r)\varepsilon_{\chi_r}
+  \Gamma(A_{r-1})\varepsilon_{\chi_{r-1}}\cdots
+  \varepsilon_{\chi_1}\Gamma(A_0),
+  \label{eq:many-gain-word}
+\end{equation}
+successive use of Eq.~\eqref{eq:even-creation-composition} gives
+\begin{equation}
+  \widehat{\cT}_{+}
+  =
+  \varepsilon_{\eta_r}\varepsilon_{\eta_{r-1}}\cdots
+  \varepsilon_{\eta_1}\,
+  \Gamma(A_{\rm tot}),
+  \qquad
+  A_{\rm tot}=A_rA_{r-1}\cdots A_0,
+  \label{eq:many-gain-normal-form}
+\end{equation}
+with transported gain modes
+\begin{equation}
+  \eta_j=A_rA_{r-1}\cdots A_j\chi_j .
+  \label{eq:transported-gain-modes}
+\end{equation}
+Thus the \(q\)-particle action is
+\begin{equation}
+  \Psi\in\bigwedge^q\cH_1
+  \quad\longmapsto\quad
+  \eta_r\wedge\eta_{r-1}\wedge\cdots\wedge\eta_1
+  \wedge A_{\rm tot}^{\wedge q}\Psi
+  \in\bigwedge^{q+r}\cH_1 .
+  \label{eq:many-gain-sector-map}
+\end{equation}
+Permuting two gain insertions changes the sign of the exterior product, and
+with interleaved even maps it also changes the transported vectors.  Therefore
+only a block of adjacent gains in the same chart can be regarded as
+order-independent up to an overall sign.
+
+For adjacent gains acting on a state with covariance \(C\), put the measured
+modes in the matrix
+\begin{equation}
+  X=(\chi_1,\ldots,\chi_r),
+  \qquad
+  E_X=X^\dagger(\I-C)X .
+  \label{eq:gain-block-empty-gram}
+\end{equation}
+Wick's theorem gives the Born probability
+\begin{align}
+  p_{+X}(C)
+  &=
+  \Tr\!\left[
+  \hat\chi_r^\dagger\cdots\hat\chi_1^\dagger
+  \rho
+  \hat\chi_1\cdots\hat\chi_r
+  \right]
+  =
+  \det E_X .
+  \label{eq:many-gain-born}
+\end{align}
+When \(E_X\) is nonsingular, the conditional covariance is
+\begin{equation}
+  C_{+X}
+  =
+  C+(\I-C)X\,E_X^{-1}X^\dagger(\I-C).
+  \label{eq:many-gain-covariance}
+\end{equation}
+This is the multi-mode version of Eq.~\eqref{eq:addition-update}: the branch
+fills the \(r\)-dimensional component of the requested gain subspace that
+lies in the empty subspace of the incoming Gaussian state.  If
+\(\det E_X=0\), the branch is Pauli blocked in at least one linear
+combination; the exact trajectory weight is zero and the corresponding
+transfer chart is rank deficient.
+
+The loss-only block is dual.  For
+\begin{equation}
+  \widehat{\cT}_{-}
+  =
+  \Gamma(A_r)\iota_{\chi_r}
+  \Gamma(A_{r-1})\iota_{\chi_{r-1}}\cdots
+  \iota_{\chi_1}\Gamma(A_0),
+  \label{eq:many-loss-word}
+\end{equation}
+successive use of Eq.~\eqref{eq:even-annihilation-composition} gives
+\begin{equation}
+  \widehat{\cT}_{-}
+  =
+  \Gamma(A_{\rm tot})\,
+  \iota_{\zeta_r}\iota_{\zeta_{r-1}}\cdots\iota_{\zeta_1},
+  \label{eq:many-loss-normal-form}
+\end{equation}
+where
+\begin{equation}
+  \zeta_j=(A_{j-1}A_{j-2}\cdots A_0)^\dagger\chi_j .
+  \label{eq:transported-loss-modes}
+\end{equation}
+For adjacent losses in the current state chart,
+\begin{equation}
+  O_X=X^\dagger C X,
+  \label{eq:loss-block-occupied-gram}
+\end{equation}
+and
+\begin{align}
+  p_{-X}(C)
+  &=
+  \Tr\!\left[
+  \hat\chi_r\cdots\hat\chi_1
+  \rho
+  \hat\chi_1^\dagger\cdots\hat\chi_r^\dagger
+  \right]
+  =
+  \det O_X,
+  \label{eq:many-loss-born}\\
+  C_{-X}
+  &=
+  C-CX\,O_X^{-1}X^\dagger C .
+  \label{eq:many-loss-covariance}
+\end{align}
+The determinant is now the occupied-subspace Gram determinant.  A zero
+determinant means that at least one requested removal direction has no
+occupied component left after the previous removals.
+
+The genuinely delicate case is a mixed string.  Let
+\begin{equation}
+  d_j=
+  \begin{cases}
+    \hat\chi_j^\dagger, & \sigma_j=+,\\
+    \hat\chi_j, & \sigma_j=-,
+  \end{cases}
+  \qquad
+  \hat K_{\bm\sigma}=d_r d_{r-1}\cdots d_1 .
+  \label{eq:mixed-odd-word}
+\end{equation}
+The exterior and interior maps satisfy the Clifford relations
+\begin{equation}
+  \{\varepsilon_u,\varepsilon_v\}=0,
+  \qquad
+  \{\iota_u,\iota_v\}=0,
+  \qquad
+  \iota_u\varepsilon_v+\varepsilon_v\iota_u=\langle u|v\rangle .
+  \label{eq:exterior-interior-clifford-relations}
+\end{equation}
+The last relation is the whole non-commuting issue.  Moving a loss past a gain
+does not merely generate a sign; it generates a scalar contraction.  In the
+simplest same-mode example,
+\begin{equation}
+  \hat\chi\hat\chi^\dagger=1-\hat n_\chi,
+  \qquad
+  \hat\chi^\dagger\hat\chi=\hat n_\chi .
+  \label{eq:same-mode-gain-loss-projectors}
+\end{equation}
+A gain followed by a loss projects onto the initially empty sector, whereas a
+loss followed by a gain projects onto the initially occupied sector.  These
+two branches have probabilities \(1-n_\chi\) and \(n_\chi\), respectively;
+they are not two equivalent endpoint insertions.
+
+For an arbitrary mixed ordered string the compact formula is a Wick/Pfaffian
+formula.  Define the ordered list of linear fermion operators appearing in
+\(\hat K_{\bm\sigma}^\dagger\hat K_{\bm\sigma}\),
+\begin{equation}
+  L_1,\ldots,L_{2r}
+  =
+  d_1^\dagger,\ldots,d_r^\dagger,d_r,\ldots,d_1 .
+  \label{eq:mixed-kdagger-k-list}
+\end{equation}
+For an even gauge-invariant Gaussian state, the only nonzero elementary
+contractions are
+\begin{equation}
+  \langle \hat c^\dagger(u)\hat c(v)\rangle
+  =
+  \langle u|C|v\rangle,
+  \qquad
+  \langle \hat c(u)\hat c^\dagger(v)\rangle
+  =
+  \langle u|(\I-C)|v\rangle .
+  \label{eq:number-conserving-wick-contractions}
+\end{equation}
+Let \(W\) be the \(2r\times2r\) antisymmetric matrix
+\begin{equation}
+  W_{\mu\nu}=
+  \begin{cases}
+    \langle L_\mu L_\nu\rangle, & \mu<\nu,\\
+    -\langle L_\nu L_\mu\rangle, & \mu>\nu,\\
+    0, & \mu=\nu .
+  \end{cases}
+  \label{eq:mixed-wick-matrix}
+\end{equation}
+Then
+\begin{equation}
+  p_{\bm\sigma}(C)
+  =
+  \Tr(\hat K_{\bm\sigma}\rho\hat K_{\bm\sigma}^\dagger)
+  =
+  \langle L_1\cdots L_{2r}\rangle
+  =
+  \operatorname{Pf} W .
+  \label{eq:mixed-word-born-pfaffian}
+\end{equation}
+Equations~\eqref{eq:mixed-kdagger-k-list}--\eqref{eq:mixed-word-born-pfaffian}
+are the mechanical prescription for non-commuting gain/loss words.  The
+chronological order appears in the ordered list \(L_\mu\); changing the order
+changes \(W\), and hence changes both the Born weight and the conditional
+Gaussian state.
+
+The post-branch covariance is obtained from the same Wick expansion.  In a
+Majorana basis, let \(\gamma_a\) be the physical Majoranas and let
+\(\mathcal G_{ab}\) denote the antisymmetrized Gaussian two-point contraction.
+With
+\begin{equation}
+  B_{\mu a}=\langle L_\mu\gamma_a\rangle,
+  \label{eq:mixed-schur-B}
+\end{equation}
+the conditional antisymmetrized contraction is the Pfaffian Schur complement
+\begin{equation}
+  \mathcal G'_{ab}
+  =
+  \mathcal G_{ab}
+  +
+  \sum_{\mu,\nu=1}^{2r}
+  B_{\mu a}(W^{-1})_{\mu\nu}B_{\nu b},
+  \qquad
+  \operatorname{Pf}W\ne0 .
+  \label{eq:mixed-pfaffian-schur-update}
+\end{equation}
+Equivalently, one can evaluate the sequential rank-one updates
+Eqs.~\eqref{eq:addition-update} and \eqref{eq:removal-update} in the actual
+time order.  The Pfaffian formula is useful because it makes explicit that
+the answer is an ordered Gaussian conditioning problem, not a product of
+commuting scalar probabilities.
+
+For transfer spectroscopy the conclusion is sharp.  Same-type blocks may be
+compressed into determinant updates and a rank-\(r\) endpoint/null sector,
+provided the corresponding Gram matrix has rank \(r\).  A mixed non-commuting
+block must either be kept as an ordered exterior/interior Clifford word or
+embedded in a regularized ordered Majorana/Pin product.  In either
+description, the finite singular values are read only after this ordered
+reduction; endpoint multiplicities are ranks of the resulting constrained
+subspaces, not simply the number of gain/loss events.
+
+\subsection{\texorpdfstring{Transfer-Matrix Group: \(O(2N,\mathbb C)\) and
+the \(U(1)\) Levi Chart}{Transfer-Matrix Group: O(2N,C) and the U(1) Levi Chart}}
+\label{sec:nambu-transfer-group-structure}
+
+Before introducing a regulator, it is useful to state the group constraint.
+Let
+\begin{equation}
+  \Psi=\begin{pmatrix}c\\ c^\dagger\end{pmatrix},
+  \qquad
+  \Omega=\begin{pmatrix}0&\I\\ \I&0\end{pmatrix},
+  \qquad
+  \{\Psi_\mu,\Psi_\nu\}=\Omega_{\mu\nu}.
+  \label{eq:nambu-group-car-form}
+\end{equation}
+If an invertible Gaussian operator \(\hat V\) acts by
+\begin{equation}
+  \hat V\Psi\hat V^{-1}=\mathbb T[\hat V]\Psi ,
+  \label{eq:nambu-transfer-action-group}
+\end{equation}
+then the canonical anticommutation relations force
+\begin{equation}
+  \mathbb T[\hat V]\,\Omega\,\mathbb T[\hat V]^T=\Omega .
+  \label{eq:nambu-transfer-orthogonality}
+\end{equation}
+Thus the unprotected Nambu transfer matrix lives in the complex orthogonal
+group \(O(2N,\mathbb C)\), not in a free \(\mathrm{GL}(2N,\mathbb C)\).  In a
+Majorana basis this is the ordinary complex orthogonal constraint; the complex
+Nambu basis only rewrites the same bilinear form as \(\Omega\).
+
+For a number-conserving invertible even branch the Nambu transfer is block
+diagonal,
+\begin{equation}
+  \mathbb T=
+  \begin{pmatrix}
+    T_h&0\\
+    0&T_p
+  \end{pmatrix},
+  \qquad
+  T_hT_p^T=\I,
+  \qquad
+  T_p=T_h^{-T}.
+  \label{eq:u1-levi-nambu-transfer}
+\end{equation}
+The \(U(1)\)-equivariant invertible transfer group is therefore the
+\(\mathrm{GL}(N,\mathbb C)\) Levi chart parametrized by \(T_p\).  The
+particle/hole inverse-transpose relation is not an additional symmetry
+assumption; it is Eq.~\eqref{eq:nambu-transfer-orthogonality} restricted to
+the \(U(1)\)-commuting block form.
+
+Exact gain and loss sit outside this invertible \(U(1)\) chart for a simple
+reason.  A charge-homogeneous linear insertion is a null vector of the CAR
+form:
+\begin{equation}
+  \hat\chi^\dagger=w_\chi^T\Psi,
+  \quad
+  w_\chi=\begin{pmatrix}0\\ \chi\end{pmatrix},
+  \qquad
+  \hat\chi=\bar u_\chi^T\Psi,
+  \quad
+  \bar u_\chi=\begin{pmatrix}\chi^*\\0\end{pmatrix},
+  \qquad
+  w_\chi^T\Omega w_\chi=\bar u_\chi^T\Omega\bar u_\chi=0 .
+  \label{eq:gain-loss-null-covectors}
+\end{equation}
+Null linear Clifford elements are nilpotent and cannot be inverted.  Hence no
+invertible regulator for a single gain or loss can remain \(U(1)\)-equivariant:
+the regulator must mix the two charge sectors, run in \(O(2N,\mathbb C)\), and
+return to the charge-homogeneous operator only as a singular endpoint.
+
+
+\subsection{\texorpdfstring{Moving Nambu Charts and the \(O(2N,\mathbb C)\)
+Regularization}{Moving Nambu Charts and the O(2N,C) Regularization}}
+\label{sec:onambu-regularization}
+
+There is another useful way to say the same thing.  The fixed particle chart is
+singular because creation and annihilation are nilpotent maps.  If instead one
+works in the full Nambu or Majorana Clifford algebra, an odd branch can be
+approximated by an invertible Clifford element.  For a normalized mode
+\(\chi\), define
+\begin{equation}
+  v_\varepsilon
+  =
+  \sqrt{\varepsilon}\,\hat\chi
+  +
+  \frac{1}{\sqrt{\varepsilon}}\,\hat\chi^\dagger,
+  \qquad
+  \varepsilon>0 .
+  \label{eq:pin-regularized-odd-element}
+\end{equation}
+Using \(\hat\chi^2=(\hat\chi^\dagger)^2=0\) and
+\(\{\hat\chi,\hat\chi^\dagger\}=1\), one finds
+\begin{equation}
+  v_\varepsilon^2=1,
+  \qquad
+  v_\varepsilon^{-1}=v_\varepsilon .
+  \label{eq:pin-element-invertible}
+\end{equation}
+Thus \(v_\varepsilon\) is not a creation operator.  It is an odd Clifford, or
+Pin, element whose conjugation action on Nambu operators is an
+\(O(2N,\mathbb C)\) transformation.  On the distinguished mode,
+\begin{equation}
+  v_\varepsilon\,\hat\chi\,v_\varepsilon^{-1}
+  =
+  \frac{1}{\varepsilon}\hat\chi^\dagger,
+  \qquad
+  v_\varepsilon\,\hat\chi^\dagger\,v_\varepsilon^{-1}
+  =
+  \varepsilon \hat\chi ,
+  \label{eq:pin-conjugation-single-mode}
+\end{equation}
+while modes anticommuting with \(\chi\) are transformed by the corresponding
+orthogonal reflection, with signs fixed by the chosen Clifford ordering.
+Equation~\eqref{eq:pin-conjugation-single-mode} shows exactly what the fixed
+particle chart calls a divergence: in the full Nambu chart it is a
+particle-hole reflection accompanied by a diagonal gauge
+\(\varepsilon^{\pm1}\).
+
+Pure gain and loss are recovered only as projective singular limits.  For
+gain,
+\begin{equation}
+  \sqrt{\varepsilon}\,v_\varepsilon
+  =
+  \varepsilon\hat\chi+\hat\chi^\dagger
+  \xrightarrow{\varepsilon\to0}
+  \hat\chi^\dagger ,
+  \label{eq:pin-gain-limit}
+\end{equation}
+whereas for loss one may equivalently use
+\begin{equation}
+  \frac{1}{\sqrt{\varepsilon}}\,v_\varepsilon
+  =
+  \hat\chi+\frac{1}{\varepsilon}\hat\chi^\dagger
+  \label{eq:pin-loss-bad-scaling}
+\end{equation}
+with \(\varepsilon\to\infty\), or exchange
+\(\varepsilon\leftrightarrow\varepsilon^{-1}\) in
+Eq.~\eqref{eq:pin-regularized-odd-element}.  More symmetrically, define
+\begin{equation}
+  w_\varepsilon
+  =
+  \frac{1}{\sqrt{\varepsilon}}\,\hat\chi
+  +
+  \sqrt{\varepsilon}\,\hat\chi^\dagger ,
+  \qquad
+  w_\varepsilon^2=1,
+  \qquad
+  \sqrt{\varepsilon}\,w_\varepsilon
+  \xrightarrow{\varepsilon\to0}
+  \hat\chi .
+  \label{eq:pin-loss-limit}
+\end{equation}
+The singular gain/loss maps are therefore boundary points of an invertible
+Pin/Bogoliubov cocycle, rather than failures of the underlying Clifford
+description.
+
+This regularization is useful but not free.  The physical trajectory
+probability is not the projective \(O(2N,\mathbb C)\) action alone.  For the
+unrescaled operator \(v_\varepsilon\),
+\begin{align}
+  \Tr(v_\varepsilon\rho v_\varepsilon^\dagger)
+  &=
+  \varepsilon\,\Tr(\hat\chi\rho\hat\chi^\dagger)
+  +
+  \varepsilon^{-1}\Tr(\hat\chi^\dagger\rho\hat\chi)
+  \nonumber\\
+  &=
+  \varepsilon\,p_-(C)+\varepsilon^{-1}p_+(C),
+  \label{eq:pin-regularized-branch-weight}
+\end{align}
+because the same-mode nilpotent cross terms contain \(\hat\chi^2\) or \((\hat\chi^\dagger)^2\).
+After multiplying by the projective scalar \(\sqrt{\varepsilon}\) appropriate
+to the gain limit, Eq.~\eqref{eq:pin-regularized-branch-weight} tends to
+\(p_+(C)\).  After using the loss scaling in
+Eq.~\eqref{eq:pin-loss-limit}, it tends to \(p_-(C)\).  Consequently the
+moving \(O(2N,\mathbb C)\) chart regularizes the transfer direction, but the
+scalar cocycle must be kept separately to recover the Born weight and the
+trajectory free energy.
+
+In practical terms, the two descriptions are equivalent bookkeeping choices:
+\begin{equation}
+  \begin{array}{c}
+  \hbox{fixed particle/hole chart}
+  \end{array}
+  \quad\Longleftrightarrow\quad
+  \begin{array}{c}
+  \hbox{finite block plus endpoint/null sectors}
+  \end{array},
+  \label{eq:fixed-chart-bookkeeping}
+\end{equation}
+whereas
+\begin{equation}
+  \begin{array}{c}
+  O(2N,\mathbb C)\hbox{ moving Nambu chart}
+  \end{array}
+  \quad\Longleftrightarrow\quad
+  \begin{array}{c}
+  \hbox{finite Pin/Bogoliubov cocycle plus divergent gauge}\\
+  \hbox{and scalar normalization}
+  \end{array}.
+  \label{eq:moving-chart-bookkeeping}
+\end{equation}
+The moving chart may be the cleaner representation for composing long
+trajectories with gain and loss, especially if one wants a single nonsingular
+Nambu transfer product.  It does not eliminate the gain/loss complication; it
+moves it from endpoint eigenvalues into the gauge/scalar part of the cocycle.
+
+\subsection{Projective Measurements, Gauge Renormalization, and Particle/Hole
+Reciprocity}
+\label{sec:projector-gauge-reciprocity}
+
+The same singular-chart issue already appears for ordinary projective
+occupation measurements.  These are even branches, so they do not mix particle
+and hole sectors at finite regulator.  Let \(P=\chi\chi^\dagger\) be the
+one-body projector onto the measured particle wavefunction and define
+\begin{equation}
+  D_\varepsilon(P)=\I-P+\varepsilon P .
+  \label{eq:projector-regulator-D}
+\end{equation}
+The occupied and empty projectors can be approached by the invertible even
+branches
+\begin{equation}
+  \hat \Pi_{1,\varepsilon}
+  =
+  \hat n_\chi+\varepsilon(1-\hat n_\chi),
+  \qquad
+  \hat \Pi_{0,\varepsilon}
+  =
+  (1-\hat n_\chi)+\varepsilon\hat n_\chi .
+  \label{eq:regularized-occupation-projectors}
+\end{equation}
+For \(\varepsilon>0\), these are honest Gaussian transfer matrices and
+therefore compose by ordinary matrix multiplication with every other
+finite-regulator Gaussian factor.  In the Nambu convention
+\(\Psi=(c,c^\dagger)^T\), their block-diagonal transfer matrices are
+\begin{align}
+  \mathbb T_{1,\varepsilon}
+  &=
+  \begin{pmatrix}
+    D_\varepsilon(P)^T & 0\\
+    0 & D_\varepsilon(P)^{-1}
+  \end{pmatrix},
+  \label{eq:occupied-projector-nambu-transfer}\\
+  \mathbb T_{0,\varepsilon}
+  &=
+  \begin{pmatrix}
+    D_\varepsilon(P)^{-T} & 0\\
+    0 & D_\varepsilon(P)
+  \end{pmatrix}.
+  \label{eq:empty-projector-nambu-transfer}
+\end{align}
+Equivalently, on the measured mode,
+\begin{align}
+  \hat \Pi_{1,\varepsilon}\hat\chi
+  \hat \Pi_{1,\varepsilon}^{-1}
+  &=
+  \varepsilon\hat\chi,
+  &
+  \hat \Pi_{1,\varepsilon}\hat\chi^\dagger
+  \hat \Pi_{1,\varepsilon}^{-1}
+  &=
+  \varepsilon^{-1}\hat\chi^\dagger,
+  \label{eq:occupied-projector-mode-action}\\
+  \hat \Pi_{0,\varepsilon}\hat\chi
+  \hat \Pi_{0,\varepsilon}^{-1}
+  &=
+  \varepsilon^{-1}\hat\chi,
+  &
+  \hat \Pi_{0,\varepsilon}\hat\chi^\dagger
+  \hat \Pi_{0,\varepsilon}^{-1}
+  &=
+  \varepsilon\hat\chi^\dagger .
+  \label{eq:empty-projector-mode-action}
+\end{align}
+Thus an occupied measurement produces a particle-sector pole and a hole-sector
+zero on the measured mode, while an empty measurement produces the opposite
+zero/pole pair.  At every nonzero \(\varepsilon\) the particle and hole blocks
+are still related by CAR preservation:
+\begin{equation}
+  A_h(\varepsilon)A_p(\varepsilon)^T=\I,
+  \qquad
+  A_h(\varepsilon)=A_p(\varepsilon)^{-T}.
+  \label{eq:finite-epsilon-particle-hole-inverse}
+\end{equation}
+The exact projector limit destroys the full-rank chart, not the finite
+\(\varepsilon\) relation.  On the active complement of \(P\), the reduced
+particle and hole blocks remain inverse-transpose partners; on the measured
+direction one instead records an endpoint occupation.
+
+The same regularized projector is equally transparent in Majorana language.
+Define
+\(\gamma_{1,\chi}=\hat\chi+\hat\chi^\dagger\) and
+\(\gamma_{2,\chi}=-i(\hat\chi-\hat\chi^\dagger)\).  Then
+\begin{equation}
+  \hat n_\chi=\frac{1+i\gamma_{1,\chi}\gamma_{2,\chi}}{2}.
+  \label{eq:number-projector-majoranas}
+\end{equation}
+Let \(B_\chi=i\gamma_{1,\chi}\gamma_{2,\chi}\), so \(B_\chi^2=1\), and put
+\begin{equation}
+  \eta_\varepsilon=\frac{1}{2}\log\frac{1}{\varepsilon}.
+  \label{eq:projector-boost-eta}
+\end{equation}
+Then
+\begin{equation}
+  \hat\Pi_{1,\varepsilon}
+  =
+  \sqrt{\varepsilon}\,e^{\eta_\varepsilon B_\chi},
+  \qquad
+  \hat\Pi_{0,\varepsilon}
+  =
+  \sqrt{\varepsilon}\,e^{-\eta_\varepsilon B_\chi}.
+  \label{eq:projector-majorana-boost}
+\end{equation}
+The scalar \(\sqrt{\varepsilon}\) is part of the Kraus normalization and drops
+out of conjugation.  The occupied branch acts on
+\((\gamma_{1,\chi},\gamma_{2,\chi})\) by the complex orthogonal boost
+\begin{equation}
+  R_{1,\varepsilon}^{(\chi)}
+  =
+  \begin{pmatrix}
+    \cosh(2\eta_\varepsilon)&-i\sinh(2\eta_\varepsilon)\\
+    i\sinh(2\eta_\varepsilon)&\cosh(2\eta_\varepsilon)
+  \end{pmatrix},
+  \label{eq:occupied-projector-majorana-boost}
+\end{equation}
+and the empty branch uses \(R_{0,\varepsilon}^{(\chi)}
+=(R_{1,\varepsilon}^{(\chi)})^{-1}\).  The Nambu operators
+\(\hat\chi\) and \(\hat\chi^\dagger\) are the light-cone eigenvectors of this
+Majorana boost, with eigenvalues \(\varepsilon\) and
+\(\varepsilon^{-1}\) for the occupied outcome and the reciprocal eigenvalues
+for the empty outcome.  Thus the Majorana and Nambu derivations are the same
+singular transfer written in different bases: Majorana sees a divergent boost,
+while Nambu diagonalizes that boost into particle/hole zero-pole factors.
+
+This also explains what can and cannot be achieved by ``renormalizing'' the
+transfer matrix.  Multiplying the Kraus operator by a scalar changes the Born
+weight but cancels out of the conjugation action.  Multiplying the whole
+Nambu matrix by a scalar is not a legitimate CAR-preserving transfer matrix,
+except for the signs \(r=\pm1\).  A legitimate number-conserving Nambu gauge
+has the reciprocal form
+\begin{equation}
+  \mathbb G(R)=
+  \begin{pmatrix}
+    R^{-T}&0\\
+    0&R
+  \end{pmatrix},
+  \qquad
+  \mathbb G(R)\Omega\mathbb G(R)^T=\Omega .
+  \label{eq:nambu-reciprocal-gauge}
+\end{equation}
+For example,
+\begin{equation}
+  \mathbb T_{1,\varepsilon}=\mathbb G[D_\varepsilon(P)^{-1}],
+  \qquad
+  \mathbb T_{0,\varepsilon}=\mathbb G[D_\varepsilon(P)] .
+  \label{eq:projectors-as-singular-gauges}
+\end{equation}
+One may use such gauges to center a numerical calculation or to subtract a
+known regulator slope, but this does not produce a unique finite full
+transfer matrix in the exact limit.  It only moves the zero/pole into the
+chart transition.  The invariant data are the finite active block, the
+removed regulator exponents, and the endpoint occupation.
+
+Gain and loss are the odd analogue.  Their regulated Nambu matrices in
+Eqs.~\eqref{eq:nambu-regulated-gain-matrix} and
+\eqref{eq:nambu-regulated-loss-matrix} are not block diagonal: the zero/pole
+pair appears in the particle-hole mixing blocks instead of in the diagonal
+projector blocks.  Nevertheless the finite-\(\varepsilon\) statement is the
+same.  The full Nambu or Majorana transfer is an ordinary
+\(O(2N,\mathbb C)\) matrix product.  The exact \(\varepsilon\to0\) limit is a
+singular chart limit whose finite content is a reduced particle/hole transfer
+matrix plus a filled or empty endpoint sector.
+
+The resulting interpretation of the whole monitored Gaussian circuit is:
+choose a finite regulator for every exact projector, gain, and loss branch;
+compose the associated Nambu or Majorana one-body matrices by literal ordered
+matrix multiplication; keep the scalar determinant/Pfaffian cocycle for the
+Born weight; and only then take the regulator limit.  The limit returns the
+exact many-body Gaussian branch, but the single-particle representative is a
+singular-limit object rather than a globally full-rank particle-transfer
+matrix.
+
+\subsection{Majorana Transfer Form of Exact and Regularized Gain/Loss}
+\label{sec:majorana-gain-loss-transfer}
+
+The preceding discussion can be made completely explicit in a Majorana basis.
+For the mode \(\chi\), define two Majorana operators
+\begin{equation}
+  \gamma_{1,\chi}=\hat\chi+\hat\chi^\dagger,
+  \qquad
+  \gamma_{2,\chi}=-i(\hat\chi-\hat\chi^\dagger),
+  \label{eq:mode-majoranas}
+\end{equation}
+so that
+\begin{equation}
+  \hat\chi=\frac{\gamma_{1,\chi}+i\gamma_{2,\chi}}{2},
+  \qquad
+  \hat\chi^\dagger=\frac{\gamma_{1,\chi}-i\gamma_{2,\chi}}{2}.
+  \label{eq:creation-annihilation-majoranas}
+\end{equation}
+Thus exact loss and exact gain are linear Clifford insertions,
+\begin{equation}
+  \hat K_-=\hat\chi=a_-\cdot\gamma,
+  \qquad
+  \hat K_+=\hat\chi^\dagger=a_+\cdot\gamma,
+  \label{eq:exact-gain-loss-majorana-linear}
+\end{equation}
+with, in the two-dimensional subspace spanned by
+\((\gamma_{1,\chi},\gamma_{2,\chi})\),
+\begin{equation}
+  a_-=\frac{1}{2}(1,i),
+  \qquad
+  a_+=\frac{1}{2}(1,-i).
+  \label{eq:null-majorana-vectors}
+\end{equation}
+These vectors are null with respect to the complex orthogonal form:
+\begin{equation}
+  a_\pm\cdot a_\pm=0,
+  \qquad
+  \hat K_\pm^2=0 .
+  \label{eq:exact-gain-loss-null}
+\end{equation}
+This is the exact Majorana-basis obstruction.  Gain and loss are
+Majorana-linear operators, but because they are nilpotent they do not define
+an invertible conjugation action
+\(\gamma_i\mapsto \hat K_\pm\gamma_i\hat K_\pm^{-1}\).  Exact gain/loss is
+therefore a null Clifford insertion, not an element of
+\(O(2N,\mathbb C)\).
+
+The regularized branch
+\begin{equation}
+  v_\varepsilon
+  =
+  \sqrt{\varepsilon}\,\hat\chi
+  +
+  \frac{1}{\sqrt{\varepsilon}}\,\hat\chi^\dagger
+  =
+  a_\varepsilon\cdot\gamma
+  \label{eq:majorana-regularized-branch}
+\end{equation}
+has
+\begin{equation}
+  a_\varepsilon
+  =
+  \frac{1}{2}
+  \left(
+  \sqrt{\varepsilon}+\varepsilon^{-1/2},
+  i\sqrt{\varepsilon}-i\varepsilon^{-1/2}
+  \right),
+  \qquad
+  a_\varepsilon\cdot a_\varepsilon=1 .
+  \label{eq:majorana-regularized-vector}
+\end{equation}
+Hence \(v_\varepsilon^2=1\), as in
+Eq.~\eqref{eq:pin-element-invertible}, and \(v_\varepsilon\) induces an
+honest complex-orthogonal Majorana transfer matrix
+\begin{equation}
+  v_\varepsilon\,\gamma_i\,v_\varepsilon^{-1}
+  =
+  \sum_j R_{ij}^{(\varepsilon)}\gamma_j,
+  \qquad
+  R^{(\varepsilon)}\in O(2N,\mathbb C).
+  \label{eq:regularized-majorana-transfer}
+\end{equation}
+Thus the precise statement is
+\begin{align}
+  \hbox{exact gain/loss}
+  &=
+  \hbox{null Majorana-linear Clifford insertion},
+  \nonumber\\
+  \hbox{regularized gain/loss}
+  &=
+  \hbox{invertible Pin element inducing }O(2N,\mathbb C)\hbox{ transfer}.
+  \label{eq:exact-versus-regularized-majorana}
+\end{align}
+
+The Born probabilities make clear what is, and is not, contained in this
+regularized transfer matrix.  Let
+\begin{equation}
+  n_\chi=\bra{\chi}C\ket{\chi}
+  =
+  \frac{1+\bra{\chi}G\ket{\chi}}{2}.
+  \label{eq:n-chi-C-G}
+\end{equation}
+For exact loss and gain,
+\begin{equation}
+  p_-(C)
+  =
+  \Tr(\hat\chi\rho\hat\chi^\dagger)
+  =
+  n_\chi,
+  \qquad
+  p_+(C)
+  =
+  \Tr(\hat\chi^\dagger\rho\hat\chi)
+  =
+  1-n_\chi .
+  \label{eq:exact-gain-loss-born}
+\end{equation}
+For a same-mode regularized odd branch
+\begin{equation}
+  \hat K=a\,\hat\chi+b\,\hat\chi^\dagger ,
+  \label{eq:general-odd-same-mode-branch}
+\end{equation}
+an even Gaussian density matrix has no parity-odd expectation values, and
+\(\hat\chi^2=(\hat\chi^\dagger)^2=0\).  The cross terms therefore vanish and
+\begin{equation}
+  p_K(C)
+  =
+  \Tr(\hat K\rho \hat K^\dagger)
+  =
+  |a|^2 n_\chi+|b|^2(1-n_\chi).
+  \label{eq:regularized-odd-born-general}
+\end{equation}
+For \(v_\varepsilon\) this gives
+\begin{equation}
+  p_{v_\varepsilon}(C)
+  =
+  \varepsilon n_\chi+\varepsilon^{-1}(1-n_\chi).
+  \label{eq:regularized-v-born}
+\end{equation}
+This quantity diverges in the gain limit because \(v_\varepsilon\) contains a
+divergent scalar gauge.  The projectively rescaled gain approximation
+\begin{equation}
+  \hat K_\varepsilon^+
+  =
+  \sqrt{\varepsilon}\,v_\varepsilon
+  =
+  \varepsilon\hat\chi+\hat\chi^\dagger
+  \label{eq:regularized-gain-K}
+\end{equation}
+has
+\begin{equation}
+  p_\varepsilon^+(C)
+  =
+  \varepsilon^2 n_\chi+(1-n_\chi)
+  \xrightarrow{\varepsilon\to0}
+  1-n_\chi .
+  \label{eq:regularized-gain-born-limit}
+\end{equation}
+Similarly, using
+\begin{equation}
+  \hat K_\varepsilon^-
+  =
+  \hat\chi+\varepsilon\hat\chi^\dagger
+  \label{eq:regularized-loss-K}
+\end{equation}
+for loss gives
+\begin{equation}
+  p_\varepsilon^-(C)
+  =
+  n_\chi+\varepsilon^2(1-n_\chi)
+  \xrightarrow{\varepsilon\to0}
+  n_\chi .
+  \label{eq:regularized-loss-born-limit}
+\end{equation}
+Therefore the \(O(2N,\mathbb C)\) transfer matrix regularizes the projective
+Majorana dynamics, but the physical trajectory weight lives in the scalar
+normalization used to take the singular gain/loss limit.  Dropping that scalar
+would lose precisely the contribution needed for the trajectory free energy
+and hence for \(c_{\rm eff}\).
+
+
+\subsection{Regulated Products in the Majorana/Nambu Chart}
+\label{sec:regulated-majorana-products}
+
+The regulated Majorana chart simplifies composition at finite regulator, but
+only after one separates the projective transfer direction from the scalar
+normalization.  Let
+\begin{equation}
+  \gamma=(\gamma_1,\ldots,\gamma_{2N})^T,
+  \qquad
+  \{\gamma_a,\gamma_b\}=2\delta_{ab} .
+  \label{eq:majorana-vector-convention}
+\end{equation}
+A regulated odd branch may be written as
+\begin{equation}
+  \hat K_j(\varepsilon)
+  =
+  c_j(\varepsilon)\,\hat u_j(\varepsilon),
+  \qquad
+  \hat u_j(\varepsilon)=u_j(\varepsilon)^T\gamma,
+  \qquad
+  u_j(\varepsilon)^T u_j(\varepsilon)=1 .
+  \label{eq:regulated-branch-pin-factorization}
+\end{equation}
+The transpose in \(u^Tu\) is the complex orthogonal bilinear form, not the
+Hermitian norm.  Since \(\hat u_j^2=1\), conjugation by \(\hat u_j\) is the
+complex orthogonal reflection
+\begin{equation}
+  \hat u_j\gamma_a\hat u_j^{-1}
+  =
+  \sum_b R[u_j]_{ab}\gamma_b,
+  \qquad
+  R[u_j]_{ab}=-\delta_{ab}+2u_{j,a}u_{j,b},
+  \qquad
+  R[u_j]\in O(2N,\mathbb C).
+  \label{eq:pin-reflection-matrix}
+\end{equation}
+Even Gaussian pieces also induce complex-orthogonal Majorana matrices.  Hence
+a regulated trajectory with arbitrary non-commuting gains and losses becomes
+an ordinary ordered product of even rotations and odd reflections.  The precise
+ordering convention matters, because conjugation is an antihomomorphism; the
+Nambu statement in Eqs.~\eqref{eq:nambu-antihomomorphism} and
+\eqref{eq:arbitrary-regulated-nambu-product} fixes this convention explicitly.
+This is the real simplification: there is no separate exterior/interior algebra
+to commute by hand.  The price is that the resulting matrix is only the
+projective transfer matrix.
+
+For a single mode, the Nambu pair
+\(\Psi_\chi=(\hat\chi,\hat\chi^\dagger)^T\) makes the regulator singularity
+explicit.  The projectively rescaled gain and loss approximants
+\begin{equation}
+  \hat K^+_\varepsilon=\hat\chi^\dagger+\varepsilon\hat\chi,
+  \qquad
+  \hat K^-_\varepsilon=\hat\chi+\varepsilon\hat\chi^\dagger
+  \label{eq:regulated-gain-loss-approximants}
+\end{equation}
+obey \((\hat K^\pm_\varepsilon)^2=\varepsilon\), so they are invertible for
+\(\varepsilon\ne0\).  Their conjugation actions are
+\begin{align}
+  \hat K^+_\varepsilon\Psi_\chi(\hat K^+_\varepsilon)^{-1}
+  &=
+  \begin{pmatrix}
+    0 & \varepsilon^{-1}\\
+    \varepsilon & 0
+  \end{pmatrix}
+  \Psi_\chi,
+  \label{eq:nambu-gain-transfer}\\
+  \hat K^-_\varepsilon\Psi_\chi(\hat K^-_\varepsilon)^{-1}
+  &=
+  \begin{pmatrix}
+    0 & \varepsilon\\
+    \varepsilon^{-1} & 0
+  \end{pmatrix}
+  \Psi_\chi .
+  \label{eq:nambu-loss-transfer}
+\end{align}
+Thus finite \(\varepsilon\) replaces a zero or pole in a fixed particle chart
+by a particle-hole exchange with singular gauge factors
+\(\varepsilon^{\pm1}\).  These factors are not finite critical exponents.
+
+It is useful to write the arbitrary-word formula directly in the Nambu basis.
+Let
+\begin{equation}
+  \Psi=\begin{pmatrix}c\\ c^\dagger\end{pmatrix},
+  \qquad
+  \Omega=\begin{pmatrix}0&\I\\ \I&0\end{pmatrix},
+  \qquad
+  \{\Psi_\mu,\Psi_\nu\}=\Omega_{\mu\nu} .
+  \label{eq:nambu-car-form}
+\end{equation}
+For a linear form
+\begin{equation}
+  \hat\ell(w)=w^T\Psi,
+  \qquad
+  \hat\ell(w)^2=\frac{1}{2}w^T\Omega w,
+  \label{eq:nambu-linear-form}
+\end{equation}
+the exact gain/loss operators are precisely null vectors,
+\(w^T\Omega w=0\), and so have no inverse.  A finite regulator replaces that
+null vector by a non-null vector.  If \(w^T\Omega w\ne0\), conjugation by the
+normalized Pin element induces
+\begin{equation}
+  \hat\ell(w)\Psi\hat\ell(w)^{-1}
+  =
+  \mathbb R[w]\Psi,
+  \qquad
+  \mathbb R[w]
+  =
+  -\I+\frac{2\Omega w w^T}{w^T\Omega w},
+  \qquad
+  \mathbb R[w]\Omega\mathbb R[w]^T=\Omega .
+  \label{eq:nambu-pin-reflection}
+\end{equation}
+The factor \(\Omega w\), rather than \(w\), appears because \(w\) labels a
+linear functional \(w^T\Psi\).  Equation~\eqref{eq:nambu-pin-reflection} is
+the Nambu version of the Majorana reflection in
+Eq.~\eqref{eq:pin-reflection-matrix}.
+
+For a mode \(\chi\), with
+\(\hat\chi^\dagger=\sum_i\chi_i c_i^\dagger\) and
+\(\hat\chi=\sum_i\chi_i^*c_i\), define
+\begin{equation}
+  w_+(\varepsilon)=
+  \begin{pmatrix}\varepsilon^{1/2}\chi^*\\ \varepsilon^{-1/2}\chi\end{pmatrix},
+  \qquad
+  w_-(\varepsilon)=
+  \begin{pmatrix}\varepsilon^{-1/2}\chi^*\\ \varepsilon^{1/2}\chi\end{pmatrix} .
+  \label{eq:nambu-regulated-gain-loss-vectors}
+\end{equation}
+Then \(\hat\ell[w_+(\varepsilon)]\) tends projectively to gain as
+\(\varepsilon\to0\), while \(\hat\ell[w_-(\varepsilon)]\) tends projectively
+to loss.  Since \(w_\pm^T\Omega w_\pm=2\), the Nambu reflection matrices are
+\begin{align}
+  \mathbb R_+(\chi,\varepsilon)
+  &=
+  \begin{pmatrix}
+    -(\I-P) & \varepsilon^{-1}\chi\chi^T\\
+    \varepsilon\chi^*\chi^\dagger & -(\I-P^T)
+  \end{pmatrix},
+  \label{eq:nambu-regulated-gain-matrix}\\
+  \mathbb R_-(\chi,\varepsilon)
+  &=
+  \begin{pmatrix}
+    -(\I-P) & \varepsilon\chi\chi^T\\
+    \varepsilon^{-1}\chi^*\chi^\dagger & -(\I-P^T)
+  \end{pmatrix},
+  \label{eq:nambu-regulated-loss-matrix}
+\end{align}
+where \(P=\chi\chi^\dagger\).  For \(N=1\) these reduce to
+Eqs.~\eqref{eq:nambu-gain-transfer} and \eqref{eq:nambu-loss-transfer}.
+The off-diagonal blocks are the charge-breaking regulator pieces.  The full
+matrix remains exactly CAR-orthogonal; if one drops either the divergent or
+vanishing off-diagonal block before taking the limit, the missing product
+\(\varepsilon^{-1}\varepsilon P\) is precisely the occupation constraint that
+has to be restored by hand in the fixed particle/hole chart.
+
+This statement becomes concrete when the neighboring even segment is
+number-conserving.  Write
+\begin{equation}
+  \mathbb A=
+  \begin{pmatrix}
+    A_h&0\\
+    0&A_p
+  \end{pmatrix},
+  \qquad
+  A_hA_p^T=\I,
+  \label{eq:nambu-number-conserving-even-block}
+\end{equation}
+and set \(P_h=P=\chi\chi^\dagger\), \(P_p=P^T\).  For an odd insertion on
+the right side of this even transfer, ordinary Nambu multiplication gives
+\begin{align}
+  \mathbb A\mathbb R_+(\chi,\varepsilon)
+  &=
+  \begin{pmatrix}
+    -A_h(\I-P_h) & \varepsilon^{-1}A_h\chi\chi^T\\
+    \varepsilon A_p\chi^*\chi^\dagger & -A_p(\I-P_p)
+  \end{pmatrix},
+  \label{eq:even-times-regulated-gain-blocks}\\
+  \mathbb A\mathbb R_-(\chi,\varepsilon)
+  &=
+  \begin{pmatrix}
+    -A_h(\I-P_h) & \varepsilon A_h\chi\chi^T\\
+    \varepsilon^{-1}A_p\chi^*\chi^\dagger & -A_p(\I-P_p)
+  \end{pmatrix}.
+  \label{eq:even-times-regulated-loss-blocks}
+\end{align}
+Thus the diagonal particle/hole blocks have a finite, rank-deficient limit,
+while one charge-mixing block vanishes and the other diverges.  For a right
+insertion the fixed-chart finite blocks are
+\begin{equation}
+  A_h\mapsto A_h(\I-P_h),
+  \qquad
+  A_p\mapsto A_p(\I-P_p),
+  \label{eq:right-insertion-fixed-chart-limit}
+\end{equation}
+up to the unimportant reflection sign.  For a left insertion the same
+calculation gives left multiplication by the complementary projectors,
+\begin{equation}
+  A_h\mapsto(\I-P_h)A_h,
+  \qquad
+  A_p\mapsto(\I-P_p)A_p .
+  \label{eq:left-insertion-fixed-chart-limit}
+\end{equation}
+Inside a longer word the mode appearing in \(P_h\) or \(P_p\) is transported
+by the adjacent even matrices, exactly as in
+Eqs.~\eqref{eq:gain-insertion-composition} and
+\eqref{eq:loss-insertion-composition}.  The exact gain/loss operation is
+therefore recovered from the regulated product as a reduced finite
+particle/hole transfer plus endpoint occupation data: gain and loss have the
+same finite rank drop in the diagonal blocks, but gain has the
+\(\varepsilon^{-1}\) pole in the particle-hole block and records a filled
+endpoint, while loss has the opposite pole and records an empty endpoint.  A
+fixed particle chart or fixed hole chart sees this as a zero or infinity; the
+full Nambu chart sees it as a singular gauge direction of an otherwise
+ordinary \(O(2N,\mathbb C)\) matrix product.
+
+Now let the exact trajectory word be an arbitrary Gaussian word made of even
+Gaussian pieces and exact gain/loss insertions.  Its regulated version can be
+written as
+\begin{equation}
+  \hat K_{\bxi,\varepsilon}
+  =
+  s_{\bxi}(\varepsilon)
+  \hat E_m\hat\ell[w_m(\varepsilon)]\hat E_{m-1}\cdots
+  \hat\ell[w_1(\varepsilon)]\hat E_0,
+  \label{eq:arbitrary-regulated-gaussian-word}
+\end{equation}
+where each \(\hat E_j\) is an invertible even Gaussian operator, not assumed to
+be number conserving, and \(s_{\bxi}(\varepsilon)\) is the scalar projective
+normalization.  If
+\begin{equation}
+  \hat E_j\Psi\hat E_j^{-1}=\mathbb A_j\Psi,
+  \qquad
+  \mathbb A_j\Omega\mathbb A_j^T=\Omega,
+  \label{eq:even-nambu-transfer}
+\end{equation}
+then, with the convention \(\hat V\Psi\hat V^{-1}=\mathbb T[\hat V]\Psi\),
+the map \(\hat V\mapsto\mathbb T[\hat V]\) is an antihomomorphism:
+\begin{equation}
+  \mathbb T[\hat V_2\hat V_1]
+  =
+  \mathbb T[\hat V_1]\mathbb T[\hat V_2] .
+  \label{eq:nambu-antihomomorphism}
+\end{equation}
+Therefore the regulated word has the transfer matrix
+\begin{equation}
+  \mathbb T_{\bxi,\varepsilon}
+  =
+  \mathbb A_0\mathbb R[w_1(\varepsilon)]\mathbb A_1\cdots
+  \mathbb R[w_m(\varepsilon)]\mathbb A_m,
+  \qquad
+  \mathbb T_{\bxi,\varepsilon}\Omega\mathbb T_{\bxi,\varepsilon}^T=\Omega .
+  \label{eq:arbitrary-regulated-nambu-product}
+\end{equation}
+This is the clean Nambu statement for non-commuting gain/loss strings: all
+ordering is ordinary matrix ordering in Eq.~\eqref{eq:arbitrary-regulated-nambu-product}.
+No separate rule allows the gain factors to be commuted past the loss factors.
+
+\subsection{Laurent Limit of an Arbitrary Regulated Word}
+\label{sec:regulated-word-laurent-limit}
+
+The preceding product formula is exact but it is not yet the exact
+gain/loss endpoint.  For every \(\varepsilon>0\) the regulated Nambu, or
+Majorana, representative is an honest \(O(2N,\mathbb C)\) matrix and products
+are literal ordered matrix products.  The singular endpoint is recovered only
+after passing to a graph/covariance chart and separating the scalar
+normalization.  Taking the entrywise \(\varepsilon\to0\) limit of a raw
+particle or hole block is generally the wrong operation.
+
+A useful way to organize an arbitrary exact word is by its running charge.
+Read the odd insertions in chronological order and define
+\begin{equation}
+  Q_j=\#\{\hbox{gains among }1,\ldots,j\}
+      -\#\{\hbox{losses among }1,\ldots,j\},
+  \qquad
+  Q_0=0 .
+  \label{eq:running-charge-definition}
+\end{equation}
+Cut the word whenever \(Q_j\) returns to its running minimum.  These cuts
+isolate neutral blocks that can close internally from charge-changing tails.
+For a neutral block \(B\) with nonzero contraction amplitude, the exact
+operator has the form
+\begin{equation}
+  \hat K_B
+  =
+  \lambda_B\,\hat K_{T_B},
+  \qquad
+  \lambda_B\ne0 ,
+  \label{eq:balanced-block-normal-form}
+\end{equation}
+where \(\hat K_{T_B}\) is an even Gaussian operator with a finite one-body
+transfer \(T_B\) on the active graph chart.  For a block with net charge
+\(q>0\),
+\begin{equation}
+  \hat K_B
+  =
+  \lambda_B\,
+  \hat c^\dagger(\xi_q)\cdots\hat c^\dagger(\xi_1)
+  \hat K_{T_B},
+  \label{eq:unbalanced-gain-block-normal-form}
+\end{equation}
+and for \(q<0\) the exterior product is replaced by an ordered interior
+product of \(|q|\) annihilation modes.  Thus an unbalanced block is not a
+matrix alone; it is endpoint orbitals plus one matrix plus a scalar.
+
+For a balanced mixed block, the scalar and the finite graph transfer are
+fixed by the causal loss--gain Gram.  Let \(i\) label gains with incoming
+wavefunctions \(\alpha_i\), let \(j\) label losses with outgoing
+wavefunctions \(\beta_j\), and let \(M_{ji}\) be the even one-body
+propagation from gain \(i\) to loss \(j\) through the pieces lying between
+them.  The internal contraction matrix is
+\begin{equation}
+  \widetilde G_{ji}
+  =
+  \Theta(t_j^\ell>t_i^g)\,
+  \langle \beta_j|M_{ji}|\alpha_i\rangle .
+  \label{eq:causal-loss-gain-gram}
+\end{equation}
+The causal step function is the algebraic memory of the operator order:
+same-type pairings vanish by isotropy of the gain and loss null subspaces,
+while a loss can only contract a gain that occurs earlier in the word.  If
+\(\det\widetilde G\ne0\), then
+\begin{equation}
+  \lambda_B=\pm\det\widetilde G ,
+  \label{eq:balanced-block-amplitude}
+\end{equation}
+where the sign is the fermionic ordering sign.  This scalar is part of the
+Born-weight cocycle.  It is not determined by the projective one-body
+transfer matrix.
+
+After partitioning the finite-\(\varepsilon\) Nambu graph into external
+propagating legs \(b\), future-gain legs \(fg\), and loss legs \(l\), the
+Schur complement gives the dressed master formula
+\begin{equation}
+  \frac{T_B}{\lambda_B}
+  =
+  M_{bb}-W_{fg}\,\widetilde G^{-1}\,W_l^\dagger .
+  \label{eq:balanced-block-master-formula}
+\end{equation}
+Equivalently, if the regulated one-body graph is written in block form with
+the lower-right graph block \(A_{dd}(\varepsilon)\), the finite object that
+converges is
+\begin{equation}
+  \lim_{\varepsilon\to0}
+  \bigl(A_{dd}(\varepsilon)^T\bigr)^{-1}
+  =
+  M_{bb}-W_{fg}\,\widetilde G^{-1}\,W_l^\dagger .
+  \label{eq:graph-block-convergence}
+\end{equation}
+This is the same dressed-projector formula obtained by direct Choi/covariance
+contraction.  The raw particle block \(A_{cc}(\varepsilon)\) can diverge, and
+its projectively rescaled limit is typically only a flag.  The block in
+Eq.~\eqref{eq:graph-block-convergence}, not the raw particle block, is the
+finite transfer chart relevant for active-sector singular data.
+
+The same-mode identities are a useful check:
+\begin{equation}
+  \hat\chi\,\hat\chi^\dagger=\I-\hat n_\chi,
+  \qquad
+  \hat\chi^\dagger\hat\chi=\hat n_\chi .
+  \label{eq:gain-loss-same-mode-closures-chart}
+\end{equation}
+They are the one-mode version of Eq.~\eqref{eq:balanced-block-master-formula}.
+Same-type gain or loss blocks instead grow endpoint occupation constraints.
+For gains the Born factor is the empty-space Gram
+\(\det[X^\dagger(\I-C)X]\); for losses it is the occupied-space Gram
+\(\det[Y^\dagger C Y]\).  Non-orthogonal wavefunctions are handled by these
+Gram determinants and the corresponding Schur complements; small or zero
+determinants signal redundant, blocked, or ill-conditioned exact branches,
+not additional finite Lyapunov gaps.
+
+The finite spectrum is extracted from singular-value asymptotics only after
+this separation.  If \(s_a(\varepsilon)\) are singular values of the
+regulated product, define
+\begin{equation}
+  \log s_a(\varepsilon)
+  =
+  \kappa_a\log\frac{1}{\varepsilon}
+  +
+  \rho_a
+  +
+  o(1).
+  \label{eq:regulated-singular-value-asymptotics}
+\end{equation}
+CAR preservation pairs nonzero slopes \(\kappa_a\) with opposite slopes.
+Those directions are endpoint or gauge sectors.  The regulator-stable
+offsets \(\rho_a\) with \(\kappa_a=0\), together with the scalar
+\(\lambda_B\) and the filled/empty endpoint orbitals, are the complete
+singular data.  This is why the regulated Majorana basis simplifies
+composition but does not remove endpoint or Born-weight bookkeeping.
+
+\subsection{Case-by-Case Regulated Endpoint Limits}
+\label{sec:regulated-endpoint-case-derivations}
+
+Here is the same regulator limit written mechanically for the elementary
+cases.  In this subsection the regulator is denoted by \(\delta\), to avoid
+confusing it with the exterior multiplication operator
+\(\varepsilon_x\).  Work first in a chart where all even pieces have already
+transported the odd wavefunctions to the relevant edge.  The even pieces are
+restored by replacing the displayed modes by the transported modes of
+Eqs.~\eqref{eq:transported-gain-modes} and
+\eqref{eq:transported-loss-modes}, and by multiplying the active block by the
+total even one-body transfer.  Define
+\begin{equation}
+  \hat k_\delta^+(x)=\hat c^\dagger(x)+\delta\,\hat c(x),
+  \qquad
+  \hat k_\delta^-(y)=\hat c(y)+\delta\,\hat c^\dagger(y).
+  \label{eq:projectively-normalized-gain-loss}
+\end{equation}
+For normalized \(x\) and \(y\), \((\hat k_\delta^\pm)^2=\delta\), so
+\(\delta^{-1/2}\hat k_\delta^\pm\) is an invertible Pin element at every
+\(\delta\ne0\).  Thus the finite-\(\delta\) one-body Nambu/Majorana
+representative composes by ordinary matrix multiplication.  The exact branch
+is the leading coefficient of the operator expansion as \(\delta\to0\).
+
+\paragraph*{1. One gain.}
+The regulated operator is
+\begin{equation}
+  \hat k_\delta^+(x)
+  =
+  \hat c^\dagger(x)+\delta\hat c(x)
+  =
+  \hat c^\dagger(x)+O(\delta).
+  \label{eq:one-gain-delta-limit}
+\end{equation}
+Thus the exact limit is the exterior map
+\(\varepsilon_x:\Psi_q\mapsto x\wedge\Psi_q\).  It is not a scalar and not a
+same-charge transfer.  For an incoming gauge-invariant Gaussian covariance
+\(C\),
+\begin{equation}
+  p_{+,x}(C)
+  =
+  \Tr\!\left[\hat c^\dagger(x)\rho\hat c(x)\right]
+  =
+  x^\dagger(\I-C)x .
+  \label{eq:one-gain-delta-born}
+\end{equation}
+If \(x=\|x\|\hat x\), the exact operator is
+\(\|x\|\hat c^\dagger(\hat x)\).  The scalar \(\|x\|\) belongs to the branch
+amplitude, while the active particle chart removes the filled endpoint,
+\begin{equation}
+  T_{\rm act}^{+x}
+  =
+  T_{\rm even}(\I-P_{\hat x}),
+  \qquad
+  P_{\hat x}=\hat x\hat x^\dagger .
+  \label{eq:one-gain-active-transfer}
+\end{equation}
+The finite-\(\delta\) \(O(2N,\mathbb C)\) matrix has one
+\(\delta^{-1}\) direction and one reciprocal \(\delta\) direction in the
+particle/hole pair of \(x\).  Those directions are the filled endpoint
+sector, not finite transfer gaps.
+
+\paragraph*{2. Two gains.}
+For two gains in chronological order \(x_1\) then \(x_2\),
+\begin{align}
+  \hat k_\delta^+(x_2)\hat k_\delta^+(x_1)
+  &=
+  \hat c^\dagger(x_2)\hat c^\dagger(x_1)
+  +\delta\!\left[
+    \hat c^\dagger(x_2)\hat c(x_1)
+    +\hat c(x_2)\hat c^\dagger(x_1)
+  \right]
+  +\delta^2\hat c(x_2)\hat c(x_1)
+  \nonumber\\
+  &=
+  \hat c^\dagger(x_2)\hat c^\dagger(x_1)
+  +O(\delta).
+  \label{eq:two-gain-regulated-expansion}
+\end{align}
+The middle term contains the contraction
+\(\hat c(x_2)\hat c^\dagger(x_1)=
+\langle x_2|x_1\rangle-\hat c^\dagger(x_1)\hat c(x_2)\), but it is still
+suppressed by \(\delta\).  Therefore, when
+\(x_1\wedge x_2\ne0\), the exact endpoint is a two-dimensional filled
+subspace.  The Born factor is
+\begin{equation}
+  p_{++,X}(C)
+  =
+  \det
+  \begin{pmatrix}
+    x_1^\dagger(\I-C)x_1 & x_1^\dagger(\I-C)x_2\\
+    x_2^\dagger(\I-C)x_1 & x_2^\dagger(\I-C)x_2
+  \end{pmatrix},
+  \qquad
+  X=(x_1,x_2).
+  \label{eq:two-gain-born-determinant}
+\end{equation}
+If \(X=UR\) is a QR decomposition of the independent endpoint span, then
+\begin{equation}
+  \hat c^\dagger(x_2)\hat c^\dagger(x_1)
+  =
+  \det(R)\,
+  \hat c^\dagger(u_2)\hat c^\dagger(u_1),
+  \qquad
+  P_X=UU^\dagger .
+  \label{eq:two-gain-qr-limit}
+\end{equation}
+The active transfer is \(T_{\rm even}(\I-P_X)\), and the Nambu singular
+spectrum contains two reciprocal endpoint pairs.  If
+\(\operatorname{rank}X<2\), the exact two-gain branch vanishes by
+antisymmetry; the regulator then selects a \(\delta\)-suppressed different
+word and the exact branch should be treated as blocked or censored.
+
+\paragraph*{3. \(N\) gains.}
+For \(N\) gains, put \(X=(x_1,\ldots,x_N)\) and write
+\begin{equation}
+  \hat K_{+,N}(\delta)
+  =
+  \hat k_\delta^+(x_N)\cdots\hat k_\delta^+(x_1)
+  =
+  \sum_{S\subset\{1,\ldots,N\}}
+  \delta^{|S|}
+  \prod_{j=N}^{1} \hat d_j(S),
+  \label{eq:N-gain-subset-expansion}
+\end{equation}
+where
+\begin{equation}
+  \hat d_j(S)=
+  \begin{cases}
+    \hat c(x_j), & j\in S,\\
+    \hat c^\dagger(x_j), & j\notin S .
+  \end{cases}
+  \label{eq:N-gain-subset-operator}
+\end{equation}
+The leading exact word is therefore
+\begin{equation}
+  \hat K_{+,N}(0)
+  =
+  \hat c^\dagger(x_N)\cdots\hat c^\dagger(x_1).
+  \label{eq:N-gain-leading-word}
+\end{equation}
+If \(X\) has rank \(r=N\) and \(X=UR\), then
+\begin{equation}
+  \hat K_{+,N}(0)
+  =
+  \det(R)\,
+  \hat c^\dagger(u_N)\cdots\hat c^\dagger(u_1),
+  \qquad
+  P_X=UU^\dagger .
+  \label{eq:N-gain-qr-endpoint}
+\end{equation}
+The branch fills the endpoint subspace \(\operatorname{im}P_X\), the Born
+factor is
+\begin{equation}
+  p_{+,X}(C)=\det\!\left[X^\dagger(\I-C)X\right],
+  \label{eq:N-gain-born}
+\end{equation}
+and the active particle transfer is
+\begin{equation}
+  T_{\rm act}^{+X}=T_{\rm even}(\I-P_X).
+  \label{eq:N-gain-active-transfer}
+\end{equation}
+The finite-regulator one-body product has \(N\) reciprocal zero/pole pairs
+after the finite change of endpoint basis \(X\mapsto U\).  Rank deficiency of
+\(X\), or singularity of the empty Gram \(X^\dagger(\I-C)X\), means that the
+leading exact branch has zero wedge amplitude or zero Born probability.
+
+\paragraph*{4. One loss.}
+The loss branch is the particle-hole dual:
+\begin{equation}
+  \hat k_\delta^-(y)
+  =
+  \hat c(y)+\delta\hat c^\dagger(y)
+  =
+  \hat c(y)+O(\delta).
+  \label{eq:one-loss-delta-limit}
+\end{equation}
+The exact map is the interior product \(\iota_y\).  Its Born factor is
+\begin{equation}
+  p_{-,y}(C)
+  =
+  \Tr\!\left[\hat c(y)\rho\hat c^\dagger(y)\right]
+  =
+  y^\dagger C y .
+  \label{eq:one-loss-delta-born}
+\end{equation}
+If \(y=\|y\|\hat y\), the active finite chart is most naturally the hole
+chart:
+\begin{equation}
+  T_{{\rm act},h}^{-y}
+  =
+  T_{{\rm even},h}(\I-P_{\hat y}^{\,T}).
+  \label{eq:one-loss-active-transfer}
+\end{equation}
+The particle chart sees the reciprocal endpoint pole.  The endpoint
+occupation label is empty rather than filled.
+
+\paragraph*{5. Two losses.}
+For two losses,
+\begin{align}
+  \hat k_\delta^-(y_2)\hat k_\delta^-(y_1)
+  &=
+  \hat c(y_2)\hat c(y_1)
+  +\delta\!\left[
+    \hat c(y_2)\hat c^\dagger(y_1)
+    +\hat c^\dagger(y_2)\hat c(y_1)
+  \right]
+  +\delta^2\hat c^\dagger(y_2)\hat c^\dagger(y_1)
+  \nonumber\\
+  &=
+  \hat c(y_2)\hat c(y_1)+O(\delta).
+  \label{eq:two-loss-regulated-expansion}
+\end{align}
+The exact endpoint is a two-dimensional empty subspace if
+\(y_1\wedge y_2\ne0\).  With \(Y=(y_1,y_2)\),
+\begin{equation}
+  p_{--,Y}(C)
+  =
+  \det
+  \begin{pmatrix}
+    y_1^\dagger C y_1 & y_1^\dagger C y_2\\
+    y_2^\dagger C y_1 & y_2^\dagger C y_2
+  \end{pmatrix}.
+  \label{eq:two-loss-born-determinant}
+\end{equation}
+After \(Y=VR\), the endpoint projector is \(P_Y=VV^\dagger\), the active
+hole transfer is \(T_{{\rm even},h}(\I-P_Y^T)\), and there are two
+reciprocal regulator pairs.  Rank deficiency or a singular occupied Gram
+means that the exact two-loss branch is redundant or blocked.
+
+\paragraph*{6. \(M\) losses.}
+For \(M\) losses,
+\begin{equation}
+  \hat K_{-,M}(\delta)
+  =
+  \hat k_\delta^-(y_M)\cdots\hat k_\delta^-(y_1)
+  =
+  \sum_{S\subset\{1,\ldots,M\}}
+  \delta^{|S|}
+  \prod_{j=M}^{1} \hat e_j(S),
+  \label{eq:M-loss-subset-expansion}
+\end{equation}
+with
+\begin{equation}
+  \hat e_j(S)=
+  \begin{cases}
+    \hat c^\dagger(y_j), & j\in S,\\
+    \hat c(y_j), & j\notin S .
+  \end{cases}
+  \label{eq:M-loss-subset-operator}
+\end{equation}
+Thus
+\begin{equation}
+  \hat K_{-,M}(0)=\hat c(y_M)\cdots\hat c(y_1).
+  \label{eq:M-loss-leading-word}
+\end{equation}
+For independent \(Y=VR\), this is the oriented interior product on
+\(\operatorname{im}P_Y\), multiplied by the determinant of the change of
+basis.  The Born factor and active hole transfer are
+\begin{equation}
+  p_{-,Y}(C)=\det\!\left[Y^\dagger C Y\right],
+  \qquad
+  T_{{\rm act},h}^{-Y}=T_{{\rm even},h}(\I-P_Y^T).
+  \label{eq:M-loss-born-active}
+\end{equation}
+The regulator produces \(M\) reciprocal endpoint pairs, now labelled as empty
+sectors.
+
+\paragraph*{7. One gain and one loss.}
+There are two inequivalent orders.  If the gain occurs first and the loss
+later, the operator product is
+\begin{align}
+  \hat k_\delta^-(\beta)\hat k_\delta^+(\alpha)
+  &=
+  \hat c(\beta)\hat c^\dagger(\alpha)
+  +\delta\!\left[
+    \hat c(\beta)\hat c(\alpha)
+    +\hat c^\dagger(\beta)\hat c^\dagger(\alpha)
+  \right]
+  +\delta^2\hat c^\dagger(\beta)\hat c(\alpha)
+  \nonumber\\
+  &=
+  \langle\beta|\alpha\rangle
+  -\hat c^\dagger(\alpha)\hat c(\beta)
+  +O(\delta).
+  \label{eq:causal-pair-regulated-expansion}
+\end{align}
+With an even segment \(M\) between the gain and the loss, replace
+\(\alpha\) by \(M\alpha\) in the contraction; the causal Gram is the scalar
+\(\widetilde G=\langle\beta|M|\alpha\rangle\).  If
+\(\widetilde G\ne0\), this is the one-pair version of
+Eq.~\eqref{eq:balanced-block-master-formula}: a closed neutral block with
+scalar \(\lambda=\widetilde G\) and a dressed rank-one subtraction in the
+active graph chart.  For \(\beta=\alpha\) and \(M=\I\) it reduces to
+\(\I-\hat n_\alpha\), the empty projector.  The Born factor for the exact
+two-step branch is
+\begin{equation}
+  p_{-+}^{(0)}
+  =
+  \bigl[\alpha^\dagger(\I-C)\alpha\bigr]
+  \bigl[\beta^\dagger C\beta\bigr]
+  +
+  \left|\beta^\dagger(\I-C)\alpha\right|^2 .
+  \label{eq:causal-pair-born}
+\end{equation}
+
+If the loss occurs first and the gain later, then
+\begin{align}
+  \hat k_\delta^+(\alpha)\hat k_\delta^-(\beta)
+  &=
+  \hat c^\dagger(\alpha)\hat c(\beta)
+  +\delta\!\left[
+    \hat c^\dagger(\alpha)\hat c^\dagger(\beta)
+    +\hat c(\alpha)\hat c(\beta)
+  \right]
+  +\delta^2\hat c(\alpha)\hat c^\dagger(\beta)
+  \nonumber\\
+  &=
+  \hat c^\dagger(\alpha)\hat c(\beta)+O(\delta).
+  \label{eq:anticausal-pair-regulated-expansion}
+\end{align}
+This is neutral in charge but not a scalar multiple of an invertible even
+Gaussian transfer.  It is an exterior--interior map; for the same normalized
+mode it is \(\hat n_\alpha\), the occupied projector.  Its Born factor is
+\begin{equation}
+  p_{+-}^{(0)}
+  =
+  \bigl[\beta^\dagger C\beta\bigr]
+  \bigl[\alpha^\dagger(\I-C)\alpha\bigr]
+  +
+  \left|\alpha^\dagger C\beta\right|^2 .
+  \label{eq:anticausal-pair-born}
+\end{equation}
+The two orders coincide only in special cases.  The regulator has not made
+gain and loss commute; it has made their finite-\(\delta\) composition an
+ordinary matrix product whose endpoint remembers the order.
+
+\paragraph*{8. \(N\) gains and \(M\) losses.}
+For a general chronological word, let
+\(\sigma_j=+\) denote a gain and \(\sigma_j=-\) denote a loss.  Define
+\begin{equation}
+  d_j=
+  \begin{cases}
+    \hat c^\dagger(z_j), & \sigma_j=+,\\
+    \hat c(z_j), & \sigma_j=-,
+  \end{cases}
+  \qquad
+  \bar d_j=
+  \begin{cases}
+    \hat c(z_j), & \sigma_j=+,\\
+    \hat c^\dagger(z_j), & \sigma_j=- .
+  \end{cases}
+  \label{eq:general-word-d-and-dbar}
+\end{equation}
+The regulated word is exactly
+\begin{equation}
+  \hat K_{\bm\sigma}(\delta)
+  =
+  \prod_{j=r}^{1}\left(d_j+\delta\bar d_j\right)
+  =
+  \sum_{S\subset\{1,\ldots,r\}}
+  \delta^{|S|}
+  \prod_{j=r}^{1} d_j(S),
+  \qquad
+  d_j(S)=
+  \begin{cases}
+    \bar d_j, & j\in S,\\
+    d_j, & j\notin S .
+  \end{cases}
+  \label{eq:general-gain-loss-regulated-expansion}
+\end{equation}
+Therefore
+\begin{equation}
+  \hat K_{\bm\sigma}(\delta)
+  =
+  \hat K_{\bm\sigma}(0)+O(\delta),
+  \qquad
+  \hat K_{\bm\sigma}(0)=d_r\cdots d_1 .
+  \label{eq:general-gain-loss-leading-word}
+\end{equation}
+For a \(U(1)\)-invariant incoming state, a single flipped branch changes the
+net charge by two, so the Born probability satisfies
+\begin{equation}
+  \Tr[\hat K_{\bm\sigma}(\delta)\rho\hat K_{\bm\sigma}(\delta)^\dagger]
+  =
+  \Tr[\hat K_{\bm\sigma}(0)\rho\hat K_{\bm\sigma}(0)^\dagger]
+  +O(\delta^2),
+  \label{eq:general-regulated-born-convergence}
+\end{equation}
+unless the leading exact probability vanishes, in which case the limit is
+nonuniform and the exact branch is blocked.
+
+The leading word \(d_r\cdots d_1\) is then reduced by the Clifford relation
+\(\iota_u\varepsilon_v+\varepsilon_v\iota_u=\langle u|v\rangle\).  Equivalently,
+build the ordered Pfaffian matrix of
+Eq.~\eqref{eq:mixed-word-born-pfaffian}.  For balanced causal blocks with
+\(N=M\) and nonsingular causal Gram \(\widetilde G\),
+\begin{equation}
+  \hat K_{\bm\sigma}(0)
+  =
+  \lambda\,\hat K_T,
+  \qquad
+  \lambda=\pm\det\widetilde G,
+  \qquad
+  \frac{T}{\lambda}
+  =
+  M_{bb}-W_{fg}\widetilde G^{-1}W_l^\dagger .
+  \label{eq:general-balanced-master-limit}
+\end{equation}
+More generally, let \(r_c\) be the rank of the causal contraction problem
+after the chronological word has been cut into the blocks specified by
+Eq.~\eqref{eq:running-charge-definition}.  The reduced word then has
+\(N-r_c\) filled endpoint orbitals and \(M-r_c\) empty endpoint
+orbitals/interior maps.  Thus even when \(N=M\), an anticausal or
+rank-deficient ordering need not reduce to a matrix alone.  In all cases the
+finite-\(\delta\) one-body matrices compose literally; the limit is not the
+raw matrix product but the triple
+\begin{equation}
+  \left(
+  \hbox{scalar Pfaffian/determinant},
+  \quad
+  \hbox{finite graph transfer},
+  \quad
+  \hbox{filled/empty endpoint sectors}
+  \right).
+  \label{eq:general-regulated-limit-data}
+\end{equation}
+
+\iffalse
+The preceding product formula is not yet the exact gain/loss limit.  For
+every \(\varepsilon>0\) it is literally ordinary Nambu, or equivalently
+Majorana, matrix multiplication.  The exact operation is obtained only after
+expanding the product in \(\varepsilon\) and separating three kinds of data:
+finite active singular values, regulator zero/pole slopes, and the endpoint
+occupation constraints carried by the exact word.  The following five cases
+are the useful mechanical dictionary.
+
+\paragraph*{1. One gain.}
+Take a single normalized mode \(\chi\) and the regulated gain
+\begin{equation}
+  \hat K_\varepsilon^+
+  =
+  \hat\chi^\dagger+\varepsilon\hat\chi
+  \xrightarrow{\varepsilon\to0}
+  \hat\chi^\dagger .
+  \label{eq:one-gain-regulated-limit}
+\end{equation}
+In the Nambu basis its one-body representative is
+Eq.~\eqref{eq:nambu-regulated-gain-matrix}.  If the neighboring even pieces
+are number conserving,
+\(\mathbb A_L=\operatorname{diag}(A_{L,h},A_{L,p})\) and
+\(\mathbb A_R=\operatorname{diag}(A_{R,h},A_{R,p})\), then direct
+multiplication gives
+\begin{equation}
+  \mathbb A_L\mathbb R_+(\chi,\varepsilon)\mathbb A_R
+  =
+  \begin{pmatrix}
+    -A_{L,h}(\I-P)A_{R,h}
+    &
+    \varepsilon^{-1}A_{L,h}\chi\chi^T A_{R,p}
+    \\
+    \varepsilon A_{L,p}\chi^*\chi^\dagger A_{R,h}
+    &
+    -A_{L,p}(\I-P^T)A_{R,p}
+  \end{pmatrix}.
+  \label{eq:one-gain-sandwiched-limit}
+\end{equation}
+Thus the ordinary entrywise limit is not a full transfer matrix: the
+particle-hole block has a pole, the reciprocal hole-particle block has a
+zero, and the diagonal fixed-chart blocks become the reduced maps
+\begin{equation}
+  A_{L,h}A_{R,h}\mapsto A_{L,h}(\I-P)A_{R,h},
+  \qquad
+  A_{L,p}A_{R,p}\mapsto A_{L,p}(\I-P^T)A_{R,p}.
+  \label{eq:one-gain-reduced-diagonal-blocks}
+\end{equation}
+The exact branch is instead the finite exterior operation
+\(\hat\chi^\dagger\).  It fixes one filled endpoint mode and has Born weight
+\begin{equation}
+  p_+(C)=\Tr(\hat\chi^\dagger\rho\hat\chi)=1-\chi^\dagger C\chi .
+  \label{eq:one-gain-born-limit}
+\end{equation}
+Consequently a one-gain regulator contributes one zero/pole singular pair
+with slopes \(\kappa=\pm1\), plus a finite reduced transfer on the complement
+of \(\chi\).  The divergent pair is physical endpoint bookkeeping, not a
+finite Lyapunov gap.
+
+\paragraph*{2. \(r\) gains.}
+Now consider a same-type gain block with \(r\) exact creations separated by
+number-conserving even Gaussian pieces.  Move all creations to a common edge
+by defining the transported modes through
+\begin{equation}
+  \hat E_r\cdots\hat E_j\,\hat\chi_j^\dagger\,
+  (\hat E_r\cdots\hat E_j)^{-1}
+  =
+  \hat c^\dagger(\tilde\chi_j),
+  \qquad
+  X=(\tilde\chi_1,\ldots,\tilde\chi_r).
+  \label{eq:many-gain-transported-modes}
+\end{equation}
+The exact branch is the exterior product
+\(\hat c^\dagger(\tilde\chi_r)\cdots\hat c^\dagger(\tilde\chi_1)\) times the
+remaining even Gaussian map.  Its sign depends on the order, but for a
+same-type block all order dependence is the fermionic orientation of the
+wedge product.  If \(X\) has rank \(r_+\), the branch fixes the
+\(r_+\)-dimensional filled subspace
+\(\mathcal X=\operatorname{span}X\).  For independent modes,
+\begin{equation}
+  P_X=X(X^\dagger X)^{-1}X^\dagger
+  \label{eq:many-gain-span-projector}
+\end{equation}
+is the basis-independent Hermitian projector onto that span; for rank
+deficient \(X\) the inverse is replaced by the Moore--Penrose inverse and the
+antisymmetrized exact branch has rank \(r_+<r\), or vanishes if a repeated
+constraint is imposed exactly.
+
+The Born weight of the same gain block is the determinant of the empty-space
+Gram matrix,
+\begin{equation}
+  p_{+,\mathcal X}(C)
+  =
+  \det\!\left[X^\dagger(\I-C)X\right],
+  \label{eq:many-gain-born-limit}
+\end{equation}
+with the determinant taken on the independent constrained subspace.  The
+corresponding covariance update is Eq.~\eqref{eq:many-gain-covariance}.
+In the fixed particle/hole chart the finite active block is the transfer
+compressed to the complement of \(\mathcal X\),
+\begin{equation}
+  A_h\mapsto A_h(\I-P_X),
+  \qquad
+  A_p\mapsto A_p(\I-P_X^T),
+  \label{eq:many-gain-reduced-transfer}
+\end{equation}
+again up to left/right placement conventions set by where the block is
+collected.  In the regulated Nambu product this same information appears as
+\(r_+\) reciprocal zero/pole pairs and a finite reduced singular spectrum.
+Non-orthogonal gain wavefunctions cause no new algebraic rule; they only make
+the Gram matrix in Eq.~\eqref{eq:many-gain-born-limit} non-diagonal and can
+make the branch ill-conditioned or blocked when the Gram determinant is small
+or zero.
+
+\paragraph*{3. One loss.}
+The single-loss limit is the particle-hole dual of the previous case.  With
+\begin{equation}
+  \hat K_\varepsilon^-
+  =
+  \hat\chi+\varepsilon\hat\chi^\dagger
+  \xrightarrow{\varepsilon\to0}
+  \hat\chi ,
+  \label{eq:one-loss-regulated-limit}
+\end{equation}
+Eq.~\eqref{eq:nambu-regulated-loss-matrix} gives
+\begin{equation}
+  \mathbb A_L\mathbb R_-(\chi,\varepsilon)\mathbb A_R
+  =
+  \begin{pmatrix}
+    -A_{L,h}(\I-P)A_{R,h}
+    &
+    \varepsilon A_{L,h}\chi\chi^T A_{R,p}
+    \\
+    \varepsilon^{-1}A_{L,p}\chi^*\chi^\dagger A_{R,h}
+    &
+    -A_{L,p}(\I-P^T)A_{R,p}
+  \end{pmatrix}.
+  \label{eq:one-loss-sandwiched-limit}
+\end{equation}
+The finite diagonal compression is the same as in
+Eq.~\eqref{eq:one-gain-reduced-diagonal-blocks}; the divergent off-diagonal
+block is the opposite one.  The endpoint label is now empty rather than
+filled, and
+\begin{equation}
+  p_-(C)=\Tr(\hat\chi\rho\hat\chi^\dagger)=\chi^\dagger C\chi .
+  \label{eq:one-loss-born-limit}
+\end{equation}
+Thus one loss also contributes one reciprocal regulator pair with
+\(\kappa=\pm1\), but it represents an empty endpoint constraint.
+
+\paragraph*{4. \(r\) losses.}
+For a same-type loss block, move all annihilators to a common edge by
+\begin{equation}
+  (\hat E_{j-1}\cdots\hat E_0)^{-1}\,\hat\chi_j\,
+  (\hat E_{j-1}\cdots\hat E_0)
+  =
+  \hat c(\tilde\eta_j),
+  \qquad
+  Y=(\tilde\eta_1,\ldots,\tilde\eta_r).
+  \label{eq:many-loss-transported-modes}
+\end{equation}
+The exact branch is an ordered interior product by the modes in \(Y\).  If
+\(Y\) has independent rank \(r_-\), it fixes an \(r_-\)-dimensional empty
+endpoint subspace \(\mathcal Y=\operatorname{span}Y\).  Its Born weight is
+the occupied-space Gram determinant
+\begin{equation}
+  p_{-,\mathcal Y}(C)
+  =
+  \det\!\left[Y^\dagger C Y\right],
+  \label{eq:many-loss-born-limit}
+\end{equation}
+and the covariance update is Eq.~\eqref{eq:many-loss-covariance}.  The
+finite fixed-chart transfer is compressed to the complement of the empty
+constraint,
+\begin{equation}
+  A_h\mapsto A_h(\I-P_Y),
+  \qquad
+  A_p\mapsto A_p(\I-P_Y^T),
+  \qquad
+  P_Y=Y(Y^\dagger Y)^+Y^\dagger .
+  \label{eq:many-loss-reduced-transfer}
+\end{equation}
+As for gains, non-orthogonal wavefunctions are handled by the full Gram
+matrix.  The regulated Nambu product produces \(r_-\) zero/pole pairs whose
+endpoint label is empty and whose finite complement is the reduced transfer
+in Eq.~\eqref{eq:many-loss-reduced-transfer}.
+
+\paragraph*{5. General non-commuting gain/loss words.}
+For mixed words there is no simplification to separate gain and loss spans
+before the ordered product is evaluated.  Gain and loss do not commute, and
+even for two non-orthogonal modes one has
+\begin{equation}
+  \hat\beta\,\hat\alpha^\dagger
+  =
+  \langle\beta|\alpha\rangle
+  -
+  \hat\alpha^\dagger\hat\beta ,
+  \label{eq:mixed-gain-loss-contraction-order}
+\end{equation}
+so changing the order changes both the scalar contraction and the residual
+Clifford word.  The robust rule is therefore to keep the finite-regulator
+Nambu product ordered and only then take the Laurent limit.  Write every
+regulated odd reflection as
+\begin{equation}
+  \mathbb R_j(\varepsilon)
+  =
+  \varepsilon^{-1}\mathbb R_j^{[-1]}
+  +
+  \mathbb R_j^{[0]}
+  +
+  \varepsilon\mathbb R_j^{[+1]} .
+  \label{eq:regulated-reflection-laurent}
+\end{equation}
+For gain,
+\begin{align}
+  \mathbb R_+^{[-1]}
+  &=
+  \begin{pmatrix}0&\chi\chi^T\\0&0\end{pmatrix},
+  &
+  \mathbb R_+^{[0]}
+  &=
+  -
+  \begin{pmatrix}\I-P&0\\0&\I-P^T\end{pmatrix},
+  &
+  \mathbb R_+^{[+1]}
+  &=
+  \begin{pmatrix}0&0\\\chi^*\chi^\dagger&0\end{pmatrix},
+  \label{eq:gain-reflection-laurent-coeffs}
+\end{align}
+while for loss the off-diagonal Laurent coefficients are interchanged,
+\begin{align}
+  \mathbb R_-^{[-1]}
+  &=
+  \begin{pmatrix}0&0\\\chi^*\chi^\dagger&0\end{pmatrix},
+  &
+  \mathbb R_-^{[0]}
+  &=
+  -
+  \begin{pmatrix}\I-P&0\\0&\I-P^T\end{pmatrix},
+  &
+  \mathbb R_-^{[+1]}
+  &=
+  \begin{pmatrix}0&\chi\chi^T\\0&0\end{pmatrix}.
+  \label{eq:loss-reflection-laurent-coeffs}
+\end{align}
+Substitution into Eq.~\eqref{eq:arbitrary-regulated-nambu-product} gives the
+finite Laurent series
+\begin{equation}
+  \mathbb T_{\bxi,\varepsilon}
+  =
+  \sum_{q=-m}^{m}\varepsilon^q
+  \mathbb T_\bxi^{[q]},
+  \label{eq:regulated-word-laurent-series}
+\end{equation}
+with coefficients
+\begin{equation}
+  \mathbb T_\bxi^{[q]}
+  =
+  \sum_{\substack{\ell_1,\ldots,\ell_m\in\{-1,0,+1\}\\
+  \ell_1+\cdots+\ell_m=q}}
+  \mathbb A_0\mathbb R_1^{[\ell_1]}\mathbb A_1\cdots
+  \mathbb R_m^{[\ell_m]}\mathbb A_m .
+  \label{eq:regulated-word-laurent-coefficients}
+\end{equation}
+Equation~\eqref{eq:regulated-word-laurent-coefficients} is the mechanical
+answer for arbitrary non-commuting gain/loss strings.  The leading pole is
+not determined by the number of gain/loss events alone: nilpotent products,
+nonzero contractions, vanishing overlaps, and rank-deficient constrained
+subspaces can all change the leading Laurent coefficient.
+
+Let
+\begin{equation}
+  q_{\min}=\min\{q:\mathbb T_\bxi^{[q]}\ne0\},
+  \qquad
+  q_{\max}=\max\{q:\mathbb T_\bxi^{[q]}\ne0\}.
+  \label{eq:word-laurent-extreme-powers}
+\end{equation}
+If \(q_{\min}<0\), the entrywise matrix diverges, but its projective leading
+flag is well defined:
+\begin{equation}
+  \varepsilon^{-q_{\min}}\mathbb T_{\bxi,\varepsilon}
+  \xrightarrow{\varepsilon\to0}
+  \mathbb T_\bxi^{[q_{\min}]} .
+  \label{eq:leading-laurent-flag}
+\end{equation}
+This coefficient is not an invertible Gaussian transfer matrix.  Since the
+finite-regulator product obeys
+\(\mathbb T_{\bxi,\varepsilon}\Omega\mathbb T_{\bxi,\varepsilon}^T=\Omega\),
+the Laurent coefficients satisfy
+\begin{equation}
+  \sum_{q+q'=r}
+  \mathbb T_\bxi^{[q]}\Omega
+  \bigl(\mathbb T_\bxi^{[q']}\bigr)^T
+  =
+  \delta_{r,0}\Omega .
+  \label{eq:laurent-orthogonality-identities}
+\end{equation}
+The extreme zero/pole coefficients are therefore isotropic flags.  They are
+the Nambu/Majorana representation of exact occupation constraints, not
+finite transfer blocks.
+
+The finite spectrum is extracted from singular-value asymptotics,
+\begin{equation}
+  \log s_a(\varepsilon)
+  =
+  \kappa_a\log\frac{1}{\varepsilon}
+  +
+  \rho_a
+  +
+  o(1),
+  \qquad
+  a=1,\ldots,2N .
+  \label{eq:regulated-singular-value-asymptotics}
+\end{equation}
+CAR preservation pairs the regulator slopes \(\kappa_a\) with opposite
+slopes.  Nonzero \(\kappa_a\) are the endpoint or gauge sectors.  The
+regulator-stable offsets \(\rho_a\) with \(\kappa_a=0\), together with the
+filled/empty endpoint labels obtained from the exact ordered word, are the
+complete singular data used in the Choi transfer convention.
+
+Equivalently, if \(V_0(\varepsilon)\) and \(U_0(\varepsilon)\) are the right
+and left singular subspaces with \(\kappa_a=0\), the finite active transfer is
+represented, up to finite chart rotations, by
+\begin{equation}
+  U_0(\varepsilon)^\dagger
+  \mathbb T_{\bxi,\varepsilon}
+  V_0(\varepsilon)
+  \xrightarrow{\varepsilon\to0}
+  \hbox{finite singular values }e^{\rho_a}.
+  \label{eq:finite-sector-compression}
+\end{equation}
+There is generally no unique full finite matrix limit.  There is a unique
+finite singular spectrum only after the regulator slopes and the scalar
+normalization have been separated.
+
+A one-mode mixed word shows how a regulator returns an even projective
+measurement.  With
+\(\hat K^+_\varepsilon=\hat\chi^\dagger+\varepsilon\hat\chi\) and
+\(\hat K^-_\varepsilon=\hat\chi+\varepsilon\hat\chi^\dagger\),
+\begin{align}
+  \hat K^-_\varepsilon\hat K^+_\varepsilon
+  &=
+  \hat\chi\hat\chi^\dagger
+  +
+  \varepsilon^2\hat\chi^\dagger\hat\chi
+  =
+  \Pi_0+\varepsilon^2\Pi_1,
+  \label{eq:loss-gain-product-empty-projector}\\
+  \hat K^+_\varepsilon\hat K^-_\varepsilon
+  &=
+  \hat\chi^\dagger\hat\chi
+  +
+  \varepsilon^2\hat\chi\hat\chi^\dagger
+  =
+  \Pi_1+\varepsilon^2\Pi_0 .
+  \label{eq:gain-loss-product-occupied-projector}
+\end{align}
+Thus loss after gain limits to the empty projector, while gain after loss
+limits to the occupied projector.  In the same Nambu pair,
+\begin{equation}
+  \mathbb R_+(\varepsilon)\mathbb R_-(\varepsilon)
+  =
+  \begin{pmatrix}\varepsilon^{-2}&0\\0&\varepsilon^2\end{pmatrix},
+  \qquad
+  \mathbb R_-(\varepsilon)\mathbb R_+(\varepsilon)
+  =
+  \begin{pmatrix}\varepsilon^2&0\\0&\varepsilon^{-2}\end{pmatrix}.
+  \label{eq:odd-pair-projector-transfer-limit}
+\end{equation}
+The product of two odd regulated transfers has become the zero/pole transfer
+of an even occupation measurement.  For non-orthogonal modes this statement
+is not diagonal in the original mode labels; one must use the ordered
+contraction/Pfaffian matrix of Eq.~\eqref{eq:mixed-word-born-pfaffian}, or
+equivalently the ordered Laurent coefficients above.  The exact limit is
+taken after the ordered regulated product has been formed.
+
+The Majorana version is the same construction after a fixed change of basis.
+Let \(\gamma=S\Psi\), so the CAR form becomes the identity and
+\(R_{\bxi,\varepsilon}=S\mathbb T_{\bxi,\varepsilon}S^{-1}\).  A linear form
+\(\hat\ell(w)=u^T\gamma\) with \(u^Tu\ne0\) gives
+\begin{equation}
+  R[u]=-
+  \I+\frac{2uu^T}{u^Tu},
+  \qquad
+  R[u]R[u]^T=
+  \I,
+  \label{eq:majorana-reflection-arbitrary-u}
+\end{equation}
+and the arbitrary word is the corresponding ordered product of even
+\(SO(2N,\mathbb C)\) matrices and odd reflections.  The exact gain/loss limit
+is the limit in which selected Nambu or Majorana vectors approach the null
+cone.  The transfer matrix may then diverge or cease to be a graph, but the
+Choi covariance has a finite limit.
+\fi
+
+The Born weight of the same regulated product is not determined by the
+projective one-body matrix \(\mathbb T_{\bxi,\varepsilon}\), or by its
+Majorana-basis representative, alone.  For one branch and an even Gaussian
+density matrix, define
+\begin{equation}
+  M_{ab}=\Tr(\rho\,\gamma_a\gamma_b).
+  \label{eq:majorana-two-point-M}
+\end{equation}
+Equation~\eqref{eq:regulated-branch-pin-factorization} gives
+\begin{equation}
+  p_j(\varepsilon)
+  =
+  \Tr[\hat K_j(\varepsilon)\rho\hat K_j(\varepsilon)^\dagger]
+  =
+  |c_j(\varepsilon)|^2\,
+  u_j(\varepsilon)^\dagger M u_j(\varepsilon).
+  \label{eq:single-regulated-majorana-born}
+\end{equation}
+For a same-mode number-conserving state and
+\(\hat K=a\hat\chi+b\hat\chi^\dagger\), this reduces to
+\begin{equation}
+  p_{a,b}(C)=|a|^2 n_\chi+|b|^2(1-n_\chi),
+  \qquad
+  n_\chi=\bra{\chi}C\ket{\chi} .
+  \label{eq:single-regulated-u1-born}
+\end{equation}
+Therefore
+\begin{equation}
+  p^+_\varepsilon(C)=1-n_\chi+\varepsilon^2 n_\chi,
+  \qquad
+  p^-_\varepsilon(C)=n_\chi+\varepsilon^2(1-n_\chi),
+  \label{eq:regulated-gain-loss-born-correct}
+\end{equation}
+which tends to the exact gain/loss probabilities in
+Eq.~\eqref{eq:exact-gain-loss-born}.
+
+For an ordered string of regulated odd insertions,
+\begin{equation}
+  \hat K_{\bxi,\varepsilon}
+  =
+  \left[\prod_{j=1}^r c_j(\varepsilon)\right]
+  \hat u_r(\varepsilon)\cdots\hat u_1(\varepsilon) .
+  \label{eq:regulated-string-factorization}
+\end{equation}
+Let
+\begin{equation}
+  L_1,\ldots,L_{2r}
+  =
+  \hat u_1^\dagger,\ldots,\hat u_r^\dagger,
+  \hat u_r,\ldots,\hat u_1
+  \label{eq:regulated-product-L-list}
+\end{equation}
+be the ordered list entering
+\(\hat K_{\bxi,\varepsilon}^\dagger\hat K_{\bxi,\varepsilon}\).  With
+\begin{equation}
+  W_{\mu\nu}^{(\varepsilon)}=
+  \begin{cases}
+    \langle L_\mu L_\nu\rangle, & \mu<\nu,\\
+    -\langle L_\nu L_\mu\rangle, & \mu>\nu,\\
+    0, & \mu=\nu,
+  \end{cases}
+  \label{eq:regulated-product-wick-matrix}
+\end{equation}
+Wick's theorem gives
+\begin{equation}
+  p_{\bxi,\varepsilon}
+  =
+  \Tr(\hat K_{\bxi,\varepsilon}\rho
+  \hat K_{\bxi,\varepsilon}^\dagger)
+  =
+  \left|\prod_{j=1}^r c_j(\varepsilon)\right|^2
+  \operatorname{Pf}W^{(\varepsilon)} .
+  \label{eq:regulated-product-born-pfaffian}
+\end{equation}
+Even Gaussian segments are included by inserting their own Bogoliubov transfer
+matrices into Eq.~\eqref{eq:arbitrary-regulated-nambu-product} and by keeping
+their determinant/scalar normalizations in the same scalar cocycle.  Thus the
+projective matrix product and the scalar/Pfaffian normalization are two pieces
+of one trajectory amplitude, not interchangeable quantities.
+
+For fixed finite string length, the exact word is recovered as
+\begin{equation}
+  \hat K_{\bxi,\varepsilon}=\hat K_{\bxi,0}+O(\varepsilon),
+  \label{eq:regulated-word-limit}
+\end{equation}
+where \(\hat K_{\bxi,0}\) is the chronological word of exact
+\(\hat\chi^\dagger\)'s and \(\hat\chi\)'s.  If the incoming Gaussian state is
+\(U(1)\)-invariant, terms with a single flipped branch carry the wrong charge
+and do not interfere with the exact word, so generically
+\begin{equation}
+  p_{\bxi,\varepsilon}=p_{\bxi,0}+O(\varepsilon^2).
+  \label{eq:regulated-born-limit}
+\end{equation}
+Without \(U(1)\) symmetry the convergence is still to the exact word, but the
+leading correction can be \(O(\varepsilon)\).  If \(p_{\bxi,0}=0\), the limit
+is nonuniform: after normalization the regulated state is controlled by the
+first nonzero \(\varepsilon\)-suppressed word, not by the blocked exact branch.
+Such events should be treated as censored exact gain/loss branches.
+
+Finally, let \(s_a(\varepsilon)\) be singular values of the projective product
+\(\mathbb T_{\bxi,\varepsilon}\).  Regulator directions are detected by
+\begin{equation}
+  \kappa_a=
+  \lim_{\varepsilon\to0}
+  \frac{\log s_a(\varepsilon)}{\log(1/\varepsilon)} .
+  \label{eq:regulator-slope-kappa}
+\end{equation}
+Nonzero \(\kappa_a\) are endpoint/gauge sectors.  The finite transfer gaps
+are the regulator-stable singular data, or Fock-space combinations whose
+\(\log\varepsilon\) dependence cancels after the scalar normalization in
+Eq.~\eqref{eq:regulated-product-born-pfaffian} is included.  This is why a
+regulated Majorana basis simplifies composition but does not remove endpoint
+bookkeeping or Born-weight bookkeeping.
+
+\subsection{Dressed Projectors from the Single-Copy Nambu Regulator}
+\label{sec:nambu-regulator-dressed-projector}
+
+The dressed projector in the Choi-contraction calculation can be obtained
+without passing to the doubled superoperator representation.  The only
+essential point is the order of limits: first compose the finite-regulator
+Nambu word, or equivalently transport the regulated odd linear form through
+the later even factor; only then take the singular endpoint limit.
+
+In this subsection it is cleaner to remove the antihomomorphism ambiguity by
+using the circuit-order matrix
+\begin{equation}
+  L[\hat V]\equiv \mathbb T[\hat V]^T,
+  \qquad
+  L[\hat V_2\hat V_1]=L[\hat V_2]L[\hat V_1].
+  \label{eq:circuit-order-L-convention}
+\end{equation}
+This is only a local convention; elsewhere the note keeps the
+\(\mathbb T\)-convention of Eq.~\eqref{eq:nambu-antihomomorphism}.  For a
+gain in mode \(\chi\), define the null Nambu covectors
+\begin{equation}
+  w_\chi=
+  \begin{pmatrix}0\\ \chi\end{pmatrix},
+  \qquad
+  \bar u_\chi=
+  \begin{pmatrix}\chi^*\\0\end{pmatrix},
+  \qquad
+  w_\chi^T\Omega \bar u_\chi=1,
+  \label{eq:single-copy-null-gain-pair}
+\end{equation}
+and the normalized non-null regulator
+\begin{equation}
+  \zeta_\varepsilon
+  =
+  \varepsilon^{-1/2}w_\chi
+  +
+  \varepsilon^{1/2}\bar u_\chi,
+  \qquad
+  \zeta_\varepsilon^T\Omega\zeta_\varepsilon=2 .
+  \label{eq:single-copy-gain-regulator-zeta}
+\end{equation}
+The corresponding Pin element is
+\(\hat g(\varepsilon)=\hat\ell(\zeta_\varepsilon)\), and its reflection is
+\begin{equation}
+  L_g(\varepsilon)
+  =
+  \zeta_\varepsilon\zeta_\varepsilon^T\Omega-\I,
+  \qquad
+  L_g(\varepsilon)\Omega L_g(\varepsilon)^T=\Omega .
+  \label{eq:L-reflection-form}
+\end{equation}
+The projectively normalized operator used below,
+\(\hat k_\varepsilon^+(\chi)=\hat c^\dagger(\chi)+\varepsilon\hat c(\chi)\),
+is \(\sqrt{\varepsilon}\,\hat\ell(\zeta_\varepsilon)\).  The scalar
+\(\sqrt{\varepsilon}\) belongs to the amplitude cocycle and is not visible in
+the projective matrix \(L_g\).
+
+Now sandwich the regulated gain by two invertible even Gaussian pieces,
+\(\hat K(\varepsilon)=\hat V_2\hat g(\varepsilon)\hat V_1\), and let
+\(L_i=L[\hat V_i]\).  Orthogonality gives
+\begin{equation}
+  L_K(\varepsilon)
+  =
+  L_2L_g(\varepsilon)L_1
+  =
+  a(\varepsilon)b(\varepsilon)^T\Omega-L_0,
+  \qquad
+  a=L_2\zeta_\varepsilon,\quad
+  b=L_1^{-1}\zeta_\varepsilon,\quad
+  L_0=L_2L_1 .
+  \label{eq:single-insertion-rank-one-correction}
+\end{equation}
+This is an exact finite-\(\varepsilon\) identity in \(O(2N,\mathbb C)\).  Its
+projectively rescaled matrix limit is
+\begin{equation}
+  \varepsilon L_K(\varepsilon)
+  \xrightarrow{\varepsilon\to0}
+  (L_2w_\chi)(L_1^{-1}w_\chi)^T\Omega ,
+  \label{eq:single-insertion-rank-one-projective-limit}
+\end{equation}
+which has rank one.  That rank-one flag is not a valid transfer matrix on the
+full graph.  The finite dressed projector is obtained only after moving to
+the appropriate graph/covariance chart, or equivalently after transporting
+the regulated null vector before taking the endpoint limit.
+
+Let \(\hat V\) and \(\hat W\) be number-conserving even Gaussian operators
+with particle transfer matrices \(T\) and \(S\), using the convention
+\[
+  T_p(\hat W\hat V)=T_p(\hat V)T_p(\hat W)=TS .
+\]
+For a one-particle wavefunction \(x\), write
+\begin{equation}
+  \hat c^\dagger(x)=\sum_i x_i\hat c_i^\dagger,
+  \qquad
+  \hat c(x)=\sum_i x_i^*\hat c_i .
+  \label{eq:mode-linear-forms-for-dressed-projector}
+\end{equation}
+The even operator \(\hat W\) acts on creation and annihilation covectors as
+\begin{equation}
+  \hat W\,\hat c^\dagger(\chi)\,\hat W^{-1}
+  =
+  \hat c^\dagger(S^\dagger\chi),
+  \qquad
+  \hat W\,\hat c(\chi)\,\hat W^{-1}
+  =
+  \hat c(S^{-1}\chi).
+  \label{eq:even-dresses-nambu-linear-forms}
+\end{equation}
+Equivalently, with \(\Psi=(c,c^\dagger)^T\) and
+\(\hat\ell(w)=w^T\Psi\), the gain regulator has Nambu covector
+\begin{equation}
+  w_\varepsilon^+(\chi)
+  =
+  \begin{pmatrix}
+    \varepsilon\chi^*\\
+    \chi
+  \end{pmatrix},
+  \qquad
+  \hat\ell[w_\varepsilon^+(\chi)]
+  =
+  \hat c^\dagger(\chi)+\varepsilon\hat c(\chi).
+  \label{eq:nambu-covector-gain-regulator}
+\end{equation}
+Finite Nambu matrix composition transports this covector to
+\begin{equation}
+  \widetilde w_\varepsilon^+(\chi;S)
+  =
+  \begin{pmatrix}
+    \varepsilon(S^{-1}\chi)^*\\
+    S^\dagger\chi
+  \end{pmatrix}.
+  \label{eq:nambu-transported-gain-covector}
+\end{equation}
+Thus the finite Nambu regulator for a gain insertion,
+\begin{equation}
+  \hat k_\varepsilon^+(\chi)
+  =
+  \hat c^\dagger(\chi)+\varepsilon\hat c(\chi),
+  \qquad
+  \bigl[\hat k_\varepsilon^+(\chi)\bigr]^2=\varepsilon,
+  \label{eq:single-copy-gain-regulator}
+\end{equation}
+gives the exact finite-regulator identity
+\begin{align}
+  \hat W\,\hat k_\varepsilon^+(\chi)\,\hat V
+  &=
+  \left[
+    \hat c^\dagger(x)+\varepsilon\hat c(y)
+  \right]\hat W\hat V,
+  \label{eq:transported-gain-regulator}\\
+  x&=S^\dagger\chi,
+  \qquad
+  y=S^{-1}\chi,
+  \qquad
+  y^\dagger x=1 .
+  \label{eq:biorthogonal-dressed-gain-pair}
+\end{align}
+Equation~\eqref{eq:transported-gain-regulator} is the single-copy Nambu
+version of the dressing rule.  After a nonunitary \(S\), the regulator partner
+is not the Hermitian conjugate wavefunction of the dominant creation mode.
+The pair \((x,y)\) is instead biorthogonal.  This is why freezing the
+undressed projector \(P_\chi\) before composing with \(S\) gives the wrong
+finite chart.
+
+Since the projective limit is controlled by the creation component \(x\), put
+\begin{equation}
+  \hat x=\frac{x}{\|x\|},
+  \qquad
+  P_{\hat x}=\hat x\hat x^\dagger
+  =
+  \frac{S^\dagger\chi\chi^\dagger S}{\chi^\dagger SS^\dagger\chi}.
+  \label{eq:dressed-gain-projector-nambu}
+\end{equation}
+The scalar \(\|x\|\) belongs to the branch normalization.  It affects the
+Born weight but not the finite projective transfer block.  The exact gain
+branch is
+\begin{equation}
+  \hat W\hat\chi^\dagger\hat V
+  =
+  \|x\|\,
+  \hat c^\dagger(\hat x)\,\hat W\hat V .
+  \label{eq:gain-after-transport-projective-limit}
+\end{equation}
+Using
+\(\hat c^\dagger(\hat x)=\hat c^\dagger(\hat x)(\I-\hat n_{\hat x})\), fix
+the particle-chart gauge of the even part by
+\begin{equation}
+  \I-\hat n_{\hat x}
+  =
+  \lim_{\mu\to\infty}e^{-\mu\hat n_{\hat x}},
+  \qquad
+  D_\mu(\hat x)=\I-P_{\hat x}+e^{-\mu}P_{\hat x}.
+  \label{eq:dressed-gain-empty-gauge}
+\end{equation}
+At finite \(\mu\), this is an ordinary number-conserving Nambu transfer; its
+particle block is multiplied by \(D_\mu(\hat x)\).  Therefore
+\begin{equation}
+  T_{\rm eff}^{+}
+  =
+  \lim_{\mu\to\infty}
+  T_p(\hat W\hat V)\,D_\mu(\hat x)
+  =
+  TS\left(\I-P_{\hat x}\right)
+  =
+  TS\left[
+    \I-
+    \frac{S^\dagger\chi\chi^\dagger S}
+         {\chi^\dagger SS^\dagger\chi}
+  \right].
+  \label{eq:nambu-derived-dressed-gain-transfer}
+\end{equation}
+This is exactly the dressed-projector formula obtained from the Choi
+contraction calculation.  It is a single-copy Nambu result.  The apparent
+extra projector dressing comes from transporting the \emph{regulated null
+vector} through the later nonunitary even segment before collapsing the
+endpoint sector.
+
+The loss formula follows by the same argument in the hole chart.  Start from
+\begin{equation}
+  \hat k_\varepsilon^-(\chi)
+  =
+  \hat c(\chi)+\varepsilon\hat c^\dagger(\chi).
+  \label{eq:single-copy-loss-regulator}
+\end{equation}
+In Nambu-covector form,
+\begin{equation}
+  w_\varepsilon^-(\chi)
+  =
+  \begin{pmatrix}
+    \chi^*\\
+    \varepsilon\chi
+  \end{pmatrix}
+  \quad\longmapsto\quad
+  \widetilde w_\varepsilon^-(\chi;S)
+  =
+  \begin{pmatrix}
+    (S^{-1}\chi)^*\\
+    \varepsilon S^\dagger\chi
+  \end{pmatrix}.
+  \label{eq:nambu-transported-loss-covector}
+\end{equation}
+Equivalently, conjugating through \(\hat W\) gives
+\begin{equation}
+  \hat W\,\hat k_\varepsilon^-(\chi)\,\hat V
+  =
+  \left[
+    \hat c(y)+\varepsilon\hat c^\dagger(x)
+  \right]\hat W\hat V,
+  \qquad
+  y=S^{-1}\chi,\quad x=S^\dagger\chi .
+  \label{eq:transported-loss-regulator}
+\end{equation}
+The dominant exact operator is now the annihilator in the normalized mode
+\(\hat y=y/\|y\|\), with
+\begin{equation}
+  P_{\hat y}
+  =
+  \frac{S^{-1}\chi\chi^\dagger S^{-\dagger}}
+       {\chi^\dagger S^{-\dagger}S^{-1}\chi}.
+  \label{eq:dressed-loss-projector-nambu}
+\end{equation}
+Because loss is naturally reconstructed from the hole dictionary, the finite
+hole transfer is
+\begin{equation}
+  T_{{\rm eff},h}^{-}
+  =
+  (TS)^{-T}\left(\I-P_{\hat y}^{\,T}\right).
+  \label{eq:nambu-derived-dressed-loss-transfer}
+\end{equation}
+The homogeneous particle-side loss formula alone misses the endpoint source
+created by the exact annihilation; the hole formula
+Eq.~\eqref{eq:nambu-derived-dressed-loss-transfer} is the finite chart in
+which the singular sector has been removed.
+
+Equations~\eqref{eq:nambu-derived-dressed-gain-transfer} and
+\eqref{eq:nambu-derived-dressed-loss-transfer} also explain the common
+mistake.  If one takes the endpoint limit at the insertion before composing
+with \(\hat W\), one writes a projector \(P_\chi\) in the wrong frame.  The
+correct Nambu limit is
+\begin{equation}
+\begin{gathered}
+  \text{multiply/transport at finite regulator}
+  \longrightarrow
+  \text{identify the dominant null vector}
+  \\
+  \longrightarrow
+  \text{take the rank-deficient endpoint}.
+\end{gathered}
+\label{eq:correct-nambu-limit-order}
+\end{equation}
+For unitary \(S\), \(S^{-1}\chi=S^\dagger\chi\) and the distinction collapses;
+for nonunitary monitored evolution it is essential.
+
+\subsection{Neutral Choi Reference Versus Odd-Operator Regularization}
+\label{sec:neutral-choi-doubled-regulator}
+
+There is an important distinction between two regularizations that are easy to
+conflate.  The Pin/Nambu regulator above regularizes the odd trajectory
+amplitude \(\hat K_\bxi\) itself.  The contraction rule in the Choi notes,
+however, regularizes the \emph{channel} or superoperator
+\begin{equation}
+  \mathcal J_K:\rho\mapsto \hat K\rho\hat K^\dagger
+  \label{eq:jump-superoperator-definition}
+\end{equation}
+after vectorization.  These are different one-body charts.  They have the
+same exact endpoint after the correct scalar/postselection limit is taken, but
+their finite-regulator matrices do not have to look the same.
+
+The clean Choi construction starts from a neutral maximally entangled
+reference.  In a Majorana-neutral convention one may take, mode by mode,
+\begin{equation}
+  \ket{\Omega_M}_{LR}
+  =
+  2^{-N/2}\prod_{i=1}^N
+  \left(1+c_{L,i}^\dagger c_{R,i}^\dagger\right)\ket{0},
+  \label{eq:majorana-neutral-reference}
+\end{equation}
+for which a right-leg insertion can be moved to the left leg by a fixed
+particle-hole mirror, up to the usual graded signs:
+\begin{equation}
+  c_{R,i}\ket{\Omega_M}_{LR}
+  =
+  -c_{L,i}^\dagger\ket{\Omega_M}_{LR},
+  \qquad
+  c_{R,i}^\dagger\ket{\Omega_M}_{LR}
+  =
+  c_{L,i}\ket{\Omega_M}_{LR}.
+  \label{eq:neutral-reference-intertwiner}
+\end{equation}
+Thus, on the bare reference, left and right insertions are equivalent
+descriptions.  After an operator has already acted, the same move becomes a
+graded transpose/mirror of the operator order; it does not permit one to
+commute a gain through later nonunitary factors.
+
+For comparison with the Choi-contraction notes, one may also vectorize the channel
+\(\mathcal J_K\).  Introduce ket and bra copies, labelled \(+\) and \(-\), so
+that a gain jump is represented by the even bilinear
+\begin{equation}
+  J_{\rm gain}[\chi]
+  =
+  \hat\chi_+^\dagger\hat\chi_- ,
+  \qquad
+  J_{\rm loss}[\chi]
+  =
+  \hat\chi_-^\dagger\hat\chi_+ ,
+  \label{eq:doubled-gain-loss-generators}
+\end{equation}
+up to the fixed vectorization sign convention.  These generators conserve the
+doubled charge \(N_++N_-\).  Since \(J_{\rm gain}^2=J_{\rm loss}^2=0\) on a
+fixed mode, their finite-regulator Gaussian families are unipotent rather than
+Pin reflections:
+\begin{align}
+  e^{\lambda J_{\rm gain}[\chi]}
+  &:\quad
+  \mathbb G_\lambda(\chi)
+  =
+  \I+\lambda\,\ket{-}\!\bra{+}\otimes P_\chi ,
+  \label{eq:doubled-gain-unipotent}\\
+  e^{\mu J_{\rm loss}[\chi]}
+  &:\quad
+  \mathbb L_\mu(\chi)
+  =
+  \I+\mu\,\ket{+}\!\bra{-}\otimes P_\chi ,
+  \label{eq:doubled-loss-unipotent}
+\end{align}
+where \(P_\chi=\chi\chi^\dagger\).  At every finite \(\lambda,\mu\) these
+compose by literal ordered matrix multiplication in the doubled one-particle
+space.  The exact jump is the projective endpoint
+\begin{equation}
+  J_{\rm gain}[\chi]
+  =
+  \lim_{\lambda\to\infty}\lambda^{-1}e^{\lambda J_{\rm gain}[\chi]},
+  \qquad
+  J_{\rm loss}[\chi]
+  =
+  \lim_{\mu\to\infty}\mu^{-1}e^{\mu J_{\rm loss}[\chi]} .
+  \label{eq:doubled-projective-jump-limit}
+\end{equation}
+This gives a second chart for the same exact endpoint and reproduces the
+composition rule obtained by explicit Choi contraction.  It is not the same
+finite matrix family as
+\(\hat\chi^\dagger+\varepsilon\hat\chi\) or
+\(\hat\chi+\varepsilon\hat\chi^\dagger\).
+
+For full-rank even Choi states with particle transfer matrices \(T\) and
+\(S\), contracting the right leg of the first with the left leg of the second
+gives
+\begin{equation}
+  R=TS .
+  \label{eq:choi-contraction-product}
+\end{equation}
+The same statement holds on the doubled \(+/-\) space with
+\(T,S\) replaced by \(\mathbb T,\mathbb S\).  For an exact gain, the isolated
+particle chart becomes rank deficient, \(T\mapsto TQ\) with
+\(Q=\I-P_\chi\), but a subsequent Choi contraction with an even piece \(S\)
+does not simply keep the undressed projector \(P_\chi\).  The contraction
+derivation gives the dressed finite particle transfer
+\begin{equation}
+  R_{\rm gain}
+  =
+  TS\left(\I-P_{S^\dagger\chi}\right),
+  \qquad
+  P_{S^\dagger\chi}
+  =
+  \frac{S^\dagger P_\chi S}
+       {\chi^\dagger SS^\dagger\chi}.
+  \label{eq:choi-gain-dressed-projector}
+\end{equation}
+Thus the gain constraint is transported contravariantly through the later
+factor \(S\).  The corresponding loss formula is most naturally read in the
+hole chart:
+\begin{equation}
+  R_{{\rm loss},h}
+  =
+  (TS)^{-T}\left(\I-P_{S^{-1}\chi}^{\,T}\right),
+  \qquad
+  P_{S^{-1}\chi}
+  =
+  \frac{S^{-1}P_\chi S^{-\dagger}}
+       {\chi^\dagger S^{-\dagger}S^{-1}\chi}.
+  \label{eq:choi-loss-dressed-projector}
+\end{equation}
+Writing only the homogeneous particle-side expression for loss misses the
+source term carried by the emptied endpoint sector.  This is precisely the
+dictionary obstruction: gain is reconstructed cleanly in the particle chart,
+loss in the hole chart, while mixed gain/loss composites can obstruct both
+fixed charts and must be handled in a graph/covariance chart.  The doubled
+transfer chart below is one stable implementation of that contraction, not an
+additional assumption needed to derive the dressed projector.
+
+The same-mode mixed product illustrates the relation to projective
+measurements.  In the doubled chart,
+\begin{equation}
+  \mathbb G_\lambda(\chi)\mathbb L_\mu(\chi)
+  =
+  \begin{pmatrix}
+    \I & \mu P_\chi\\
+    \lambda P_\chi & \I+\lambda\mu P_\chi
+  \end{pmatrix}_{+/-}.
+  \label{eq:doubled-gain-loss-product}
+\end{equation}
+Gauss decomposition of this block matrix shows that, as
+\(\lambda,\mu\to\infty\), the unipotent factors trivialize and the Levi block
+degenerates to \(Q=\I-P_\chi\) on the appropriate copy.  This is the
+Choi-transfer version of
+\[
+  \hat\chi\,\hat\chi^\dagger=\I-\hat n_\chi,
+  \qquad
+  \hat\chi^\dagger\hat\chi=\hat n_\chi .
+\]
+Therefore the apparent discrepancy is only a discrepancy if the two
+regularizations are identified.  The single-copy Nambu regulator already
+gives the dressed projector after the graph/covariance limit.  The
+neutral/doubled Choi regulator is kept here only as a comparison chart in
+which channel contraction is also literal matrix multiplication.
+
+For cumulative operator spectroscopy, the clean representation is the Choi
+state of the realized branch.  Let \(\ket{V}\!\rangle\) be the Choi vector of
+an even Gaussian operator \(V\), and let \(\chi_R\) denote the right-leg mode.
+The odd gain/loss amplitudes are represented by
+\begin{equation}
+  \ket{K_+}\!\rangle=\hat\chi_R^\dagger\ket{V}\!\rangle,
+  \qquad
+  \ket{K_-}\!\rangle=\hat\chi_R\ket{V}\!\rangle .
+  \label{eq:odd-choi-branches}
+\end{equation}
+These are still pure Gaussian Choi states when their amplitudes are nonzero.
+The complication is therefore not a failure of Gaussianity or purity; it is a
+failure of the full-rank even particle-transfer chart.
+
+Equivalently, exact right-leg gain/loss can be treated directly as occupation
+constraints on the Choi covariance.  Let \(\mathcal C\) be the particle
+correlation matrix of a normalized Choi Gaussian state on the doubled
+left/right one-particle space, and let \(X_R\) be a matrix whose columns are
+right-leg wavefunctions to be constrained, embedded in the doubled space with
+zero support on the left leg.  The columns need not be orthonormal.  Put
+\begin{equation}
+  S_X=X_R^\dagger X_R,
+  \qquad
+  P_X=X_R S_X^{-1}X_R^\dagger
+  \label{eq:choi-nonorthogonal-projector}
+\end{equation}
+when \(X_R\) has full column rank; if not, first remove the linearly dependent
+columns.  A simultaneous gain constraint means that every mode in
+\(\operatorname{span}X_R\) is filled.  Its raw ordered-operator norm is
+\begin{equation}
+  p^{\rm raw}_{+X}
+  =
+  \det\!\big[X_R^\dagger(\I-\mathcal C)X_R\big] .
+  \label{eq:choi-gain-raw-gram}
+\end{equation}
+If instead one wants the basis-independent occupation constraint associated
+only with the subspace \(P_X\), the normalized probability is
+\begin{equation}
+  p_{+X}
+  =
+  \frac{\det\!\big[X_R^\dagger(\I-\mathcal C)X_R\big]}{\det S_X} .
+  \label{eq:choi-gain-normalized-gram}
+\end{equation}
+The conditional Choi covariance is independent of the chosen basis for the
+constraint subspace:
+\begin{equation}
+  \mathcal C_{+X}
+  =
+  \mathcal C
+  +
+  (\I-\mathcal C)X_R
+  \big[X_R^\dagger(\I-\mathcal C)X_R\big]^{-1}
+  X_R^\dagger(\I-\mathcal C) .
+  \label{eq:choi-gain-constraint-update}
+\end{equation}
+It satisfies
+\begin{equation}
+  \mathcal C_{+X}P_X=P_X,
+  \qquad
+  \Sigma_{+X}P_X=+P_X,
+  \qquad
+  \Sigma_{LR,+X}P_X=0,
+  \label{eq:choi-gain-endpoint-constraint}
+\end{equation}
+where \(\Sigma=2\mathcal C-\I\).  Thus the right-leg constrained subspace is
+an occupied endpoint sector.
+
+The loss constraint is the particle-hole dual.  The raw and normalized weights
+are
+\begin{align}
+  p^{\rm raw}_{-X}
+  &=
+  \det\!\big[X_R^\dagger\mathcal C X_R\big],
+  \label{eq:choi-loss-raw-gram}\\
+  p_{-X}
+  &=
+  \frac{\det\!\big[X_R^\dagger\mathcal C X_R\big]}{\det S_X},
+  \label{eq:choi-loss-normalized-gram}
+\end{align}
+and, when the occupied Gram matrix is nonsingular,
+\begin{equation}
+  \mathcal C_{-X}
+  =
+  \mathcal C
+  -
+  \mathcal C X_R
+  \big[X_R^\dagger\mathcal C X_R\big]^{-1}
+  X_R^\dagger\mathcal C .
+  \label{eq:choi-loss-constraint-update}
+\end{equation}
+Now
+\begin{equation}
+  \mathcal C_{-X}P_X=0,
+  \qquad
+  \Sigma_{-X}P_X=-P_X,
+  \qquad
+  \Sigma_{LR,-X}P_X=0,
+  \label{eq:choi-loss-endpoint-constraint}
+\end{equation}
+so the right-leg constrained subspace is an empty endpoint sector.  Equations
+\eqref{eq:choi-gain-constraint-update} and
+\eqref{eq:choi-loss-constraint-update} are often the cleanest exact way to
+handle gain and loss in numerics: impose a right-leg occupation constraint on
+the Choi covariance, then read the finite transfer block only on the
+orthogonal complement of \(P_X\).
+
+Non-orthogonal wavefunctions cause no conceptual problem for same-type
+constraints.  They only replace rank-one denominators by Gram determinants and
+Schur complements.  What matters is the rank and conditioning of
+\(X_R^\dagger(\I-\mathcal C)X_R\) for gains or
+\(X_R^\dagger\mathcal C X_R\) for losses.  A zero determinant means a blocked
+or redundant exact branch.  It should be reported as endpoint/null-sector
+bookkeeping, not used as a finite transfer gap.
+
+Mixed gain and loss constraints are different.  A filled subspace and an empty
+subspace can be imposed simultaneously only when they are compatible; in
+particular, overlapping non-orthogonal directions cannot both be definitely
+filled and definitely empty.  For example
+\(\hat\beta\hat\alpha^\dagger=\langle\beta|\alpha\rangle-
+\hat\alpha^\dagger\hat\beta\), so changing the order changes the scalar
+contraction and the residual operator.  The correct Choi-covariance procedure
+for a mixed non-commuting word is therefore the ordered Pfaffian/Schur
+conditioning of Sec.~\ref{sec:several-odd-insertions}, applied on the doubled
+Choi state with all operators embedded on the appropriate leg.  Only after
+that ordered conditioning has been performed does one identify endpoint
+multiplicity and the remaining finite Choi transfer spectrum.
+
+To see this in the smallest possible example, take a single mode and \(V=\I\).
+Both right-leg creation and right-leg loss have vanishing effective bridge
+between left and right particle sectors,
+\begin{equation}
+  T_{\rm eff}=0 .
+  \label{eq:single-mode-Teff-zero}
+\end{equation}
+Nevertheless they produce different Choi states:
+\begin{equation}
+  \hat\chi_R^\dagger\ket{\Omega}\propto\ket{1_L1_R},
+  \qquad
+  \hat\chi_R\ket{\Omega}\propto\ket{0_L0_R}.
+  \label{eq:single-mode-odd-completions}
+\end{equation}
+The singular matrix \(T_{\rm eff}=0\) alone does not know whether the
+disconnected null sector is filled or empty.
+
+For an isolated right-leg insertion after an even operator with particle
+transfer \(T_p\), the rank-deficient particle-chart propagation part is
+\begin{equation}
+  T_p \longmapsto T_p(\I-P).
+  \label{eq:right-gain-loss-column-removal}
+\end{equation}
+This is not the full Choi-contraction composition rule once later operators
+are present.  If the constrained Choi state is contracted with a subsequent
+even transfer \(S\), the projector is dressed as in
+Eqs.~\eqref{eq:choi-gain-dressed-projector} and
+\eqref{eq:choi-loss-dressed-projector}; gain transports
+\(\chi\) by \(S^\dagger\), while loss transports it by \(S^{-1}\) and should
+be reconstructed in the hole chart.
+The complementary hole chart obeys \(T_h=(T_p^\dagger)^{-1}\) before the
+singular limit.  Hence an exact particle-dark direction is a pole in the hole
+description, and an exact hole-dark direction is a pole in the particle
+description.  The finite-sector spectrum must therefore be supplemented by
+endpoint data:
+\begin{equation}
+  \left\{\lambda_{p,j}^{\rm finite}\right\}
+  \quad {\rm plus}\quad
+  \left(P_{\rm null},n_{\rm null},m_{\rm null}\right),
+  \label{eq:complete-singular-data}
+\end{equation}
+where \(P_{\rm null}\) is the projected direction, \(n_{\rm null}=1\) for
+creation and \(n_{\rm null}=0\) for annihilation, and \(m_{\rm null}\) is the
+endpoint multiplicity.
+
+In the Choi-covariance notation \(\Sigma=2C_{\rm Choi}-\I\), the finite
+particle exponents can be read from the left-left block eigenvalues
+\(a_j\in(-1,1)\):
+\begin{equation}
+  \lambda_{p,j}(t)
+  =
+  \frac{1}{2t}
+  \log\!\left(\frac{1-a_j(t)}{1+a_j(t)}\right)
+  =
+  -\frac{1}{t}\artanh a_j(t),
+  \qquad
+  a_j(t)\in\spec\Sigma_{LL}(t)\cap(-1,1).
+  \label{eq:particle-exponents-from-choi}
+\end{equation}
+Endpoint sectors \(a_j=\pm1\) are formal infinite exponents in one of the
+particle/hole charts.  A finite Lyapunov gap should therefore be defined as
+\begin{equation}
+  \Delta_\lambda^{\rm finite}(t)
+  =
+  \min_{a_j(t)\in(-1,1)}
+  \left|
+  \frac{1}{t}\artanh a_j(t)
+  \right|,
+  \label{eq:finite-sector-gap}
+\end{equation}
+with the number of excluded endpoint eigenvalues reported separately.  This is
+the gain/loss bookkeeping required before comparing transfer gaps across
+protocols or sizes.
+
+
+\subsection{Operational Conclusion for Non-Commuting Gain/Loss Strings}
+\label{sec:gain-loss-operational-conclusion}
+
+The practical rule is the following.  If the trajectory contains a block of
+gains and losses, first read the word in chronological order and form the
+running charge \(Q_j\) of Eq.~\eqref{eq:running-charge-definition}.  Cut at
+returns to the running minimum.  Each neutral block with nonzero causal Gram
+determinant gives an honest finite graph transfer through
+Eq.~\eqref{eq:balanced-block-master-formula}; its scalar
+\(\lambda=\pm\det\widetilde G\) is recorded in the Born-weight cocycle.  Each
+unbalanced block is endpoint orbitals plus one finite matrix, as in
+Eq.~\eqref{eq:unbalanced-gain-block-normal-form}, not a matrix by itself.
+
+For same-type blocks this reduces to ordinary occupation constraints.  Gains
+use the empty Gram matrix \(X^\dagger(\I-C)X\), update the covariance by
+Eq.~\eqref{eq:many-gain-covariance}, and record the rank of the filled
+constrained subspace as endpoint data.  Losses use the occupied Gram matrix
+\(Y^\dagger C Y\), update by Eq.~\eqref{eq:many-loss-covariance}, and record
+the rank of the emptied constrained subspace.  For mixed non-commuting
+blocks, do not first combine all gains and all losses.  Either apply the
+one-site gain/loss updates sequentially in chronological order, or build the
+ordered Pfaffian problem
+Eqs.~\eqref{eq:mixed-kdagger-k-list}--\eqref{eq:mixed-pfaffian-schur-update};
+these are the same Wick calculation written in different forms.
+
+In a fixed particle or hole transfer chart, the finite transfer matrix is
+therefore a reduced object obtained after the ordered constraints have been
+resolved.  Its endpoint multiplicity is a rank computed from the ordered
+constrained subspace.  It is not, in general, the number of gain and loss
+events.  Mixed gain/loss pairs can annihilate into projectors, produce scalar
+contractions through Eq.~\eqref{eq:exterior-interior-clifford-relations}, or
+leave genuine charge-changing exterior/interior maps.  The many-body spectrum
+must be built from the resulting ordered Fock-space map.
+
+In a moving Majorana chart, the equivalent prescription is to replace each odd
+insertion by its regularized Pin representative, multiply all associated
+\(O(2N,\mathbb C)\) matrices in chronological order, and accumulate the
+projective scalar normalization separately.  The singular limit
+\(\varepsilon\to0\) must be taken only after the ordered product and scalar
+weight have been formed.  The matrix product before the limit is literally
+ordinary matrix multiplication; the limiting finite object is the
+graph/covariance block in Eq.~\eqref{eq:graph-block-convergence}, with
+endpoint/null sectors retained separately.  This preserves the correct Born
+probability and prevents the divergent gauge directions of the regularized
+chart from being mistaken for finite CFT Lyapunov gaps.
+
+\section{Tangent Cocycles for Covariance Dynamics}
+\label{sec:tangent-cocycle}
+
+The state covariance evolves by a branch-dependent nonlinear map
+\begin{equation}
+  G_{t+1}=F_{\alpha_t}(G_t),
+  \qquad
+  \alpha_t\sim p_t(\cdot\mid G_t).
+  \label{eq:branch-markov-map}
+\end{equation}
+For a Schur-complement Gaussian branch, a convenient form is
+\begin{equation}
+  F_\alpha(G)
+  =
+  C_\alpha
+  -
+  B_\alpha^\dagger
+  \left(A_\alpha-G^{-1}\right)^{-1}
+  B_\alpha .
+  \label{eq:fractional-branch-map}
+\end{equation}
+Differentiating gives the tangent map.  Let
+\begin{equation}
+  M_\alpha(G)=A_\alpha-G^{-1}.
+  \label{eq:M-alpha}
+\end{equation}
+Since
+\begin{equation}
+  \delta G^{-1}=-G^{-1}\delta G\,G^{-1},
+  \qquad
+  \delta M_\alpha=G^{-1}\delta G\,G^{-1},
+  \label{eq:inverse-differentiation}
+\end{equation}
+and \(\delta M^{-1}=-M^{-1}(\delta M)M^{-1}\), one obtains
+\begin{align}
+  D F_\alpha(G)[\delta G]
+  &=
+  B_\alpha^\dagger
+  M_\alpha(G)^{-1}
+  G^{-1}\delta G\,G^{-1}
+  M_\alpha(G)^{-1}
+  B_\alpha .
+  \label{eq:DF-first-form}
+\end{align}
+Using
+\begin{equation}
+  M_\alpha(G)^{-1}G^{-1}=(G A_\alpha-\I)^{-1},
+  \qquad
+  G^{-1}M_\alpha(G)^{-1}=(A_\alpha G-\I)^{-1},
+  \label{eq:noncommuting-identities}
+\end{equation}
+define
+\begin{equation}
+  T_\alpha(G)=(A_\alpha G-\I)^{-1}B_\alpha .
+  \label{eq:tangent-T}
+\end{equation}
+When the Hermiticity relations of the covariance contraction identify the left
+factor with the adjoint of the right factor,
+\begin{equation}
+  \delta G_{t+1}
+  =
+  T_{\alpha_t}(G_t)^\dagger\delta G_tT_{\alpha_t}(G_t).
+  \label{eq:tangent-update}
+\end{equation}
+
+Along a realized trajectory set \(T_t=T_{\alpha_t}(G_{t-1})\).  The
+chronological product convention used by Eq.~\eqref{eq:tangent-update} is
+\begin{equation}
+  \widetilde T_n=T_1T_2\cdots T_n,
+  \qquad
+  \delta G_n=\widetilde T_n^\dagger\delta G_0\widetilde T_n .
+  \label{eq:tangent-product}
+\end{equation}
+The single-particle tangent Lyapunov exponents are
+\begin{equation}
+  \lambda_i^{\rm tan}
+  =
+  \lim_{n\to\infty}
+  \frac{1}{n}\log\sigma_i(\widetilde T_n),
+  \label{eq:tangent-lyapunov}
+\end{equation}
+assuming the stationary ergodic hypotheses of the multiplicative ergodic
+theorem~\cite{Oseledets1968,FurstenbergKesten1960}.  These are quenched
+singular-value growth rates along sampled trajectories.  In general,
+\begin{equation}
+  \E\!\left[T_\alpha(G)^\dagger\delta G\,T_\alpha(G)\mid G\right]
+  \neq
+  \bar T(G)^\dagger\delta G\,\bar T(G),
+  \qquad
+  \bar T(G)=\E[T_\alpha(G)\mid G].
+  \label{eq:no-average-transfer}
+\end{equation}
+Thus the tangent Lyapunov spectrum is not the spectrum of an outcome-averaged
+transfer matrix.
+
+\section{Trajectory Free Energy and CFT Finite-Size Data}
+\label{sec:cft-extraction}
+
+For a monitored circuit on a cylinder of circumference \(L\) and time length
+\(t\), define the Born-weighted trajectory free energy
+\begin{equation}
+  F(L,t)
+  =
+  -\sum_\bxi p_\bxi\log p_\bxi
+  =
+  -\E_{\bxi\sim p}\log p_\bxi .
+  \label{eq:trajectory-free-energy}
+\end{equation}
+In a Gaussian circuit, each \(p_\bxi\) is computed by multiplying the
+determinant branch normalizations derived above.  If the intrinsic
+space-time anisotropy is \(\alpha\), define
+\begin{equation}
+  f_0(L)=\lim_{t\gg L}\frac{F(L,t)}{\alpha Lt}.
+  \label{eq:free-energy-density}
+\end{equation}
+At a conformally invariant non-unitary fixed point, the cylinder free-energy
+correction has the universal form~\cite{Cardy1986,DiFrancesco1997}
+\begin{equation}
+  f_0(L)=f_0(\infty)-\frac{\pi c_{\rm eff}}{6L^2}+\cdots .
+  \label{eq:ceff-cylinder}
+\end{equation}
+Here \(c_{\rm eff}\) is the replica effective central charge relevant to the
+trajectory ensemble, not automatically the entanglement central charge of a
+prepared edge state.
+
+\subsection{Why Transfer Eigenvalues Are Free Energies}
+\label{sec:transfer-free-energy-identity}
+
+The transfer-matrix statement is just the row decomposition of a two-dimensional
+statistical mechanics sum.  For a fixed circumference \(L\), collect all local
+Boltzmann weights, Born weights, or trajectory amplitudes in one time strip
+into a linear operator \(\cT_L\) acting on the Hilbert space of boundary data
+around the cylinder.  Gluing two neighboring strips means summing over their
+shared boundary variables, which is matrix multiplication.  Gluing \(t\)
+strips and finally closing the time direction gives
+\begin{equation}
+  Z(L,t)
+  =
+  \Tr_{\rm bdry}\,\cT_L^t .
+  \label{eq:row-transfer-partition-function}
+\end{equation}
+If \(\cT_L\) is diagonalizable with eigenvalues \(\Lambda_A(L)\), this is
+\begin{equation}
+  Z(L,t)=\sum_A \Lambda_A(L)^t .
+  \label{eq:transfer-eigenvalue-sum}
+\end{equation}
+For a non-Hermitian or trajectory-random problem one often computes singular
+values or Lyapunov exponents of products instead of ordinary eigenvalues, but
+the meaning is the same: the relevant number is the logarithmic growth or
+decay rate per time strip.  Projecting onto, or inserting an operator that
+selects, a sector \(A\) gives
+\begin{equation}
+  Z_A(L,t)\sim \Lambda_A(L)^t,
+  \qquad
+  F_A(L,t)\equiv-\log Z_A(L,t)
+  =
+  -t\log \Lambda_A(L)+O(1),
+  \label{eq:sector-transfer-growth}
+\end{equation}
+where \(\log\Lambda_A\) should be read as \(\log|\Lambda_A|\) when phases do
+not affect the decay rate.  Dividing by the cylinder area \(\alpha Lt\)
+therefore gives
+\begin{equation}
+  f_A(L)
+  =
+  -\frac{\log|\Lambda_A(L)|}{\alpha L},
+  \qquad
+  f_A(L)-f_0(L)
+  =
+  \frac{-\log|\Lambda_A(L)|+\log|\Lambda_0(L)|}{\alpha L}.
+  \label{eq:transfer-eigenvalue-free-energy-gap}
+\end{equation}
+This is the precise sense in which subleading transfer eigenvalues, singular
+values, or quenched Lyapunov exponents are ``free-energy gaps.''  The
+Lyapunov calculation is an efficient numerical route to the logarithms in
+Eq.~\eqref{eq:transfer-eigenvalue-free-energy-gap}; it is not an additional
+CFT postulate.
+
+\subsection{Replicas Are Not a Numerical Requirement}
+\label{sec:replica-clarification}
+
+The numerical estimators in this note do not require introducing explicit
+replica degrees of freedom.  A sampled trajectory directly supplies
+\(-\log p_\bxi\), and the typical gap is obtained by taking a logarithm of the
+trajectory-resolved transfer growth before averaging over \(\bxi\).  Replicas
+are instead an analytic device: they rewrite quenched averages and trajectory
+moments as limits or continuations of integer-replica statistical mechanics
+models.  The notation \(c_{\rm eff}\) refers to the effective central charge
+of that non-unitary trajectory ensemble.  It should not be identified with the
+entanglement central charge \(c=1\) of a prepared chiral free-fermion edge
+unless a separate argument relates those two conformal theories.
+
+Scaling dimensions are extracted from many-body transfer gaps, not directly
+from an arbitrary one-body Lyapunov spectrum.  Let
+\(\widehat{\mathcal T}_\bxi(t)\) denote the unnormalized trajectory transfer
+operator in the sector whose correlation function is being probed, and let
+\(S_A[\widehat{\mathcal T}_\bxi(t)]\) be its many-body singular values ordered
+by decreasing typical growth rate.  Define the quenched many-body gaps by
+\begin{equation}
+  \mu_A(L)
+  =
+  -\lim_{t\to\infty}
+  \frac{1}{t}
+  \E_\bxi
+  \log
+  \frac{
+    S_A[\widehat{\mathcal T}_\bxi(t)]
+  }{
+    S_0[\widehat{\mathcal T}_\bxi(t)]
+  },
+  \qquad
+  \mu_A(L)\ge 0 .
+  \label{eq:many-body-transfer-gap}
+\end{equation}
+The associated generalized free-energy gap is
+\begin{equation}
+  \Delta f_A(L)
+  =
+  \frac{\mu_A(L)}{\alpha L}.
+  \label{eq:many-body-free-energy-gap}
+\end{equation}
+For low-lying operators of the effective CFT,
+\begin{equation}
+  \Delta f_A(L)
+  =
+  \frac{2\pi x_A^{\rm typ}}{L^2}+\cdots ,
+  \qquad
+  \mu_A(L)
+  =
+  \frac{2\pi\alpha x_A^{\rm typ}}{L}+\cdots .
+  \label{eq:scaling-dimensions-from-gaps}
+\end{equation}
+The superscript ``typ'' emphasizes that the logarithm is taken before the
+trajectory average.
+
+For free fermions, Eq.~\eqref{eq:many-body-transfer-gap} can often be reduced
+to one-body data, but only after reconstructing the exterior-power or
+Fock-space tower of Sec.~\ref{sec:one-body-many-body-spectra}.  If the
+realized even Gaussian transfer object has finite one-body excitation
+rapidities \(\epsilon_a(L)\), with endpoint/null sectors removed as in
+Sec.~\ref{sec:gain-loss}, then many-body gaps in a fixed charge/parity sector
+are additive combinations
+\begin{equation}
+  \mu_I(L)
+  =
+  \sum_a n_a(I)\,\epsilon_a(L),
+  \qquad
+  n_a(I)\in\mathbb Z_{\ge 0},
+  \label{eq:fock-tower-rapidities}
+\end{equation}
+up to the scalar normalization common to all states in the sector.  The
+smallest positive one-body rapidity equals the first many-body gap only when
+the one-body list has already been measured relative to the dominant
+many-body configuration and the corresponding single-quasiparticle excitation
+is allowed by the sector and by the observable being measured.  Otherwise the
+first CFT gap may be a difference of many-body sums, a sum of several
+one-body excitation rapidities, or a gap in a different particle/hole chart.
+
+The tangent cocycle of Sec.~\ref{sec:tangent-cocycle} is also first obtained
+as a one-body cocycle \(T_\bxi\).  Its associated Gaussian many-body tangent
+transfer spectrum is again the additive Fock-space lift of the one-body
+Lyapunov data.  Thus the raw \(\lambda^{\rm tan}_a\) are not the final
+many-body gaps; the gaps are sums
+\begin{equation}
+  \mu_I^{\rm tan}(L)
+  =
+  \sum_a n_a(I)\,\epsilon^{\rm tan}_a(L),
+  \qquad
+  \epsilon^{\rm tan}_a(L)\equiv
+  \bigl|\lambda^{\rm tan}_a(L)-\lambda^{\rm tan}_0(L)\bigr|_{\rm finite},
+  \label{eq:tangent-fock-tower}
+\end{equation}
+with the sector \(I\) fixed by the perturbation or correlator being tested.
+Vectorizing \(\delta G\) is a useful way to implement the linear covariance
+map, but it does not by itself choose the many-body exterior-power sector or
+the excitation pattern \(n_a(I)\).
+
+Average correlations need not share the same exponent.  If a trajectory
+correlator satisfies
+\begin{equation}
+  G_\bxi(t)\sim
+  \exp\!\left[-\frac{2\pi t}{L}x_{\rm typ}\right]
+  \label{eq:typical-correlator}
+\end{equation}
+typically, its moments may instead scale as
+\begin{equation}
+  \E\!\left[G_\bxi(t)^n\right]
+  \sim
+  \exp\!\left[-\frac{2\pi t}{L}x(n)\right].
+  \label{eq:moment-exponents}
+\end{equation}
+Writing \(Y=-\log G_\bxi(t)\), multifractal scaling is the statement that
+the distribution of \(Y\) has the large-deviation form~\cite{EversMirlin2008}
+\begin{equation}
+  P_t(Y)
+  \sim
+  \left(\frac{2\pi\alpha t}{L}\right)^{-1/2}
+  \exp\!\left[
+    -\frac{2\pi\alpha t}{L}
+    H\!\left(\frac{Y}{2\pi\alpha t/L}\right)
+  \right],
+  \label{eq:multifractal-distribution}
+\end{equation}
+with a nontrivial scaling function \(H\).  Expanding cumulants gives, for
+small \(n\),
+\begin{equation}
+  x(n)=n x^{(1)}+\frac{n^2}{2}x^{(2)}+\cdots ,
+  \qquad
+  x^{(1)}=x_{\rm typ}.
+  \label{eq:cumulant-expansion}
+\end{equation}
+The operational lesson is that a Lyapunov gap, an average correlator, and a
+typical correlator may be three different finite-size measurements of related
+but inequivalent universal data.
+
+\section{Mechanical CPU Extraction Plan}
+\label{sec:practical-protocol}
+
+The numerical extraction must be written so that every accumulated number has
+a named transfer object.  For the domain-wall runs below the cylinder
+circumference is
+\begin{equation}
+  L \equiv N_y ,
+  \label{eq:cpu-circumference}
+\end{equation}
+and the anisotropy is reported with the default convention \(\alpha=1\) unless
+an independent calibration is supplied.  The production CPU driver samples the
+physical Born circuit only:
+\begin{equation}
+  {\tt postselect}={\tt False},
+  \qquad
+  {\tt postselect\_probability}=0 .
+  \label{eq:cpu-no-postselect}
+\end{equation}
+Forced postselection is useful as a diagnostic trajectory, but it does not
+define the Born ensemble weight \(p_\bxi\) and is therefore excluded from the
+\(c_{\rm eff}\) estimator.
+
+For sample \(s\), size \(L\), and completed cycle \(t\), the CPU observer
+records the site-branch probabilities \(p_{s,\ell}\) generated by the
+canonical covariance update.  These include the Born probability of the
+measured occupation outcome and, when a stochastic correction is used, the
+probability of the sampled gain/loss correction.  Deterministic perfect
+correction contributes unit probability.  The accumulated trajectory action is
+\begin{equation}
+  Y_s(L,t)
+  =
+  -\log p_{\bxi_s(0:t)}
+  =
+  -\sum_{\ell\in[0,t)}\log p_{s,\ell}.
+  \label{eq:cpu-trajectory-action}
+\end{equation}
+The free-energy density estimator is then
+\begin{equation}
+  f_0(L,t)
+  =
+  \frac{1}{\alpha L t}
+  \frac{1}{N_{\rm samp}(L)}
+  \sum_{s=1}^{N_{\rm samp}(L)}Y_s(L,t).
+  \label{eq:cpu-f0-estimator}
+\end{equation}
+After discarding early-time data and choosing a plateau time window, the
+cylinder fit is
+\begin{equation}
+  f_0(L)
+  =
+  f_\infty
+  -
+  \frac{\pi c_{\rm eff}}{6L^2}
+  +
+  O(L^{-4}).
+  \label{eq:cpu-ceff-fit}
+\end{equation}
+Thus a linear fit of \(f_0(L)\) against \(1/L^2\) with slope \(m_0\) gives
+\begin{equation}
+  c_{\rm eff}=-\frac{6m_0}{\pi}.
+  \label{eq:cpu-ceff-from-slope}
+\end{equation}
+
+In the same physical trajectories the code accumulates two one-body Lyapunov
+objects and then builds the corresponding additive many-body gaps.  The first
+is the covariance tangent cocycle,
+\begin{equation}
+  \delta G_{t+1}
+  =
+  T_{\alpha_t}(G_t)^\dagger
+  \delta G_t
+  T_{\alpha_t}(G_t),
+  \label{eq:cpu-tangent-object}
+\end{equation}
+stabilized by QR decomposition after each cycle.  The resulting exponents are
+called \(\lambda^{\rm tan}_{j,s}(L,t)\).  The second is the Choi/operator
+covariance transfer object with the endpoint bookkeeping of
+Sec.~\ref{sec:gain-loss}; diagonalizing the finite particle/hole block after
+removing exact gain/loss endpoints gives
+\(\epsilon^{\rm Choi}_{j,s}(L,t)\).  These are one-body rapidities from which
+many-body tangent and Choi/Kraus gaps must both be assembled additively, as in
+Eqs.~\eqref{eq:tangent-fock-tower} and
+\eqref{eq:fock-tower-rapidities}.  The analysis therefore reports
+\begin{equation}
+  \delta\ell_{\rm tan}^{(1)}
+  \qquad
+  \epsilon_{\rm Choi}^{(1)}
+  \qquad
+  x_{\rm typ}^{\rm tan/Fock}
+  \qquad
+  x_{\rm typ}^{\rm Choi/Fock},
+  \label{eq:three-spectrum-labels}
+\end{equation}
+where the first two are raw one-body ingredients and the last two are CFT
+scaling-dimension estimates only after choosing allowed many-body Fock
+excitations.
+
+For either one-body route \(r\in\{\mathrm{tan},\mathrm{Choi}\}\), the finite
+single-particle gap recorded by the CPU code is
+\begin{equation}
+  \delta\ell^{r}_{k}(L,t)
+  =
+  {\rm median}_{s}
+  \left[
+    {\rm kth\,smallest}_{j}\,
+    \bigl|\ell^{r}_{j,s}(L,t)\bigr|
+  \right]_{\rm finite},
+  \label{eq:cpu-one-body-gap}
+\end{equation}
+with \(\ell^{\rm tan}=\lambda^{\rm tan}\) and
+\(\ell^{\rm Choi}=\epsilon^{\rm Choi}\).  Here the Choi rapidities are obtained
+from the finite covariance eigenvalues by the particle/hole chart convention,
+while the tangent exponents are obtained from QR-stabilized tangent-frame
+growth.
+The finite bracket means that zero/floor directions, endpoint directions,
+nonfinite values, and censored Choi trajectories are excluded before ordering.
+Their multiplicities are retained in the output table.
+
+For each route the next mechanical step is to build the allowed many-body gaps
+\begin{equation}
+  \mu_A^{r}(L,t)
+  =
+  \sum_j n_j^{r}(A)\,\delta\ell^{r}_{j}(L,t),
+  \qquad
+  r\in\{\mathrm{tan},\mathrm{Choi}\},
+  \label{eq:cpu-fock-gap}
+\end{equation}
+with occupation pattern \(A\) fixed by the operator sector being tested.  Only
+these \(\mu_A^r\), not the raw one-body list by itself, enter
+the CFT fit
+\begin{equation}
+  \frac{\mu_A^{r}(L,t)}{\alpha L}
+  =
+  \frac{2\pi x_A^{\rm typ}}{L^2}
+  +
+  O(L^{-3}).
+  \label{eq:cpu-fock-x-fit}
+\end{equation}
+The often-used estimator
+\begin{equation}
+  x_{\rm one\ body}^{r}(L,t)
+  =
+  \frac{L\,\delta\ell^{r}_{1}(L,t)}{2\pi\alpha}
+  \label{eq:cpu-one-body-estimator}
+\end{equation}
+is therefore a CFT scaling dimension only under the additional assumption that
+the first allowed many-body excitation is exactly one finite quasiparticle in
+route \(r\).
+The CPU script parameter \({\tt fock\_rank}=R\) implements only the mechanical
+choice
+\begin{equation}
+  n_j^r(A_R)=
+  \begin{cases}
+    1, & 1\le j\le R,\\
+    0, & j>R,
+  \end{cases}
+  \qquad
+  \mu_{A_R}^{r}(L,t)=\sum_{j=1}^{R}\delta\ell_j^r(L,t),
+  \label{eq:cpu-fock-rank-convention}
+\end{equation}
+after ordering the finite one-body gaps.  This is a transparent low-lying
+Fock-tower convention, not a claim that the physical operator of interest
+necessarily occupies the first \(R\) finite quasiparticle modes.
+If the sector requires a pair, a fixed charge difference, or a particle-hole
+combination, Eq.~\eqref{eq:cpu-fock-gap} must be used instead.  Agreement
+between the tangent/Fock and Choi/Fock dimensions is evidence that the same
+slow channel is being observed by two Gaussian transfer constructions, not a
+proof by notation.
+
+Gain and loss introduce the most important mechanical caveat.  In the Choi
+route, eigenvalues satisfying
+\begin{equation}
+  \bigl||g_j|-1\bigr|<\varepsilon_{\rm end}
+  \label{eq:cpu-endpoint-test}
+\end{equation}
+are endpoint sectors and are not used as finite rapidity gaps.  In the tangent
+route, QR directions whose diagonal factors hit the numerical floor, or whose
+cycle exponents become nonfinite, are classified as null/divergent sectors.
+Both endpoint counts are physical data: they measure how many rank-one
+creation/removal resets have left the chosen particle or hole chart.  They are
+reported beside the finite-sector fits, not thrown away silently.
+
+The concrete CPU workflow is therefore: run the canonical
+\({\tt classA\_U1FGTN.run\_markov\_circuit}\) entry point with serial samples,
+enable the trajectory-weight observer, tangent observer, and Choi observer,
+save per-size raw spectra and probability actions, bootstrap over samples,
+fit \(f_0(L)\) against \(1/L^2\) for \(c_{\rm eff}\), plot the tangent
+and Choi one-body spectra, and convert both to \(x_{\rm typ}\) only through
+the specified additive many-body Fock excitation.
+
+For the current domain-wall adaptive circuit, the conservative interpretation
+is therefore: the observed small transfer-frame gap is evidence for a
+near-marginal interface channel localized on the wall.  It is not, by itself,
+a precision extraction of \(x_i\) or \(c_{\rm eff}\).  Such an extraction
+requires a controlled sequence in \(L\), endpoint bookkeeping for gain/loss,
+and a clear choice of operator sector.
+
+\section{Caveats and Non-Identifications}
+\label{sec:caveats}
+
+\begin{enumerate}
+  \item The Born-sampled trajectory ensemble is not the deterministic mean
+  channel.  For nonlinear observables \(O\),
+  \begin{equation}
+    \E_\bxi[O(G_\bxi)]\neq O(\E_\bxi[G_\bxi]).
+    \label{eq:nonlinear-average-warning}
+  \end{equation}
+
+  \item A quenched product of random transfer matrices is not an averaged
+  transfer matrix.  Equation~\eqref{eq:no-average-transfer} is the minimal
+  algebraic obstruction.
+
+  \item The Choi/Kraus particle spectrum and the tangent-cocycle spectrum are
+  different linearizations.  The former can generate many-body Gaussian
+  transfer gaps after Fock-space reconstruction; the latter is a covariance
+  stability spectrum unless tied to a specific trajectory correlator.  Agreement
+  between their slow sectors is physical evidence, not an operator identity.
+
+  \item Gain and loss are not harmless details.  Exact creation or annihilation
+  branches move the transfer description onto a singular boundary where a
+  finite matrix must be supplemented by null-sector occupation data.
+
+  \item The entanglement central charge \(c=1\) of a chiral free-fermion edge is
+  not automatically the same as the non-unitary effective central charge
+  \(c_{\rm eff}\) obtained from trajectory free energies.  The former is a
+  property of the prepared state; the latter is a property of the trajectory
+  ensemble viewed as a replicated statistical mechanics problem.
+\end{enumerate}
+
+\section{Summary}
+
+In a free-fermion monitored circuit, the trajectory partition function
+\(Z_\bxi=p_\bxi\) becomes a determinant calculation, and the many-body
+trajectory singular spectrum can be reconstructed from additive one-body
+singular data whenever the branch remains in a regular even Gaussian chart.
+Measurements, gain, and loss keep the state Gaussian but introduce singular
+transfer directions.  The correct spectroscopy is therefore not simply
+``diagonalize a matrix'': one must state which matrix, which particle or hole
+chart, which endpoint sectors have been removed, which Fock-sector excitation
+is allowed, and whether the result concerns a cumulative operator or the
+tangent dynamics of covariance perturbations.  Once that bookkeeping is
+explicit, the finite-size CFT formulas for \(c_{\rm eff}\), scaling dimensions,
+and multifractal spectra can be applied as a controlled diagnostic rather than
+as a slogan.
+
+\bibliographystyle{apsrev4-2}
+\bibliography{}
+
+\end{document}

@@ -1,0 +1,779 @@
+\documentclass[aps,prx,twocolumn,superscriptaddress,longbibliography,nofootinbib,floatfix]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=blue,citecolor=blue]{hyperref}
+\IfFileExists{physics.sty}{\usepackage{physics}}{\DeclareMathOperator{\Tr}{Tr}}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{bm}
+\usepackage{soul}
+\IfFileExists{bbold.sty}{\usepackage{bbold}}{}
+\usepackage{pifont}
+\usepackage{mathtools}
+\usepackage{tikz}
+\usetikzlibrary{tikzmark,arrows.meta,positioning,shapes.geometric,calc}
+\usepackage{array}
+\IfFileExists{algorithm2e.sty}{\usepackage[ruled,noline]{algorithm2e}}{}
+\usepackage[normalem]{ulem}
+\usepackage{mdframed}
+\usepackage{enumitem}
+\usepackage{makecell}
+\usepackage{comment}
+\usepackage{booktabs}
+\usepackage{microtype}
+
+\DeclareMathOperator{\arctanh}{arctanh}
+\DeclareMathOperator{\Sgn}{Sgn}
+\DeclareMathOperator{\diag}{diag}
+
+% Shared manuscript shorthands.
+\newcommand{\ii}{\boldsymbol{\mathrm{i}}}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mr}[1]{\mathrm{#1}}
+\newcommand{\mf}[1]{\mathfrak{#1}}
+\newcommand{\mb}[1]{\mathbb{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\h}[1]{\hat{#1}}
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\cC}{\mc{C}}
+\newcommand{\cS}{\mc{S}}
+\newcommand{\cU}{\mc{U}}
+\newcommand{\hcT}{\h{\mc{T}}}
+\newcommand{\hcC}{\h{\mc{C}}}
+\newcommand{\hcS}{\h{\mc{S}}}
+\newcommand{\hcN}{\h{\mc{N}}}
+\newcommand{\comp}[1]{\underset{#1}{\bigcirc}}
+\newcommand{\bfr}{{\bf r}}
+\newcommand{\TS}{|{\mr{TS}} \rangle\!\rangle}
+\newcommand{\CI}{|{\mr{CI}} \rangle\!\rangle}
+\newcommand{\vac}{|\mr{vac}\rangle\!\rangle}
+\newcommand{\fSWAP}{\mr{fSWAP}}
+\newcommand{\AZK}[1]{\mc{K}_{\mr{#1}}}
+\newcommand{\cmark}{\textcolor{green}{\ding{51}}}
+\newcommand{\xmark}{\textcolor{red}{\ding{55}}}
+\newcommand{\drafthighlight}[1]{\textcolor{red}{#1}}
+\newcommand{\cmjadd}[1]{\drafthighlight{#1}}
+\newcommand{\abadd}[1]{\drafthighlight{#1}}
+\newcommand{\HPadd}[1]{\drafthighlight{#1}}
+\newcommand{\cmjCom}[1]{\textcolor{red}{[CMJ: #1]}}
+\newcommand{\abcom}[1]{\textcolor{purple}{[AB: #1]}}
+\newcommand{\HPcom}[1]{\textcolor{cyan}{[HP: #1]}}
+\setstcolor{magenta}
+\newcommand{\cE}{\mathcal{E}}
+\newcommand{\cJ}{\mathcal{J}}
+\newcommand{\cK}{\mathcal{K}}
+\newcommand{\cT}{\mathcal{T}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\avg}[1]{\overline{#1}}
+% Author-only numerical acceptance gates.  These remain in the source next to
+% the statements they govern but are intentionally absent from the rendered
+% manuscript.
+\newcommand{\ResultPlaceholder}[1]{\ignorespaces}
+% Short reader-facing slots for values or conclusions that await production
+% data.  Unlike \ResultPlaceholder, these preserve the grammar of the draft.
+\newcommand{\ResultValue}[1]{\textcolor{BrickRed}{\textbf{[#1]}}}
+\newcommand{\placeholderfigure}[2][0.96\linewidth]{%
+  \begingroup
+  \setlength{\fboxsep}{8pt}%
+  \par\noindent\centering
+  \fcolorbox{gray!70!black}{gray!5}{%
+    \begin{minipage}[c][0.18\textheight][c]{\dimexpr#1-2\fboxsep-2\fboxrule\relax}
+      \centering\small\color{gray!75!black}#2
+    \end{minipage}}%
+  \par\endgroup}
+\newcommand{\appendixplaceholderfigure}[3]{%
+  \begin{figure*}[t]
+    \placeholderfigure[0.96\textwidth]{\textbf{#2}\\[0.5em]#3}
+    \caption{#2.  This is a layout placeholder; the production acceptance
+    criteria and complete estimator definitions are given in the text.}
+    \label{#1}
+  \end{figure*}}
+
+\begin{document}
+
+\title{Chiral Boundary Mode Ensembles in Dynamical Chern Insulators}
+
+\author{Asadullah Bhuiyan}
+\affiliation{Department of Physics, Cornell University, Ithaca, New York 14853, USA}
+\author{Haining Pan}
+\affiliation{Department of Physics and Astronomy, Center for Materials Theory, Rutgers University, Piscataway, New Jersey 08854, USA}
+\author{Chao-Ming Jian}
+\affiliation{Department of Physics, Cornell University, Ithaca, New York 14853, USA}
+
+\date{\today}
+
+\begin{abstract}
+Measurements in an adaptive quantum circuit generate both a conditional quantum state and a classical record drawn from its Born probability.  We study the interplay of these two objects in a finite-range free-fermion circuit whose bulk realizes class-A Chern dynamics and whose local controller programs a one-dimensional domain wall.  The conditional wall states form \ResultValue{STATE-CFT RESULT}, while their propagation is probed in three complementary ways: orientation-resolved modular flow, the full Born linear response including record reweighting, and fixed-record flux insertion.  We further extract \ResultValue{RECORD RESULT} from defect contributions to the Born self-information and a charge-resolved replicated transfer spectrum.  Exact occupation projectors and record-conditioned gain or loss render the usual invertible one-body transfer matrix singular.  We resolve this obstruction by differentiating the normalized covariance map, obtaining a semi-invertible tangent cocycle whose boundary-localized low-exponent sector yields \ResultValue{TANGENT--PURIFICATION RESULT}.  The resulting framework distinguishes the universal physics of the physical trajectory ensemble from both a selected non-Hermitian branch and the generally mixed unconditional channel, and makes a programmable topological interface an operational probe of monitored quantum dynamics.
+\ResultPlaceholder{Acceptance-dependent central result: report a stable record effective central charge and sector dimensions only after the replica normalization, bulk subtraction, aspect-ratio collapse, and large-size extrapolation pass the stated acceptance tests.}
+\end{abstract}
+
+\maketitle
+
+\ResultPlaceholder{The title and record-CFT headline are retained only
+if the replica-calibrated self-information and charge-resolved transfer-spectrum gates in the
+numerical campaign both pass.}
+
+\section{Introduction}
+\label{sec:introduction}
+
+Measurements do more than decohere a quantum system.  When their outcomes are retained, they generate record-conditioned trajectories whose entanglement and information content can undergo sharp transitions even when ordinary averaged observables remain smooth.  The resulting measurement-induced phases have connected quantum information, nonequilibrium statistical mechanics, and many-body dynamics through problems of entanglement, purification, error correction, and information flow~\cite{LiChenFisher2018,LiChenFisher2019,Skinner2019,GullansHuse2020,JianYouVasseur2020,BaoChoiAltman2020,Fisher2023}.  A defining feature of this setting is that the observed record is not incidental: through the Born rule, it supplies the probability measure on the physical ensemble of quantum trajectories.
+
+Topology makes the role of this ensemble especially sharp.  In equilibrium, a mismatch of bulk invariants is exposed at an interface through protected boundary degrees of freedom; for a Chern insulator, the boundary supports a chiral complex fermion~\cite{Hatsugai1993,HasanKane2010}.  Periodic driving extends bulk--boundary correspondence from a Hamiltonian to an evolution law, while monitored circuits admit symmetry-enriched and topologically ordered trajectory phases with no reduction to a single ground-state problem~\cite{Rudner2013,BaoChoiAltman2021,LavasaniAlaviradBarkeshli2021a,LavasaniAlaviradBarkeshli2021b}.  In one spatial dimension, measurement-only spin circuits can further support symmetry-enriched percolation and gapless SPT steady-state ensembles with protected endpoint modes diagnosed through purification and symmetry-flux string observables~\cite{YuYangLiuLinJian2026}.  Viewed this way, a monitored phase is a dynamical phase in a causally generated temporal-disorder ensemble: each outcome selects the map applied at that time, while the Born rule and adaptive feedback endow the sequence with an intrinsic physical measure and make later maps depend on earlier outcomes.  The relevant robustness question is therefore not only whether topology survives spatial disorder, but whether a trajectory-resolved bulk--boundary correspondence persists under this physical temporal disorder.  This raises a direct dynamical question: when two monitored phases meet, what replaces the equilibrium boundary theory in the physical trajectory ensemble?
+
+For Gaussian fermions, nonunitary circuit evolution can be related to single-particle transfer and localization problems in the Altland--Zirnbauer classes, providing a natural language for monitored topology and criticality~\cite{Jian2022,Kells2023}.  Recent work has constructed programmable defects in monitored free-fermion dynamics and identified topological boundary sectors through Lyapunov spectra~\cite{PanShapourianJian2025,Oshima2025,XiaoKawabata2026}.  These developments establish that topology can be assigned to monitored evolution without first replacing it by an equilibrium Hamiltonian.  They also expose several inequivalent notions of an edge: a mode of a selected transfer problem, a Lyapunov sector of a stochastic product, and a critical state carried by typical physical trajectories.  The immediate starting point for the present work is the adaptive Chern circuit of Bhuiyan, Pan, and Jian, which realizes a postselection-free class-A trajectory ensemble in two dimensions, permits a local domain wall to be programmed into the controller, and exhibits anomalously slow purification at that wall~\cite{BhuiyanPanJian2026}.  What remained unresolved was the theory living on the interface: whether the wall ensemble is critical and chiral, how its slow dynamics survives exact projective rank loss, and whether trajectory-resolved measurement statistics carry universal defect data.
+
+Monitored free fermions display a particularly rich---and subtle---critical landscape.  Continuous and projective monitoring can produce long finite-scale regimes with logarithmic or stronger subvolume entanglement, localization transitions, conserved-charge dynamics, and nonlinear-sigma-model descriptions~\cite{CaoTilloyDeLuca2019,AlbertonBuchholdDiehl2021,FavaPiroliSwann2023,FavaPiroliBernard2024,PoboikoPopperlGornyi2023}.  Above one spatial dimension, related theories support genuine measurement-induced transitions, whereas increasingly large studies of short-range one-dimensional models show that an apparent extended critical regime can cross over only at parametrically large scales~\cite{PoboikoGornyiMirlin2024,NiedereggerVovkStarchl2026}.  A logarithmic entropy fit is therefore not sufficient evidence for the wall considered here.  The same boundary sector must appear consistently in entanglement, charge fluctuations, real-space localization, purification, and orientation-sensitive propagation.
+
+Adaptive circuits provide another nearby perspective.  Measurements, refreshed ancillas, and feedforward can prepare and stabilize entangled targets and can, in suitable constructions, accelerate or reduce the depth of preparation of a common wave function or ground-state sector~\cite{LuLessaKimHsieh2022,Roy2020,Puente2024,Smith2024}.  In that setting, the measurement record often labels a correctable byproduct, and classical coordination can be used to make different branches agree on the desired output.  Interactive dynamics can instead support trajectory-entanglement, steering, control, and absorbing transitions, whose conditioned and averaged critical behavior need not coincide~\cite{RavindranathHanYang2023,ODeaMorningstarGopalakrishnan2024,PiroliLiVasseur2023}; related frustration-free protocols emphasize transport-limited convergence~\cite{Doerstel2026}.  Our protocol lies between these settings.  The correction is local and every measurement outcome is retained, but it does not erase the record or collapse all outcomes onto one wave function; repeated feedback stabilizes an ensemble of inequivalent, charge-fluctuating states that share the same long-distance wall physics.  The wall is consequently a steady defect of the stochastic dynamics, rather than a compiled representative of a predetermined conformal ground state.  The finite-support controller admits a finite-color schedule; Sec.~\ref{sec:model} relates its physical depth to the adaptive preparation bound.
+
+Microscopically, the controller is shaped by the real-space obstruction of a Chern band.  Exponentially localized orthonormal Wannier functions are unavailable, whereas localized nonorthogonal overcomplete frames provide suitable measurement modes; strictly local Gaussian tensor-network representatives face related gaplessness and parent-Hamiltonian obstructions~\cite{Brouder2007,DubailRead2015,LiDongLedwithKhalaf2024}.  We use finite-support approximations to these frames, measure their occupations, and correct an undesired outcome by exchanging a fermion with a freshly prepared occupied or empty ancilla.  Nonorthogonal monitored orbitals can themselves generate anomalous information transport~\cite{PoboikoSzyniszewskiTurner2025}; here their finite-support geometry instead implements a topological controller whose wall is tested against matched trivial circuits.  This ideal perfect-correction step is the fresh-ancilla realization of the earlier adaptive circuit, not an additional stochastic correction probability.  The same local update creates a domain wall either by joining distinct controller frames or by terminating one frame at a chosen interface.  Agreement between these constructions is important because it separates universal wall physics from the microscopic manner in which the control rule is patched.  Native-fermion processors provide several of the required primitives, although a full implementation of the present cycle remains a future objective~\cite{GonzalezCuadraBluvsteinKalinowski2023}.
+
+The physical question requires four related objects to be kept distinct: a selected conditional Kraus word, the probability-weighted ensemble of conditional states, the classical distribution of measurement records, and the unconditional state obtained after discarding those records.  Section~\ref{sec:model} defines all four after constructing the microscopic circuit.  Non-Hermitian Hamiltonians and monitored implementations give powerful descriptions of selected or effective branches, but a branch does not determine the probability-weighted ensemble~\cite{ChaduteauLeeSchindler2026,Fleckenstein2022}.  Indeed, Born-rule and forced-measurement free-fermion circuits can realize different universal behavior even within the same single-particle symmetry class~\cite{JianShapourian2023,Leung2025}.  Probabilistic filters can implement ground-state filtering in suitable settings~\cite{Kosugi2022}.  Our focus is instead the complete Born ensemble as the physical dynamical object.
+
+The unconditional channel provides a complementary, but different, description.  Engineered dissipation can prepare topological steady states and boundary structures~\cite{Bardyn2013,Budich2015,YangMoligniniBergholtz2023}, while finite-range quadratic Lindblad dynamics in more than one dimension cannot converge at a nonvanishing size-independent rate to a unique pure Gaussian topological state under the assumptions of the dissipative preparation obstruction~\cite{Goldstein2019}.  Our construction respects this obstruction in two complementary ways.  With their full exponential tails, the exact OW stabilizers are local but not finite range, which is an allowed route to a common pure Chern target.  At finite $n_{\rm shell}$ the controller is strictly finite range, but truncation destroys the common pure Chern dark state: the conditioned records produce inequivalent trajectories and the discarded-record state $\bar\rho_T$ is generally mixed.  A critical wall may additionally carry a relaxation scale that closes with system size.  Thus neither overcompleteness, fresh ancillas, nor adaptive feedback alone is being invoked as a loophole.  The theorem constrains the unconditional state, whereas the normalized conditional trajectories follow a different evolution; different unravelings of the same averaged evolution can retain different trajectory statistics~\cite{PiccittoRossiniRussomanno2024}.  We therefore compare conditional and unconditional observables directly instead of assigning the trajectory CFT to the averaged channel.
+
+The record itself supplies a third level of description.  Quantum-jump trajectories admit large-deviation and thermodynamic ensembles, while continuous-measurement and fermion-counting theories relate observed stochastic currents to tilted full-counting-statistics generators~\cite{GarrahanLesanovsky2010,Landi2024,Starchl2025,KloiberTollingerSieberer2026}.  More directly, Born-weighted record transfer matrices can encode effective central charges and operator dimensions at measurement-induced critical points~\cite{Zabalo2022}.  We ask whether this construction admits a defect version tied to a programmable class-A interface.  A conformal interpretation requires a replicated transfer problem, subtraction of its extensive bulk and boundary terms, and consistent universal sector data from independent finite-size observables.  This construction yields \ResultValue{RECORD-ONLY BOUNDARY DATA} without reconstructing every conditional state.
+
+We first characterize the state ensemble at the programmed wall.  The numerical observables combine chord-length scaling of the wall excess entropy, quantum interval-charge fluctuations, density correlations, and real-space entanglement contours.  The charge variance is evaluated within each trajectory before the Born average, so its logarithmic coefficient probes the $U(1)$ current algebra rather than the sample-to-sample wandering of the mean charge.  Together these observables determine \ResultValue{STATE-CFT DATA} and localize the critical contribution at the interface.  Starting from a maximally mixed state, the same wall produces \ResultValue{PURIFICATION RESULT}, in contrast with the gapped bulk dynamics.  Because state-level conformal data determine $c_L+c_R$ rather than the propagation direction, we test chirality separately through modular charge drift, the full momentum- and frequency-resolved Born response, and fixed-record flux insertion.  The paired wall orientations provide an internal reversal test for all three probes, while wall-off circuits distinguish directed propagation from a schedule-dependent drift.
+
+We then develop a transfer description adapted to exact projectors.  Differentiating the normalized Gaussian update produces a semi-invertible tangent cocycle that remains well defined when an occupation measurement removes rank.  Its spectrum exhibits \ResultValue{TANGENT-GAP RESULT}, its slow subspace is \ResultValue{LOCALIZATION RESULT}, and its low-exponent density is compared directly with the purification law.  In parallel, we use replicated record weights and charge-resolved transfer sectors to extract \ResultValue{RECORD-CFT RESULT}.  Comparing both constructions with the deterministic averaged covariance map isolates which singular behavior belongs to conditioned trajectories and which survives after the record is discarded.
+
+Taken together, the state, tangent, and record descriptions characterize different aspects of the same programmed interface.  The circuit samples a Born-weighted, charge-fluctuating ensemble, while \ResultValue{SHARED CHIRAL-WALL CONCLUSION} determines the universal structure common to its trajectories.  This distinction is also operational.  A quantum simulator samples the ensemble by retaining every physical record, while the classical record offers a potential route to universal information that can be compared directly with state-tomographic observables.  Figure~\ref{fig:protocol} introduces the adaptive instrument and the two domain-wall constructions.  The following sections then establish the wall state, its orientation, the record theory, the tangent mechanism, and the distinction from unconditional evolution.
+\ResultPlaceholder{Headline acceptance test: after deriving the replica normalization, the defect-subtracted record self-information must exhibit a common conformal finite-size collapse, with the same sector data obtained from independent record-transfer estimators.}
+
+\begin{figure*}[t]
+  \placeholderfigure[0.97\textwidth]{
+    FIGURE 1 PLACEHOLDER\\[0.5em]
+    (a) Flattened two-band parent $\h{\mc H}_{\rm CI}$, lower/upper targets, and $A/B$ projected OW modes.\\[0.35em]
+    (b) Truncate--then--renormalize construction for the four $3\times3$ controller modes; inset: the displaced overlap zero.\\[0.35em]
+    (c) Born occupation measurement, target-dependent fresh ancilla, deterministic $\fSWAP$, and ancilla trace/reset.\\[0.35em]
+    (d) One complete cycle: the BPJ-ordered $A-,A+,B-,B+$ word at every active center, together with the four ensemble objects.\\[0.35em]
+    (e) Explicit-interface and support-terminated walls, their bond locations, and the orientation convention.\\[0.35em]
+    (f) Bulk Chern-marker/twist convergence and matched comparison of the two wall constructions.}
+  \caption{
+  Adaptive Chern controller and programmed domain walls.  (a) The lower band of the flattened parent at $\alpha_{\rm top}=1$ has $\mathcal C=+1$ and is targeted as occupied, whereas the upper band is targeted as empty.  Our mass parameter has the opposite sign from BPJ.  (b) Each projected mode is multiplied by the real-space window and then normalized independently; $n_{\rm shell}=1$ has $3\times3$-cell support.  (c) The occupation outcome is Born random.  Only a mismatch invokes an occupied or empty fresh ancilla and a deterministic $\fSWAP$; the outgoing ancilla is then discarded without conditioning.  (d) The overlapping channels are visited in the BPJ sequence, lower then upper for $A$ followed by $B$, and form a causal ordered word rather than four commuting stabilizer layers.  (e) The interface may be programmed by patching two local controller frames or by terminating the topological frame.  (f) Topology and wall universality are checked independently.  \ResultPlaceholder{Populate the topology panels only after the Chern-marker and twisted-boundary estimators agree within the stated finite-size tolerance.}}
+  \label{fig:protocol}
+\end{figure*}
+
+\section{Adaptive circuit and programmed domain walls}
+\label{sec:model}
+
+We now specify the adaptive circuit.  We follow the notation and construction sequence of BPJ: first the Chern parent and its projected OW modes, then their occupation stabilizers, and finally the measurement-and-feedforward cycle.  The only band-structure convention change is
+\(\alpha_{\rm here}=-\alpha_{\rm BPJ}\), which keeps the numerical input
+\(\alpha_{\rm top}=1\) associated with a lower band of Chern number \(+1\).
+Figure~\ref{fig:protocol} summarizes the construction.
+
+\subsection{Chern parent, OW modes, and stabilizers}
+
+Consider a square lattice of \(N_x\times N_y\) unit cells with two complex
+fermions \(\h c_{\bfr,1}\) and \(\h c_{\bfr,2}\) per cell.  We write
+\(\h c(\mbf k)=(\h c_1(\mbf k),\h c_2(\mbf k))^{\mathsf T}\) and define
+\begin{align}
+ \h{\mc H}_{\rm CI}(\alpha)
+ &=\sum_{\mbf k}\h c^\dagger(\mbf k)
+ \bigl[\vec n_\alpha(\mbf k)\cdot\vec\sigma\bigr]\h c(\mbf k),
+ \nonumber\\[-1mm]
+ \vec n_\alpha(\mbf k)
+ &=\bigl(\sin k_x,\sin k_y,
+ \alpha-\cos k_x-\cos k_y\bigr),
+ \nonumber\\[-1mm]
+ P_\pm(\mbf k;\alpha)
+ &=\frac{1}{2}\left[
+ \Id\pm\frac{\vec n_\alpha(\mbf k)}
+ {|\vec n_\alpha(\mbf k)|}\cdot\vec\sigma\right].
+ \label{eq:parent-bloch-projectors}
+\end{align}
+Here \(P_+\) and \(P_-\) project onto the upper and lower single-particle
+bands, respectively.  With
+\begin{equation}
+ \mathcal C[P]=\frac{1}{2\pi\ii}\int_{\rm BZ}\dd^2k\,
+ \Tr\!\left(P[\partial_{k_x}P,\partial_{k_y}P]\right),
+ \label{eq:parent-chern-number}
+\end{equation}
+the occupied lower band has
+\begin{equation}
+ \mathcal C[P_-]=
+ \begin{cases}
+  -1,&-2<\alpha<0,\\
+  +1,&0<\alpha<2,\\
+  0,&|\alpha|>2.
+ \end{cases}
+ \label{eq:parent-chern-phases}
+\end{equation}
+Thus \(\alpha_{\rm top}=1\) gives \(\mathcal C=+1\), while
+\(\alpha_{\rm triv}=30\) is trivial.  Equations~\eqref{eq:parent-bloch-projectors}
+and \eqref{eq:parent-chern-phases} are BPJ's equations after
+\(\alpha_{\rm BPJ}\mapsto-\alpha\); this convention is fixed throughout the
+state, flux, and chirality analyses.
+
+Following BPJ, choose the cell-local trial spinors
+\begin{equation}
+ \tau_A=\frac{1}{\sqrt2}\binom{1}{1},
+ \qquad
+ \tau_B=\frac{1}{\sqrt2}\binom{1}{-1},
+ \label{eq:bpj-trial-spinors}
+\end{equation}
+and project them into either band:
+\begin{equation}
+ \lvert\widetilde W_{\bfr,\nu,\pm}\rangle
+ =P_\pm(\alpha)\lvert\bfr,\tau_\nu\rangle,
+ \qquad \nu=A,B.
+ \label{eq:projected-wannier-frame}
+\end{equation}
+The corresponding normalized localized fermion operator is
+\begin{align}
+ \h\chi^{(\infty)}_{\bfr,\nu,\pm}
+ &=\sum_{\bfr',\mu'}
+ W^{(\infty)}_{\bfr,\nu,\pm}(\bfr',\mu')
+ \h c_{\bfr',\mu'}
+ \nonumber\\
+ &\propto\frac{1}{\sqrt{N_xN_y}}\sum_{\mbf k}
+ e^{\ii\mbf k\cdot\bfr}
+ \tau_\nu^\dagger P_\pm(\mbf k;\alpha)\h c(\mbf k),
+ \label{eq:ow-annihilation-operator}
+\end{align}
+where
+\(W^{(\infty)}_{\bfr,\nu,\pm}(\bfr',\mu')
+=\langle\widetilde W_{\bfr,\nu,\pm}\vert\bfr',\mu'\rangle/
+\|\widetilde W_{\bfr,\nu,\pm}\|\).
+These OW modes are localized but not mutually orthogonal.  Their unnormalized
+states obey the tight-frame identity
+\begin{equation}
+ \sum_{\bfr,\nu=A,B}
+ \lvert\widetilde W_{\bfr,\nu,\pm}\rangle
+ \langle\widetilde W_{\bfr,\nu,\pm}\rvert=P_\pm,
+ \label{eq:ow-tight-frame}
+\end{equation}
+so the two trial families together span the corresponding band.
+
+Define the OW occupation operators
+\begin{equation}
+ \hcN^{(\infty)}_{\bfr,\nu,\pm}
+ =\h\chi^{(\infty)\dagger}_{\bfr,\nu,\pm}
+  \h\chi^{(\infty)}_{\bfr,\nu,\pm}.
+ \label{eq:ow-number-operator}
+\end{equation}
+The filled-lower-band state \(\CI\) is uniquely fixed by the BPJ stabilizing
+conditions
+\begin{equation}
+ \hcN^{(\infty)}_{\bfr,\nu,-}\CI=\CI,
+ \qquad
+ \bigl(\Id-\hcN^{(\infty)}_{\bfr,\nu,+}\bigr)\CI=\CI
+ \label{eq:ow-stabilizer-target}
+\end{equation}
+for every \(\bfr\) and \(\nu=A,B\).  The lower-band modes therefore target
+occupation one, whereas the upper-band modes target occupation zero.
+
+\subsection{Finite support and programmed walls}
+
+The physical circuit uses compact approximations to these OW modes.  Let
+\(d_{N_\mu}(r_\mu,r'_\mu)\) denote the shortest periodic displacement and,
+for \(n=n_{\rm shell}\), define the square window
+\begin{equation}
+ M_{\bfr}^{(n)}(\bfr')=
+ \mathbf{1}\!\left[
+ |d_{N_x}(x,x')|\le n,\ 
+ |d_{N_y}(y,y')|\le n\right].
+ \label{eq:controller-square-window}
+\end{equation}
+The windowed wavefunction and its operator are
+\begin{align}
+ W^{(n)}_{\bfr,\nu,\pm}(\bfr',\mu')
+ &=
+ \frac{M_{\bfr}^{(n)}(\bfr')
+ \widetilde W_{\bfr,\nu,\pm}(\bfr',\mu')}
+ {\|M_{\bfr}^{(n)}\widetilde W_{\bfr,\nu,\pm}\|},
+ \nonumber\\
+ \h\chi^{(n)}_{\bfr,\nu,\pm}
+ &=\sum_{\bfr',\mu'}W^{(n)}_{\bfr,\nu,\pm}(\bfr',\mu')
+ \h c_{\bfr',\mu'}.
+ \label{eq:finite-windowed-controller}
+\end{align}
+Thus the mode is first truncated and only then renormalized.  Before a wall
+mask is imposed, \(n_{\rm shell}=1\) has exactly \(3\times3\) cells of support,
+or at most 18 microscopic orbitals.  At \(\alpha=1\), it retains \(0.992155\)
+of the untruncated squared norm and a target-band overlap zero with winding
+\(\nu_{\rm ov}=-1\), displaced from \(\mbf k/\pi=(0.5,0)\) to approximately
+\((0.4922,0)\).  In our convention
+\(\mathcal C[P_-]=-\nu_{\rm ov}=+1\).  This is an overlap-obstruction
+diagnostic, not a Chern number of the compact spinor, which defines a smooth
+global section and has \(\mathcal C_{\rm compact}=0\).
+Appendix~\ref{app:finite-support-controller} gives the convolution and winding
+analysis.  Because windowing introduces out-of-band weight, the compact
+occupations no longer share the exact common eigenstate in
+Eq.~\eqref{eq:ow-stabilizer-target}; the finite-range circuit stabilizes an
+ensemble rather than one exact parent-Hamiltonian ground state.
+Consequently, the finite-shell cutoff is an approximation at the level of
+the local controller, not a compactly supported representative of the Chern
+bundle.  Its large retained norm and nonzero overlap winding preserve the
+imprint of the target projector, but not the exactly flat topological dark
+subspace excluded for a finite-range dissipative preparation with a unique
+pure steady state and nonvanishing thermodynamic relaxation rate
+\cite{Goldstein2019}.
+
+We program the wall in two ways.  Let
+\(\Theta_{\rm top}(\bfr)=\mathbf{1}[x_L\le x\le x_R]\) and
+\begin{equation}
+ \alpha_{\bfr}=
+ \begin{cases}
+  \alpha_{\rm top},&\Theta_{\rm top}(\bfr)=1,\\
+  \alpha_{\rm triv},&\Theta_{\rm top}(\bfr)=0.
+ \end{cases}
+ \label{eq:controller-slab}
+\end{equation}
+For the \emph{explicit interface}, every center remains active and
+Eq.~\eqref{eq:finite-windowed-controller} is formed using the uniform-parent
+projector \(P_\pm(\mbf k;\alpha_{\bfr})\) assigned to that center.  Compact
+tails may cross the interface.  This construction patches locally uniform
+controller frames; it is not the spectral projector of one inhomogeneous
+Hamiltonian.
+
+For the \emph{support-terminated wall}, define
+\begin{equation}
+ D_{\bfr}(\bfr')=
+ \Theta_{\rm top}(\bfr)\Theta_{\rm top}(\bfr')
+ +[1-\Theta_{\rm top}(\bfr)][1-\Theta_{\rm top}(\bfr')]
+ \label{eq:same-region-mask}
+\end{equation}
+and, for active centers \(\bfr\) in the topological slab, use
+\begin{equation}
+ W^{(n,{\rm term})}_{\bfr,\nu,\pm}
+ =
+ \frac{D_{\bfr}M_{\bfr}^{(n)}
+ \widetilde W_{\bfr,\nu,\pm}(\alpha_{\rm top})}
+ {\|D_{\bfr}M_{\bfr}^{(n)}
+ \widetilde W_{\bfr,\nu,\pm}(\alpha_{\rm top})\|}.
+ \label{eq:support-terminated-wall}
+\end{equation}
+The diagonal masks commute and are both imposed before one normalization; the
+order written in Eq.~\eqref{eq:support-terminated-wall} has no physical
+content.  Only topological-slab centers are subsequently updated.  The
+exterior is prepared as a Born-sampled onsite product state and is excluded
+from the OW word.  We denote its stored preparation record by \(\zeta\), its
+probability by \(p_\zeta\), and the resulting initial state by
+\(\rho_{0|\zeta}\).  For the explicit-interface circuit, \(\zeta\) is empty
+and \(p_\zeta=1\).  Periodicity in \(x\) places oppositely oriented walls on
+the bonds \(x_L-\tfrac12\) and \(x_R+\tfrac12\).  The globally diagonalized
+inhomogeneous exact-\(H\) problem is a third, deterministic benchmark and is
+neither circuit construction.  We find
+\ResultValue{AGREEMENT OF THE TWO WALL CONSTRUCTIONS} after transverse
+convergence [Fig.~\ref{fig:protocol}(e,f)].
+
+\subsection{Perfect correction and one complete BPJ-ordered cycle}
+
+We now define the stochastic update.  For a normalized controller mode
+\(\h\chi_j=\sum_i\chi_{j,i}c_i\), where
+\(j=(\bfr,\nu,\sigma)\) and \(\sigma=\pm\), let
+\(\hcN_j=\h\chi_j^\dagger\h\chi_j\),
+\(\Pi_{j,1}=\hcN_j\), and \(\Pi_{j,0}=\Id-\hcN_j\).  A Gaussian state is
+represented by
+\begin{align}
+ C_{ij}&=\Tr(\rho c_i^\dagger c_j),
+ &G&=2C-\Id,
+ \nonumber\\
+ p_{j,m}(G)&=\frac{1+\eta_m\chi_j^\dagger G\chi_j}{2},
+ &\eta_m&=2m-1.
+ \label{eq:covariance-and-born-rule}
+\end{align}
+The target occupations are \(s_-=1\) and \(s_+=0\).  Conditional on the Born
+outcome \(m\), perfect correction uses
+\begin{equation}
+ \begin{array}{c|cc}
+  &m=0&m=1\\ \hline
+  s=0&K_{0|0}=\Pi_0&K_{1|0}=\h\chi\\[1mm]
+  s=1&K_{0|1}=\h\chi^\dagger&K_{1|1}=\Pi_1
+ \end{array},
+ \qquad
+ \rho'_{m|s}=\frac{K_{m|s}\rho K_{m|s}^\dagger}{p_m}.
+ \label{eq:main-perfect-correction-kraus}
+\end{equation}
+The channel index \(j\) is suppressed in the table.  The identities
+\(K_{m|s}^\dagger K_{m|s}=\Pi_m\),
+\(\Pi_sK_{m|s}=K_{m|s}\), and
+\(\sum_mK_{m|s}^\dagger K_{m|s}=\Id\) show that the correction preserves the
+Born probability and resets the measured OW mode to its target occupation.
+
+This ideal model is obtained from a local, number-conserving dilation of the
+BPJ correction step.  On a mismatch, prepare a fresh ancillary mode
+\(\h d\) in \(\lvert s\rangle_d\), apply
+\begin{align}
+ \fSWAP(\h\chi,\h d)
+ &=\exp\!\left(\ii\frac{\pi}{2}\h X^\dagger\h X\right),
+ &\h X&=\h\chi-\h d,
+ \nonumber\\
+ \lvert m\rangle_\chi\lvert s\rangle_d
+ &\longmapsto
+ \lvert s\rangle_\chi\lvert m\rangle_d.
+ \label{eq:main-fswap-dilation}
+\end{align}
+and discard or reset the outgoing factorized ancilla.  No favorable outcome
+is selected.  Total charge is conserved on the enlarged physical--ancilla
+system even though the reduced physical trajectory contains gain and loss.
+Unlike BPJ's reusable ancillary layer, the idealization integrates out a
+fresh target-state ancilla after every mismatch and therefore has no separate
+bath-redistribution stage.
+
+For later use, write \(P_j=\chi_j\chi_j^\dagger\),
+\(Q_j=\Id-P_j\).  The exact conditional covariance map is
+\begin{equation}
+ \boxed{\Phi^{(j)}_{m|s}(G)=
+ Q_j\bigl(\Id+\eta_mGP_j\bigr)^{-1}GQ_j+\eta_sP_j.}
+ \label{eq:conditional-covariance-main}
+\end{equation}
+The inverse is a rank-one resolvent and exists on every nonzero-probability
+branch.  Equation~\eqref{eq:conditional-covariance-main}, rather than an
+unnormalized non-Hermitian propagator, is differentiated in
+Sec.~\ref{sec:tangent}.
+
+\begin{mdframed}[nobreak=true,linewidth=0.5pt,innerleftmargin=5pt,
+ innerrightmargin=5pt,innertopmargin=4pt,innerbottommargin=4pt]
+\noindent\textbf{Algorithm 1: One perfect-correction cycle.}
+\begin{enumerate}[leftmargin=1.35em,itemsep=1pt,topsep=3pt]
+ \item Choose the ordered active centers
+ \(\pi_t=(\bfr_{t,1},\ldots,\bfr_{t,N_{\mathcal A}})\).
+ \item For each center, visit \(\nu=A,B\).  First measure
+ \(\hcN_{\bfr,\nu,-}\); if \(m_-=0\), supply an occupied fresh ancilla and
+ apply \(\fSWAP\).
+ \item Next measure \(\hcN_{\bfr,\nu,+}\); if \(m_+=1\), supply an empty fresh
+ ancilla and apply \(\fSWAP\).
+ \item Update \(G\) with Eq.~\eqref{eq:conditional-covariance-main} after
+ every outcome, and store the complete causal record together with \(\pi_t\).
+\end{enumerate}
+\end{mdframed}
+
+Thus the within-center word is exactly the BPJ sequence
+\begin{align}
+ \mathcal Q_{\rm BPJ}
+ &=\bigl((A,-),(A,+),(B,-),(B,+)\bigr),
+ \nonumber\\
+ (s_q)_{q\in\mathcal Q_{\rm BPJ}}&=(1,0,1,0).
+ \label{eq:bpj-channel-word}
+\end{align}
+Let \(j=1,\ldots,D_T\) enumerate the resulting global chronological word.
+For prescribed center words
+\(\pi=(\pi_1,\ldots,\pi_T)\), exterior record \(\zeta\), and OW outcomes
+\(\xi\), the complete operator and causal probability are
+\begin{align}
+ K_{\xi|\pi}
+ &=\overleftarrow{\prod_{t=1}^{T}}
+   \overleftarrow{\prod_{\ell=1}^{N_{\mathcal A}}}
+   \overleftarrow{\prod_{q\in\mathcal Q_{\rm BPJ}}}
+   K^{(\bfr_{t,\ell},q)}_{m_{t\ell q}|s_q},
+ \nonumber\\
+ p_{\xi|\pi,\zeta}
+ &=\Tr(K_{\xi|\pi}\rho_{0|\zeta}K_{\xi|\pi}^\dagger)
+ =\prod_{j=1}^{D_T}
+ \frac{1+\eta_{m_j}\chi_j^\dagger G_{<j|\zeta}\chi_j}{2}.
+ \label{eq:causal-cycle-word}
+\end{align}
+The arrows mean that later operations act on the left, and each Born factor is
+evaluated on the covariance produced by all preceding operations.
+
+The four ensemble objects introduced in Sec.~\ref{sec:introduction} are
+\begin{equation}
+ \begin{aligned}
+  \rho_{\zeta,\xi|\pi}
+  &=\frac{K_{\xi|\pi}\rho_{0|\zeta}K_{\xi|\pi}^\dagger}
+  {p_{\xi|\pi,\zeta}},\\
+  \bar\rho_{T|\pi}
+  &=\sum_{\zeta,\xi}p_\zeta p_{\xi|\pi,\zeta}
+  \rho_{\zeta,\xi|\pi},\\
+  \mathbb P(\pi,\zeta,\xi)
+  &=P_{\rm sch}(\pi)p_\zeta p_{\xi|\pi,\zeta},
+  &\bar\rho_T&=\sum_\pi P_{\rm sch}(\pi)\bar\rho_{T|\pi}.
+ \end{aligned}
+ \label{eq:record-K-p}
+\end{equation}
+Thus \(K_{\xi|\pi}\) is a selected conditional OW word;
+\(\{p_\zeta p_{\xi|\pi,\zeta},\rho_{\zeta,\xi|\pi}\}\) is the physical Born
+ensemble at fixed schedule; \(p_\zeta p_{\xi|\pi,\zeta}\) is its classical
+record law; and \(\bar\rho_{T|\pi}\) is the discarded-record state.  The
+physical outcomes \((\zeta,\xi)\) constitute causal temporal disorder
+conditional on \(\pi\).  If the center ordering is randomized,
+\(P_{\rm sch}\) describes additional externally chosen disorder and must be
+stored separately.  Because neighboring OW projectors overlap, their order
+is physical: randomized center words are the production choice, while raster
+and reverse-raster center words are controls.
+
+The controller modes are derived from flattened uniform-parent projectors,
+but truncation, chronological measurement, Born sampling, and feedback do
+not equal evolution under the exact domain-wall Hamiltonian.  Dashed
+exact-\(H\) curves use its ground-state covariance only as a matched finite
+geometry benchmark.  Real-space markers and twisted-boundary estimators give
+\ResultValue{CHERN/BOTT CONVERGENCE AND $n_{\rm shell}=1$ ERROR}
+[Fig.~\ref{fig:protocol}(f)]~\cite{BiancoResta2011,BauMarrazzo2024,
+FukuiHatsugaiSuzuki2005}.  Appendix~\ref{app:adaptive-depth-bound} gives the
+finite-color compilation and the adaptive depth bound.  For stationary
+observables, every production trajectory undergoes its own size-dependent
+convergence interval before its observation window is collected, and
+already Born-sampled trajectories enter ensemble averages with equal Monte
+Carlo weight.
+
+\section{Critical state ensemble at the wall}
+\label{sec:state-cft}
+
+We first characterize the steady-state wall independently of its direction of propagation.  Figure~\ref{fig:state-cft} combines interval entanglement, $U(1)$ charge fluctuations, real-space contours, correlations, and purification to test whether the Born trajectories share a one-dimensional critical boundary theory.
+
+For a wall interval of length $\ell$, we use the chord distance
+\begin{equation}
+ d_L(\ell)=\frac{L}{\pi}\sin\!\left(\frac{\pi\ell}{L}\right),
+ \label{eq:chord}
+\end{equation}
+and define the wall-excess entropy by subtracting a matched bulk or wall-off geometry before fitting
+\begin{equation}
+ \Delta S(\ell)=a_S\log d_L(\ell)+b_S+\delta_S(\ell,L).
+ \label{eq:entropy-fit}
+\end{equation}
+The conversion between $a_S$ and the central charge is fixed by whether the chosen cut contains one wall branch, two oppositely oriented walls, or a boundary interval.  We use that geometry without changing the convention between the exact-$H$ benchmark and the Born ensemble.  Figure~\ref{fig:state-cft}(a) gives \ResultValue{$a_S$, $c_{\rm edge}$, AND LARGE-$L$ DRIFT}.  This entropy scaling determines the total critical content seen by the cut, $c_L+c_R$, but not its orientation~\cite{ChenLiFisher2020,LiChenLudwig2021}.
+
+Charge cumulants supply independent state data for free fermions~\cite{KlichLevitov2009,SongFlindtRachel2011}.  For the $U(1)$ boundary theory, the current-algebra normalization derived in Appendix~\ref{app:estimators} relates the logarithmic interval variance to its current level.  With $N_A=\sum_{j\in A}n_j$, we first form the quantum variance inside each trajectory and only then average over trajectory-resolved records,
+\begin{align}
+ F_{A,\xi}&=\big\langle N_A^2\big\rangle_\xi-\big\langle N_A\big\rangle_\xi^2,\nonumber
+ \\
+ \overline{F_A}&=a_Q\log d_L(\ell)+b_Q+\delta_Q(\ell,L)
+\label{eq:charge-fit}
+\end{align}
+which probes the $U(1)$ current algebra rather than repeating the entropy fit.  Figures~\ref{fig:state-cft}(b) and \ref{fig:state-cft}(c) yield \ResultValue{$a_Q$/CURRENT LEVEL, CORRELATION EXPONENT, AND WALL CONTOUR WEIGHT}.  The record-to-record variance of $\langle N_A\rangle_\xi$ is a different ensemble observable, familiar from charge-sharpening problems, and is not substituted for the within-trajectory quantum variance~\cite{AgrawalZabaloChen2022,BarrattAgrawalGopalakrishnan2022}.  The entanglement and charge contours then verify in real space that the logarithmic excess is carried by the programmed walls.  Along the wall, we report density and current correlations through their decay exponents; a current correlator proportional to $r^{-2}$ has scaling dimension $\Delta=1$.
+
+We next probe how this state is reached.  Starting from the maximally mixed covariance $C_0=\Id/2$, we monitor the entropy or purity deficit $\Delta S_{\mathrm{pur}}(t)$ for wall-on and wall-off circuits.  Figures~\ref{fig:state-cft}(d) and \ref{fig:state-cft}(e) show \ResultValue{WALL POWER LAW, BULK RATE, AND TRANSVERSE LOCALIZATION}.  The tangent spectrum in Sec.~\ref{sec:tangent} relates this slow decay to \ResultValue{MATCHED BOUNDARY TANGENT SECTOR}.  \ResultPlaceholder{A claimed power law must survive changes of fit onset, fit window, aspect ratio, and initial covariance.}
+
+\begin{figure*}[t]
+  \placeholderfigure[0.97\textwidth]{
+    FIGURE 2 PLACEHOLDER\\[0.5em]
+    (a) Wall-excess entropy versus chord length, with exact-H dashed benchmark and fit-window audit.\\[0.35em]
+    (b) Connected charge fluctuation and the independently extracted $U(1)$ coefficient; inset: wall correlator and decay exponent.\\[0.35em]
+    (c) Entanglement/charge contour showing localization of the logarithmic contribution at the two programmed walls.\\[0.35em]
+    (d) Wall-on versus wall-off purification over time and system size, including effective exponents.\\[0.35em]
+    (e) Transverse profile of the residual late-time entropy or purity defect, identifying the wall as the slow sector.}
+  \caption{
+  Critical state ensemble and slow wall purification.  (a) Wall-excess entropy versus chord length, compared with the exact-$H$ result on the same finite geometry.  (b) Within-trajectory interval charge variance and its $U(1)$ current coefficient, with the wall correlation decay shown in the inset.  (c) Entanglement and charge contours resolving the two programmed walls.  (d) Purification from the maximally mixed state for wall-on and wall-off circuits.  (e) Transverse profile of the late-time mixedness.  Trajectory estimators are averaged with their Born-sampled weights, and dashed curves are benchmarks rather than fit constraints.  Entanglement fixes $c_L+c_R$ for this geometry, not the sign of the chiral central charge.  \ResultPlaceholder{Accept the state-CFT claim only if the entropy and charge coefficients extrapolate consistently, the contour remains wall localized, both wall constructions agree, and the inferred coefficient does not drift downward at the largest sizes.}  \ResultPlaceholder{Accept algebraic purification only if a tangent-spectrum prediction from Fig.~\ref{fig:tangent} accounts for the same late-time exponent.}}
+  \label{fig:state-cft}
+\end{figure*}
+
+\section{Chiral dynamics of the domain wall}
+\label{sec:chirality}
+
+Having established the critical content of the wall, we next determine its direction of propagation.  A $c=1$ logarithm alone does not fix $c_-=c_R-c_L$, so Fig.~\ref{fig:chirality} brings together three complementary, orientation-sensitive probes.
+
+\subsection{Modular charge drift}
+
+For a trajectory covariance restricted to a wall region $A$, let $K_A=-\log\rho_A$ be the Gaussian modular Hamiltonian.  A localized charge perturbation is evolved in modular time $s$,
+\begin{equation}
+ \delta n_\xi(y,s)=
+ \Tr\!\left[\delta\rho_{A,\xi}\,
+ e^{\ii sK_{A,\xi}}n_y e^{-\ii sK_{A,\xi}}\right].
+ \label{eq:modular-evolution}
+\end{equation}
+We extract its centroid only while the packet is localized and before it meets the second wall or subsystem endpoint.  We require the drift to reverse between oppositely oriented walls and to vanish in wall-off and exact-trivial controls.
+Figure~\ref{fig:chirality}(a) gives \ResultValue{SIGNED MODULAR VELOCITIES AND WALL-OFF NULL RESULT}.  Because modular time is generated by the reduced state rather than the physical circuit, this drift measures the handedness of the state but is not a quantized transport coefficient.
+
+\subsection{Full Born response, including the score}
+
+The physical response of the Born ensemble includes both the change of the conditional state and the change in the probability of obtaining its record.  For a localized potential impulse $V$ and a trajectory observable $O_\xi[V]$,
+\begin{align}
+ \left.\frac{\delta\langle O\rangle_V}{\delta V}\right|_{V=0}
+ &=\left\langle
+ \left.\frac{\delta O_\xi[V]}{\delta V}\right|_{V=0}
+ \right\rangle_\xi
+ +\left\langle \delta O_\xi\,s_\xi\right\rangle_\xi,
+ \label{eq:born-response}\\
+ s_\xi&=\left.\frac{\delta\log p_\xi[V]}{\delta V}\right|_{V=0},
+ \qquad
+ \delta O_\xi=O_\xi-\langle O\rangle.
+ \label{eq:score}
+\end{align}
+The second term is the likelihood-score contribution.  Omitting it gives the averaged conditional-state response, rather than the response of the physical Born ensemble.  With $O=n(y,t)$, we Fourier transform along the wall and in circuit time.  Figure~\ref{fig:chirality}(b) shows \ResultValue{ONE-WAY RIDGE, $v$, ORIENTATION REVERSAL, AND SCORE CONTRIBUTION}.  A low-energy feature $\omega\simeq vk$ whose slope reverses with the wall orientation is the direct monitored-time propagation test in our analysis.
+
+\subsection{Fixed-record twist flow}
+
+Flux insertion supplies a complementary branchwise diagnostic.  We freeze one realized circuit record $\xi$, insert a $U(1)$ twist $\phi$ through the periodic direction of that same realization, and follow the wall entanglement levels
+\begin{equation}
+ \varepsilon_a(\phi)=\log\!\frac{1-\nu_a(\phi)}{\nu_a(\phi)}
+ \label{eq:twist-entanglement-levels}
+\end{equation}
+continuously for $0\leq\phi\leq2\pi$.  Here $\nu_a(\phi)$ are the overlap-tracked eigenvalues of the wall-restricted trajectory covariance.  The twist multiplies only controller modes crossing a fixed seam by $e^{\ii\phi}$; the stochastic couplings, update order, and record are otherwise unchanged.  Figure~\ref{fig:chirality}(c) yields \ResultValue{ORIENTED SPECTRAL FLOW AND TRIVIAL CONTROL}.  Independently resampling the record at every $\phi$ would not define a continuous family and would have no Berry-holonomy interpretation.  Fixed-record flow is therefore an auxiliary branchwise topology diagnostic, rather than the Born response of Eqs.~\eqref{eq:born-response} and \eqref{eq:score}; realizing it experimentally would require correlated record control.
+
+\begin{figure*}[t]
+  \placeholderfigure[0.97\textwidth]{
+    FIGURE 3 PLACEHOLDER --- THREE COMPLEMENTARY CHIRALITY PROBES\\[0.6em]
+    (a) Modular charge-packet trajectories for the two wall orientations, with wall-off control.\\[0.45em]
+    (b) Full Born response $\chi_{\mathrm{Born}}(k,\omega)$, decomposed into conditional and likelihood-score terms; oriented low-energy ridge.\\[0.45em]
+    (c) Fixed-record $0\!\to\!2\pi$ twist flow for paired wall orientations and matched trivial control.}
+  \caption{
+  Three complementary tests of chirality.  (a) Modular charge-packet motion in the two wall orientations and the wall-off control.  (b) Momentum- and frequency-resolved Born susceptibility, separated into conditional-state and likelihood-score contributions.  (c) Fixed-record twist flow for the paired wall orientations and a matched trivial circuit.  Modular drift diagnoses directionality in the reduced state, the Born susceptibility measures physical monitored-time propagation, and the twist flow probes the topology of a continuous branch family.  \ResultPlaceholder{Use ``chiral'' in the title only if at least two orientation-sensitive diagnostics survive size scaling and reversal tests, with the full Born response providing a one-way low-energy feature or the twist flow providing robust oriented spectral flow.}}
+  \label{fig:chirality}
+\end{figure*}
+
+\section{Universal data in trajectory-resolved records}
+\label{sec:record-cft}
+
+We next ask whether the same wall theory can be identified from the classical measurement record alone.  The relation
+\begin{equation}
+ Z_\xi\equiv p_\xi
+ \label{eq:record-partition}
+\end{equation}
+is only a starting point and does not by itself imply conformal structure.  The directly sampled observable is the record self-information
+\begin{equation}
+ I_\xi=-\log p_\xi,
+ \qquad H_{\rm rec}=\langle I_\xi\rangle_\xi,
+ \label{eq:record-self-information}
+\end{equation}
+which is a Shannon entropy.  To connect it to a statistical-mechanics free energy, we introduce the replica family
+\begin{equation}
+ \mathcal Z_n(L,T)=\sum_\xi p_\xi^n,
+ \qquad
+ -\left.\partial_n\log\mathcal Z_n\right|_{n=1}=H_{\rm rec}.
+ \label{eq:record-replica}
+\end{equation}
+We derive the transfer representation and normalization of this replica derivative before assigning a conformal interpretation.  The matched combination $H_{\rm rec}^{\mathrm{def}}$ uses wall-on, wall-off, and homogeneous circuits with identical local update counts.  This subtraction cancels the common spacetime bulk contribution, while leaving a nonuniversal wall free-energy density that must be fitted together with the subextensive term.
+
+Let $r=T/L$ be the temporal aspect ratio.  Dividing the matched combination by the number of walls, the wall length, and the observation time defines
+\begin{equation}
+ f_{\rm def}(L,r)
+ =\frac{H_{\rm rec}^{\rm def}(L,rL)}{N_{\rm wall}L(rL)}
+ =f_\infty(r)-\frac{A_{\rm rec}(r)}{L^2}
+ +\frac{b_4(r)}{L^4}+\cdots .
+ \label{eq:record-casimir}
+\end{equation}
+Equation~\eqref{eq:record-casimir} is the agnostic fit performed before any CFT conversion.  Only after the replica normalization fixes a chiral periodic cylinder and the large-$r$ limit is stable do we identify the per-wall amplitude as
+\begin{equation}
+ A_{\rm rec}(r)\xrightarrow{r\to\infty}
+ \frac{\pi v_{\rm rec}c_{\rm eff}^{\rm rec}}{12}.
+ \label{eq:record-amplitude}
+\end{equation}
+The numerical coefficient is rederived if the implemented spacetime boundary conditions differ from this cylinder.  We determine the nonuniversal velocity $v_{\rm rec}$ independently from transfer gaps or aspect-ratio collapse.  Figures~\ref{fig:record-cft}(a) and \ref{fig:record-cft}(b) give \ResultValue{$f_\infty$, $A_{\rm rec}$, INDEPENDENT $v_{\rm rec}$, AND $c_{\rm eff}^{\rm rec}$}.  This effective central charge belongs to a replicated, generally nonunitary record theory and is not set equal to the trajectory-state value inferred from Fig.~\ref{fig:state-cft}.
+
+Charge-resolved record transfer eigenvalues provide a second finite-size observable.  If $\Lambda_a(L)$ labels a sector of the record transfer problem, the expected form is
+\begin{equation}
+ -\log\left|\frac{\Lambda_a(L)}{\Lambda_0(L)}\right|
+ =\frac{2\pi v_{\mathrm{rec}}}{L}x_a^{\mathrm{rec}}+o(L^{-1}).
+ \label{eq:record-gaps}
+\end{equation}
+Figure~\ref{fig:record-cft}(c) yields \ResultValue{CHARGE SECTORS, COMMON VELOCITY, AND $x_a^{\rm rec}$}.  Agreement of $v_{\mathrm{rec}}$ between Eqs.~\eqref{eq:record-amplitude} and \eqref{eq:record-gaps} prevents an arbitrary rescaling from manufacturing a central charge.  The sector labels are defined from conserved charge or a controlled record deformation, rather than by sorting noisy eigenvalues after the fact.
+
+This construction builds on trajectory thermodynamics and the trajectory-resolved statistical mechanics of monitored circuits, where record entropies and replicated transfer gaps can encode universal information~\cite{GarrahanLesanovsky2010,JianYouVasseur2020,BaoChoiAltman2020,Zabalo2022}.  Here the transfer problem carries a defect tied to a programmable class-A interface.  Related cross-entropy and postselection-free measurement strategies motivate operational estimators that avoid a histogram over exponentially many complete records~\cite{LiZou2023,GarrattAltman2024}.  Figure~\ref{fig:record-cft}(d) reports \ResultValue{FINITE-SAMPLE ESTIMATOR BIAS, ERROR, AND SAMPLE SCALING} against the exactly evaluated simulated likelihoods.  \ResultPlaceholder{The operational record-only claim is accepted only after the replica mapping and finite-sample estimator are both numerically validated; direct access to simulated $p_\xi$ alone is insufficient.}
+
+\begin{figure*}[t]
+  \placeholderfigure[0.97\textwidth]{
+    FIGURE 4 PLACEHOLDER\\[0.5em]
+    (a) Matched defect self-information density for several $L$ and $T/L$, with $f_\infty$ and the $L^{-2}$ term shown separately.\\[0.35em]
+    (b) Casimir/aspect-ratio collapse and extraction of $v_{\mathrm{rec}}c_{\mathrm{eff}}^{\mathrm{rec}}$.\\[0.35em]
+    (c) Charge-resolved record transfer gaps and common-velocity extraction of $x_a^{\mathrm{rec}}$.\\[0.35em]
+    (d) Record-only finite-sample estimator benchmark against exact simulated likelihoods.}
+  \caption{
+  Universal data in trajectory-resolved records.  (a) Matched defect self-information density and its $L^{-2}$ coefficient for several temporal aspect ratios.  (b) Cylinder collapse and the independent extraction of the record velocity and effective central charge.  (c) Charge-resolved record transfer gaps and sector dimensions.  (d) Finite-sample record-only estimator benchmarked against exact simulated likelihoods.  The state central charge and the record effective central charge are displayed separately throughout.  \ResultPlaceholder{An extensive fit with a small residual is not sufficient: the residual must have the predicted aspect-ratio dependence, the independently determined velocity, stable sector assignments, and a wall-off null control. Insert the record-CFT headline values only if all four panels pass; otherwise retain Fig.~\ref{fig:record-cft} as a null or crossover result.}}
+  \label{fig:record-cft}
+\end{figure*}
+
+\section{Tangent dynamics and slow purification}
+\label{sec:tangent}
+
+Exact occupation projectors obstruct a global invertible transfer coordinate, but they do not obstruct linear response about a physical trajectory.  In this section we construct the normalized tangent cocycle, extract its wall-localized slow sector, and connect that sector to purification from a maximally mixed state.
+
+For a realized nonzero-probability branch, the normalized covariance update defines a map on its physical stratum,
+\begin{equation}
+ G_{t+1}=\Phi_{\xi_t}[G_t].
+ \label{eq:normalized-map}
+\end{equation}
+Linearizing this map propagates a perturbation without inverting the Kraus operator,
+\begin{equation}
+ \delta G_{t+1}
+ =D\Phi_{\xi_t}[G_t](\delta G_t)
+ =\cJ_{t,\xi}^{\dagger}\,\delta G_t\,\cJ_{t,\xi},
+ \label{eq:tangent-map}
+\end{equation}
+where the final factorization is taken on the support that survives the realized branch.  Composing these differentials gives the chronological one-leg cocycle
+\begin{equation}
+ \cT_{T,\xi}=\cJ_{0,\xi}\cJ_{1,\xi}\cdots\cJ_{T-1,\xi}.
+ \label{eq:tangent-product}
+\end{equation}
+with the first-applied factor written leftmost.  The product may lose rank, but its finite-time singular values and forward images remain well defined.  We therefore use a stabilized forward filtration, which reduces to the familiar Oseledec/Lyapunov construction when the factors are invertible~\cite{Oseledec1968,Ludwig2013}, without assuming backward subspaces through directions that have been projected out.  The finite-time one-leg decay rates are
+\begin{equation}
+ \gamma_a(T)=-\frac{1}{T}\log s_a(\cT_{T,\xi}),
+ \label{eq:lyapunov}
+\end{equation}
+using a sign convention in which small positive $\gamma_a$ denotes a slowly decaying one-leg direction.  Because the covariance tangent is a congruence, its physical decay rates are the allowed pair sums $\gamma_a+\gamma_b$, rather than the individual one-leg rates.
+
+The maximally mixed reference $G_0=0$ makes the connection to purification especially direct.  For the full start-to-$T$ cocycle accumulated along that same maximally mixed record, the exact endpoint relation
+\begin{equation}
+ \cT_{T,\xi}^{\dagger}\cT_{T,\xi}=4C_T(\Id-C_T)
+ \label{eq:maxmix-tangent-relation}
+\end{equation}
+matches the tangent singular values to the remaining mixed occupations.  This relation does not identify a separately sampled stationary pure-start QR spectrum.  A finite one-leg lower edge $\gamma_*>0$ produces exponential late-time purification.  If the matched wall cocycle instead has a low-rate density $\rho(\gamma)\sim\gamma^\alpha$, the entropy deficit scales as
+\begin{equation}
+ \Delta S_{\mathrm{pur}}(t)
+ \sim\int_0^\infty\dd\gamma\,\rho(\gamma)e^{-2\gamma t}
+ \sim t^{-(\alpha+1)}.
+ \label{eq:purification-density}
+\end{equation}
+Figure~\ref{fig:tangent}(d) gives \ResultValue{$\alpha$ AND PARAMETER-FREE PURIFICATION EXPONENT}.  The exponent extracted from the tangent density is compared with Fig.~\ref{fig:state-cft}(d) without independently refitting the purification curve to force agreement.
+
+We now characterize the slow tangent sector itself.  After taking the long-time limit at each fixed transverse size, Fig.~\ref{fig:tangent}(b) gives \ResultValue{WALL-ON GAP SCALING AND FINITE WALL-OFF GAP}.  Because several slow directions can become nearly degenerate, Fig.~\ref{fig:tangent}(c) displays the projector density of the complete low-exponent subspace rather than a single QR vector, yielding \ResultValue{WALL WEIGHT AND LOCALIZATION LENGTH}.  The trajectory-conditioned spectrum is finally compared with the unconditional covariance map in Fig.~\ref{fig:tangent}(e), where we find \ResultValue{CONDITIONAL--UNCONDITIONAL GAP COMPARISON}.  These tests place the present rank-losing circuit alongside monitored Lyapunov constructions while keeping the branch tangent distinct from an invertible logarithmic generator~\cite{Oshima2025,XiaoKawabata2026}.
+
+For visualizing the finite-time singular directions, we also use the Hermitian log-stretch generator
+\begin{equation}
+ P_{T,\xi}^{\Lambda}=\frac{1}{2T}\log(\cT_{T,\xi}\cT_{T,\xi}^{\dagger})
+\label{eq:quenched-log-object}
+\end{equation}
+on the surviving support.  The object $P_{T,\xi}^{\Lambda}$ is not a density matrix and need not be positive.  Its eigenvectors are the singular directions of one finite-time trajectory product, not eigenvectors obtained by averaging trajectory vectors.  Any quenched average is therefore applied either to this logarithmic object or to continuously tracked exponents, with the order of operations stated explicitly.
+
+The same singular structure admits a scattering-network interpretation.  A regulated Gaussian Choi relation separates into an invertible quotient core and occupation caps that pin exactly filled or empty directions, while fresh gain/loss ancillas act as physical reservoir ports.  Chronological composition eliminates internal ports by a Schur complement, and the caps retain the rank information discarded by an ordinary transfer inverse.  Removing the regulator leaves the normalized tangent core in Eq.~\eqref{eq:tangent-map}; Appendix~\ref{app:cap-core-anchor} gives the cap bookkeeping, particle/hole symmetry, and regular-transfer limit.
+
+\begin{figure*}[t]
+  \placeholderfigure[0.97\textwidth]{
+    FIGURE 5 PLACEHOLDER\\[0.5em]
+    (a) Stabilized tangent-product workflow for exact projectors and gain/loss branches.\\[0.35em]
+    (b) Wall-on and wall-off minimum tangent gaps versus transverse size, including zero-intercept and alternative finite-size fits.\\[0.35em]
+    (c) Globally normalized projector density of the complete near-marginal subspace, averaged over Born trajectories.\\[0.35em]
+    (d) Low-exponent density and parameter-free comparison with the purification curve of Fig.~\ref{fig:state-cft}.\\[0.35em]
+    (e) Trajectory-conditioned result versus the mixed unconditional covariance/channel control.}
+  \caption{
+  Tangent mechanism for slow wall purification.  (a) Stabilized product of normalized branch differentials.  (b) Long-time-extrapolated wall-on and wall-off tangent gaps versus transverse size.  (c) Basis-independent projector density of the complete near-degenerate slow subspace, averaged over Born trajectories.  (d) Low-exponent density and its parameter-free prediction for purification.  (e) Comparison with the unconditional covariance map.  Component-resolved plots preserve their relative physical weights.  \ResultPlaceholder{Call the tangent sector thermodynamically gapless only after the $T\to\infty$ extrapolation at each fixed size and the subsequent zero-intercept conclusion are stable to fit form, aspect ratio, initial tangent frame, and trajectory resampling; otherwise use ``finite-size closing.''}  \ResultPlaceholder{Accept the mechanistic purification claim only if the same-record low-exponent density predicts the late-time decay without an independently adjustable exponent.}}
+  \label{fig:tangent}
+\end{figure*}
+
+\section{Robustness and ensemble controls}
+\label{sec:controls}
+
+We finally test whether the wall signatures persist away from the ideal perfect-correction limit.  We introduce \ResultValue{IMPLEMENTED IMPERFECTION} and follow the bulk marker, wall entropy coefficient, tangent gap, and one orientation-sensitive response [Appendix Fig.~\ref{fig:app-robustness}].  This analysis gives \ResultValue{ROBUSTNESS INTERVAL OR THRESHOLD SCALING}.  Feedback-driven entanglement, steering, control, and absorbing-state transitions are already known in interacting and random adaptive circuits~\cite{IadecolaGaneshanPixley2023,RavindranathHanYang2023,SierantTurkeshi2023,ODeaMorningstarGopalakrishnan2024,PanGaneshanIadecola2024}; transport-limited frustration-free control provides a complementary preparation problem~\cite{Doerstel2026}.  Our purpose here is the stability of the same topological defect; a complete absorbing-transition analysis would additionally require an order parameter, finite-size crossings, and a dynamical exponent.  \ResultPlaceholder{Claim robustness only if this interval remains nonzero under size scaling; a single-size plateau is not evidence for a stable phase.}
+
+The earlier Bhuiyan--Pan--Jian noise study suggests a natural endpoint for this robustness window~\cite{BhuiyanPanJian2026}.  Once noise destroys the bulk dynamical topological distinction or closes the relevant purity gap, a critical wall is no longer topologically required, although accidental boundary criticality is not excluded.  The measured relation between the two scales is \ResultValue{BULK--WALL THRESHOLD RELATION}.  A boundary crossover or preemptive wall transition can therefore occur before the bulk threshold; coincidence is not imposed in the analysis.  \ResultPlaceholder{State coincidence of wall and bulk thresholds only if independent finite-size crossings and uncertainty estimates resolve a common critical point; otherwise report separate crossover or transition scales.}
+
+A matched postselected control addresses a different question.  For the same local schedule, Appendix~\ref{app:ensemble-distinctions} compares Born sampling with a forced favorable record and, where meaningful, an explicitly designed imaginary-time filter.  The initial overlap, Trotter step, normalization, and success probability are retained so that the comparison isolates which wall and record observables require the physical Born ensemble.
+
+The averaged channel provides the final ensemble control.  Averaging Gaussian Kraus trajectories need not produce a Gaussian many-body channel, so we use closed covariance formulas only where closure is explicitly demonstrated.  On that well-defined sector, Fig.~\ref{fig:tangent}(e) gives \ResultValue{AVERAGED-CHANNEL GAP OR OCCUPATION-BRANCH RESULT}.  A half-occupied mode or linear occupation branch is reported as a property of the mixed channel and is not identified with the trajectory CFT.  \ResultPlaceholder{Any statement that criticality is ``hidden in trajectories'' must be supported by a matched channel calculation showing the absence of the same finite-size singularity in a well-defined channel observable.}
+
+\section{Conclusion and outlook}
+\label{sec:conclusion}
+
+\subsection{Summary of results}
+\label{sec:discussion}
+
+In this work, we have used the perfect-correction limit of an adaptive Chern circuit to investigate the universal dynamics of a programmable domain wall.  Born sampling does not prepare one corrected wave function: it generates a charge-fluctuating ensemble of inequivalent Gaussian states.  Across that ensemble, the wall exhibits \ResultValue{FINAL STATE-CFT RESULT}, while the modular, response, and twist probes establish \ResultValue{FINAL CHIRALITY RESULT}.  The two microscopic wall constructions and the exact-Hamiltonian benchmarks separate these boundary properties from details of the finite-support controller.
+
+The singular tangent formalism supplies the dynamical mechanism.  The differential of the normalized covariance map remains meaningful through rank-changing occupation projectors and gives \ResultValue{FINAL TANGENT AND PURIFICATION RESULT}.  The replicated Born weights independently yield \ResultValue{FINAL RECORD RESULT}, with the state and record central charges kept as distinct quantities.  Comparison with the unconditional covariance map gives \ResultValue{FINAL CHANNEL COMPARISON}.  Together, these observations define a three-layer bulk--boundary structure: a monitored class-A bulk, a chiral critical wall in its physical Born trajectories, and a defect theory in the probability distribution of those trajectories.  \ResultPlaceholder{Final synthesis paragraph to be rewritten around the subset of state, chirality, tangent, record, and channel claims that survive the complete acceptance table.}
+
+This structure distinguishes the present problem from adaptive preparation of a common target state.  Local measurement and feedforward can compile conformal and chiral states, including through parton resources and multiscale adaptive circuits~\cite{LuLessaKimHsieh2022}.  Here those ingredients instead act repeatedly and locally, leaving the realized record and total charge stochastic.  The earlier Bhuiyan--Pan--Jian construction supplies the postselection-free bulk controller, programmable wall, and slow-purification observation~\cite{BhuiyanPanJian2026}; the additional result is the identification of the wall theory across state, orientation-sensitive, tangent, record, and channel observables.
+
+The tangent and record constructions likewise extend, rather than replace, existing monitored-fermion descriptions.  Gaussian tensor-network and transfer approaches relate monitored dynamics to localization, and Lyapunov classifications identify topological boundary sectors~\cite{Jian2022,PanShapourianJian2025,XiaoKawabata2026,Oshima2025}.  Our normalized cocycle carries this analysis through exact rank loss and connects its low-exponent density quantitatively to purification.  Non-Hermitian or no-click Hamiltonians remain useful descriptions of selected branches, dissipative preparation constrains the unconditional channel, and continuous counting theory characterizes physical stochastic records~\cite{Gong2018,Goldstein2019,Landi2024,Starchl2025}.  The present contribution is their conjunction at a programmable two-dimensional Chern interface, together with a replica-calibrated defect construction rather than the bare relation $Z_\xi=p_\xi$.  Monitored free-fermion criticality supplies both the nearby phenomena and the necessary large-scale crossover cautions~\cite{AlbertonBuchholdDiehl2021,FavaPiroliSwann2023,ChahineBuchhold2024,NiedereggerVovkStarchl2026}.  Interactive feedback and control provide a distinct setting in which entanglement and absorbing transitions can coexist~\cite{IadecolaGaneshanPixley2023,ODeaMorningstarGopalakrishnan2024,PanGaneshanIadecola2024}.
+
+\subsection{Outlook and future directions}
+\label{sec:outlook}
+
+The first extension is to interacting adaptive circuits.  Covariance closure is then lost, but the distinction among a selected branch, the Born ensemble, the record distribution, and the unconditional channel remains.  Determining which parts of the tangent and record constructions survive beyond Gaussian dynamics would provide a route toward interacting chiral defect theories.
+
+A second direction is the competition between adaptive correction and noise or an absorbing process.  The robustness analysis here follows one imperfection across the bulk marker and wall observables.  A complete transition theory would determine whether the wall loses criticality at the bulk topological threshold, crosses over earlier, or meets a separate absorbing or control transition, with independent order parameters and dynamical scaling.
+
+Finally, the fresh-ancilla realization gives a direct quantum-simulation target.  Refreshed occupied and empty modes, midcircuit occupation measurements, local feedforward, and fermionic exchange operations implement the ideal update using the BPJ route.  The experiment would prepare and sample a universal charge-fluctuating ensemble with a programmable defect, rather than certify one Chern wave function.  Its most distinctive observable may be the comparison between universal quantities extracted from the classical record and those requiring trajectory-state tomography.  Establishing the relative sample and hardware cost of those two routes is an important operational benchmark for future native-fermion processors~\cite{GonzalezCuadraBluvsteinKalinowski2023,CalliariFromonteilCesa2026,OttGonzalezCuadraZache2025,SchuckertCraneGorshkov2024}.
+
+\begin{acknowledgments}
+We thank collaborators and colleagues to be listed in the final manuscript.  Funding acknowledgments will be added before submission.
+\end{acknowledgments}
+
+\input{appendices}
+
+\bibliographystyle{apsrev4-2}
+\bibliography{../../LEGACY/topological_dynamics_introduction/references,references}
+
+\end{document}

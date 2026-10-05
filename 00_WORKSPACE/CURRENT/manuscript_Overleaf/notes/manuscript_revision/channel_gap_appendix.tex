@@ -1,0 +1,59 @@
+{\color{blue}
+\section{Relaxation gap of the averaged channel}
+\label{app:ChannelGap}
+
+Here we relate the two-point relaxation in Eq.~\eqref{eq:CycleChannel} to the many-body channel gap. We consider the perfect occupation resets of Sec.~\ref{sec:Model}, applied in a fixed order that repeats every cycle. The measured modes need not be orthogonal. Let $N$ be the number of single-particle modes, $P_j=(W_jW_j^\dagger)^{\mathsf T}$ the projector of the measured OW mode in the convention of Eq.~\eqref{eq:TwoPoint}, and $Q_j=\mathbf{1}-P_j$. The one-cycle map is
+\begin{equation}
+    \overline G'=A\overline GA^\dagger+B,
+    \qquad A=Q_M\cdots Q_1,
+    \label{eq:AppCycleChannel}
+\end{equation}
+where step 1 acts first and $B$ depends only on the target occupations. Thus, deviations from a stationary two-point function obey $\delta G'=A\delta GA^\dagger$. If $a_i$ are the eigenvalues of $A$ and $r=\rho(A)$, the two-point multipliers are $a_i a_j^*$, with largest modulus $r^2$. We assume $r<1$ below.
+
+First, two-point closure gives a bound that does not require Gaussian states. The Heisenberg channel preserves the space spanned by $\hat{\mathbf{1}}$ and the bilinears $\hat c_i^\dagger\hat c_j$. Its spectrum is therefore part of the full channel spectrum. For an invariant sector containing these operators, the largest nonstationary eigenvalue modulus $r_{\rm MB}$ satisfies
+\begin{equation}
+    r_{\rm MB}\geq r^2,
+    \qquad g_{\rm MB}=1-r_{\rm MB}\leq 1-r^2=g_C.
+    \label{eq:ChannelGapBound}
+\end{equation}
+The continuous-time version follows from the inclusion of the covariance generator in the many-body Liouvillian; see Proposition~7 and Eq.~(63) of Ref.~\cite{BarthelZhang2022}. A positive two-point gap alone does not exclude slower higher-order correlations.
+
+For the resets studied here, we can show that the bound is saturated. Choose a single-particle basis beginning with the measured mode $\hat\chi_j$. In this basis, discarding the measurement outcome and applying perfect feedback replaces the measured mode by its target occupation $s_j$. An even operator involving only orthogonal modes is unchanged. An operator with one measured fermion leg is erased, whereas a factor $\hat\chi_j^\dagger\hat\chi_j$ is replaced by $s_j$. The latter reduces the number of fermion operators by two. Consequently, the evolution of a $2p$-point function closes on itself and lower orders. This statement uses the reset action, without Wick factorization.
+
+In the charge-neutral sector, use the normally ordered moments
+\begin{equation}
+    F^{(p)}_{I;J}=\Tr\!\left(\hat\rho\,
+    \hat c_{i_1}^\dagger\cdots\hat c_{i_p}^\dagger
+    \hat c_{j_p}\cdots\hat c_{j_1}\right),
+    \label{eq:NeutralMomentHierarchy}
+\end{equation}
+where $I$ and $J$ are increasing $p$-element sets. The highest-order part propagates each creation and annihilation index with $A$ and $A^*$, respectively. Fermionic antisymmetry replaces the single-particle matrices by their exterior powers. The corresponding diagonal block of the moment hierarchy is therefore
+\begin{equation}
+    \mathcal A_p=(\wedge^p A)\otimes(\wedge^p A)^*.
+    \label{eq:ExteriorPowerChannel}
+\end{equation}
+Here $(\wedge^p A)_{I,J}=\det A[I,J]$; the Cauchy--Binet identity composes the blocks of successive resets in their prescribed order. The lower-order source terms lie off the diagonal and do not change the eigenvalues. The channel multipliers are thus
+\begin{equation}
+    \Lambda_{I,J}=\prod_{i\in I}a_i\prod_{j\in J}a_j^*,
+    \qquad |I|=|J|=p.
+    \label{eq:NeutralChannelSpectrum}
+\end{equation}
+This also holds for nondiagonalizable $A$, as follows by triangularizing it before taking exterior powers. The moments span the neutral operator space: their number is $\sum_{p=0}^N\binom{N}{p}^2=\binom{2N}{N}$.
+
+The constant moment $p=0$ gives the stationary eigenvalue 1. Every other multiplier has modulus at most $r^{2p}\leq r^2$, and the $p=1$ block attains $r^2$ by choosing the same maximal-modulus eigenvalue on both legs. Hence,
+\begin{equation}
+    g_{q=0}=1-r^2=g_C.
+    \label{eq:NeutralChannelGap}
+\end{equation}
+An even operator with unequal numbers of creation and annihilation operators obeys the same hierarchy, with at least two single-particle factors in each nonconstant block. Its multiplier cannot exceed $r^2$ either. Since the neutral block attains this value, $g_{\rm even}=g_{q=0}$.
+
+Charge neutrality means $[\hat\rho,\hat Q]=0$, with $\hat Q=\sum_i\hat c_i^\dagger\hat c_i$. It permits mixtures of particle-number sectors. Both maximally mixed states and fixed-charge Slater states satisfy this condition, which is preserved by the definite-charge reset Kraus operators even though individual resets can change particle number. Thus Eq.~\eqref{eq:NeutralChannelGap} applies to the states used here. It is not a claim that the circuit preserves a fixed particle-number block.
+
+The dimensionless gap must be distinguished from the decay rate per cycle,
+\begin{equation}
+    \Delta_{\rm ch}=-\log r_{\rm MB}=-2\log\rho(A),
+    \qquad g_C=1-e^{-\Delta_{\rm ch}}.
+    \label{eq:ChannelRateVersusGap}
+\end{equation}
+It is the spectral radius, rather than the largest singular value of $A$, that fixes this asymptotic rate. Jordan blocks and nonnormal evolution can produce polynomial prefactors or transients, so the gap alone does not fix a size-independent mixing time. It also does not determine the purification rate of individual records. The proof concerns exact ordered resets; replacing the cycle by a continuous-time approximation, imperfect feedback, or an average over different schedules requires a separate analysis. The effective continuous-time treatment of Ref.~\cite{BhuiyanPanJian2026} and the general Liouvillian hierarchy of Ref.~\cite{BarthelZhang2022} provide related descriptions, while Eq.~\eqref{eq:NeutralChannelGap} uses the discrete reset structure directly.
+}

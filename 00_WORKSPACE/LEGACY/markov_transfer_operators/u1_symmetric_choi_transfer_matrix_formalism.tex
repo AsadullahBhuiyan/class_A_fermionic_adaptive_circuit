@@ -1,0 +1,693 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\I}{\mathbf{1}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\Ran}{\operatorname{Ran}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\sgn}{\operatorname{sgn}}
+\newcommand{\ket}[1]{\lvert #1\rangle}
+\newcommand{\bra}[1]{\langle #1\rvert}
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\eps}{\varepsilon}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+
+\theoremstyle{definition}
+\newtheorem{remark}{Remark}
+
+\begin{document}
+
+\title{\texorpdfstring{\(U(1)\)}{U(1)}-Symmetric Fermionic Gaussian Transfer-Matrix Formalism}
+\author{Asadullah Bhuiyan}
+\date{\today}
+
+\begin{abstract}
+We organize the transfer-matrix formalism for number-conserving fermionic
+Gaussian operators in the notation of the handwritten derivation.  A physical
+Gaussian state is labeled by the complex covariance
+\(G=2C-\I\), while a Gaussian operator is represented by a pure Choi covariance
+\(\Sigma\) on the doubled one-particle space
+\(\cH_L\oplus\cH_R\).  For a full-rank even Gaussian operator the doubled Choi
+correlation matrix gives an ordinary particle transfer matrix
+\(T_p=C_{LL}^{-1}C_{LR}\), with the corresponding hole transfer matrix
+\(T_h=(T_p^\dagger)^{-1}\).  We then take the projective rank-one limits
+needed for occupation projectors and single-fermion gain/loss branches.  The
+central correction is that branch-resolved single-fermion insertions remain
+pure Gaussian states, but their postselected Choi covariances are not
+determined by the singular effective transfer matrix alone.  A right-leg
+creation or annihilation branch gives \(T_{\rm eff}=T_p(1-P_\chi)\); the full
+singular datum also records the null-sector occupation, filled for
+\(\hat\chi^\dagger\) and empty for \(\hat\chi\).
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Hamiltonian-to-Covariance Map}
+
+Let \(c_i,c_i^\dagger\), \(i=1,\ldots,N\), denote number-conserving fermion
+modes on the one-particle Hilbert space \(\cH\simeq\mathbb C^N\).  For a
+single-particle Hamiltonian \(h=h^\dagger\), write
+\begin{equation}
+  h=u\,\diag(\epsilon_1,\ldots,\epsilon_N)\,u^\dagger ,
+  \qquad
+  a_n^\dagger=\sum_i u_{in}c_i^\dagger .
+  \label{eq:h-diagonalization}
+\end{equation}
+The thermal Gaussian density matrix
+\begin{equation}
+  \rho_h=\frac{1}{Z}\exp\!\left(-\sum_{ij}c_i^\dagger h_{ij}c_j\right)
+  =
+  \frac{1}{Z}\exp\!\left(-\sum_n\epsilon_n a_n^\dagger a_n\right)
+  \label{eq:rho-h}
+\end{equation}
+has one-body correlation matrix
+\begin{equation}
+  C_{ij}=\Tr(\rho_h\,c_i^\dagger c_j),
+  \qquad
+  C=u\,f(h_{\rm diag})\,u^\dagger,
+  \qquad
+  f(\epsilon)=\frac{1}{1+e^\epsilon}.
+  \label{eq:thermal-C}
+\end{equation}
+The complex covariance used below is
+\begin{equation}
+  G=2C-\I .
+  \label{eq:G-convention}
+\end{equation}
+In the zero-temperature or fixed-charge Slater limit \(C\) is an orthogonal
+projector and
+\begin{equation}
+  G^2=\I .
+  \label{eq:pure-G}
+\end{equation}
+Equivalently, if the occupied orbitals form the columns of an isometry
+\(U_{\rm occ}\), then
+\begin{equation}
+  \ket{G}
+  =
+  \prod_{\alpha=1}^{q}
+  \left(\sum_i (U_{\rm occ})_{i\alpha}c_i^\dagger\right)\ket{0},
+  \qquad
+  C=U_{\rm occ}U_{\rm occ}^\dagger,
+  \qquad
+  G=2U_{\rm occ}U_{\rm occ}^\dagger-\I .
+  \label{eq:slater-G}
+\end{equation}
+This is the state-covariance convention of the first part of the handwritten
+notes.
+
+\section{Particle and Hole Excitation Relations}
+
+For a normalized one-particle mode
+\begin{equation}
+  \ket{\chi}=\sum_i\chi_i\ket{i},
+  \qquad
+  \hat\chi^\dagger=\sum_i\chi_i c_i^\dagger,
+  \qquad
+  \hat\chi=\sum_i\chi_i^*c_i,
+  \qquad
+  P_\chi=\ket{\chi}\bra{\chi},
+  \label{eq:chi-mode}
+\end{equation}
+the only component that changes a fixed-charge Slater state is the component
+orthogonal to the already occupied or empty subspace.  Thus, if the branch
+amplitude is nonzero, particle addition and particle removal update the
+physical state covariance by
+\begin{align}
+  C_{\rm add}
+  &=
+  C+
+  \frac{(1-C)P_\chi(1-C)}
+       {\Tr[(1-C)P_\chi]},
+  \label{eq:state-addition}\\
+  C_{\rm rem}
+  &=
+  C-
+  \frac{CP_\chi C}
+       {\Tr[CP_\chi]} .
+  \label{eq:state-removal}
+\end{align}
+These equations are the fixed-charge state version of the Choi rank-one
+updates derived later.  They also make clear which denominator is a Born
+probability: a creation branch requires an empty component of \(\chi\), while
+a removal branch requires an occupied component.
+
+Let \(V\) be an invertible, number-conserving Gaussian operator.  Up to a scalar
+it may be written as
+\begin{equation}
+  V=\exp\!\left(\sum_{ij}c_i^\dagger A_{ij}c_j\right).
+  \label{eq:gaussian-operator}
+\end{equation}
+The particle and hole transfer matrices are defined by the conjugation rules
+\begin{align}
+  V\,c^\dagger(\phi)\,V^{-1}
+  &=
+  c^\dagger(T_p\phi),
+  \label{eq:Tp-def}\\
+  V\,c(\phi)\,V^{-1}
+  &=
+  c(T_h\phi),
+  \label{eq:Th-def}
+\end{align}
+where \(c^\dagger(\phi)=\sum_i\phi_i c_i^\dagger\) and
+\(c(\phi)=\sum_i\phi_i^*c_i\).  With the convention
+\eqref{eq:gaussian-operator},
+\begin{equation}
+  T_p=e^A,
+  \qquad
+  T_h=(T_p^\dagger)^{-1}.
+  \label{eq:Tp-Th-relation}
+\end{equation}
+If \(T_p=e^H u\) is the polar decomposition with \(H=H^\dagger\) and \(u\)
+unitary, then
+\begin{equation}
+  T_h=e^{-H}u .
+  \label{eq:polar-Th}
+\end{equation}
+This is the precise form of the particle/hole relation used in the transfer
+matrix part of the handwritten derivation.
+
+\section{Full-Rank \texorpdfstring{\(U(1)\)}{U(1)} Gaussian Operators}
+
+The full-rank even chart consists of operators generated by fermion bilinears,
+as in Eq.~\eqref{eq:gaussian-operator}, with \(T_p\) invertible.  Acting on a
+Slater determinant, \(V\) transports the occupied one-particle frame by
+\(T_p\), followed by the Gram normalization required to return to a normalized
+Slater state.  Thus the physical state transform is nonlinear in \(C\), while
+the excitation transform is linear in the one-particle transfer matrix.
+
+The two transfer matrices \(T_p\) and \(T_h\) are not independent.  Equation
+\eqref{eq:Tp-Th-relation} states that an invertible particle transfer matrix
+already fixes the hole transfer matrix.  Conversely, if one begins from
+\(T_h\), then
+\begin{equation}
+  T_p=(T_h^\dagger)^{-1}.
+  \label{eq:Th-to-Tp}
+\end{equation}
+The singular cases below should be understood as limits of this full-rank
+chart.  That distinction is important: a finite full-rank \(T_p\) is a complete
+coordinate for an even Gaussian Choi covariance, but a singular effective
+matrix is not a complete coordinate for an odd postselected Choi covariance.
+
+\section{Choi Vectorization and Doubled Covariance Blocks}
+
+Introduce two copies of the one-particle Hilbert space,
+\(\cH_L\oplus\cH_R\), with fermion operators \(c_{Li}\) and \(c_{Ri}\).  The
+reference state is the number-conserving maximally entangled state
+\begin{equation}
+  \ket{\Omega}_{LR}
+  =
+  2^{-N/2}\prod_{i=1}^{N}
+  \left(c_{Li}^\dagger+c_{Ri}^\dagger\right)\ket{0}_{LR}.
+  \label{eq:reference-state}
+\end{equation}
+For one mode this is
+\begin{equation}
+  \ket{\Omega}
+  =
+  \frac{\ket{1_L0_R}+\ket{0_L1_R}}{\sqrt2}.
+  \label{eq:one-mode-reference}
+\end{equation}
+We vectorize an operator by acting on the right leg,
+\begin{equation}
+  \ket{V}\!\rangle
+  =
+  V_R\ket{\Omega}_{LR}.
+  \label{eq:choi-vector}
+\end{equation}
+The resulting Gaussian Choi state is labeled by its doubled correlation matrix
+and covariance
+\begin{equation}
+  C_{\alpha\beta,ij}
+  =
+  \frac{\langle\!\bra{V}c_{\alpha i}^\dagger c_{\beta j}\ket{V}\!\rangle}
+       {\langle\!\bra{V}V\rangle\!\rangle},
+  \qquad
+  \Sigma=2C-\I_{L\oplus R},
+  \qquad
+  \alpha,\beta\in\{L,R\}.
+  \label{eq:choi-C-Sigma}
+\end{equation}
+We use the block notation
+\begin{equation}
+  C=
+  \begin{pmatrix}
+    C_{LL} & C_{LR}\\
+    C_{RL} & C_{RR}
+  \end{pmatrix},
+  \qquad
+  \Sigma=
+  \begin{pmatrix}
+    \Sigma_{LL} & \Sigma_{LR}\\
+    \Sigma_{RL} & \Sigma_{RR}
+  \end{pmatrix}.
+  \label{eq:block-notation}
+\end{equation}
+For a nonzero branch-resolved Gaussian Choi vector,
+\begin{equation}
+  C^2=C,
+  \qquad
+  \Sigma^2=\I_{L\oplus R}.
+  \label{eq:choi-purity}
+\end{equation}
+
+\section{Full-Rank Transfer-Matrix/Choi Dictionary}
+
+For an even full-rank Gaussian operator with particle transfer matrix
+\(T\equiv T_p\), define
+\begin{equation}
+  L=(\I+TT^\dagger)^{-1},
+  \qquad
+  R=(\I+T^\dagger T)^{-1}.
+  \label{eq:L-R-def}
+\end{equation}
+The Choi correlation blocks are
+\begin{align}
+  C_{LL}&=L,
+  &
+  C_{LR}&=LT=TR,
+  \label{eq:choi-blocks-LL-LR}\\
+  C_{RL}&=T^\dagger L=RT^\dagger,
+  &
+  C_{RR}&=T^\dagger LT=\I-R .
+  \label{eq:choi-blocks-RL-RR}
+\end{align}
+Equivalently, in covariance variables,
+\begin{align}
+  \Sigma_{LL}&=2L-\I,
+  &
+  \Sigma_{LR}&=2LT,
+  \label{eq:sigma-blocks-LL-LR}\\
+  \Sigma_{RL}&=2T^\dagger L,
+  &
+  \Sigma_{RR}&=\I-2R .
+  \label{eq:sigma-blocks-RL-RR}
+\end{align}
+The inverse map in the full-rank chart is
+\begin{equation}
+  T=C_{LL}^{-1}C_{LR}
+  =
+  (\I+\Sigma_{LL})^{-1}\Sigma_{LR}.
+  \label{eq:T-extraction}
+\end{equation}
+The second equality follows from \(\I+\Sigma_{LL}=2C_{LL}\) and
+\(\Sigma_{LR}=2C_{LR}\).  Equation \eqref{eq:T-extraction} is the formula that
+must be used only on the support where the even full-rank chart is valid.
+
+\begin{proposition}
+The blocks \eqref{eq:choi-blocks-LL-LR} and
+\eqref{eq:choi-blocks-RL-RR} define a pure Choi state:
+\(C^2=C\), or equivalently \(\Sigma^2=\I\).
+\end{proposition}
+
+\begin{proof}
+The identities \(LT=TR\), \(LTT^\dagger=\I-L\), and
+\(RT^\dagger T=\I-R\) imply
+\begin{align}
+  C_{LL}^2+C_{LR}C_{RL}
+  &=
+  L^2+LTT^\dagger L
+  =
+  L,\\
+  C_{LL}C_{LR}+C_{LR}C_{RR}
+  &=
+  L^2T+LT(\I-R)
+  =
+  LT,
+\end{align}
+with the remaining two block equations following by Hermitian conjugation and
+the same \(R\)-identity.
+\end{proof}
+
+\section{Rank-One Projectors and Projective Limits}
+
+Let \(P=P_\chi=\ket{\chi}\bra{\chi}\) and \(Q=\I-P\).  The occupation
+projectors \(N_\chi=\hat\chi^\dagger\hat\chi\) and \(1-N_\chi\) arise as
+projective limits of full-rank even Gaussian operators:
+\begin{align}
+  N_\chi
+  &=
+  \lim_{\lambda\to\infty}
+  e^{-\lambda}e^{\lambda N_\chi},
+  &
+  T_\lambda^{(N)}
+  &=
+  Q+e^\lambda P,
+  \label{eq:N-projective}\\
+  1-N_\chi
+  &=
+  \lim_{\lambda\to\infty}
+  e^{-\lambda N_\chi},
+  &
+  T_\lambda^{(1-N)}
+  &=
+  Q+e^{-\lambda}P .
+  \label{eq:one-minus-N-projective}
+\end{align}
+At the transfer-matrix level the first limit diverges on \(\Ran P\), while the
+second becomes rank deficient.  At the Choi-covariance level both limits are
+finite.  On the \(P\)-sector,
+\begin{equation}
+  C(T=t)
+  =
+  \frac{1}{1+|t|^2}
+  \begin{pmatrix}
+    1 & t\\
+    t^* & |t|^2
+  \end{pmatrix}_{LR}.
+  \label{eq:one-mode-even-C}
+\end{equation}
+Thus \(t\to\infty\) gives
+\(\ket{0_L1_R}\), whereas \(t\to0\) gives \(\ket{1_L0_R}\).  These are the
+two even null completions of the full-rank chart.  They are not the odd
+single-fermion gain/loss completions discussed below.
+
+\section{Single-Fermion Gain and Loss Branches}
+
+Now let \(V\) be an even full-rank Gaussian operator and consider the
+branch-resolved odd Kraus amplitudes
+\begin{equation}
+  K_+=\hat\chi^\dagger V,
+  \qquad
+  K_-=\hat\chi V .
+  \label{eq:odd-Kraus}
+\end{equation}
+Because \(K_\pm\) are odd, they do not define ordinary invertible even
+conjugation maps.  The correct object is instead the Choi vector
+\begin{equation}
+  \ket{K_+}\!\rangle=\hat\chi_R^\dagger\ket{V}\!\rangle,
+  \qquad
+  \ket{K_-}\!\rangle=\hat\chi_R\ket{V}\!\rangle.
+  \label{eq:odd-choi-vectors}
+\end{equation}
+If the corresponding branch amplitude is nonzero, these are still pure
+Gaussian Choi states.  Therefore the updated covariance still satisfies
+\begin{equation}
+  \Sigma_\pm^2=\I .
+  \label{eq:odd-purity}
+\end{equation}
+The failure is not purity.  The failure is the assumption that an odd
+postselected Choi state can be reconstructed from the ordinary full-rank even
+transfer coordinate alone.
+
+Set
+\begin{equation}
+  u_R=
+  \begin{pmatrix}
+    0\\
+    \ket{\chi}
+  \end{pmatrix}_{L\oplus R}.
+  \label{eq:uR}
+\end{equation}
+Creation fills the empty projection of \(u_R\), while annihilation removes its
+occupied projection:
+\begin{align}
+  C_+
+  &=
+  C+
+  \frac{(\I-C)u_Ru_R^\dagger(\I-C)}
+       {u_R^\dagger(\I-C)u_R},
+  \label{eq:C-plus-update}\\
+  C_-
+  &=
+  C-
+  \frac{Cu_Ru_R^\dagger C}
+       {u_R^\dagger C u_R}.
+  \label{eq:C-minus-update}
+\end{align}
+The denominators
+\begin{equation}
+  d_+
+  =
+  \bra{\chi}(\I-C_{RR})\ket{\chi}
+  =
+  \Tr[(\I-C_{RR})P],
+  \qquad
+  d_-
+  =
+  \bra{\chi}C_{RR}\ket{\chi}
+  =
+  \Tr[C_{RR}P]
+  \label{eq:d-plus-minus}
+\end{equation}
+are the branch probabilities in the normalized Choi state.  The formulas are
+defined for \(d_\pm\neq0\).
+
+Blockwise, the creation branch is
+\begin{align}
+  C_{LL}^{(+)}
+  &=
+  C_{LL}
+  +
+  \frac{C_{LR}PC_{RL}}{d_+},
+  \label{eq:C-plus-LL}\\
+  C_{LR}^{(+)}
+  &=
+  C_{LR}
+  -
+  \frac{C_{LR}P(\I-C_{RR})}{d_+},
+  \label{eq:C-plus-LR}\\
+  C_{RR}^{(+)}
+  &=
+  C_{RR}
+  +
+  \frac{(\I-C_{RR})P(\I-C_{RR})}{d_+},
+  \label{eq:C-plus-RR}
+\end{align}
+with \(C_{RL}^{(+)}=(C_{LR}^{(+)})^\dagger\).  The loss branch is
+\begin{align}
+  C_{LL}^{(-)}
+  &=
+  C_{LL}
+  -
+  \frac{C_{LR}PC_{RL}}{d_-},
+  \label{eq:C-minus-LL}\\
+  C_{LR}^{(-)}
+  &=
+  C_{LR}
+  -
+  \frac{C_{LR}PC_{RR}}{d_-},
+  \label{eq:C-minus-LR}\\
+  C_{RR}^{(-)}
+  &=
+  C_{RR}
+  -
+  \frac{C_{RR}PC_{RR}}{d_-},
+  \label{eq:C-minus-RR}
+\end{align}
+with \(C_{RL}^{(-)}=(C_{LR}^{(-)})^\dagger\).
+
+\section{Effective Singular Transfer Matrix}
+
+Suppose the pre-insertion Choi covariance is in the full-rank even chart
+\eqref{eq:choi-blocks-LL-LR}--\eqref{eq:choi-blocks-RL-RR}, with
+\(T=T_p\).  After the right-leg insertion the ordinary inverse in
+\eqref{eq:T-extraction} must be replaced by the support inverse, or
+equivalently by a full-rank regularization followed by the singular limit.
+Substituting Eqs.~\eqref{eq:choi-blocks-LL-LR}--\eqref{eq:choi-blocks-RL-RR}
+into the rank-one updates gives
+\begin{equation}
+  T_{\rm eff}^{(+)}
+  =
+  (C_{LL}^{(+)})^{-1}_{\rm supp}C_{LR}^{(+)}
+  =
+  TQ,
+  \qquad
+  Q=\I-P ,
+  \label{eq:Teff-plus}
+\end{equation}
+and similarly
+\begin{equation}
+  T_{\rm eff}^{(-)}
+  =
+  (C_{LL}^{(-)})^{-1}_{\rm supp}C_{LR}^{(-)}
+  =
+  TQ .
+  \label{eq:Teff-minus}
+\end{equation}
+Thus a right-leg single-fermion insertion removes the \(\chi\)-column
+direction of the particle transfer matrix:
+\begin{equation}
+  T_p\longmapsto T_p(\I-P_\chi).
+  \label{eq:right-leg-column-removal}
+\end{equation}
+The analogous left-leg insertion removes the corresponding row direction:
+\begin{equation}
+  T_p\longmapsto(\I-P_\chi)T_p .
+  \label{eq:left-leg-row-removal}
+\end{equation}
+
+\begin{remark}[First corrected pitfall: regulating the final odd covariance]
+One may regulate the parent even operator or use the exact rank-one update
+\eqref{eq:C-plus-update} or \eqref{eq:C-minus-update}.  What is not legitimate
+is to interpolate the final odd covariance by hand and then continue to impose
+pure-state transfer identities.  For example,
+\begin{equation}
+  \Sigma_\eps=
+  \begin{pmatrix}
+    P+\eps Q & Q+\eps P\\
+    Q+\eps P & P+\eps Q
+  \end{pmatrix}
+  \label{eq:bad-regulator}
+\end{equation}
+has, on the \(P\)-sector,
+\begin{equation}
+  \Sigma_\eps\big|_P=
+  \begin{pmatrix}
+    1 & \eps\\
+    \eps & 1
+  \end{pmatrix},
+  \qquad
+  \Sigma_\eps^2\big|_P=
+  \begin{pmatrix}
+    1+\eps^2 & 2\eps\\
+    2\eps & 1+\eps^2
+  \end{pmatrix}
+  \neq\I .
+  \label{eq:bad-regulator-square}
+\end{equation}
+Hence such a finite-\(\eps\) object is not a pure Gaussian Choi covariance.
+\end{remark}
+
+\section{Null-Sector Occupation Data}
+
+The effective matrix \(T_{\rm eff}=TQ\) captures the homogeneous propagation
+sector, but it does not determine the full postselected Choi covariance.  It
+only says that the right-leg \(P\)-column no longer participates in the
+\(L\)-to-\(R\) bridge.  It does not say whether that disconnected mode is empty
+or filled.
+
+The distinction is already visible for one mode with \(T=1\).  The reference
+state is Eq.~\eqref{eq:one-mode-reference}.  Right-leg creation gives
+\begin{equation}
+  \hat\chi_R^\dagger\ket{\Omega}
+  \propto
+  \ket{1_L1_R},
+  \qquad
+  C_+
+  =
+  \begin{pmatrix}
+    1 & 0\\
+    0 & 1
+  \end{pmatrix}_{LR},
+  \label{eq:one-mode-creation}
+\end{equation}
+whereas right-leg loss gives
+\begin{equation}
+  \hat\chi_R\ket{\Omega}
+  \propto
+  \ket{0_L0_R},
+  \qquad
+  C_-
+  =
+  \begin{pmatrix}
+    0 & 0\\
+    0 & 0
+  \end{pmatrix}_{LR}.
+  \label{eq:one-mode-loss}
+\end{equation}
+Both branches have \(T_{\rm eff}=0\).  They are nevertheless different pure
+Choi states.
+
+Equivalently, reconstructing from \(T_{\rm eff}=0\) using only the even formula
+\eqref{eq:one-mode-even-C} gives one of the even null completions:
+\begin{equation}
+  t\to0:
+  \quad
+  C(t)\to
+  \begin{pmatrix}
+    1 & 0\\
+    0 & 0
+  \end{pmatrix}_{LR}
+  \quad
+  (\ket{1_L0_R}),
+  \label{eq:even-null-tzero}
+\end{equation}
+or
+\begin{equation}
+  t\to\infty:
+  \quad
+  C(t)\to
+  \begin{pmatrix}
+    0 & 0\\
+    0 & 1
+  \end{pmatrix}_{LR}
+  \quad
+  (\ket{0_L1_R}).
+  \label{eq:even-null-tinfty}
+\end{equation}
+Neither is the odd creation completion \(\ket{1_L1_R}\), and neither is the
+odd loss completion \(\ket{0_L0_R}\).
+
+\begin{remark}[Second corrected pitfall: regularizing \(T_{\rm eff}\) alone]
+A singular effective transfer matrix can be regularized as an even matrix, but
+that regularization chooses an even null completion.  It cannot recover which
+odd branch occurred.  The missing information is precisely the null-sector
+occupation.
+\end{remark}
+
+The complete singular data for a right-leg odd branch are therefore
+\begin{equation}
+  \left(T_{\rm eff},P_{\rm null},n_{\rm null}\right),
+  \qquad
+  P_{\rm null}=P_\chi,
+  \label{eq:singular-data}
+\end{equation}
+where the occupation datum may be read from the right-right Choi block:
+\begin{equation}
+  P_\chi C_{RR}^{(+)}P_\chi=P_\chi,
+  \qquad
+  P_\chi C_{RR}^{(-)}P_\chi=0.
+  \label{eq:null-occupation}
+\end{equation}
+Thus
+\begin{equation}
+  n_{\rm null}=
+  \begin{cases}
+    1, & \text{right-leg creation } \hat\chi_R^\dagger,\\
+    0, & \text{right-leg loss } \hat\chi_R .
+  \end{cases}
+  \label{eq:n-null}
+\end{equation}
+
+\section{Final Picture}
+
+The full-rank even formalism is internally consistent and complete:
+\begin{equation}
+  T_p
+  \quad\Longleftrightarrow\quad
+  C(T_p)
+  \quad\Longleftrightarrow\quad
+  \Sigma(T_p),
+  \qquad
+  T_h=(T_p^\dagger)^{-1}.
+  \label{eq:even-equivalence}
+\end{equation}
+Rank-one even projectors lie on the boundary of this chart: the transfer
+matrix may diverge or lose rank, but the Choi covariance has a finite
+projective limit.  Odd single-fermion branches go one step further.  They are
+valid pure Gaussian Choi states, and their covariances must be computed by the
+rank-one creation/loss updates \eqref{eq:C-plus-update} and
+\eqref{eq:C-minus-update}.  The extracted singular transfer matrix is
+\begin{equation}
+  T_{\rm eff}=T_p(\I-P_\chi)
+  \label{eq:final-Teff}
+\end{equation}
+for a right-leg insertion, but this matrix is only the propagation part of the
+answer.  The full postselected Choi covariance also requires the null-sector
+occupation in Eq.~\eqref{eq:null-occupation}.  This resolves the apparent
+contradiction in the handwritten derivation: purity is preserved, the Choi
+representation remains valid, and the effective transfer matrix remains useful,
+but the singular odd branch is not coordinatized by \(T_{\rm eff}\) alone.
+
+\end{document}

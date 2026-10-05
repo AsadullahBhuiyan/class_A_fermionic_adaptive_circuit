@@ -1,0 +1,501 @@
+\documentclass[aps,prb,twocolumn,nofootinbib,superscriptaddress,floatfix]{revtex4-2}
+\usepackage{amsmath,amssymb,mathtools,bm}
+\usepackage{booktabs,tabularx,graphicx,microtype}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\hypersetup{
+  pdftitle={Perfect-correction Markov channel and continuous Lindblad dynamics at a class-A wall},
+  pdfauthor={Class-A fermionic adaptive-circuit project}
+}
+\graphicspath{{figures/}{../analysis/}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\Diss}{\mathcal D}
+\newcommand{\id}{\mathbf{1}}
+\newcommand{\campaignfigure}[2]{\includegraphics[width=#2]{figures/#1}}
+
+\begin{document}
+
+\title{Perfect-correction Markov-channel and continuous Lindblad dynamics at a class-A domain wall}
+\author{Internal campaign summary}
+\affiliation{Class-A fermionic adaptive-circuit project}
+\date{Production-results note; completed August 22, 2026}
+
+\begin{abstract}
+We report a matched comparison between the deterministic trajectory-averaged
+perfect-correction Markov channel and an infinitesimal continuous Lindblad evolution
+built from identical overcomplete Wannier modes.  Both domain-wall support truncation
+settings and two finite spatial shells are included.  The physical channel retains its
+number-measurement dephasing; the continuous evolution is evaluated with and without
+the corresponding number-dephasing term.  Because a random ordered sweep need not be
+translation invariant along the wall, its momentum-resolved estimator is defined by a
+late-time temporal average followed by an exact translation-group twirl.  This twirl is
+a post-processing projection, not a symmetry of the ordered channel and not an average
+over trajectories.  We also report the ascending global occupation spectrum of the raw,
+untwirled late state.  All three
+dynamics exhibit a wall-associated natural-occupation crossing while their bulk
+occupations remain far from one half.  The crossing disappears across the parent-model
+reference near $\alpha_{\rm run,in}=2$, but no relaxation-gap closure is observed.
+The continuous density-kick response has opposite signed velocities on the two walls;
+the ordered channel instead has poor linear fits and a common drift sign.  Thus the
+campaign demonstrates mixed-state occupation spectral flow, not a gapless Lindbladian,
+trajectory Lyapunov mode, or schedule-independent chiral transport.
+\end{abstract}
+
+\maketitle
+
+\section{Correction and scope}
+
+The computed objects must be distinguished at the outset.  The first is the ordered
+one-cycle correlation-matrix map produced by
+\texttt{classA\_U1FGTN.run\_markov\_channel}.  It is the deterministic average of the
+projective measurement and perfect-feedback protocol, not a sampled trajectory.  The
+second is the continuous equation obtained from infinitesimal local channel increments.
+The third is the older auxiliary Gaussian bath calculation.  At ancillary filling
+$\bar n_{\mathrm a}=1/2$, its dephasing-free generator is exactly one half of the
+perfect-correction dephasing-free continuous generator.  Its stationary correlation
+matrix is therefore reusable, whereas its relaxation clock, response fits, and finite
+Strang map are not.
+
+No result below is called a trajectory Lyapunov spectrum, a Hamiltonian band, or a
+Liouvillian many-body spectrum.  Natural occupations are eigenvalues of a two-point
+correlation matrix.  A midpoint crossing can diagnose a state-level purity gap without
+implying a vanishing relaxation rate.
+
+\section{Common OW geometry}
+
+We follow the notation of Bhuiyan, Pan, and Jian~\cite{Bhuiyan2026}.  Many-body
+operators carry hats, $\mu=1,2$ labels physical orbitals, $\nu=A,B$ labels trial-orbital
+families, and $\pm$ labels upper and lower parent bands.  The parent single-particle
+matrix in the archived run convention is
+\begin{align}
+ h_{\alpha_{\rm run}}(\boldsymbol k)
+ &=\widehat{\boldsymbol n}_{\alpha_{\rm run}}(\boldsymbol k)\cdot\boldsymbol\sigma,
+ \\
+ \boldsymbol n_{\alpha_{\rm run}}(\boldsymbol k)
+ &=\bigl(\sin k_x,\sin k_y,
+ \alpha_{\rm run}-\cos k_x-\cos k_y\bigr),
+ \label{eq:parent}
+\end{align}
+with $\alpha_{\rm PRR}=-\alpha_{\rm run}$.  It is used to construct the
+\textit{overcomplete Wannier (OW) basis}; a spatial domain-wall Hamiltonian is not
+diagonalized.
+
+For center $\boldsymbol r$ the normalized state used by both dynamics is
+\begin{equation}
+ |\widetilde W_{\boldsymbol r,\nu,\pm}\rangle=
+ \frac{M_{n_{\rm shell}}(\boldsymbol r'-\boldsymbol r)
+ M_{\rm DW}(r'_x;r_x)|W_{\boldsymbol r,\nu,\pm}\rangle}
+ {\|M_{n_{\rm shell}}M_{\rm DW}|W_{\boldsymbol r,\nu,\pm}\rangle\|}.
+ \label{eq:ow}
+\end{equation}
+The shell mask depends on relative periodic displacement.  The optional hard-wall mask
+allows support only in the domain containing the center.  All cases use
+$N_x=20$, walls $x=5,15$, $\alpha_{\rm run,out}=30$, trial basis $X$, and a maximally
+mixed initial state.  These explicit walls override incompatible historical defaults.
+
+Define
+\begin{align}
+ \hat\chi_{\boldsymbol r,\nu,\pm}
+ &=\sum_{\boldsymbol r',\mu}
+ \widetilde W_{\boldsymbol r,\nu,\pm}(\boldsymbol r',\mu)
+ \hat c_{\boldsymbol r',\mu},\\
+ \hat N_{\boldsymbol r,\nu,\pm}
+ &=\hat\chi_{\boldsymbol r,\nu,\pm}^{\dagger}
+ \hat\chi_{\boldsymbol r,\nu,\pm},
+\end{align}
+and the rank-one single-particle matrix
+$P_{\boldsymbol r,\nu,\pm}=|\widetilde W_{\boldsymbol r,\nu,\pm}\rangle
+\langle\widetilde W_{\boldsymbol r,\nu,\pm}|$.  Distinct OW stabilizers need not
+commute.
+
+\section{The two requested dynamics}
+
+\subsection{Ordered perfect-correction channel}
+
+The published correlation convention is
+\begin{equation}
+ G_{ij}=\Tr(\hat\rho\,\hat c_i^\dagger\hat c_j).
+\end{equation}
+The canonical class returns $Q=2G-\id$; the runner records this bridge and stores
+physical $G$.  For a single mode $P$, let $\Diss^\dagger[\hat L]$ denote the
+adjoint Lindblad action on $G$.  The dephasing-free loss and gain terms are
+\begin{align}
+ \Diss^\dagger[\hat\chi](G)&=-\tfrac12\{P,G\},\\
+ \Diss^\dagger[\hat\chi^\dagger](G)&=P-\tfrac12\{P,G\}.
+ \label{eq:localnodeph}
+\end{align}
+Thus $\mathcal I+\Diss^\dagger[\hat\chi]$ and
+$\mathcal I+\Diss^\dagger[\hat\chi^\dagger]$ give the expressions sometimes called a
+``no-dephasing unit-step channel.''  They are formal forward-Euler increments, not
+physical local maps for overlapping OW modes at unit step.
+
+Number measurement contributes
+$\Diss^\dagger[\hat N](G)=PGP-\tfrac12\{P,G\}$.  The exact empty and filled reset
+maps are
+\begin{align}
+ \mathcal R_{P,+}(G)&=G-\{P,G\}+PGP,\\
+ \mathcal R_{P,-}(G)&=G+P-\{P,G\}+PGP,
+ \label{eq:localdeph}
+\end{align}
+Writing $\mathcal I$ for the identity superoperator, these maps obey
+\begin{align}
+ \mathcal R_{P,+}-\mathcal I
+ &=\Diss^\dagger[\hat\chi]+\Diss^\dagger[\hat N],\\
+ \mathcal R_{P,-}-\mathcal I
+ &=\Diss^\dagger[\hat\chi^\dagger]+\Diss^\dagger[\hat N].
+ \label{eq:resetidentity}
+\end{align}
+Equivalently, each reset is exactly
+$\mathcal R_a=\mathcal I+\mathcal L_a$, with $\mathcal L_a$ given by the
+appropriate right-hand side of Eq.~\eqref{eq:resetidentity}.
+At each visited unit cell the canonical order is $A+$ (loss), $A-$ (gain), $B+$
+(loss), $B-$ (gain); cells are visited in the saved random order.  The full sweep is
+the corresponding noncommuting product
+\begin{equation}
+ \mathcal E_{\boldsymbol s}=
+ \prod_{\boldsymbol r\in\boldsymbol s}^{\longleftarrow}
+ \mathcal R_{P_{\boldsymbol r,B,-},-}
+ \mathcal R_{P_{\boldsymbol r,B,+},+}
+ \mathcal R_{P_{\boldsymbol r,A,-},-}
+ \mathcal R_{P_{\boldsymbol r,A,+},+},
+ \label{eq:orderedchannel}
+\end{equation}
+with schedule record $\boldsymbol s$.  Equation~\eqref{eq:orderedchannel} is the
+production channel.  It is also exact to write
+\begin{equation}
+ \mathcal E_{\boldsymbol s}=\mathcal I+\mathcal L_{{\rm cycle},\boldsymbol s},
+ \qquad
+ \mathcal L_{{\rm cycle},\boldsymbol s}
+ =\mathcal E_{\boldsymbol s}-\mathcal I.
+ \label{eq:cycleL}
+\end{equation}
+Here $\mathcal L_{{\rm cycle},\boldsymbol s}$ contains every schedule-ordered cross
+term generated by the product; it is not $\sum_a\mathcal L_a$.  The literal
+no-dephasing unit-step Euler product is excluded
+because it is not positivity preserving for overlapping OW modes; it is retained only
+as a labelled small-system diagnostic.
+
+\subsection{Infinitesimal continuous equation}
+
+Let $a=(\boldsymbol r,\nu,n)$, $P_a=P_{\boldsymbol r,\nu,n}$,
+$s_a=1$ for $n=-$, and $s_a=0$ for $n=+$.  The continuous perfect-correction
+action matched to the local increments above is
+\begin{align}
+ \frac{\mathrm dG}{\mathrm dt}
+ &=\mathcal L_{\rm PC}^{(\zeta)}(G)\nonumber\\
+ &=\sum_a\left[s_aP_a-\frac12\{P_a,G\}
+ +\zeta P_aGP_a-\frac{\zeta}{2}\{P_a,G\}\right].
+ \label{eq:continuous}
+\end{align}
+The $\zeta=0$ arm contains unit gain and loss.  The $\zeta=1$ arm additionally contains
+unit number dephasing, equivalent at the many-body level to adding
+$\sum_{\boldsymbol r,\nu,n}\Diss[\hat N_{\boldsymbol r,\nu,n}]$.  Although number
+dephasing need not preserve Gaussian many-body states, Eq.~\eqref{eq:continuous} closes
+exactly on $G$.  Consequently an entropy evaluated only from the natural occupations is
+called a Gaussian entropy proxy whenever $\zeta=1$.
+Equation~\eqref{eq:continuous} is the infinitesimal Poisson generator
+$\sum_a\mathcal L_a$ (or its dephasing-deleted version), not the finite-sweep
+$\mathcal L_{{\rm cycle},\boldsymbol s}$ of Eq.~\eqref{eq:cycleL}.
+
+The production integrator is complex128 RK4 with $\delta t=0.05$.  A separate
+representative validation subset at $\delta t=0.1,0.05,0.025$ forms the
+step-convergence gate; these are not additional production physics cases.  The file
+\texttt{CI\_Lindblad\_DW.py} is an algebraic reference only; production consumes the
+same OW vectors as the channel and does not inherit that file's distinct wall rule.
+
+\section{Order, translation, and momentum estimators}
+
+Because Eq.~\eqref{eq:ow} is translated identically at every $y$ and the wall mask
+depends only on $x$,
+\begin{equation}
+ [T_y,\mathcal L_{\rm PC}^{(\zeta)}]=0.
+\end{equation}
+A translation-invariant initial state remains invariant under the continuous equation,
+and $G(k_y)$ has exact $2N_x\times2N_x$ blocks.  A finite ordered product generally
+does not commute with $T_y$, even if every local family is covariant.  We therefore do
+not diagonalize the diagonal Fourier slices of the untwirled channel state and call
+them bands.
+
+For each independent schedule sample $s$, first form the approved late-cycle average
+\begin{equation}
+ \overline G_s=\frac1{N_y}\sum_{c=N_y+1}^{2N_y}G_s(c),
+ \label{eq:timeaverage}
+\end{equation}
+then the exact spatial sliding estimator
+\begin{equation}
+ \mathcal T_y[\overline G_s]
+ =\frac1{N_y}\sum_{q=0}^{N_y-1}T_y^q\overline G_sT_y^{-q}.
+ \label{eq:twirl}
+\end{equation}
+Its blocks define the channel's explicitly \emph{twirled} spectrum.  Every such plot is
+accompanied by the untwirled residual
+\begin{equation}
+ \varepsilon_T=\frac{\|T_y\overline G_sT_y^{-1}-\overline G_s\|_F}
+ {\|\overline G_s\|_F}.
+ \label{eq:translationresidual}
+\end{equation}
+The map $\mathcal T_y$ is a nonunitary conditional expectation: in the $y$-momentum
+basis it deletes every $k_y\ne k_y'$ coherence.  It can therefore change the natural
+occupations, and its block eigenvalues must not be presented as eigenvalues of the raw
+ordered-channel state.  Nor is Eq.~\eqref{eq:twirl} a trajectory or schedule average;
+it is applied separately to the late average from each deterministic schedule sample.
+The symmetry-free spectrum retained for comparison is instead
+\begin{equation}
+ \overline G_s|\psi_{sj}\rangle=\nu^{\rm raw}_{sj}|\psi_{sj}\rangle,
+ \qquad
+ \nu^{\rm raw}_{s1}\le\cdots\le\nu^{\rm raw}_{s,2N_xN_y}.
+ \label{eq:rawspectrum}
+\end{equation}
+These global eigenvalues are well defined, but they carry no exact $k_y$ label.
+For a complementary representation that makes no symmetry assumption, a global mode
+$G|\phi_j\rangle=\nu_j|\phi_j\rangle$ carries momentum weight
+\begin{equation}
+ Z_j(k_y)=\sum_{x,\mu}|\langle x,k_y,\mu|\phi_j\rangle|^2,
+ \qquad \sum_{k_y}Z_j(k_y)=1.
+ \label{eq:momentumweight}
+\end{equation}
+
+\section{Campaign and storage design}
+
+\begin{table*}[t]
+\caption{Locked production design.  Alpha scans use DW truncation on only; endpoint
+size scans use it on and off.  The independent unit is the schedule sample for the
+ordered channel and the deterministic run for the continuous arms.}
+\begin{tabularx}{\textwidth}{@{}p{0.19\textwidth}X@{}}
+\toprule
+Endpoint grid & $N_y=32,48,64$; $\alpha_{\rm run,in}=1$;
+$n_{\rm shell}=1,2$; truncation on/off; channel with dephasing; continuous evolution
+without/with dephasing.\\
+Alpha grid & $N_y=64$; $\alpha_{\rm run,in}=1,1.5,1.75,1.875,2.125,2.25,2.5,3$;
+$n_{\rm shell}=1,2$; truncation on only.\\
+Full-frame controls & Continuous dynamics only; endpoint truncation on/off and static
+alpha scan with truncation on.\\
+Timing & Main evolution through $2N_y$; late average over $N_y+1,\ldots,2N_y$;
+response through $N_y/2$.\\
+Response subset & Exactly 22 endpoint cases: finite $n_{\rm shell}=1$ at all sizes,
+both truncation settings, and all three arms; plus full-frame continuous cases at
+$N_y=64$ for both truncation settings.  Alpha scans, $n_{\rm shell}=2$, and the
+$S=10$ schedule control omit response.\\
+Random schedules & Root seed $20260814$; one matched seed in the main grid; a separate
+canonical $N_y=64,n_{\rm shell}=1$, truncated channel case with $S=10$ independent
+schedule seeds.\\
+Case count & 105 unique case specifications: 27 channel, 39 continuous without
+dephasing, and 39 continuous with dephasing.\\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+Cheap observables are retained for sample $s$ at every integer cycle
+$0,1,\ldots,2N_y$.  Spectral estimators are evaluated only at the explicit checkpoint
+cycles declared in the immutable configuration; a dense $2560\times2560$ matrix is not
+diagonalized after every cycle.  Dense states are checkpoint-resolved, with final and
+late-average matrices retaining the sample axis.  Each atomic case directory contains
+an NPZ product, JSON metadata, a terminal marker, and checksums.  No pre-existing run
+directory is overwritten.
+
+\section{Occupation-spectrum results and estimators}
+
+Let
+\begin{equation}
+ G(k_y)|\phi_j(k_y)\rangle=\nu_j(k_y)|\phi_j(k_y)\rangle
+\end{equation}
+denote either an exact continuous block or an explicitly twirled channel block.  With
+$\mathcal W_a=\{x_a-1,x_a,x_a+1\}$,
+\begin{equation}
+ W_j^{(a)}(k_y)=\sum_{x\in\mathcal W_a,\mu}
+ |\phi_{j,x\mu}(k_y)|^2.
+\end{equation}
+Eligible wall modes have $W_j^{(a)}\ge0.25$ and minimize
+$|\nu_j-1/2|+0.02(1-W_j^{(a)})$ independently at each momentum.  The displayed slope
+is an ordinary least-squares fit over
+$|k_y|\le\max(2.5\,2\pi/N_y,0.22)$.  It is not overlap tracking or a topological index.
+
+The global midpoint gap, bulk-excluded gap, Gaussian entropy proxy, Gaussian
+charge-variance proxy, and midgap wall localization are
+\begin{align}
+ \Delta_{1/2}&=\min_j|\nu_j-\tfrac12|,\\
+ \Delta_{\rm bulk}&=\min_{j:W_j^{\mathcal W}<0.25}|\nu_j-\tfrac12|,\\
+ S_G&=-\sum_j[\nu_j\ln\nu_j+(1-\nu_j)\ln(1-\nu_j)],\\
+ V_G&=\tr[G(\id-G)]=\sum_j\nu_j(1-\nu_j),\\
+ \mathcal L_{\rm mid}&=\sum_{x\in\mathcal W}p_x,
+\end{align}
+where $p_x$ is averaged over the $2N_y$ modes closest to half occupation and normalized
+to unit total weight.  For a non-Gaussian full Fock-space state, $V_G$ is not the true
+charge variance; it is explicitly reported only as a two-point Gaussian proxy.  No
+eigenvalue outside $[0,1]$ is clipped to manufacture an entropy; its physicality
+violation is reported instead.
+
+\begin{figure*}[t]
+\centering
+\campaignfigure{canonical_twirled_occupation_spectra.pdf}{0.98\textwidth}
+\caption{Canonical $k_y$-resolved natural occupations at $N_x\times N_y=20\times64$,
+$\alpha_{\rm run,in}=1$, $\alpha_{\rm run,out}=30$, maximal-mixing initialization,
+and DW-support truncation on.  Red triangles and green squares are
+$n_{\rm shell}=1,2$; blue circles are the continuous full-frame control.  The channel
+panel is the exact translation twirl of the cycle-65--128 average for one matched random
+schedule; continuous panels use exact $k_y$ blocks over the corresponding time window.
+The dashed line marks $\nu=1/2$.}
+\label{fig:spectra}
+\end{figure*}
+
+Figure~\ref{fig:spectra} shows the central state-level result: a pair of branches crosses
+$\nu=1/2$ near $k_y=0$, while the bulk-excluded midpoint gap remains $0.496$--$0.499$.
+For $n_{\rm shell}=1$ with DW truncation, the selected wall slopes are
+$(-0.5858,+0.5843)$ for the channel, $(-0.6599,+0.6599)$ for continuous evolution
+without dephasing, and $(-0.6186,+0.6186)$ with dephasing.  The channel's finite-size
+midpoint gap is $1.74\times10^{-2}$; the continuous values are
+$3.33\times10^{-10}$ and $3.12\times10^{-10}$.  The continuous full-frame slopes are
+$\pm0.9496$ without and $\pm0.9003$ with dephasing.  Finite shell changes the slope and
+localization, but not the existence of the crossing.
+
+\begin{figure*}[t]
+\centering
+\campaignfigure{channel_untwirled_sorted_occupation_spectrum.pdf}{0.98\textwidth}
+\caption{Ascending natural occupations of the \emph{raw, untwirled} channel late
+average $\overline G_s$ at $20\times64$ and $\alpha_{\rm run,in}=1$.  No translation
+twirl and no $k_y$ block diagonalization is used.  The left panel contains all
+$2N_xN_y=2560$ eigenvalues; the right panel magnifies the ranks nearest half filling.
+Color distinguishes $n_{\rm shell}=1,2$, and solid/dashed lines distinguish DW-support
+truncation on/off.  These curves are global rank spectra, not dispersions.}
+\label{fig:raw-spectrum}
+\end{figure*}
+
+Figure~\ref{fig:raw-spectrum} is the direct check that the channel conclusion is not
+created by the twirl.  The raw midpoint gaps for
+$(n_{\rm shell},{\rm DW\ trunc.})=(1,{\rm off}),(1,{\rm on}),(2,{\rm off}),
+(2,{\rm on})$ are respectively
+$2.81\times10^{-3}$, $1.72\times10^{-2}$, $2.93\times10^{-4}$, and
+$3.27\times10^{-3}$.  Their twirled counterparts differ only modestly in these cases,
+but only the twirled values can be organized into $k_y$ blocks.  Similar eigenvalue
+lists do not imply that the raw map has translation symmetry.
+
+\begin{figure*}[t]
+\centering
+\campaignfigure{matched_alpha_scan_estimators.pdf}{0.98\textwidth}
+\caption{Matched alpha scan at $N_y=64$ with DW-support truncation on.  Columns report
+the global (markers) and bulk-excluded (faint curves)
+midpoint gaps, $S_G/N_y$, midgap wall localization, and relaxation.  The vertical line at
+$\alpha_{\rm run,in}=2$ is a parent-model reference, not a sampled point.  Rows are the
+full-dephasing channel, continuous no-dephasing evolution, and continuous
+full-dephasing evolution; colors/markers distinguish shell range.}
+\label{fig:alpha}
+\end{figure*}
+
+The occupation gap grows sharply through the unsampled $\alpha=2$ reference.  For the
+$n_{\rm shell}=1$ dephasing-on continuous arm it changes from
+$7.04\times10^{-4}$ at $\alpha=1.5$ to $5.75\times10^{-2}$ at $1.75$,
+$1.68\times10^{-1}$ at $1.875$, and $3.89\times10^{-1}$ at $2.125$; the channel shows
+the same crossover with larger finite-sweep irregularity.  In contrast, the measured
+relaxation scales remain finite: approximately $2.62$ or larger for the channel,
+$1.00$ or larger without continuous dephasing, and $1.90$ or larger with it.  The
+campaign therefore finds an occupation-spectrum transition but no dynamical gap
+closing in the measured sector.
+
+\section{Relaxation and density-kick response}
+
+The affine continuous equation has a homogeneous covariance generator
+$\mathbb L^{(\zeta)}$; the ordered sweep has a homogeneous map $\mathbb M_{\boldsymbol s}$.
+Their comparable relaxation scales are
+\begin{align}
+ \gamma_{\rm cont}&=\min_{\ell\ne0}[-\operatorname{Re}\ell],\\
+ \gamma_{\rm ch}&=\min_{0<|m|<1}[-\ln|m|],
+\end{align}
+with exact neutral sectors removed by a stated tolerance.  Complex and nonnormal
+spectra are retained rather than replaced by the older $2d_{\min}$ formula.
+
+A source at wall $a$ and coordinate $y_0$ is kicked by
+\begin{equation}
+ \hat U_\epsilon=\exp[-i\epsilon\hat n_{a,y_0}],\qquad
+ \delta G(0)=i[P_{a,y_0},G_{\rm bg}].
+\end{equation}
+The same homogeneous channel or generator then propagates the tangent.  The wall profile
+and positive-lobe center are
+\begin{align}
+ \chi_a^{\rm wall}(r,t)&=\sum_{x\in\mathcal W_a,\mu}
+ [\delta G(t)]_{x,y_0+r,\mu;x,y_0+r,\mu},\\
+ y_{+,a}(t)&=\frac{\sum_r\widetilde r[\chi_a^{\rm wall}(r,t)]_+}
+ {\sum_r[\chi_a^{\rm wall}(r,t)]_+},
+\end{align}
+where $\widetilde r=((r+N_y/2)\bmod N_y)-N_y/2$.  Velocity is the OLS slope over
+$2\le t\le0.375N_y$, subject to the saved response-norm threshold.  For the ordered
+channel, all $y_0$ are retained before averaging, so the schedule-origin spread is a
+deterministic systematic rather than a statistical confidence interval.
+
+\begin{figure*}[t]
+\centering
+\campaignfigure{matched_density_kick_response.pdf}{0.98\textwidth}
+\caption{Local density-phase response for the canonical $N_y=64$,
+$n_{\rm shell}=1$, DW-truncated endpoint.  Rows compare the channel and the two
+continuous arms; columns are the two walls.  The channel stores all 64 source origins
+and is source-averaged only for display; exact translation symmetry makes one source
+sufficient in the continuous arms.  White points and gold lines show the retained
+positive-lobe centers and OLS fits; dashed lines mark the nominal fit window.  Displayed
+annotations are profile slopes, while source-resolved channel fit quality is reported
+in the text.}
+\label{fig:response}
+\end{figure*}
+
+The continuous response is counterpropagating: velocities are
+$(-0.0989,+0.0989)$ without dephasing and $(-0.1557,+0.1557)$ with dephasing, with
+minimum deterministic $R^2=0.9983$ and $0.9953$, respectively.  The ordered channel
+does not pass the analogous directional test.  Its mean source-resolved velocities are
+$(-0.5999,-0.6643)$, both with the same sign, and the minimum $R^2$ values are only
+$5\times10^{-6}$ and $2.7\times10^{-4}$.  The channel perturbation also decays before
+most of the nominal fit window.  We therefore do not interpret its fitted displacement
+as a chiral velocity.
+
+The size and direct-dynamics checks in Fig.~\ref{fig:size} replace the old auxiliary
+finite-$p$ Strang comparison.  The physical channel has one unit reset per stabilizer,
+so no weak-step order is inferred from it.
+\begin{figure*}[t]
+\centering
+\campaignfigure{matched_velocity_size_check.pdf}{0.48\textwidth}\hfill
+\campaignfigure{matched_channel_continuous_differences.pdf}{0.48\textwidth}
+\caption{Endpoint checks.  Left: raw fitted velocities versus $1/N_y$ for both
+walls and both DW-support settings.  Right: finite unit-step channel minus the
+dephasing-matched continuous result, including state, occupation, response-profile,
+and velocity differences.  No thermodynamic extrapolation or weak-step convergence
+fit is performed.}
+\label{fig:size}
+\end{figure*}
+
+The finite ordered sweep does not approach the infinitesimal generator over the three
+available sizes.  Across the finite-shell endpoint controls, the late-state relative
+Frobenius difference is $2.29$--$3.02\%$ and the occupation RMS difference is
+$0.0072$--$0.0091$; the response-profile relative error is $1.06$--$1.28$ wherever it
+is evaluated.  This is expected because a unit sweep retains schedule-ordered cross
+terms that are absent from the summed infinitesimal generator.
+
+\section{Validation and interpretation rules}
+
+All 105 cases completed and all immutable result hashes survived analysis.  The local
+equations agree with the canonical channel on small systems;
+the continuous action agrees with the derivative of weakened local maps; RK4 shows the
+expected step convergence; the full-dephasing channel remains physical; continuous
+translation residuals meet tolerance; cycle coordinates and sample IDs are complete;
+and the response tangent agrees with a finite central difference.  Three stored
+gauge-dependent raw-OW byte hashes differed across otherwise matched arms; fresh
+construction reproduced one recorded realization in each group, so these are retained
+as provenance warnings rather than misidentified as physical-projector mismatches.
+
+The completed note may report stationary or late-state occupation flow, relaxation,
+and damped directional response.  It may not infer a trajectory Lyapunov boundary mode,
+quantized transport, or schedule-independent chirality.  The random ordered channel's
+translation twirl is an estimator applied to its late state, not a symmetry retroactively
+assigned to the underlying map.  Its raw ascending spectrum is reported separately and
+is never labeled by $k_y$.
+
+This source is maintained under a strict nine-page main-text ceiling.  Detailed schemas,
+derivations, convergence tables, and legacy
+reconciliation belong in the companion supplement and analysis notebook.
+
+\begin{thebibliography}{9}
+\bibitem{Bhuiyan2026}
+A.~Bhuiyan, G.~Pan, and S.-K.~Jian,
+``Free-fermion dynamics with measurements: Topological classification and adaptive
+preparation of topological states,'' Phys. Rev. Research \textbf{8}, 023147 (2026),
+doi:10.1103/nk38-ygyq.
+\end{thebibliography}
+
+\end{document}

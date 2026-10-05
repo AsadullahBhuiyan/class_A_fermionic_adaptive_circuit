@@ -1,0 +1,213 @@
+\documentclass[aps,prb,twocolumn,10pt,raggedbottom,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+\hypersetup{pdftitle={Relaxation gap of a trajectory-averaged fermionic reset circuit},
+  pdfauthor={Class-A fermionic adaptive-circuit project}}
+\newcommand{\Id}{\hat{\mathbf{1}}}
+\newcommand{\id}{\mathbf{1}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\E}{\widetilde{\mathcal E}}
+\begin{document}
+\title{Relaxation gap of a trajectory-averaged fermionic reset circuit}
+\author{Class-A fermionic adaptive-circuit project}
+\noaffiliation
+\date{October 1, 2026}
+\begin{abstract}
+We relate the relaxation of the outcome-averaged density matrix to the
+single-particle projector product for one measurement cycle. Two-point
+closure gives an upper bound on the many-body gap. For perfect occupation
+resets, higher-order neutral correlations cannot relax more slowly, so
+this bound is saturated. The result applies to a fixed repeated schedule,
+including noncommuting, support-truncated Wannier measurements.
+\end{abstract}
+\maketitle
+\setcounter{tocdepth}{1}
+\tableofcontents
+
+\section{Measurement cycle and two-point relaxation}
+We consider the physical layer after discarding the measurement outcomes
+and fresh ancillary modes. As in the channel construction of Bhuiyan,
+Pan, and Jian (BPJ), Appendix~D~\cite{BPJ}, lower-band overcomplete
+Wannier (OW) modes are filled and upper-band modes emptied. Here we
+retain the exact discrete resets in their prescribed order, without a
+continuous-time approximation.
+
+Let $\{\hat\psi_i,\hat\psi_j^\dagger\}=\delta_{ij}$ for $N$ fermion
+modes. At step $j$, measure $\hat\chi_j=\sum_i v_{ji}\hat\psi_i$,
+with $v_j^\dagger v_j=1$ and
+$\hat N_j=\hat\chi_j^\dagger\hat\chi_j$. Averaging the measurement
+and perfect feedback gives the physical-layer channels
+\begin{align}
+ \E_{j,0}(\hat\rho)&=\hat\chi_j\hat\rho\hat\chi_j^\dagger
+ +(\Id-\hat N_j)\hat\rho(\Id-\hat N_j),\nonumber\\
+ \E_{j,1}(\hat\rho)&=\hat\chi_j^\dagger\hat\rho\hat\chi_j
+ +\hat N_j\hat\rho\hat N_j. \label{eq:reset}
+\end{align}
+The target occupation is $s_j=0$ or $1$. The projector terms include
+measurement dephasing; no separate dephasing step is added. One cycle
+is the composition $\E=\E_{M,s_M}\circ\cdots\circ\E_{1,s_1}$,
+with step~1 first. Distinct OW modes need not be orthogonal, so this
+order matters.
+
+Write $\overline G_{ab}=\Tr(\overline{\hat\rho}\,
+\hat\psi_a^\dagger\hat\psi_b)$ and set
+$P_j=v_jv_j^\dagger$, $Q_j=\id-P_j$. A reset removes correlations
+with the measured mode and sets its occupation:
+\begin{equation}
+ \overline G'=Q_j\overline GQ_j+s_jP_j. \label{eq:localG}
+\end{equation}
+The part of the initial two-point function surviving one cycle is
+therefore propagated by
+\begin{equation}
+ A=Q_M\cdots Q_1,\qquad
+ \overline G_{n+1}=A\overline G_nA^\dagger+B. \label{eq:cycle}
+\end{equation}
+The source $B$ depends on the reset targets, not on the input state.
+For deviations from a stationary correlation matrix,
+$\delta G_{n+1}=A\delta G_nA^\dagger$. Column vectorization gives
+$A^*\otimes A$, whose eigenvalues are $a_i a_j^*$ if $a_i$ are those
+of $A$. Thus, for $0<r=\rho(A)<1$,
+\begin{equation}
+ \Delta_{\rm sp}=-\log r,\qquad
+ \Delta_C=-2\log r=2\Delta_{\rm sp}. \label{eq:rate}
+\end{equation}
+All rates are per complete cycle. Here $A$ is the homogeneous
+correlation propagator, not a single-record transfer matrix. Its
+spectral radius, rather than its largest singular value, sets the
+asymptotic two-point decay rate.
+
+\section{From two-point decay to the many-body gap}
+First consider Eq.~\eqref{eq:cycle} alone. The Heisenberg channel
+preserves the span of $\Id$ and all
+$\hat\psi_a^\dagger\hat\psi_b$, so its restriction has eigenvalues
+$1$ and $a_i a_j^*$. These also belong to the full channel spectrum.
+For a mixing channel in any sector containing these operators, the
+largest nonstationary eigenvalue modulus therefore satisfies
+\begin{equation}
+ r_{\rm MB}\ge r^2,\qquad
+ \boxed{\Delta_{\rm MB}\le\Delta_C=2\Delta_{\rm sp}.}
+ \label{eq:bound}
+\end{equation}
+This is the spectral-inclusion bound: a positive two-point rate alone
+cannot exclude a slower higher-order correlation.
+
+To see the slow density mode directly, choose $A^\dagger u=a^*u$.
+The centered occupation
+\begin{equation}
+ \hat O_u=\sum_{ab}u_a^*u_b
+ \bigl(\hat\psi_a^\dagger\hat\psi_b-(G_{\rm ss})_{ab}\Id\bigr)
+ \label{eq:densitymode}
+\end{equation}
+obeys $\E^\dagger(\hat O_u)=|a|^2\hat O_u$ by
+Eq.~\eqref{eq:cycle}. Taking $|a|=r$ constructs a neutral many-body
+eigenoperator with the two-point decay rate.
+
+For perfect resets we can examine those correlations explicitly.
+Choose a mode basis starting with $\hat\chi_j$, and let $\hat B$
+contain only orthogonal modes. Equation~\eqref{eq:reset} gives,
+for an even total operator,
+\begin{align}
+ \E_{j,s}^\dagger(\hat B)&=\hat B &&(\hat B\text{ even}),\nonumber\\
+ \E_{j,s}^\dagger(\hat\chi_j^{(\dagger)}\hat B)&=0
+ &&(\hat B\text{ odd}),\nonumber\\
+ \E_{j,s}^\dagger(\hat N_j\hat B)&=s\hat B
+ &&(\hat B\text{ even}). \label{eq:localrule}
+\end{align}
+Physically, a reset erases a measured leg of a correlation. A measured
+occupation pair contributes its fixed value and leaves a correlation
+of two fewer fermion operators. A $2p$-point function therefore couples
+only to itself and lower-order functions. This operator identity does
+not assume Wick factorization of the input state.
+
+Charge-neutral correlations take the form
+\begin{equation}
+ F_{I;J}^{(p)}=\Tr\!\left(\hat\rho\,
+ \hat\psi_{i_1}^\dagger\cdots\hat\psi_{i_p}^\dagger
+ \hat\psi_{j_p}\cdots\hat\psi_{j_1}\right), \label{eq:moments}
+\end{equation}
+where $I,J$ are increasing $p$-element index sets. The part remaining
+of order $2p$ propagates each creation index with $A$ and each
+annihilation index with $A^*$. Fermion antisymmetry gives its matrix
+entries over one cycle:
+\begin{equation}
+ H_p[I,J;K,L]=\det A[I,K]\,\det A[J,L]^*. \label{eq:Hp}
+\end{equation}
+The same expression follows step by step from $Q_j$, composing its
+minors in the actual order by the Cauchy--Binet identity. Ordering
+moments by $p$ makes their evolution block triangular; terms coupling
+different orders do not change its eigenvalues. The multipliers
+of Eq.~\eqref{eq:Hp} are
+\begin{equation}
+ \Lambda_{I,J}=\prod_{i\in I}a_i\prod_{j\in J}a_j^*,\qquad
+ |I|=|J|=p. \label{eq:products}
+\end{equation}
+The sets are independent and may overlap: a density fluctuation can
+use the same single-particle label on both legs. These moments span
+all neutral operators, with
+$\sum_p\binom Np^2=\binom{2N}{N}$ basis elements. Schur triangularization
+gives the same products even for a nondiagonalizable $A$.
+
+The constant moment ($p=0$) supplies eigenvalue 1. Every $p\ge1$
+product obeys $|\Lambda_{I,J}|\le r^{2p}\le r^2$. A density fluctuation
+attains $r^2$ at $p=1$ by choosing $I=J=\{i_*\}$ with
+$|a_{i_*}|=r$. Thus no higher neutral correlation is slower, the
+stationary eigenvalue in this sector is simple, and
+\begin{equation}
+ \boxed{\Delta_{q=0}=\Delta_C=-2\log\rho(A).} \label{eq:neutralgap}
+\end{equation}
+
+\section{Physical sector and earlier results}
+Charge neutral means $[\hat N_F,\hat\rho]=0$, where
+$\hat N_F=\sum_i\hat\psi_i^\dagger\hat\psi_i$; it permits mixtures
+of number sectors. Definite-charge reset Kraus operators preserve this
+condition while changing particle number. Maximal mixing and
+fixed-number Slater preparations both lie in this sector.
+
+With $p$ creations and $\ell$ annihilations, the even-sector argument
+gives products of $p+\ell$ factors. Every nonconstant even product
+has at least two, while the neutral sector attains $r^2$. Hence
+$\Delta_{\rm even}=\Delta_{q=0}$. To include odd operators, use the
+similarity $\mathcal S(\hat O)=(-1)^{\hat N_F}\hat O$. It changes the
+sign of the odd-Kraus sandwich in
+$\mathcal S\E_j^\dagger\mathcal S$; on odd operators that sign cancels
+the fermionic reordering sign and restores Eq.~\eqref{eq:localrule}.
+Odd products then have maximal modulus $r$, attained with one factor.
+Thus $\Delta_{\rm full}=\Delta_{\rm sp}=\Delta_C/2$ for the specified
+Kraus extension; physical density matrices are parity even.
+
+For an explicit continuous-time counterpart, see Barthel--Zhang,
+Sec.~III.6: Proposition~7 and Eq.~(63) identify the covariance generator
+inside the many-body Liouvillian spectrum~\cite{BZ}. Their Sec.~III.5,
+Proposition~6 and the discussion after Eq.~(57d), distinguish full and
+two-point gaps in quasi-free Lindbladians. Equation~\eqref{eq:bound}
+is the discrete-channel counterpart, derived as Eq.~(4) in the
+September~29 project note~\cite{project}. Equality~\eqref{eq:neutralgap}
+here requires the additional exact-reset argument.
+
+BPJ Appendix~D, Eqs.~(D34)--(D40), instead estimates relaxation from
+band dissipation rates in an effective continuous-time, untruncated
+bulk description~\cite{BPJ}; it does not establish the present
+finite-cycle identity. Our result allows nonnormal transients and
+Jordan prefactors. It fixes an asymptotic spectral rate, not a
+size-uniform mixing time or conditional-trajectory purification time.
+Extra dephasing, imperfect feedback, or averaging different schedules
+requires a new higher-order analysis.
+
+\begin{thebibliography}{3}
+\bibitem{BPJ}
+A. Bhuiyan, H. Pan, and C.-M. Jian,
+\href{https://doi.org/10.1103/nk38-ygyq}{Phys. Rev. Research \textbf{8}, 023147 (2026)},
+Appendix D.
+\bibitem{BZ}
+T. Barthel and Y. Zhang,
+\href{https://doi.org/10.1088/1742-5468/ac8e5c}{J. Stat. Mech. (2022) 113101},
+Secs. III.5--III.6;
+\href{https://arxiv.org/pdf/2112.08344}{arXiv:2112.08344v5}, pp. 14--16.
+\bibitem{project}
+A. Bhuiyan, \textit{A spectral bound on relaxation of the
+trajectory-averaged circuit}, project note (September 29, 2026), Eq. (4);
+\href{../../../matched_markov_lindblad_campaign/spectral_gap_v1/results/20260929T191448Z/analysis/gap_note.pdf}{local PDF}.
+\end{thebibliography}
+\end{document}

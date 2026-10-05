@@ -1,0 +1,50 @@
+{
+  "sampling_revision": "hard_wall_random_center_chern_nx20_ny20-30-40_s100_r0p2_v1",
+  "root_seed": 2026092701,
+  "nx": 20,
+  "ny_values": [
+    20,
+    30,
+    40
+  ],
+  "samples": 100,
+  "cycles_per_ny": 2,
+  "alpha_1": 1.0,
+  "alpha_2": 30.0,
+  "nshell": 1,
+  "DW": true,
+  "dw_truncation": true,
+  "triv_region_local_mode": false,
+  "meas_slab_only": true,
+  "perfect_correction": true,
+  "postselect": false,
+  "postselect_probability": 0.0,
+  "sequence": "raster_y",
+  "init_mode": "default",
+  "filling_frac": 0.5,
+  "n_a": 0.5,
+  "trial_orbitals": "X",
+  "boundary_conditions": "periodic",
+  "dtype": "complex128",
+  "backend": "local",
+  "state_representation": "physical_frame",
+  "frame_reorthonormalize_interval": 1,
+  "centers_per_cycle": 10,
+  "radius_fraction": 0.2,
+  "center_chunk_size": 10,
+  "calibration_batches": [
+    25,
+    50,
+    100
+  ],
+  "fallback_batches": [
+    10,
+    5
+  ],
+  "warmup_cycles": 1,
+  "timed_cycles": 5,
+  "memory_limit_gib": 32.0,
+  "forecast_margin": 1.25,
+  "max_forecast_minutes": 45.0,
+  "stop_after_batch_seconds": 3600.0
+}

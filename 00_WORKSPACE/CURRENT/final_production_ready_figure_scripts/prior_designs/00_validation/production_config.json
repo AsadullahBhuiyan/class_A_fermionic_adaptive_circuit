@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "bundle": "00_validation",
+  "sampling_revision": "production_10sample_v4_occupied_frame_cycle_resolved",
+  "audit_sha256": "d0173317608b2da2a45f6185d15a85237e11265917a0ceed6ff79dc761261de9",
+  "root_seed": 2026081700,
+  "locked_contract": {
+    "samples": 10,
+    "sample_shard_size": 5,
+    "cycles_rule": "2*Ny",
+    "physical_burn_in_cycles": 0,
+    "sequence": "random",
+        "dtype": "complex128",
+        "canonical_entry_point": "classA_U1FGTN_gpu.run_markov_circuit"
+  },
+  "validation_matrix": {
+    "exact_branch_enumeration": {"Nx": 1, "Ny": 2, "cycles": 1, "branches": 256},
+    "cpu_device_gpu_device_parity": {"Nx": 1, "Ny": 2, "cycles": 2, "samples": 2},
+    "production_path_smoke": {"Nx": 1, "Ny": 2, "samples": 2, "cycles": 2},
+    "checks": [
+      "random schedule is a fresh per-sample permutation every cycle",
+      "record replay reproduces final covariance",
+      "record probabilities reproduce realized log likelihood",
+      "record observer does not alter dynamics",
+      "tangent QR factors are finite and stabilized frames are orthonormal",
+      "CPU-device and GPU-device execution agree for the same initial state and frozen word",
+      "compact validation archive contains zero permanent covariance matrices"
+    ]
+  }
+}

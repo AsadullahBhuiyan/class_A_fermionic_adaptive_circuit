@@ -1,0 +1,58 @@
+{
+  "schema": "parent_schrodinger_rk4_campaign_v1",
+  "campaign_id": "N20x24_parent_schrodinger_rk4_s50_tau1e4_v1",
+  "source_campaign": {
+    "campaign_id": "N20x24_state_projector_pump_s100_v1",
+    "config": "campaign_config.state_projector_pump_n20x24_s100_v1.json",
+    "output_root": "results/N20x24_state_projector_pump_s100_v1",
+    "sample_ids": [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96],
+    "selection_rule": "every fourth preregistered sample ID; independent of prior pump outcomes"
+  },
+  "geometry": {
+    "Nx": 20,
+    "Ny": 24,
+    "left_x_stop_exclusive": 10,
+    "periodic_direction": "y"
+  },
+  "evolution": {
+    "projector": "P0 = F0 F0^dagger",
+    "parent": "h0 = 1 - 2 P0",
+    "twist": "h_rs(phi) = h0_rs exp(i phi d_y(r,s)/Ny), Hermitian symmetrized",
+    "periodic_displacement": "minimum_image",
+    "equation": "i dF/dt = h(phi(t)) F",
+    "integrator": "classical explicit RK4 with time-dependent stage Hamiltonians",
+    "ramp_time": 10000.0,
+    "flux_intervals": 128,
+    "steps_per_interval": 320,
+    "directions": {"ccw": 1, "cw": -1},
+    "schedule": "phi(t) = sigma 2 pi t / ramp_time",
+    "frame_gauge": "thin QR at observation boundaries only",
+    "dtype": "complex128"
+  },
+  "ensemble": {
+    "walls": ["soft", "hard"],
+    "endpoint_states_total": 50,
+    "paths_total": 100,
+    "independent_sampling_unit": "saved monitored endpoint trajectory"
+  },
+  "execution": {
+    "cpu_list": "28-55",
+    "workers": 28,
+    "blas_threads": 1,
+    "checkpoint_every_intervals": 4,
+    "progress_update_steps": 64
+  },
+  "analysis": {
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 2026090511,
+    "confidence_level": 0.95,
+    "static_event_threshold": 0.5
+  },
+  "acceptance": {
+    "input_gram_tolerance": 1e-8,
+    "post_qr_gram_tolerance": 1e-10,
+    "charge_conservation_tolerance": 1e-8,
+    "finite_difference_quantization_is_gate": false,
+    "adiabaticity_is_gate": false
+  }
+}

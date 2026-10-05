@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "campaign_id": "Nx20-24-28_Ny20_nsh1_dwtrunc1_init-maxmix_S25_C100",
+  "scientific_configuration": {
+    "Nx_values": [20, 24, 28],
+    "Ny": 20,
+    "cycles": 100,
+    "samples_initial": 25,
+    "samples_topup": 50,
+    "initial_state": "maxmix",
+    "protocol": "perfect_correction",
+    "n_a": 0.5,
+    "sequence": "raster_y",
+    "domain_wall": true,
+    "domain_wall_rule": "max(1, Nx // 3)",
+    "expected_domain_wall_locations": {
+      "20": [4, 16],
+      "24": [4, 20],
+      "28": [5, 23]
+    },
+    "dw_truncation": true,
+    "meas_slab_only": true,
+    "nshell": 1,
+    "alpha_topological_region": 1.0,
+    "alpha_trivial_region": 30.0,
+    "trial_orbitals": "X"
+  },
+  "analysis": {
+    "wall_rows": "two exact domain-wall rows",
+    "active_bulk_rows": "active rows at distance at least two from either wall",
+    "entropy_units": "bits per unit cell",
+    "convergence_epsilon_bits_per_cell": 0.01,
+    "wall_fit_window_cycles": [5, 30],
+    "bulk_fit_window_cycles": [1, 30],
+    "bootstrap_count": 2000,
+    "bootstrap_seed": 20260821,
+    "confidence_level": 0.95,
+    "equivalence_margin_cycles": 5,
+    "rolling_window_display_only": 5,
+    "extension_cycles_if_censored": 150
+  },
+  "canonical_dynamics_entry_point": "classA_U1FGTN.run_markov_circuit",
+  "covariance_history_saved": false,
+  "checkpoint_stride_cycles": 5
+}

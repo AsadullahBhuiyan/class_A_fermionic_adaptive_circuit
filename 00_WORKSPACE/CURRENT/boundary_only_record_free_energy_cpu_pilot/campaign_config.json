@@ -1,0 +1,46 @@
+{
+  "schema": "boundary_only_record_free_energy_cpu_config_v1",
+  "revision": "boundary_only_flattened_ground_nx16_ny16-32_s100_4ny_v1",
+  "root_seed": 2026091706,
+  "geometry": {
+    "Nx": 16,
+    "Ny_values": [16, 20, 24, 28, 32],
+    "domain_wall_interval": [4, 12],
+    "twist_y": 1e-7
+  },
+  "dynamics": {
+    "cycles_rule": "4*Ny",
+    "nshell": 1,
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "trial_orbitals": "X",
+    "domain_wall_truncation": true,
+    "initialization": "flattened_parent_lowest_half",
+    "sequence": "raster_y",
+    "perfect_correction": true,
+    "postselect": false,
+    "measurement_slab_only": false,
+    "state_representation": "physical_frame",
+    "dtype": "complex128",
+    "canonical_entry_point": "classA_U1FGTN.run_markov_circuit"
+  },
+  "arms": {
+    "exact_wall": {
+      "samples_per_size": 100,
+      "x_offsets_from_walls": [0]
+    },
+    "thin_strip": {
+      "samples_per_size": 25,
+      "x_offsets_from_walls": [-1, 0, 1]
+    }
+  },
+  "analysis": {
+    "fit_windows_in_Ny": [[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+    "bootstrap_replicates": 2000,
+    "bootstrap_seed": 2026091707
+  },
+  "execution": {
+    "default_max_workers": 24,
+    "one_blas_thread_per_worker": true
+  }
+}

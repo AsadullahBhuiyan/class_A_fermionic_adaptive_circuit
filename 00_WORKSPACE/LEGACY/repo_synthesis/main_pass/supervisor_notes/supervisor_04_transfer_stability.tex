@@ -1,0 +1,427 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\I}{\mathbf{1}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\Dlam}{\Delta_{\lambda}}
+\newcommand{\Tp}{T_{\rm p}}
+\newcommand{\SigmaLL}{\Sigma_{LL}}
+\newcommand{\SigmaLR}{\Sigma_{LR}}
+\newcommand{\pathref}[1]{\path{#1}}
+
+\begin{document}
+
+\title{Supervisor 04 Synthesis: Transfer Stability, Choi Gaps, and Lyapunov Evidence}
+\author{Supervisor 04}
+\date{\today}
+
+\begin{abstract}
+This note synthesizes the assigned worker reports on Lyapunov spectra,
+regularized GPU Choi transfer matrices, and CPU particle-Choi transfer gaps,
+and checks those claims against the non-excluded transfer/stability source
+areas of the repository.  The repository supports a robust qualitative
+conclusion: the uniform topological geometry is strongly contracting in the
+measured transfer diagnostics, whereas the domain-wall geometry exhibits a
+near-marginal slow channel localized to, or at least naturally associated with,
+the domain-wall sector.  The strongest numerical evidence is the finite-time
+single-particle Lyapunov campaign, where the domain-wall gap is suppressed by
+one to two orders of magnitude relative to the uniform geometry and decreases
+over \(N_y=30,40,50\).  The Choi-transfer evidence is complementary rather
+than identical: the GPU regularized Choi chart gives an early-cycle finite-sector
+diagnostic but censors before final time, while the CPU Choi pipeline records
+stable final Choi spectra and eigenvectors for slab-restricted domain-wall runs
+with a separate endpoint-saturation caveat.  The Boss should preserve the
+qualitative convergence of diagnostics and scrutinize any claim of an already
+resolved thermodynamic scaling law or equality between the Lyapunov and Choi
+operators.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+I read \path{REPO_POLICY.md} before inspecting the repository.  I did not edit
+files, execute notebooks, or load large binary arrays.  I excluded every path
+containing \texttt{haining}, \texttt{haoyu}, or \texttt{erroneous},
+case-insensitively.  I read only the assigned worker notes
+\path{repo_synthesis/main_pass/worker_notes/worker_12_lyapunov_spectra.tex},
+\path{repo_synthesis/main_pass/worker_notes/worker_13_regularized_choi_transfer.tex},
+and
+\path{repo_synthesis/main_pass/worker_notes/worker_14_cpu_choi_transfer_gap.tex};
+I did not read other worker notes, supervisor notes, or boss notes.
+
+The independent audit covered the requested transfer/stability areas:
+\path{colab_lyapunov/},
+\path{colab_regularized_choi_transfer_matrix/},
+\path{choi_covariance_cpu/}, and
+\path{lyapunov_analysis_v2/}.  I also inspected non-excluded transfer/gap
+scripts and documents surfaced by a repository search, including
+\path{markov_transfer_operators/markov_transfer_operators_note.tex} and
+\path{scripts/smoke_choi_dense_vs_rank1.py}.  Binary spectra and eigenvector
+payloads such as \texttt{.npz} files were not opened.
+
+\section{Synthesis of Worker Claims}
+
+\subsection{Worker 12: Lyapunov Spectra}
+
+Worker 12's account is well supported by the audited sources.  The Lyapunov
+campaign measures a Benettin/QR spectrum for a frame
+\(V\in\mathbb{C}^{2N_xN_y\times n_{\rm vec}}\) living in the top-layer
+single-particle orbital basis, not the full real tangent space of Hermitian
+covariance perturbations.  The implemented diagnostic is the final-time
+finite-cycle gap
+\begin{equation}
+  \Dlam(t)=\min_i |\lambda_i(t)|,
+\end{equation}
+where the logarithmic singular accumulation is normalized per Markov cycle.
+
+The key numerical claim is that \(DW=0\) is \(O(1)\)-gapped, while \(DW=1\) is
+near-marginal.  The writeup reports, for perfect correction,
+\[
+  \Dlam_{DW0}^{\rm PC}(N_y=30,40,50)
+  \simeq (0.722,0.748,0.768),
+  \qquad
+  \Dlam_{DW1}^{\rm PC}
+  \simeq (0.027,0.024,0.020),
+\]
+and for post-selection
+\[
+  \Dlam_{DW0}^{\rm PS}\simeq(0.945,0.955,0.952),
+  \qquad
+  \Dlam_{DW1}^{\rm PS}\simeq(0.021,0.0076,0.0078).
+\]
+The same source reports that \(DW=0\) plateaus within roughly ten cycles, while
+\(DW=1\) does not clearly plateau within \(T=N_y\).  This is the central
+stability contrast.
+
+Worker 12 also reports a physical localization/correlation story.  The Chern
+marker remains quantized for \(DW=0\), is sub-integer for \(DW=1\), and
+sample-by-sample smaller \(\calC\) correlates with smaller \(\Dlam\).  The
+minimum-\(|\lambda|\) vector is described as concentrated near the domain-wall
+columns \(x=5,15\) and extended along \(y\).  Because I did not load the binary
+eigenvector arrays, the spatial statement remains accepted as text-level
+writeup evidence rather than independently recomputed evidence.
+
+\subsection{Worker 13: Regularized GPU Choi Transfer}
+
+Worker 13's interpretation is also supported, with one important limitation.
+The regularized Choi construction is an operator-history chart for a realized
+Gaussian circuit operator, not the physical covariance trajectory itself.  The
+audited document distinguishes the two-leg Choi covariance
+\[
+  \Sigma =
+  \begin{pmatrix}
+  \Sigma_{LL} & \Sigma_{LR}\\
+  \Sigma_{RL} & \Sigma_{RR}
+  \end{pmatrix}
+\]
+from the production state covariance \(G\).  The local singular Choi
+contraction is regulated by replacing the \(Q\)-sector null block with an
+\(\epsilon Q\) inverse and taking the Schur-complement limit.  The resulting
+rank-one formula depends on the nonsingular denominator
+\[
+  d=\langle\chi|\Sigma_{RR}|\chi\rangle-\eta_1.
+\]
+The GPU implementation initializes
+\(\Sigma_{LL}=0\), \(\Sigma_{LR}=\I\), \(\Sigma_{RR}=0\), tracks the minimum
+\(|d|\), and records or censors small-denominator/unstable branches.
+
+The finite-sector particle transfer diagnostic is
+\begin{equation}
+  \Tp=-(\I+\SigmaLL)^{-1}\SigmaLR,
+  \qquad
+  \Delta_{\rm p}(t)=\min_j\left|\frac{\log s_j(\Tp)}{t}\right|.
+\end{equation}
+In the locally present GPU summaries and CSV aggregation, the \(DW=1\) slab
+mean gaps during the stable window are roughly \(10^{-2}\) to
+\(2\times10^{-2}\), while the homogeneous \(DW=0\) full control has much larger
+transient gaps after the first few cycles.  However, all locally available GPU
+Choi samples are censored before the final cycle: the stable fraction reaches
+zero near cycles \(15\)--\(16\).  The final \(T=2N_y\) GPU Choi gap is therefore
+not a resolved late-time physical gap; it is intentionally absent after Choi
+chart failure.
+
+\subsection{Worker 14: CPU Choi Transfer Gap}
+
+Worker 14 correctly identifies the CPU pipeline as the strongest Choi-side
+production evidence.  The CPU script uses
+\texttt{classA\_U1FGTN.run\_markov\_circuit} and records the same particle
+definition
+\[
+  \Tp=-(\I+\SigmaLL)^{-1}\SigmaLR,
+  \qquad
+  \Delta_{\rm p}(C)=\min_j\left|\frac{\log s_j(\Tp)}{C}\right|.
+\]
+Operationally, it diagonalizes \(\SigmaLL\) exactly and uses
+\[
+  \lambda_{\rm p}(a;C)=
+  \frac{\log(1-a)-\log(1+a)}{2C}
+\]
+for finite \(\SigmaLL\)-eigenvalues \(a\in(-1,1)\), while treating endpoints
+as particle zeros or poles.
+
+The \(N_x=20\), \(N_y=20,30,40\), \(DW=1\), slab-restricted CPU campaign with
+\(\alpha_1\in\{1,3\}\), \(\alpha_2=30\), \(S=10\), and \(C=2N_y\) is complete
+in the metadata.  Its run index records six completed configurations, ten
+stable final samples in each, rank-one physical covariance updates, and no
+dense fallback.  The newer metadata also records that final finite eigenstates
+are saved and ordered by increasing \(|\log s|\).
+
+The caveat is endpoint saturation.  The CPU observer policy explicitly accepts
+cycles with fewer than the requested number of finite transfer exponents and
+pads missing near-gap slots with NaNs and \(-1\) indices.  Thus
+``stable final samples'' means the Choi chart survived, not necessarily that
+each run has three resolved finite near-gap modes.  Older/executed plotting
+notebooks also show sentinel behavior in some \(\alpha_1=3\) runs, so endpoint
+collapse must be separated from a finite nonzero gap.
+
+\section{Independent Repo-Audit Adjustments}
+
+First, the transfer word is used in several inequivalent senses.  The
+\path{markov_transfer_operators} note formulates a Markov kernel on covariance
+matrices and a full covariance tangent cocycle
+\[
+  \delta G_{t+1}=T_{\alpha_t}(G_t)^\dagger\delta G_t T_{\alpha_t}(G_t).
+\]
+By contrast, the Colab Lyapunov implementation explicitly propagates
+single-particle frame columns \(v\in\mathbb{C}^{2N_xN_y}\).  The Boss should
+not collapse these into one operator.  The implemented Lyapunov spectrum is a
+single-particle transfer-frame diagnostic; it is not the full Hermitian
+\(\delta G\) Lyapunov spectrum.
+
+Second, the Choi-transfer evidence is not uniform across GPU and CPU.  The GPU
+regularized Choi campaign is valuable as a controlled early-cycle diagnostic,
+but its local summaries censor all samples before final time because Choi
+entries leave the accepted numerical chart.  The CPU campaign, by contrast,
+does reach final cycles with stable Choi charts, but it uses an endpoint policy
+that can leave fewer finite modes than requested.  These are different
+failure/saturation modes and should not be merged.
+
+Third, there is minor version drift in the Choi metadata.  The current GPU
+helper advertises a resolvent/rank-one version string, while some run summaries
+record an earlier basis-independent formula label.  The actual audited code and
+derivation are consistent in structure--rank-one denominator, resolvent action,
+finite-sector transfer from \(\SigmaLL\)--but exact provenance should quote the
+run metadata rather than silently updating old runs to the newest helper name.
+
+Fourth, the older \path{lyapunov_analysis_v2} Majorana Choi notebook should be
+treat as historical context only.  It loads cached Choi covariances, converts
+complex blocks to Majorana blocks, and often uses a pseudoinverse with very low
+reported numerical rank, for example rank \(8/1280\) in the inspected notebook
+outputs.  It is weaker evidence than the later CPU exact-\(\SigmaLL\) pipeline.
+
+Fifth, the Lyapunov numerical trend is strong but finite-time.  The \(DW=1\)
+gap decreases over three circumferences and is far below \(DW=0\), but the
+writeup itself states that \(T=N_y\) does not establish a plateau or distinguish
+\(1/N_y\), another power, or logarithmic closing.
+
+\section{Key Evidence Table}
+
+\begin{table*}[t]
+\caption{\label{tab:evidence}Key text, metadata, and source-code evidence used in this synthesis.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.30\linewidth}p{0.16\linewidth}p{0.46\linewidth}}
+Source & Lines & Evidence \\
+\colrule
+\pathref{REPO_POLICY.md} & 1--37 & Canonical CPU/GPU dynamics entry points and repository constraints for GPU and CPU circuit simulations. \\
+\pathref{colab_lyapunov/docs/lyapunov_analysis.tex} & 142--172 & Defines the propagated Lyapunov frame as a single-particle Hilbert-space object, not the full Hermitian covariance tangent space. \\
+\pathref{colab_lyapunov/docs/lyapunov_analysis.tex} & 183--221 & QR accumulation, cycle normalization, \(\Dlam=\min_i|\lambda_i|\), and final min-gap vector storage. \\
+\pathref{colab_lyapunov/docs/lyapunov_analysis.tex} & 223--230 & Campaign parameters: \(N_x=20\), \(N_y=30,40,50\), \(T=N_y\), \(S=25\) for perfect correction, \(S=1\) for post-selection, canonical GPU entry point. \\
+\pathref{colab_lyapunov/docs/lyapunov_analysis.tex} & 258--301 & \(DW=0\) spectra are strictly negative and plateau quickly; \(DW=1\) develops near-zero modes and does not clearly plateau. \\
+\pathref{colab_lyapunov/docs/lyapunov_analysis.tex} & 306--355 & Final Lyapunov gap table and unresolved scaling forms. \\
+\pathref{colab_lyapunov/docs/lyapunov_analysis.tex} & 383--403, 464--471 & \(DW=1\) Chern marker degradation and sample-level correlation with smaller \(\Dlam\). \\
+\pathref{colab_lyapunov/docs/lyapunov_analysis.tex} & 473--502 & Text-level spatial interpretation of the neutral vector as concentrated near domain-wall columns. \\
+\pathref{colab_lyapunov/src/lyapunov_observables_gpu.py} & 13--15, 206--215, 267--350 & Helper version, canonical GPU entry point, stored spectra/Chern/charge arrays, min-abs vector payload, and top-layer complex orbital basis description. \\
+\pathref{colab_lyapunov/gpu_data/.../run_index.csv} & 1--13 & Confirms the 12 Lyapunov configurations, actual sample counts, cycles, and \(n_{\rm vec}=2N_xN_y\). \\
+\pathref{colab_regularized_choi_transfer_matrix/docs/regularized_choi_covariance_contractions.tex} & 63--103 & Separates cumulative operator Choi covariance from physical state covariance. \\
+\pathref{colab_regularized_choi_transfer_matrix/docs/regularized_choi_covariance_contractions.tex} & 164--246 & Shows the formally singular two-leg contraction and regulator construction. \\
+\pathref{colab_regularized_choi_transfer_matrix/src/classA_U1FGTN_gpu.py} & 754--774, 840--916 & Initializes Choi blocks, tracks \(|d|\), records denominator failures, and applies the rank-one/resolvent update. \\
+\pathref{colab_regularized_choi_transfer_matrix/src/choi_transfer_observables_gpu.py} & 11--18, 43--63 & Records \(\Tp\), gap definition, endpoint treatment, and exact final-spectrum extraction convention. \\
+\pathref{colab_regularized_choi_transfer_matrix/analysis_outputs/gap_vs_cycle/gap_vs_cycle_summary.csv} & 62--77, 122--136 & \(DW=1\) GPU Choi slab gaps are \(O(10^{-2})\) while stable samples disappear by cycles \(15\)--\(16\). \\
+\pathref{colab_regularized_choi_transfer_matrix/gpu_data/.../N20x30_DW1.../run_summary.json} & 1426--1496, 1716--1779 & GPU Choi failure mode, formula metadata, first failure cycles, stable-fraction collapse, and zero final stable samples. \\
+\pathref{colab_regularized_choi_transfer_matrix/gpu_data/.../N20x40_DW1.../run_summary.json} & 1646--1716, 1936--2019 & Same censoring pattern for \(N_y=40\). \\
+\pathref{choi_covariance_cpu/run_particle_choi_transfer_gap_cpu.py} & 61--72 & CPU class import, canonical CPU entry point, \(\Tp\), gap, exact-\(\SigmaLL\) extraction, and rooted singular convention. \\
+\pathref{choi_covariance_cpu/run_particle_choi_transfer_gap_cpu.py} & 241--306 & Exact Hermitianization/eigensolve of \(\SigmaLL\), endpoint handling, exponent formula, and near-gap selection. \\
+\pathref{choi_covariance_cpu/run_particle_choi_transfer_gap_cpu.py} & 560--610 & Censoring, exact final storage, final finite eigenstate storage, and stability mask. \\
+\pathref{choi_covariance_cpu/run_particle_choi_transfer_gap_cpu.py} & 844--904 & Calls \texttt{classA\_U1FGTN.run\_markov\_circuit} with \texttt{track\_choi=True} and the Choi observer. \\
+\pathref{choi_covariance_cpu/cpu_data/.../Nx20...allfiniteeig_v4/run_index.csv} & 1--7 & Six completed \(N_x=20\), \(N_y=20,30,40\), \(\alpha_1=1,3\) slab \(DW=1\) CPU runs with ten stable final samples each. \\
+\pathref{choi_covariance_cpu/cpu_data/.../Nx20...allfiniteeig_v4/campaign_manifest.json} & 1--17, 131--141 & Campaign geometry, canonical CPU entry point, final finite eigenstate saving, and partial finite-mode policy. \\
+\pathref{choi_covariance_cpu/cpu_data/.../N20x40...a1-1.../run_summary.json} & 1200--1250, 1331--1357 & Representative final-stable CPU Choi metadata: no full matrices saved, exact extraction, no observer failures, stable final samples, and transfer object. \\
+\pathref{choi_covariance_cpu/plot_gap_vs_cycle_nan_sentinel_executed.ipynb} & 141--147, 824--837 & Existing notebook outputs showing sentinel behavior in older \(\alpha_1=3\) curves despite stable final bookkeeping. \\
+\pathref{choi_covariance_cpu/plot_nx16_alpha1_sweep_gap_vs_alpha.ipynb} & 57--64, 104--144 & Alpha-sweep plotting code treats nonfinite final gaps through an explicit sentinel and tracks finite final sample counts. \\
+\pathref{choi_covariance_cpu/plot_nx16_alpha1_sweep_low_lying_modes.ipynb} & 87--103, 112--154 & Low-lying-mode plotting workflow loads final finite eigenstates and constructs spatial density maps, but this synthesis did not load those arrays. \\
+\pathref{lyapunov_analysis_v2/majorana_choi_transfer_spectrum.ipynb} & 7--20, 165--201, 306--330 & Historical Majorana transfer notebook, cached Choi inputs, pseudoinverse fallback, and low-rank/ill-conditioned diagnostics. \\
+\pathref{markov_transfer_operators/markov_transfer_operators_note.tex} & 36--48, 302--430 & Conceptual Markov-kernel and full covariance tangent-cocycle framework; useful for terminology but not identical to the implemented single-particle Lyapunov frame. \\
+\pathref{scripts/smoke_choi_dense_vs_rank1.py} & 1--6, 158--176, 191--220, 253--331 & Small-system dense-versus-rank-one Choi health check and survival comparison script. \\
+\end{tabular}
+\end{ruledtabular}
+\end{table*}
+
+\section{Contradictions and Caveats}
+
+There is no hard contradiction among the three worker notes, but there are
+several places where a synthesis could overstate the evidence.
+
+The Lyapunov and Choi gaps are not the same spectrum.  The Lyapunov campaign
+measures a finite-time single-particle transfer-frame spectrum.  The Choi
+campaigns measure finite-sector particle-transfer singular exponents extracted
+from a cumulative Choi covariance.  The Markov-transfer note describes the
+full covariance tangent cocycle.  These three objects are related in physical
+motivation, but they are not interchangeable.
+
+The GPU Choi results should not be described as final-cycle stable transfer
+gaps.  Their physical \(G\) evolution continues, but the exact Choi observable
+is censored after numerical chart failure.  The stable window is still useful:
+it shows small \(DW=1\) slab gaps relative to the homogeneous control.  It does
+not establish a late-time \(T=2N_y\) Choi gap.
+
+The CPU Choi summaries are stronger at final time but carry an endpoint caveat.
+Stable final samples mean the Choi chart survived; they do not by themselves
+guarantee a fixed number of finite near-gap modes.  The Boss should preserve
+the metadata distinction between chart stability, finite-mode count, NaN
+padding, and sentinel plotting.
+
+The spatial eigenvector/eigenstate story is promising but not independently
+recomputed here.  The Lyapunov writeup reports domain-wall localization, and
+the CPU notebooks define density-map workflows from saved Choi eigenvectors.
+This synthesis did not load those binary eigenvector arrays.
+
+The thermodynamic scaling law is unresolved.  Three \(N_y\) values and
+finite-time runs with \(T=N_y\) support a qualitative closing tendency in the
+domain-wall sector, but not a reliable exponent or a distinction between power
+law and logarithmic closing.
+
+\section{Confidence}
+
+Confidence is high that the repository contains a coherent qualitative
+transfer-stability story: \(DW=0\) is strongly contracting in the measured
+Lyapunov diagnostic, while \(DW=1\) supports a much slower near-zero channel
+linked to domain-wall physics.
+
+Confidence is high for the implementation-level definitions of the diagnostics:
+the audited source files explicitly record the canonical dynamics entry points,
+the Lyapunov frame normalization, the Choi finite-sector transfer definition,
+the exact-\(\SigmaLL\) extraction, and the censoring/endpoint policies.
+
+Confidence is moderate for the physical identification of all near-gap
+diagnostics with the same chiral domain-wall mode.  The convergence of evidence
+is persuasive, but the operators are not identical and the spatial evidence was
+not recomputed from binary arrays.
+
+Confidence is low for any precise thermodynamic scaling law or universal
+critical exponent at this stage.
+
+\section{What the Boss Should Preserve or Scrutinize}
+
+The Boss should preserve the central qualitative statement: independent
+Lyapunov and Choi-transfer diagnostics point to a near-marginal domain-wall
+sector, while the uniform topological geometry remains strongly stable.
+
+The Boss should preserve the operator distinctions.  Use phrases such as
+``single-particle Lyapunov transfer-frame gap'' and ``finite-sector Choi
+particle-transfer gap'' rather than a single generic ``transfer gap''.
+
+The Boss should preserve the strongest numbers from the Lyapunov table, since
+they give the cleanest \(DW=0\) versus \(DW=1\) contrast over
+\(N_y=30,40,50\).
+
+The Boss should scrutinize any use of GPU Choi final-cycle gaps, because the
+local GPU Choi summaries have zero stable final samples.
+
+The Boss should scrutinize CPU Choi claims that ignore endpoint saturation,
+NaN padding, or finite-mode counts.
+
+The Boss should scrutinize any claim that the scaling is already known, or that
+the Lyapunov and Choi spectra are mathematically identical.  The evidence
+supports qualitative convergence of diagnostics, not equality of operators.
+
+\section{Cross-Supervisor Addendum}
+
+\subsection{Cross-note agreements}
+
+All five supervisor notes agree on the core object hierarchy.  The physical
+adaptive circuit evidence should be anchored to the canonical Markov drivers,
+\texttt{classA\_U1FGTN.run\_markov\_circuit(...)} and
+\texttt{classA\_U1FGTN\_gpu.run\_markov\_circuit(...)}, with perfect correction
+understood as a Born-sampled trajectory ensemble with deterministic feedback,
+not as postselection or an outcome-averaged transfer matrix.  This directly
+supports the distinction made here between sampled Lyapunov products, Choi
+operator-transfer diagnostics, and distributional transfer-operator language.
+
+The target-state and trajectory notes reinforce the physical interpretation of
+the transfer/stability evidence.  Supervisor 01 identifies the domain-wall
+benchmark and OW target-state structure as chiral-wall physics, while Supervisor
+03 finds trajectory-level entanglement slopes near \(1/3\) and strong
+perfect-correction purification.  These are consistent with the Supervisor 04
+claim that the near-zero Lyapunov/Choi modes are domain-wall-sector slow
+directions rather than generic bulk instabilities.
+
+Supervisor 05 agrees with the evidentiary hierarchy used here: structured
+campaign manifests, run summaries, and run-index CSV files are the safest data
+spine; legacy caches and hard-coded or notebook-only products are weaker.  This
+supports preserving the Lyapunov campaign metadata and the CPU Choi run-index
+evidence, while treating older Majorana Choi notebooks and raw cache artifacts
+as historical context.
+
+\subsection{Conflicts and corrections to Supervisor 04}
+
+The main correction is provenance strength.  Supervisor 02 shows that a recorded
+canonical-entry string does not by itself prove byte identity with the canonical
+\texttt{src/fgtn} source: several Colab/OSG GPU copies are stale.  Therefore
+the version-drift caveat in this note should be read more strongly.  Choi
+formula labels, helper versions, and copied-source identity must be quoted from
+the actual run metadata, and high-stakes claims should prefer outputs with
+source-copy or checksum provenance.
+
+A second correction is convention hygiene.  Supervisor 01 reports that
+\(\alpha_1,\alpha_2\) are not used uniformly across source areas.  The
+transfer note's statements about \(\alpha_1=1,\alpha_2=30\) are correct for the
+audited Choi/Lyapunov campaigns, but Boss-level prose should translate these as
+``topological slab mass'' and ``trivial flank mass'' rather than assuming a
+global \(\alpha_1,\alpha_2\) convention.
+
+A third correction is statistical framing.  Supervisor 03 and Supervisor 05 both
+emphasize that postselection commonly has one actual trajectory even when a
+larger sample count was requested.  The Supervisor 04 postselection caveat is
+therefore not merely a Lyapunov-specific detail; it is a repository-wide sample
+semantics issue.
+
+No cross-note evidence weakens the main Supervisor 04 conclusion.  Instead, the
+cross-share narrows its wording: the repository supports qualitative convergence
+of domain-wall slow-mode diagnostics, not equality of Lyapunov and Choi
+operators, not a final thermodynamic exponent, and not a postselection ensemble
+comparison.
+
+\subsection{Boss priorities}
+
+\begin{enumerate}
+\item Preserve the object distinctions: target-state benchmarks, sampled
+perfect-correction trajectories, deterministic postselection controls, Choi
+operator-transfer diagnostics, Lyapunov transfer-frame spectra, and
+mean-channel/Lindblad objects are related but not interchangeable.
+
+\item Use the structured manifest/run-summary layer as the primary evidence
+spine, and require canonical-entry plus source-identity provenance for any
+flagship production result.
+
+\item Keep the domain-wall story qualitative but coherent: exact/OW target
+states, trajectory entanglement, Lyapunov gaps, and Choi gaps all point toward a
+slow chiral wall sector, while current data do not resolve a universal scaling
+law.
+
+\item Scrutinize postselection sample counts, GPU Choi final-cycle claims,
+CPU Choi endpoint saturation, stale copied engine sources, and any use of
+legacy cache files not tied to current manifests.
+
+\item Write \(\alpha\)-parameter captions in physical language
+(topological slab versus trivial flank) to avoid cross-folder convention errors.
+\end{enumerate}
+
+\end{document}

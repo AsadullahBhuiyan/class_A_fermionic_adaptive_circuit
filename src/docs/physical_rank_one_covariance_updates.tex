@@ -1,0 +1,222 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\Tr}{\operatorname{Tr}}
+
+\begin{document}
+
+\title{Rank-One Physical Covariance Updates in the Markov Circuit}
+\author{}
+\date{\today}
+
+\begin{abstract}
+This note records the three algebraically equivalent forms of the rank-one
+Gaussian measurement update used by the CPU and GPU Markov-circuit engines:
+the dense Schur-complement solve, the rank-one resolvent action, and the
+expanded Sherman--Morrison formula.  It also records the small-system survival
+checks used when switching the production physical covariance update to the
+rank-one resolvent implementation.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Setup}
+
+Let \(G\) denote the Hermitian complex-fermion covariance on the active top
+layer, and let
+\begin{equation}
+    P = \chi \chi^\dagger,\qquad Q=\Id-P,\qquad \chi^\dagger\chi=1.
+\end{equation}
+We write a selected measurement branch using the sign
+\begin{equation}
+    s =
+    \begin{cases}
+        +1, & \text{occupied / particle branch},\\
+        -1, & \text{unoccupied / hole branch}.
+    \end{cases}
+\end{equation}
+The target covariance on the measured mode is therefore \(sP\).  The singular
+surface of the conditional update is
+\begin{equation}
+    1+s\,\chi^\dagger G\chi = 0,
+\end{equation}
+which is the zero-probability conditioning surface for the selected branch.
+
+\section{Dense Schur-Complement Solver}
+
+The original implementation used the dense Gaussian contraction
+\begin{equation}
+    G' = H_{22} - H_{21}(G H_{11}-\Id)^{-1}G H_{21}^\dagger ,
+\end{equation}
+with
+\begin{equation}
+    (H_{11},H_{21},H_{22}) =
+    \begin{cases}
+        (-P,Q,P), & s=+1,\\
+        (P,Q,-P), & s=-1.
+    \end{cases}
+\end{equation}
+Equivalently,
+\begin{equation}
+    \boxed{
+    G' = sP + Q(\Id+sGP)^{-1}GQ .
+    }
+    \label{eq:dense}
+\end{equation}
+The dense implementation evaluates Eq.~\eqref{eq:dense} by solving
+\begin{equation}
+    (\Id+sGP)X = GQ.
+\end{equation}
+In the production code this was previously routed through
+\(\texttt{\_solve\_regularized}\) or \(\texttt{\_solve\_regularized\_batched}\).
+
+\section{Rank-One Resolvent Solver}
+
+Since \(P=\chi\chi^\dagger\),
+\begin{equation}
+    GP = (G\chi)\chi^\dagger .
+\end{equation}
+Thus the matrix \(\Id+sGP\) differs from the identity by rank one.  Defining
+\begin{equation}
+    v=G\chi,\qquad d_s = 1+s\chi^\dagger v,
+\end{equation}
+the inverse action on any matrix right-hand side \(B\) is
+\begin{equation}
+    \boxed{
+    (\Id+sGP)^{-1}B
+    =
+    B-\frac{s}{d_s}v(\chi^\dagger B).
+    }
+    \label{eq:rankoneaction}
+\end{equation}
+The production CPU and GPU Markov-circuit engines now use
+Eq.~\eqref{eq:rankoneaction} for the physical covariance update.  If
+\(|d_s|\) is numerically unsafe, the implementation falls back to the same
+small ridged dense solve convention used elsewhere in the Markov engine.
+
+\section{Expanded Sherman--Morrison Form}
+
+Substituting Eq.~\eqref{eq:rankoneaction} into Eq.~\eqref{eq:dense} gives the
+fully expanded formula
+\begin{equation}
+    \boxed{
+    G'
+    =
+    sP + QGQ
+    -
+    \frac{s}{1+s\chi^\dagger G\chi}
+    (QG\chi)(\chi^\dagger GQ).
+    }
+    \label{eq:sherman}
+\end{equation}
+This is algebraically identical to the rank-one resolver, but it forms the
+outer-product correction directly.  It is useful as a transparent reference
+implementation, while the production code keeps the resolver-action form so the
+support-support and support-complement right-hand sides can be handled uniformly.
+
+\section{Support-Reduced Form}
+
+For finite Wannier support, decompose the top-layer indices into the measured
+support \(S\) and complement \(R\).  With
+\begin{equation}
+    G =
+    \begin{pmatrix}
+        G_{SS} & G_{SR}\\
+        G_{RS} & G_{RR}
+    \end{pmatrix},
+\end{equation}
+and \(P=\chi_S\chi_S^\dagger\) supported only on \(S\), the rank-one action is
+applied only to the support block,
+\begin{equation}
+    Y=(\Id+sG_{SS}P)^{-1}G_{SR},\qquad
+    Z=(\Id+sG_{SS}P)^{-1}G_{SS}Q.
+\end{equation}
+The updated blocks are
+\begin{align}
+    G'_{SS} &= sP + QZ,\\
+    G'_{SR} &= QY,\\
+    G'_{RR} &= G_{RR}-s\,G_{RS}PY.
+\end{align}
+This is the form used by the CPU and GPU local-support kernels.
+
+\section{Small-System Survival Checks}
+
+The diagnostic scripts use \(N_x=4\), \(N_y=8\), \(50\) cycles, one sample,
+finite Wannier support \(n_{\rm shell}=1\), slab-only domain-wall dynamics, and
+a fixed deterministic initial covariance.  Blowup is defined as a nonfinite
+entry or \(\max_{ij}|G_{ij}|>10^{12}\).
+
+\subsection{CPU engine}
+
+\begin{center}
+\begin{tabular}{llcccccc}
+\toprule
+protocol & solver & survived & first bad & final max & run max & final invol. & final spectrum\\
+\midrule
+postselect & rank1 & yes & -- & \(1.000\) & \(1.105\) & \(1.818\times10^{-6}\) & \([-1.000,1.000]\)\\
+postselect & dense & yes & -- & \(1.000\) & \(4.561\) & \(4.670\times10^{-6}\) & \([-1.000,1.000]\)\\
+postselect & Sherman & yes & -- & \(1.000\) & \(1.879\) & \(1.299\times10^{-6}\) & \([-1.000,1.000]\)\\
+perfect correction & rank1 & yes & -- & \(1.000\) & \(2.132\) & \(5.701\) & \([-1.378,2.511]\)\\
+perfect correction & dense & yes & -- & \(1.000\) & \(2.132\) & \(5.701\) & \([-1.378,2.511]\)\\
+perfect correction & Sherman & yes & -- & \(1.000\) & \(2.132\) & \(5.701\) & \([-1.378,2.511]\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Final-state differences relative to production rank-one were
+\begin{center}
+\begin{tabular}{llcc}
+\toprule
+protocol & reference & Frobenius difference & max-entry difference\\
+\midrule
+postselect & dense & \(1.571\times10^{-6}\) & \(9.370\times10^{-8}\)\\
+postselect & Sherman & \(2.614\times10^{-7}\) & \(2.303\times10^{-8}\)\\
+perfect correction & dense & \(3.854\times10^{-14}\) & \(4.772\times10^{-15}\)\\
+perfect correction & Sherman & \(4.618\times10^{-14}\) & \(8.132\times10^{-15}\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{GPU class on CPU device}
+
+CUDA was not visible in the local environment, so the GPU-class diagnostic was
+run on its CPU device path with the same Torch kernels and canonical
+\texttt{classA\_U1FGTN\_gpu.run\_markov\_circuit(...)} entry point.
+
+\begin{center}
+\begin{tabular}{llcccccc}
+\toprule
+protocol & solver & survived & first bad & final max & run max & final invol. & final spectrum\\
+\midrule
+postselect & rank1 & yes & -- & \(1.000\) & \(1.000\) & \(2.344\times10^{-6}\) & \([-1.000,1.000]\)\\
+postselect & dense & yes & -- & \(1.000\) & \(1.000\) & \(2.624\times10^{-6}\) & \([-1.000,1.000]\)\\
+postselect & Sherman & yes & -- & \(1.000\) & \(1.000\) & \(3.449\times10^{-6}\) & \([-1.000,1.000]\)\\
+perfect correction & rank1 & yes & -- & \(1.000\) & \(1.000\) & \(2.154\times10^{-13}\) & \([-1.000,1.000]\)\\
+perfect correction & dense & yes & -- & \(1.000\) & \(1.000\) & \(1.920\times10^{-13}\) & \([-1.000,1.000]\)\\
+perfect correction & Sherman & yes & -- & \(1.000\) & \(1.000\) & \(2.327\times10^{-13}\) & \([-1.000,1.000]\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Final-state differences relative to production rank-one were
+\begin{center}
+\begin{tabular}{llcc}
+\toprule
+protocol & reference & Frobenius difference & max-entry difference\\
+\midrule
+postselect & dense & \(4.717\times10^{-7}\) & \(3.326\times10^{-8}\)\\
+postselect & Sherman & \(6.510\times10^{-7}\) & \(6.167\times10^{-8}\)\\
+perfect correction & dense & \(5.519\times10^{-14}\) & \(7.690\times10^{-15}\)\\
+perfect correction & Sherman & \(1.822\times10^{-14}\) & \(2.456\times10^{-15}\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

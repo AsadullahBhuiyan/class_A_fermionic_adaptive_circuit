@@ -1,0 +1,207 @@
+{
+  "schema": "wall_diabatic_spectral_pump_campaign_v1",
+  "campaign_id": "N20_24_28_32x24_wall_diabatic_spectral_pump_s100_v1",
+  "sources": [
+    {
+      "cell": "nsh1_N20x24",
+      "protocol": "nsh1",
+      "Nx": 20,
+      "Ny": 24,
+      "kind": "per_sample",
+      "relative_root": "results/N20x24_state_projector_pump_s100_v1/burnins",
+      "expected_config_hash": "aafda9bcd52995b486df745762e249ec5b75af12561ca050601ec6bc3dc6245f",
+      "expected_source_hashes": {
+        "campaign_runner": "8179ee9089b045bec26726d5720c2d87bef0247086a559802ffcd3f3f5866886",
+        "cpu_engine": "e8bc0ea58b14f311aa64b4297d100183227a5ed3bcb819b3dd989221264d254e",
+        "occupied_frame": "5e689503de89812546c98d4e474511ded13b8ac2b42d57b41c730ed444e2d4c1"
+      }
+    },
+    {
+      "cell": "nsh1_N24x24",
+      "protocol": "nsh1",
+      "Nx": 24,
+      "Ny": 24,
+      "kind": "per_sample",
+      "relative_root": "results/N24x24_state_projector_pump_s100_v1/burnins",
+      "expected_config_hash": "03b4633fbb19fdd6bed75f07c565bfd2f0ae3f11c12de5113ac275564479816f",
+      "expected_source_hashes": {
+        "base_pump_runner": "8179ee9089b045bec26726d5720c2d87bef0247086a559802ffcd3f3f5866886",
+        "campaign_runner": "25159c8e87ba2737b2b753f9829b1f0f7fe1480c284e0fd16ebf311806d51ee9",
+        "cpu_engine": "e8bc0ea58b14f311aa64b4297d100183227a5ed3bcb819b3dd989221264d254e",
+        "occupied_frame": "5e689503de89812546c98d4e474511ded13b8ac2b42d57b41c730ed444e2d4c1"
+      }
+    },
+    {
+      "cell": "dense_N20x24",
+      "protocol": "dense",
+      "Nx": 20,
+      "Ny": 24,
+      "kind": "per_sample",
+      "relative_root": "results/N20x24_state_projector_pump_s100_dense_v1/burnins",
+      "expected_config_hash": "e2dea89862bdd8a3ef440d5f4ee3fc7c2c22a5f17fc5a8b488d8dba919b84a74",
+      "expected_source_hashes": {
+        "base_pump_runner": "8179ee9089b045bec26726d5720c2d87bef0247086a559802ffcd3f3f5866886",
+        "campaign_runner": "7ac872f33b78308f9692397e92b11058fd440775d6f09e15d3960e3c0d988207",
+        "cpu_engine": "e8bc0ea58b14f311aa64b4297d100183227a5ed3bcb819b3dd989221264d254e",
+        "occupied_frame": "5e689503de89812546c98d4e474511ded13b8ac2b42d57b41c730ed444e2d4c1"
+      }
+    },
+    {
+      "cell": "nsh1_N28x24",
+      "protocol": "nsh1",
+      "Nx": 28,
+      "Ny": 24,
+      "kind": "five_sample_shards",
+      "relative_root": "endpoints/nsh1/N28x24"
+    },
+    {
+      "cell": "nsh1_N32x24",
+      "protocol": "nsh1",
+      "Nx": 32,
+      "Ny": 24,
+      "kind": "five_sample_shards",
+      "relative_root": "endpoints/nsh1/N32x24"
+    },
+    {
+      "cell": "dense_N24x24",
+      "protocol": "dense",
+      "Nx": 24,
+      "Ny": 24,
+      "kind": "five_sample_shards",
+      "relative_root": "endpoints/dense/N24x24"
+    },
+    {
+      "cell": "dense_N28x24",
+      "protocol": "dense",
+      "Nx": 28,
+      "Ny": 24,
+      "kind": "five_sample_shards",
+      "relative_root": "endpoints/dense/N28x24"
+    },
+    {
+      "cell": "dense_N32x24",
+      "protocol": "dense",
+      "Nx": 32,
+      "Ny": 24,
+      "kind": "five_sample_shards",
+      "relative_root": "endpoints/dense/N32x24"
+    }
+  ],
+  "bridge_sources": [
+    {
+      "cell": "bridge_nsh1_N20x24",
+      "source_cell": "nsh1_N20x24",
+      "protocol": "nsh1",
+      "Nx": 20,
+      "Ny": 24,
+      "kind": "five_sample_shards",
+      "relative_root": "bridge/nsh1/N20x24",
+      "samples_per_wall": 25,
+      "source_backend": "gpu",
+      "is_primary": false
+    },
+    {
+      "cell": "bridge_nsh1_N24x24",
+      "source_cell": "nsh1_N24x24",
+      "protocol": "nsh1",
+      "Nx": 24,
+      "Ny": 24,
+      "kind": "five_sample_shards",
+      "relative_root": "bridge/nsh1/N24x24",
+      "samples_per_wall": 25,
+      "source_backend": "gpu",
+      "is_primary": false
+    },
+    {
+      "cell": "bridge_dense_N20x24",
+      "source_cell": "dense_N20x24",
+      "protocol": "dense",
+      "Nx": 20,
+      "Ny": 24,
+      "kind": "five_sample_shards",
+      "relative_root": "bridge/dense/N20x24",
+      "samples_per_wall": 25,
+      "source_backend": "gpu",
+      "is_primary": false
+    }
+  ],
+  "sharded_source_contracts": {
+    "gpu": {
+      "sampling_revision": "wall_pump_width_endpoints_s100_v1",
+      "canonical_entry_point": "classA_U1FGTN_gpu.run_markov_circuit",
+      "execution_backend": "gpu",
+      "config_hash_key": "base_config_sha256",
+      "config_hash": "428d57fb89db7afc404ccbd0721292f31957f34910b2717817bfb8b31d43d61d",
+      "source_hashes": {
+        "run_campaign.py": "1beff3833d719d2c2cd9fc64d86858cd8f5c3fa4d584a5ddb35a8c2d911e9dad",
+        "campaign_config.json": "5c538a3bcd84da8b523bb8e8679b5be41503d9c995d97c4710ccc8ed8e2bf31f",
+        "src/classA_U1FGTN_gpu.py": "53de96bced6839b485afe04fe4aaa15d2e42c249a9cf14f6ca0c931f55409700",
+        "src/occupied_frame_gpu.py": "bfc10cefea98ce00184a88b5c375eadfcda8e3dc6954d9f66183d566008951b0"
+      }
+    },
+    "canonical_cpu": {
+      "sampling_revision": "wall_pump_width_endpoints_s100_v1",
+      "canonical_entry_point": "classA_U1FGTN.run_markov_circuit",
+      "execution_backend": "canonical_cpu",
+      "config_hash_key": "config_hash",
+      "config_hash": "3376a120018b4e5102342cab1afe6187f6ea3e2ccda6774e12da979821db504f",
+      "source_hashes": {
+        "cpu_fallback_runner": "4eab8a947ec09c0b5410b707be9199ef5a0eba4a76859d4da4d368072efa442c",
+        "cpu_fallback_config": "ee65c7038ff80ceee3e79d1ef4e07960d565a73fbcfbfad0a4b158a7380bf352",
+        "canonical_cpu_engine": "e8bc0ea58b14f311aa64b4297d100183227a5ed3bcb819b3dd989221264d254e",
+        "canonical_occupied_frame": "5e689503de89812546c98d4e474511ded13b8ac2b42d57b41c730ed444e2d4c1",
+        "gpu_campaign_contract": "5c538a3bcd84da8b523bb8e8679b5be41503d9c995d97c4710ccc8ed8e2bf31f"
+      }
+    }
+  },
+  "ensemble": {
+    "samples_per_cell_wall": 100,
+    "walls": ["soft", "hard"]
+  },
+  "flux": {
+    "grid_intervals": 256,
+    "regulator": 1e-7,
+    "directions": {
+      "ccw": 1,
+      "cw": -1
+    },
+    "twist_gauge": "uniform"
+  },
+  "spectral_parent": {
+    "definition": "H0=I-2P0",
+    "occupied_selector": "previous_projector_overlap_with_energy_tie_break",
+    "edge_pair_indices_relative_to_rank": [-1, 0]
+  },
+  "wall_diabatization": {
+    "edge_block_rank": 2,
+    "wall_window_radius": 2,
+    "minimum_external_gap": 0.1,
+    "require_external_gap_larger_than_internal": true,
+    "maximum_left_B_eigenvalue": -0.8,
+    "minimum_right_B_eigenvalue": 0.8,
+    "minimum_combined_wall_weight": 0.8,
+    "minimum_neighboring_cluster_overlap": 0.8,
+    "unresolved_policy": "retain_diagnostic_continuation_and_mark_unresolved"
+  },
+  "chern_control": {
+    "definition": "legacy_periodic_three_wedge_real_space_chern_from_occupied_frame",
+    "xref": "Nx/2",
+    "yref_values": "all",
+    "radius": 4.0,
+    "reported_statistic": "mean_over_yref"
+  },
+  "acceptance": {
+    "input_frame_gram_tolerance": 1e-8,
+    "projector_idempotency_tolerance": 1e-10,
+    "charge_conservation_tolerance": 1e-10,
+    "large_gauge_parent_tolerance": 1e-8
+  },
+  "execution": {
+    "workers": 28,
+    "blas_threads": 1
+  },
+  "paths": {
+    "new_endpoint_root_default": "imported_endpoints/wall_pump_width_endpoints_s100_v1",
+    "output_root_default": "results/N20_24_28_32x24_wall_diabatic_spectral_pump_s100_v1"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "campaign": "l24_support_terminated_reference_anisotropy",
+  "canonical_dynamics_entry_point": "classA_U1FGTN.run_markov_circuit",
+  "geometry": {
+    "Nx": 20,
+    "Ny": 24,
+    "DW": true,
+    "nshell": 1,
+    "filling_frac": 0.5,
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "trial_orbitals": "X",
+    "dw_truncation": true
+  },
+  "dynamics": {
+    "sequence": "random",
+    "perfect_correction": true,
+    "meas_slab_only": true,
+    "init_mode": "default",
+    "state_representation": "physical_frame",
+    "G_history": false,
+    "save": false
+  },
+  "audit": {
+    "samples": 32,
+    "root_seed": 2026082901,
+    "equilibration_multipliers": [2, 3, 4, 6],
+    "equilibration_extension_multiplier": 8,
+    "initial_follow_multiplier": 3,
+    "follow_extension_multiplier": 4,
+    "coarse_temporal_separations": [1, 3, 6, 9, 12, 15, 18],
+    "minimum_joint_bootstrap_resolved_fraction": 0.8
+  },
+  "final": {
+    "samples": 100,
+    "root_seed": 2026082902,
+    "bootstrap_draws": 10000,
+    "coarse_temporal_separations": [1, 3, 6, 9, 12, 15, 18],
+    "minimum_bootstrap_resolved_fraction": 0.95
+  },
+  "statistics": {
+    "audit_bootstrap_draws": 4000,
+    "confidence_level": 0.95,
+    "maximum_shift_in_larger_sem": 0.5
+  },
+  "benchmark": {
+    "root_seed": 2026082903,
+    "cycles": 24,
+    "samples": 56,
+    "worker_counts": [8, 14, 20, 28],
+    "within_best_fraction": 0.95
+  },
+  "parallel": {
+    "required_physical_cpus": 28,
+    "maximum_cpu_utilization_percent": 35.0,
+    "blas_threads": 1,
+    "same_numa_node": true
+  },
+  "validation": {
+    "gram_residual_max": 1e-8,
+    "insertion_entropy_atol": 2e-10
+  }
+}

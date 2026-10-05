@@ -1,0 +1,5 @@
+/data
+*.aux
+*.log
+*.out
+/note/output

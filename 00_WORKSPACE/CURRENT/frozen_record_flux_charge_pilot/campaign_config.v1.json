@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "campaign": "frozen_record_flux_charge_pilot",
+  "root_seed": 2026090202,
+  "geometry": {
+    "Nx": 16,
+    "Ny": 20,
+    "cycles": 40,
+    "nshell": 1,
+    "filling_frac": 0.5,
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "trial_orbitals": "X",
+    "dw_interval": [
+      4,
+      12
+    ]
+  },
+  "arms": [
+    {
+      "name": "soft",
+      "dw_truncation": false,
+      "meas_slab_only": false
+    },
+    {
+      "name": "hard",
+      "dw_truncation": true,
+      "meas_slab_only": true
+    }
+  ],
+  "dynamics": {
+    "sequence": "random",
+    "perfect_correction": true,
+    "postselect": false,
+    "postselect_probability": 0.0,
+    "init_mode": "default",
+    "physical_covariance_update": "rank1",
+    "dtype": "complex128"
+  },
+  "twist": {
+    "phi_offset": 1e-07,
+    "points_per_direction": 17,
+    "directions": [
+      {
+        "name": "ccw",
+        "sigma": 1
+      },
+      {
+        "name": "cw",
+        "sigma": -1
+      }
+    ],
+    "origin_rule": "phi_initial = -sigma * phi_offset",
+    "grid_rule": "phi_j = -sigma * phi_offset + sigma * 2*pi*j/(points_per_direction-1)"
+  },
+  "regions": {
+    "left_x_start": 0,
+    "left_x_stop_exclusive": 8,
+    "right_x_start": 8,
+    "right_x_stop_exclusive": 16
+  },
+  "parallel": {
+    "cpu_list": "0-55",
+    "workers": 56,
+    "blas_threads": 1
+  },
+  "acceptance": {
+    "replay_probability_tolerance": 1e-14,
+    "zero_twist_replay_frobenius_per_dimension": 1e-12,
+    "charge_continuity_tolerance": 1e-9,
+    "regional_balance_tolerance": 1e-9,
+    "large_gauge_closure_frobenius_per_dimension": 1e-8
+  },
+  "canonical_dynamics_entry_point": "classA_U1FGTN.run_markov_circuit"
+}

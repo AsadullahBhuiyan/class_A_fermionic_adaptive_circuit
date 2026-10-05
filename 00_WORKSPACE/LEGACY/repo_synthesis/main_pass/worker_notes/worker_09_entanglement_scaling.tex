@@ -1,0 +1,189 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\Ny}{N_y}
+\newcommand{\Nx}{N_x}
+\newcommand{\src}[1]{\texttt{\detokenize{#1}}}
+
+\begin{document}
+
+\title{Worker 09 Notes: Entanglement Scaling Evidence in the Adaptive Domain-Wall Ensemble}
+\author{Worker 09}
+\date{June 11, 2026}
+
+\begin{abstract}
+I summarize the repository evidence for logarithmic strip-entanglement scaling in the
+large-$N_y$, $\Nx=20$ adaptive class-A domain-wall runs.  The inspected evidence supports
+a compact but non-final claim: the trajectory-resolved perfect-correction ensemble produces
+full-$x$ strip entropies with excellent log-chord form and slopes near the chiral target
+$m=c/3=1/3$, with finite-size and finite-depth offsets.  The cleanest evidence is the
+entropy sector; correlator exponents and chirality diagnostics are consistent with the same
+domain-wall critical picture but remain less quantitatively settled.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+I read \src{REPO_POLICY.md} before inspection.  Per the task constraints, I did not edit
+files, execute notebooks, or load binary array products.  I excluded every path containing
+\src{haining}, \src{haoyu}, or \src{erroneous}, case-insensitively, and did not read under
+\src{repo_synthesis/main_pass/worker_notes}, \src{supervisor_notes}, or \src{boss}.
+
+The main inspected sources were:
+\begin{itemize}
+\item \src{colab_large_entanglement_scaling_N20/README_COLAB.txt};
+\item \src{colab_large_entanglement_scaling_N20/docs/entanglement_scaling_system_size.tex};
+\item lightweight CSV/JSON summaries under
+\src{colab_large_entanglement_scaling_N20/gpu_data/pure_state_entanglement_slope_vs_*};
+\item \src{summary_of_results/summary_of_results.tex};
+\item \src{summary_of_results/scripts/make_summary_figures.py}, as provenance for
+\src{summary_of_results/figures/critical_scaling_summary.pdf}.
+\end{itemize}
+
+\section{Findings}
+
+\subsection{Observable and CFT Target}
+
+The measured observable is the von Neumann entropy of a full-$x$ strip of height $A_y$,
+averaged over all starting positions $y_0$.  The fitting coordinate is the periodic
+log-chord variable
+\begin{equation}
+X(A_y;\Ny)=
+\log\left[
+\frac{\Ny}{\pi}
+\sin\left(\frac{\pi A_y}{\Ny}\right)
+\right],
+\end{equation}
+and the fit is
+\begin{equation}
+\overline{S}(A_y)=m X(A_y;\Ny)+b.
+\end{equation}
+The local documentation identifies the domain-wall target as total central charge
+$c=1$, hence
+\begin{equation}
+m_*=\frac{c}{3}=\frac{1}{3}.
+\end{equation}
+The fit window is $A_y\in[8,\Ny/2]$, intended to remove short-distance lattice points while
+retaining the bulk of the log-chord curve.
+
+\subsection{System-Size and Time Scaling}
+
+The strongest finite-size/time-scaling note fixes $\Nx=20$, uses $\alpha_1=1$ in the
+topological slab, $\alpha_2=30$ in the trivial exterior, $n_{\rm shell}=1$, and
+\texttt{dw\_truncation=True}.  The documented time-scaling campaign uses
+$\Ny=40,60,80,100,120$ with $T=\Ny/2$ Markov cycles and 10 samples per size.  The reported
+slopes are
+\[
+0.3615,\ 0.3555,\ 0.3532,\ 0.3470,\ 0.3569
+\]
+for $\Ny=40,60,80,100,120$, respectively, with all $R^2\ge 0.9999$ except the quoted
+$\Ny=120$ value still very high at $R^2=0.999907$.  The trend from $\Ny=40$ to $100$ is
+monotone toward $1/3$, while $\Ny=120$ is a mild non-monotone outlier.
+
+A separate system-size product at fixed cycle $50$ and 100 samples is described in the
+Colab README for $\Ny\in[30,40,50,60,80,100,120]$, but the locally present
+\src{pure_state_entanglement_slope_vs_system_size/runs} summaries visible in the inspected
+tree include $\Ny=30,40,50$.  These give slopes $0.3557$, $0.3509$, and $0.3492$,
+again above but close to $1/3$ with $R^2>0.99997$.
+
+\subsection{Cycle Flow}
+
+For the $\Nx=20,\Ny=40$ cycle sweep, the README states 100 samples and cycles $0,\ldots,100$.
+The CSV shows the slope flowing rapidly from a nonuniversal early-time value to the
+critical window.  For example, the first rows are extremely large at cycles $0$--$2$,
+while cycles around $20$--$60$ sit near $0.35$ with excellent fit quality.  The same sweep
+later drifts upward again near cycles $80$--$90$ before returning closer to the earlier
+window by cycle $100$.  This makes ``cycle choice'' a real systematic, not a cosmetic
+plotting detail.
+
+\section{Interpretation}
+
+The entropy evidence is best read as evidence for the shape and approximate coefficient of
+a one-dimensional chiral critical edge sector embedded in the two-dimensional domain-wall
+geometry.  The high $R^2$ values show that the full-$x$ strip entropy is not merely close to
+the target at isolated points; it follows the log-chord curve very accurately over the
+chosen window.  The remaining slope excess is plausibly finite-size and finite-depth
+contamination, especially because the time-scaled $\Ny=40\to100$ sequence moves toward
+$m=1/3$.
+
+The broader synthesis note frames the relevant physical object as the trajectory-resolved
+perfect-correction ensemble, not the post-selected branch or the mean covariance channel.
+That matters because entropy and squared correlators are nonlinear observables.  In this
+interpretation, the entanglement data provide the cleanest present evidence for the
+quasi-one-dimensional chiral critical domain-wall ensemble, while correlator and modular
+charge diagnostics are supporting but less mature.
+
+The connection to chirality is indirect in the entropy fits alone: logarithmic scaling fixes
+a critical sector and an effective central charge, not the propagation direction.  The
+summary note adds modular-charge evidence that packets on opposite domain walls drift with
+opposite signs, and it interprets \texttt{dw\_truncation=True} as a hard-wall projector
+support limit of an inert trivial exterior rather than an independent source of chirality.
+Those statements make the entanglement result part of a coherent chiral domain-wall story.
+
+\section{Evidence Table}
+
+\begin{table}[h]
+\caption{Text and lightweight-summary evidence inspected for the entanglement scaling claim.}
+\begin{ruledtabular}
+\begin{tabular}{p{0.30\textwidth}p{0.14\textwidth}p{0.48\textwidth}}
+Source & Lines & Evidence \\
+\hline
+\src{REPO_POLICY.md} & 50--58 & Required RevTeX shell and manuscript-note conventions. \\
+\src{colab_large_entanglement_scaling_N20/README_COLAB.txt} & 7--14 & GPU runs use canonical \texttt{classA\_U1FGTN\_gpu.run\_markov\_circuit}; outputs are contour batches, entropy curves, fit rows, figures, metadata. \\
+\src{colab_large_entanglement_scaling_N20/README_COLAB.txt} & 17--27 & Describes system-size and cycle notebooks, including $\Nx=20$, $n_{\rm shell}=1$, \texttt{dw\_truncation=True}, fit window $A_y=8..\Ny//2$. \\
+\src{colab_large_entanglement_scaling_N20/README_COLAB.txt} & 29--32 & Domain-wall geometry for $\Nx=20$: wall locations $x=6,14$, topological slab $x=6..14$, trivial exterior regions. \\
+\src{colab_large_entanglement_scaling_N20/docs/entanglement_scaling_system_size.tex} & 23--39 & Abstract-level claim: slopes $0.347$--$0.362$, target $1/3$, high $R^2$, finite-size/depth caveat. \\
+\src{colab_large_entanglement_scaling_N20/docs/entanglement_scaling_system_size.tex} & 50--64 & Geometry, protocol, $\Nx=20$, $\Ny=40,60,80,100,120$, $T=\Ny/2$, 10 samples. \\
+\src{colab_large_entanglement_scaling_N20/docs/entanglement_scaling_system_size.tex} & 68--90 & Defines full-$x$ strip entropy, log-chord scaling, target $m=1/3$, and fit window. \\
+\src{colab_large_entanglement_scaling_N20/docs/entanglement_scaling_system_size.tex} & 103--118 & Table of time-scaled slopes and $R^2$ values for $\Ny=40$--$120$. \\
+\src{colab_large_entanglement_scaling_N20/docs/entanglement_scaling_system_size.tex} & 137--162 & Interpretation: slopes within $4$--$9\%$, trend toward thermodynamic limit through $\Ny=100$, $\Ny=120$ non-monotonicity. \\
+\src{colab_large_entanglement_scaling_N20/gpu_data/.../fit_rows.csv} & line 2 each & Fixed-cycle summaries: $\Ny=30,40,50$ slopes $0.3557,0.3509,0.3492$ at cycle 50. \\
+\src{colab_large_entanglement_scaling_N20/gpu_data/..._time_scaling/runs/*/run_summary.json} & quoted fields & Time-scaled summaries record $T=\Ny/2$, slopes $0.3615,0.3555,0.3532,0.3470,0.3569$, target $1/3$, and $R^2$ values. \\
+\src{colab_large_entanglement_scaling_N20/gpu_data/.../slope_vs_cycle.csv} & 1--25, 45--102 & Cycle sweep for $\Ny=40$: early nonuniversal decay into a near-$0.35$ slope window, later cycle dependence. \\
+\src{summary_of_results/summary_of_results.tex} & 149--178 & States the target domain-wall critical theory: chiral complex fermion with $c=1$ and log-chord entropy scaling. \\
+\src{summary_of_results/summary_of_results.tex} & 263--286 & Summary claim: entanglement fits approach $1/3$ more cleanly than squared-correlation exponents; correlators are not final exponent evidence. \\
+\src{summary_of_results/scripts/make_summary_figures.py} & 373--427 & Provenance for \src{critical_scaling_summary.pdf}: reads slope-vs-cycle CSV, size fit rows, and correlation summary, then plots target lines at $1/3$ and exponent $2$. \\
+\src{summary_of_results/summary_of_results.tex} & 316--348 & Interprets \texttt{dw\_truncation=True} as a hard-wall/infinite-mass exterior proxy, with caveats. \\
+\src{summary_of_results/summary_of_results.tex} & 383--393 & Open issues: correlator extraction, ensemble ordering, modular-charge sizes/windows, and stable alpha-sweep tables. \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+\section{Caveats}
+
+The entropy evidence is strong for log-chord shape but not a completed thermodynamic
+extrapolation.  The largest time-scaled point, $\Ny=120$, is non-monotone relative to
+$\Ny=100$ and has visibly worse, though still excellent, $R^2$.  The note itself attributes
+this to finite sample count and possible incomplete convergence at $T=60$.
+
+There are two overlapping size campaigns in the available summaries.  The fixed-cycle
+campaign is documented as broader, but the inspected local summaries under the main
+system-size run directory expose only $\Ny=30,40,50$.  The time-scaled campaign supplies
+the cleaner $\Ny=40,60,80,100,120$ progression but uses only 10 samples.
+
+Cycle dependence is nontrivial.  The $\Ny=40$ slope is close to the target near cycles
+$20$--$60$, but it is not strictly stationary through cycle $100$.  Any precision central
+charge estimate should therefore specify both fit window and cycle-selection rule.
+
+Finally, entropy scaling alone does not prove chirality.  It supports a critical sector
+with effective $c\simeq1$ in the domain-wall geometry.  The chirality assignment relies on
+the domain-wall construction, flattened-Hamiltonian calibration, and modular-charge drift
+diagnostics summarized elsewhere.
+
+\section{Confidence}
+
+My confidence is high that the inspected repository evidence supports the qualitative
+statement: the perfect-correction adaptive domain-wall ensemble shows clean logarithmic
+log-chord entanglement scaling with slope near $1/3$.  My confidence is moderate for a
+quantitative central-charge extraction because the accessible data still show finite-size,
+finite-depth, and cycle-choice systematics.  My confidence is lower for using the current
+correlator evidence as a precision universality check; the repository summary itself
+treats those exponent fits as less settled than the entropy slopes.
+
+\end{document}

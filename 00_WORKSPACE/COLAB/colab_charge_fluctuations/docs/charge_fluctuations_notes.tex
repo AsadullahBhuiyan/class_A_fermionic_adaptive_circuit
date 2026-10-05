@@ -1,0 +1,814 @@
+\documentclass[twocolumn,aps,prx,10pt,floatfix]{revtex4-2}
+
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{dcolumn}
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{microtype}
+
+\graphicspath{
+  {analysis_outputs/purification_total_charge_histogram_video_cpu/%
+    N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/figures/}
+  {analysis_outputs/purification_total_charge_variance_histogram_video_cpu/%
+    N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/figures/}
+  {analysis_outputs/purification_protocol_comparison/%
+    N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/figures/}
+  {analysis_outputs/correlator_scaling_diagnostics/figures/}
+  {analysis_outputs/perfect_correction_slope_excess_diagnostics/figures/}
+  {analysis_outputs/purification_postselect_characterization/%
+    N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/figures/}
+}
+
+\begin{document}
+
+\title{Charge Fluctuations in Class~A Fermionic Adaptive Circuits:\\
+Purification Dynamics and Covariance-Matrix Scaling}
+
+\author{A.~Bhuiyan}
+\date{\today}
+
+\begin{abstract}
+We characterize charge fluctuations and entanglement structure in a two-dimensional
+Class~A (U(1)-symmetric) adaptive Markov circuit acting on a free-fermion lattice.
+Two complementary campaigns are analyzed.  In the first, the circuit is initialized
+in the maximally mixed state and run under two distinct post-measurement protocols
+(perfect correction and post-selection), revealing rapid suppression of charge
+variance and entropy purification whose rates depend non-trivially on system
+geometry.  In the second campaign, the circuit starts from a domain-wall initial
+condition, and streaming covariance-matrix observables are recorded to extract the
+scaling of the strip entanglement entropy and the off-diagonal square correlator
+with subsystem size and inter-site separation, respectively.  The entropy obeys a
+CFT-like chord-length formula with a fitted coefficient $c$, while the correlator
+decays algebraically.  A persistent excess of the fitted correlator slope under
+perfect correction relative to post-selection is characterized through a battery of
+diagnostic tests.  Together these results probe the interplay of measurement-induced
+criticality, topological structure, and charge conservation in a symmetry-protected
+Gaussian circuit.
+\end{abstract}
+
+\maketitle
+
+% ============================================================
+\section{Introduction}
+% ============================================================
+
+Adaptive quantum circuits---in which mid-circuit measurements feed back adaptively
+on subsequent unitary operations---have emerged as a rich arena for studying
+measurement-induced phase transitions
+(MIPTs)~\cite{Nahum2017,Li2018,Skinner2019,Chan2019,Bao2020}.
+In free-fermion systems the Gaussian structure of the state is preserved
+under Clifford/linear dynamics and projective measurements, enabling the
+simulation of large system sizes that would otherwise be inaccessible.  When
+a global U(1) charge symmetry is imposed---placing the circuit in \emph{Class~A}
+of the ten-fold symmetry classification---the dynamics is further constrained:
+the total fermion number is a conserved quantity at every step of the circuit,
+and charge fluctuations become a direct probe of the structure of the
+post-measurement ensemble.
+
+In the present work we study a 2D rectangular lattice of size $N_x \times N_y$
+with two fermionic orbitals (A and B) per unit cell, simulated via a Fermionic
+Gaussian Tensor Network (FGTN) with nearest-neighbor Wannier support ($n_\text{sh}=1$).
+The adaptive Markov cycle couples coherent evolution to local measurements; the
+measurement outcomes can be handled in two limiting ways that bound the physical
+ensemble:
+\begin{itemize}
+  \item \emph{Perfect correction}: measurement outcomes on every sample trajectory
+    are post-processed so that the circuit corrects any unwanted charge offset,
+    maintaining a neutral ensemble.  One hundred statistically independent samples
+    are averaged.
+  \item \emph{Post-selection}: a single trajectory is retained subject to
+    post-selection on a designated measurement pattern.  The result is a single
+    quantum trajectory sampled from the post-selected distribution.
+\end{itemize}
+These two protocols bracket the range of possible measurement-outcome averaging
+and provide complementary windows onto the circuit dynamics.
+
+The notes below are organized as follows.  In Sec.~\ref{sec:model} we define the
+model and the covariance-matrix formalism.  Sections~\ref{sec:observables} and
+\ref{sec:protocols} specify the observables and measurement protocols.
+Section~\ref{sec:purification} presents the purification-dynamics campaign
+(maxmix initialization) and Sec.~\ref{sec:streaming} presents the streaming
+covariance campaign (domain-wall initialization).  Section~\ref{sec:diagnostics}
+reports the slope-excess diagnostic analysis, and Sec.~\ref{sec:implications}
+discusses the physical implications.
+
+% ============================================================
+\section{Model and Covariance-Matrix Formalism}
+\label{sec:model}
+% ============================================================
+
+\subsection{Lattice and Hilbert space}
+
+The system consists of $N_x \times N_y$ unit cells arranged on a rectangular
+torus, with periodic boundary conditions in both directions.  Each unit cell
+$r = (x,y)$ hosts two fermionic modes labelled by orbital indices $a$ and $b$,
+giving a total of $N = 2 N_x N_y$ modes.  We denote the corresponding
+creation/annihilation operators by $c_{r\mu}^\dagger$, $c_{r\mu}$ with
+$\mu \in \{a,b\}$.  The global U(1) charge is
+$\hat{Q} = \sum_{r,\mu} c_{r\mu}^\dagger c_{r\mu}$.
+
+\subsection{Gaussian states and the covariance matrix}
+
+All states encountered in the simulation are Gaussian (free-fermion) states,
+completely characterized by the single-particle covariance matrix
+\begin{equation}
+  G_{\alpha\beta} \;=\;
+  \langle c_\alpha c_\beta^\dagger \rangle - \tfrac{1}{2}\delta_{\alpha\beta},
+  \label{eq:G}
+\end{equation}
+where the indices $\alpha, \beta$ run over all $N$ modes.
+$G$ is Hermitian and satisfies $-\tfrac{1}{2}I \leq G \leq \tfrac{1}{2}I$.
+The corresponding occupation matrix is
+\begin{equation}
+  C \;=\; \tfrac{1}{2}(G + I),
+  \label{eq:C}
+\end{equation}
+with $0 \leq C \leq I$ in the sense of operators.  The mean occupation of mode
+$\alpha$ is $\langle c_\alpha^\dagger c_\alpha\rangle = C_{\alpha\alpha}$.
+
+The two limiting states used as initial conditions are:
+\begin{itemize}
+  \item \emph{Maximally mixed} ($G = 0$, $C = I/2$): every mode is
+    independently at half-filling, with maximal single-mode entropy $\ln 2$.
+  \item \emph{Default (domain-wall)} initial state: the circuit is initialized
+    in a topological domain-wall configuration with domain-wall columns at
+    $x_\text{DW} \in \{5, 15\}$, separating a topologically nontrivial interior
+    from trivial edge regions.
+\end{itemize}
+
+The Markov cycle is implemented through the canonical entry point
+\texttt{classA\_U1FGTN\_gpu.run\_markov\_circuit}, which performs a complete
+sequence of coherent Wannier-function hops and adaptive single-site measurements
+with $n_\text{sh} = 1$ nearest-neighbor support and domain-wall truncation.
+Parameters $\alpha_1$ and $\alpha_2$ govern the measurement rate and adaptive
+feedback strength.  GPU simulations ran on an NVIDIA A100 (40\,GiB) with batch
+sizes tuned automatically to saturate memory.
+
+% ============================================================
+\section{Observables}
+\label{sec:observables}
+% ============================================================
+
+\subsection{von Neumann entropy}
+
+The total von Neumann entropy of a Gaussian state is
+\begin{equation}
+  S_\text{tot} \;=\;
+  -\operatorname{Tr}\!\bigl[C \ln C + (I - C)\ln(I - C)\bigr],
+  \label{eq:entropy}
+\end{equation}
+where the eigenvalues of $C$ lie in $[0,1]$ and are identified with
+single-mode occupation numbers.  For the maxmix state $C = I/2$, yielding
+$S_\text{tot}^\text{(mm)} = N\ln 2$.  For a pure state, all eigenvalues are
+0 or 1 and $S_\text{tot} = 0$.
+
+\subsection{Real-space Chern number}
+
+The topological character of the occupied subspace is diagnosed by the
+Kitaev real-space Chern number~\cite{Kitaev2006}
+\begin{equation}
+  \mathcal{C}_\text{RS} \;=\;
+  12\pi i\,\operatorname{Tr}\!\bigl[
+    \bar{C}_{CA}\bar{C}_{AB}\bar{C}_{BC}
+    - \bar{C}_{AC}\bar{C}_{CB}\bar{C}_{BA}
+  \bigr],
+  \label{eq:chern}
+\end{equation}
+where $\bar{C} = C^\dagger$ and the subscript $XY$ restricts $\bar{C}$ to
+rows in region $X$ and columns in region $Y$.  The three regions $A$, $B$, $C$
+partition a disk of radius $r = 0.4\min(N_x,N_y)$ centered at the midpoint of
+the system into three $120^\circ$ angular sectors.  For a topologically trivial
+(Chern-0) insulator $\mathcal{C}_\text{RS} = 0$; for a $|\mathcal{C}|=1$ quantum
+Hall state it returns $\pm1$.
+
+\subsection{Local charge density and variance}
+
+The mean charge in unit cell $r = (x,y)$ is
+\begin{equation}
+  \langle N_r \rangle \;=\; C_{a_r a_r} + C_{b_r b_r},
+  \label{eq:localcharge}
+\end{equation}
+i.e., the sum of orbital-diagonal occupancies.  At half-filling
+$\langle N_r \rangle = 1$ for all $r$.
+
+The charge variance within a single unit cell is
+\begin{equation}
+  \operatorname{Var}(N_r)
+  = \langle N_r\rangle + 2\!\left(C_{a_r a_r}C_{b_r b_r}
+    - |C_{a_r b_r}|^2\right)
+    - \langle N_r\rangle^2,
+  \label{eq:localvar}
+\end{equation}
+which can be rewritten as
+$C_{a_r a_r}(1-C_{a_r a_r}) + C_{b_r b_r}(1-C_{b_r b_r})
+- 2|C_{a_r b_r}|^2$,
+manifesting the Pauli-blocking reduction due to inter-orbital coherence.
+For the maxmix state $C_{a_r b_r} = 0$ and $C_{a_r a_r} = C_{b_r b_r} = 1/2$,
+giving $\operatorname{Var}(N_r)^\text{(mm)} = 1/2$.
+
+\subsection{Total charge variance}
+
+The global charge variance for a Gaussian state is
+\begin{equation}
+  \operatorname{Var}(\hat{Q}) \;=\;
+  \operatorname{Tr}[C] - \operatorname{Tr}[C^2]
+  \;=\; \operatorname{Tr}[C(I-C)],
+  \label{eq:totalvar}
+\end{equation}
+which follows from the Wick theorem for free fermions.
+The maxmix baseline is
+$\operatorname{Var}(\hat{Q})^\text{(mm)} = N/4 = N_x N_y / 2$.
+A fully charge-ordered (Fock) state satisfies $C^2 = C$, hence
+$\operatorname{Var}(\hat{Q}) = 0$.
+
+\subsection{Strip entanglement entropy and chord scaling}
+
+For the streaming covariance campaign, the entanglement entropy of a horizontal
+strip of width $A_y$ cells, with the strip bottom edge at $y_0$, is computed from
+the restricted covariance block $G|_\text{strip}$.  Averaging over all $N_y$
+reference positions,
+\begin{equation}
+  \overline{S}(A_y) \;=\; \frac{1}{N_y}\sum_{y_0=0}^{N_y-1} S(A_y; y_0).
+  \label{eq:stripentropy}
+\end{equation}
+At a conformally invariant critical point in effectively (1+1)-dimensional
+imaginary-time evolution, the entropy scales as~\cite{Calabrese2004}
+\begin{equation}
+  \overline{S}(A_y) \;\approx\; c \ln\!\left[
+    \frac{N_y}{\pi}\sin\!\frac{\pi A_y}{N_y}\right] + \text{const},
+  \label{eq:cftscaling}
+\end{equation}
+where the prefactor $c$ is related to the central charge of the effective CFT.
+We extract $c$ by fitting $\overline{S}$ against the log-chord variable
+$\xi = \ln\!\left[(N_y/\pi)\sin(\pi A_y/N_y)\right]$ over the window
+$A_y \in [8, N_y/2]$.
+
+\subsection{Off-diagonal square correlator}
+
+A second probe of correlations is the $x$-averaged off-diagonal square
+correlator at $y$-separation $r_y$:
+\begin{equation}
+  \widetilde{C}^2(r_y) \;=\;
+  \frac{1}{2N_xN_y}
+  \sum_{x,y,\mu,\nu}
+  \bigl|C_{\mu(x,y),\,\nu(x,\,y+r_y)}\bigr|^2,
+  \label{eq:correlator}
+\end{equation}
+where the orbital indices $\mu,\nu \in \{a,b\}$ and the site index
+$(x,y+r_y)$ is taken modulo $N_y$.  In a critical phase one expects
+algebraic decay
+\begin{equation}
+  \widetilde{C}^2(r_y) \;\propto\; r_y^{\alpha},\quad \alpha < 0,
+  \label{eq:powerlaw}
+\end{equation}
+and we extract $\alpha$ by a log-log linear fit over
+$r_y \in [5, N_y/2]$.
+
+% ============================================================
+\section{Measurement Protocols}
+\label{sec:protocols}
+% ============================================================
+
+At the end of each Markov cycle, the Born-rule probabilities for the
+adaptive measurements are recorded as the four maps
+$p_\text{occ}(A^-_{r}|G)$,
+$p_\text{occ}(B^-_{r}|G)$,
+$1 - p_\text{occ}(A^+_{r}|G)$,
+$1 - p_\text{occ}(B^+_{r}|G)$,
+labelled $N^-_A$, $N^-_B$, $1-N^+_A$, $1-N^+_B$ in the data.
+These quantify how strongly each site is being measured toward the occupied
+or empty branch and serve as indicators of measurement frustration.
+
+\paragraph{Perfect correction.}
+The circuit evolves 100 statistically independent samples in parallel
+(batched GPU execution).  At each cycle, the Markov update is applied and
+the resulting covariance matrix is observed; any charge offset produced by
+measurement is corrected by a classically controlled feedback unitary.
+Sample-averaged quantities $\langle \mathcal{O}\rangle_S$ are reported.
+This protocol is the physically relevant ensemble average and corresponds
+to the mixed state $\rho = S^{-1}\sum_s |\psi_s\rangle\langle\psi_s|$.
+
+\paragraph{Post-selection.}
+A single trajectory is propagated with post-selection: at each adaptive
+measurement site, the lower-energy (or fixed-pattern) branch is selected.
+The result is one quantum trajectory drawn from the strongly post-selected
+distribution, analogous to a ground-state projection in imaginary time.
+Only one sample is generated since post-selection renders the trajectory
+unique given the initial condition and pattern.
+
+The two protocols are systematically compared by overlaying their
+time-series and final-cycle spatial maps on the same axes.
+
+% ============================================================
+\section{Campaign~I: Purification from the Maximally Mixed State}
+\label{sec:purification}
+% ============================================================
+
+\subsection{Setup}
+
+The first campaign\footnote{%
+  Campaign id:
+  \texttt{N20\_multi\_geometry\_nsh1\_dwtrunc1%
+  \_init-maxmix\_S100\_cycles-2Ny}.}
+initializes all samples in the maxmix state $G = 0$ and evolves under the
+Markov cycle for $T = 2N_y$ cycles.  Three geometries are studied:
+$N_x = 20$ with $N_y \in \{30, 40, 50\}$.  Perfect correction runs use
+$S = 100$ samples; the post-selection run uses a single trajectory.
+
+The maxmix starting values of the diagnostics are:
+\begin{align}
+  S_\text{tot}^\text{(mm)} &= N\ln 2 = 2N_xN_y\ln 2,\\
+  \operatorname{Var}(\hat{Q})^\text{(mm)} &= N_xN_y/2.
+\end{align}
+For $N_x = 20$, $N_y = 40$ these are approximately 1109~nats and 400,
+respectively.
+
+\subsection{Entropy purification}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=\columnwidth]{%
+    purification_total_entropy_sample_mean_vs_cycle_loglog.png}
+  \caption{%
+    Sample-averaged total von Neumann entropy
+    $\langle S_\text{tot}\rangle_S$ vs.\ Markov cycle on a log-log scale,
+    for all three geometries under perfect correction.
+    The entropy falls precipitously from the maxmix value within the
+    first few cycles and plateaus at an exponentially small residual.
+  }
+  \label{fig:entropy}
+\end{figure}
+
+Figure~\ref{fig:entropy} shows the sample-averaged entropy as a function
+of Markov cycle on a log-log scale.
+The entropy collapses by roughly an order of magnitude per cycle in the
+earliest cycles, reaching $\langle S_\text{tot}\rangle \approx 0.3$~nats
+for $N_x=20$, $N_y=40$ after $T=80$ cycles (compared to the maxmix value
+of $\sim 1109$~nats).  This indicates that the Markov circuit is an
+extremely efficient purifier: the adaptive measurements project the
+maxmix density matrix essentially to a pure (or near-pure) state within
+$O(N_y)$ cycles.
+
+The $N_y$ dependence of the saturation value is mild; larger $N_y$ systems
+retain slightly more residual entropy at the same cycle count, consistent
+with the intuition that longer systems have more modes to disentangle.
+
+\subsection{Charge-variance suppression}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=\columnwidth]{%
+    purification_total_charge_variance_raw_mean_vs_cycle.png}
+  \caption{%
+    Sample-averaged total charge variance
+    $\langle\operatorname{Var}(\hat{Q})\rangle_S$ vs.\ Markov cycle for
+    the three geometries under perfect correction.
+    The variance drops from the maxmix baseline $N_xN_y/2$ to
+    $O(10^{-2})$ within $2N_y$ cycles, demonstrating rapid charge
+    crystallization.
+  }
+  \label{fig:chargevar}
+\end{figure}
+
+The total charge variance (Fig.~\ref{fig:chargevar}) follows a similar
+rapid purification.  Starting from $\operatorname{Var}(\hat{Q})^\text{(mm)}
+= N_xN_y/2$ (400 for $N_y=40$), the variance is already reduced to $\sim 41$
+after the first cycle and reaches $\approx 0.08$ at the final cycle---a
+five-thousand-fold suppression.  This is consistent with the circuit driving
+the system into a near-Fock state in which each site has a definite charge.
+
+The percentage charge variance $\operatorname{Var}(\hat{Q}) / (N_xN_y/2)$
+shows that all three $N_y$ geometries reach comparably small residual fractions,
+with the approach becoming slightly slower for larger $N_y$.
+
+\subsection{Sample-to-sample fluctuations of the total charge}
+
+Under perfect correction, the circuit does not enforce a fixed total charge;
+rather, it corrects the measurement back-action on average.  The centered
+total charge is defined as
+\begin{equation}
+  Q_\text{raw} \;=\; 2\!\left(\sum_r \langle N_r\rangle - N_xN_y\right),
+  \label{eq:centeredcharge}
+\end{equation}
+which vanishes at half-filling, and its percentage counterpart
+$Q_\text{pct} = 100 \cdot Q_\text{raw}/(2N_xN_y)$ measures the deviation
+from half-filling as a fraction of the total mode count.
+A nonzero sample-to-sample variance in $Q_\text{raw}$ indicates that
+individual trajectories may carry a net charge offset even though the
+ensemble mean is controlled.
+
+From the data, the sample mean of $Q_\text{raw}$ tracks to zero throughout
+the circuit evolution (the perfect-correction protocol enforces approximate
+charge neutrality by construction), while the sample-to-sample variance
+decreases monotonically, indicating that the perfect-correction feedback is
+effective at collimating the charge distribution toward zero offset.
+
+\subsection{Protocol comparison: perfect correction vs.\ post-selection}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=\columnwidth]{%
+    purification_protocol_comparison_entropy_loglog.png}
+  \caption{%
+    Log-log comparison of total entropy vs.\ cycle for perfect correction
+    (100-sample average, shown with $\pm1\sigma$ band) and post-selection
+    (single trajectory) for all three geometries.
+    The post-selected trajectory purifies more rapidly and to a smaller
+    residual entropy at early cycles, reflecting the more aggressive
+    projection of the post-selection protocol.
+  }
+  \label{fig:protocolentropy}
+\end{figure}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=\columnwidth]{%
+    purification_protocol_comparison_charge_variance_loglog.png}
+  \caption{%
+    Log-log comparison of total charge variance vs.\ cycle for the two
+    protocols.  The post-selected trajectory again purifies faster,
+    reaching smaller residual variance than the 100-sample perfect-correction
+    average.
+  }
+  \label{fig:protocolvar}
+\end{figure}
+
+Figures~\ref{fig:protocolentropy} and \ref{fig:protocolvar} directly
+compare the two protocols.  The post-selected trajectory consistently
+purifies faster and to a smaller residual than the perfect-correction
+ensemble average.  This is physically expected: post-selection biases toward
+trajectories that happen to undergo rapid purification, whereas the
+perfect-correction ensemble contains trajectories with varying purification
+rates.
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=\columnwidth]{%
+    purification_protocol_comparison_chern_loglog.png}
+  \caption{%
+    Log-log comparison of the real-space Chern number
+    $\mathcal{C}_\text{RS}$ vs.\ cycle for the two protocols.
+    Both converge to an integer value (consistent with $|\mathcal{C}|=1$)
+    at late cycles, confirming that the steady state is topologically
+    nontrivial.
+  }
+  \label{fig:protocolchern}
+\end{figure}
+
+Figure~\ref{fig:protocolchern} shows the real-space Chern number for both
+protocols.  At late cycles both converge to a value consistent with
+$|\mathcal{C}_\text{RS}| = 1$, indicating that the adaptive circuit
+drives the system toward a topological (Chern-insulator-like) steady state.
+The Chern number build-up is faster for post-selection, consistent with the
+faster purification dynamics observed in the entropy and charge variance.
+
+\subsection{Spatial charge density and variance}
+
+The sample-averaged local charge density
+$\langle N_r\rangle = \frac{1}{S}\sum_s C^{(s)}_{a_r a_r} + C^{(s)}_{b_r b_r}$
+evolves from the uniform half-filling $\langle N_r\rangle = 1$ of the
+maxmix state and, at late times, develops spatial structure reflecting the
+domain-wall geometry encoded in the adaptive feedback.  Heatmap videos
+of $\langle N_r\rangle$ over cycles confirm that the charge density
+settles into a spatially non-uniform pattern commensurate with the
+nontrivial winding of the Chern insulator state.
+
+Similarly, the local charge variance map
+$\operatorname{Var}(N_r)$ (cf.\ Eq.~\eqref{eq:localvar}) is initially $1/2$
+everywhere and collapses to near zero at late times, with small residual
+hot spots at the domain-wall columns $x \in \{5, 15\}$, consistent with
+the expectation that domain-wall modes (edge states) retain larger charge
+fluctuations than bulk modes.
+
+\clearpage
+% ============================================================
+\section{Campaign~II: Streaming Covariance Observables}
+\label{sec:streaming}
+% ============================================================
+
+\subsection{Setup}
+
+The second campaign\footnote{%
+  Campaign id:
+  \texttt{N20\_selected\_nsh1\_dwtrunc1%
+  \_init-default\_S100\_cycles-2Ny}.}
+uses the domain-wall initial condition with $\mathbf{x}_\text{DW} = (5, 15)$
+and runs for $T = 2N_y$ Markov cycles.  The three complete geometries are
+$N_y \in \{30, 40, 50\}$ (with $N_x = 20$ throughout); a fourth run with
+$N_y = 60$ was initiated but did not complete.  One hundred samples are
+accumulated for the perfect-correction protocol; a single post-selected
+trajectory is also recorded.
+
+Rather than saving the full covariance matrix history, this campaign uses
+a \emph{streaming} observer that computes and accumulates the following
+derived quantities at each cycle without retaining $G(t)$:
+the strip entanglement entropy $\overline{S}(A_y)$, the off-diagonal square
+correlator $\widetilde{C}^2(r_y)$, the local charge-cell occupancy map, and
+the measurement frustration.
+
+\subsection{Strip entropy and CFT scaling}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=\columnwidth]{%
+    equilibrium_vs_dynamics_correlator_curves.png}
+  \caption{%
+    Sample-averaged off-diagonal square correlator
+    $\widetilde{C}^2(r_y)$ vs.\ $r_y$ at the final cycle
+    ($t = 2N_y$) for the three geometries under perfect correction.
+    On a log-log scale the curves are approximately linear,
+    supporting the power-law ansatz $\widetilde{C}^2 \propto r_y^\alpha$.
+  }
+  \label{fig:correlators}
+\end{figure}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=\columnwidth]{%
+    n20_default_protocol_comparison.png}
+  \caption{%
+    Comparison of the fitted correlator log-log slope $\alpha$ (top panel)
+    and the entropy chord-scaling coefficient $c$ (bottom panel) for
+    perfect correction and post-selection as functions of cycle.
+    The perfect-correction slope is systematically more negative (steeper
+    decay) than post-selection throughout the evolution.
+  }
+  \label{fig:protocolcomparison}
+\end{figure}
+
+The strip entropy data are fitted cycle-by-cycle to the chord formula
+Eq.~\eqref{eq:cftscaling} over the window $A_y \in [8, N_y/2]$.
+The extracted coefficient $c(t)$ grows from a small initial value and
+saturates at late cycles; its $N_y$ dependence distinguishes between a
+volume-law ($c \propto N_y$), critical ($c \sim$ const), or area-law
+($c \to 0$) phase.  Preliminary results (Fig.~\ref{fig:protocolcomparison},
+lower panel) indicate that $c$ stabilizes at a finite $O(1)$ value
+for the geometries studied here, suggestive of a critical or weakly
+volume-law phase.
+
+\subsection{Off-diagonal square correlator and power-law exponent}
+
+The off-diagonal square correlator (Eq.~\eqref{eq:correlator}) is shown
+in Fig.~\ref{fig:correlators} at the final cycle for the three $N_y$
+geometries.  On a log-log scale the curves are approximately linear
+over the fitting window $r_y \in [5, N_y/2]$, supporting the power-law
+ansatz Eq.~\eqref{eq:powerlaw}.
+
+The fitted exponent $\alpha$ evolves with cycle count (upper panel of
+Fig.~\ref{fig:protocolcomparison}).  For the perfect-correction protocol,
+$\alpha$ is consistently more negative (faster algebraic decay) than for
+post-selection.  This slope excess is a non-trivial feature of the ensemble
+averaging and is investigated in detail in Sec.~\ref{sec:diagnostics}.
+
+\subsection{Fit-window sensitivity}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=\columnwidth]{n20_final_cycle_window_heatmap.png}
+  \caption{%
+    Heatmap of the fitted correlator slope $\alpha$ as a function of
+    the minimum fitting window boundary $r_y^\text{min}$ (vertical axis)
+    and Markov cycle (horizontal axis) for the $N_x=20$, $N_y=40$ perfect-correction
+    run.  The slope is relatively stable for $r_y^\text{min} \lesssim 10$
+    but shows increased scatter near the ultraviolet cutoff.
+  }
+  \label{fig:windowheatmap}
+\end{figure}
+
+To assess the robustness of the extracted exponent, the fit is repeated
+for varying minimum window boundaries $r_y^\text{min}$.  The resulting
+slope heatmap (Fig.~\ref{fig:windowheatmap}) shows that the exponent is
+stable over a wide range of window choices at late cycles, while early-cycle
+transients produce more scatter.  This validates the default fitting window
+and confirms that the late-cycle exponent is not an artifact of the
+specific choice of $r_y^\text{min}$.
+
+\clearpage
+% ============================================================
+\section{Slope-Excess Diagnostics}
+\label{sec:diagnostics}
+% ============================================================
+
+\subsection{Observation}
+
+The systematic excess of the perfect-correction correlator slope
+$|\alpha_\text{pc}| > |\alpha_\text{ps}|$ observed in
+Fig.~\ref{fig:protocolcomparison} raises the question of whether it is a
+genuine physical effect or an artifact of the ensemble construction.  Possible
+sources include:
+(i) sample-to-sample correlations introduced by the perfect-correction
+feedback, which may bias the averaged $C^2$ relative to the true mixed
+state correlator;
+(ii) charge-sector contamination from trajectories with nonzero net charge;
+(iii) a difference in how the two protocols explore the measurement-outcome
+distribution.
+
+\subsection{Diagnostic tests}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=\columnwidth]{test3_delta_slope_vs_cycle.png}
+  \caption{%
+    Delta slope $\Delta\alpha = \alpha_\text{pc} - \alpha_\text{ps}$ as a
+    function of Markov cycle for the three $N_y$ geometries.  The excess
+    grows from zero at early cycles and stabilizes at a negative value at
+    late cycles, indicating that the slope difference is a genuine feature
+    of the late-time dynamics rather than an early-time transient.
+  }
+  \label{fig:deltaslope}
+\end{figure}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=\columnwidth]{test4_averaging_order.png}
+  \caption{%
+    Comparison of the fitted slope obtained by (a) fitting each sample
+    individually and then averaging the slopes, vs.\ (b) averaging the
+    correlator curves and then fitting the average.  The two procedures
+    give consistent results, ruling out Jensen's inequality as the source
+    of the slope excess.
+  }
+  \label{fig:avgorder}
+\end{figure}
+
+We perform five diagnostic tests:
+
+\paragraph{Test~1 (metric correlations).}
+The excess slope $\Delta\alpha$ is regressed against scalar metrics
+(entropy, Chern number, total charge variance) across the 100 samples.
+No single metric explains the bulk of the variance in $\Delta\alpha$,
+suggesting the excess is not driven by a simple correlation with
+purification speed.
+
+\paragraph{Test~2 (conditioned subsets).}
+The 100 perfect-correction samples are stratified by entropy quartile
+at the final cycle; the correlator slope is fitted separately in each
+quartile.  The slope varies weakly across quartiles, indicating that
+the excess is not exclusively contributed by slowly purifying outliers.
+
+\paragraph{Test~3 (cycle dependence).}
+Figure~\ref{fig:deltaslope} shows $\Delta\alpha(t) = \alpha_\text{pc}(t)
+- \alpha_\text{ps}(t)$ as a function of Markov cycle.  The excess grows
+from zero in the early cycles and saturates at a negative value
+($|\alpha_\text{pc}| > |\alpha_\text{ps}|$) by mid-circuit, persisting
+to the final cycle.  This rules out an early-time initialization artifact.
+
+\paragraph{Test~4 (averaging order).}
+Figure~\ref{fig:avgorder} compares two procedures: fitting each sample
+then averaging the slopes (``slope average'') vs.\ averaging the
+correlator curves then fitting (``average then fit'').  The two give
+consistent values, ruling out a Jensen-inequality bias as the dominant
+source of the excess.
+
+\paragraph{Test~5 (neutralized ensemble).}
+A subset of samples with near-zero centered total charge ($|Q_\text{pct}|
+< \epsilon$) is selected, and the correlator slope is refit.  The slope
+excess persists in this neutralized ensemble, indicating that charge-sector
+contamination from off-half-filling trajectories is not the primary driver.
+
+\subsection{Interpretation}
+
+The diagnostic battery collectively suggests that the slope excess is a
+genuine property of the perfect-correction protocol ensemble rather than a
+numerical or sampling artifact.  A plausible physical mechanism is the
+following: under perfect correction, the feedback unitary applied at each
+cycle introduces a coherent phase shift that is \emph{correlated} across
+the sample batch---the correction is derived from the same measurement
+outcomes that determined the post-measurement state.  This correlation
+enriches the off-diagonal structure of the ensemble-averaged occupation
+matrix relative to the uncorrelated post-selected trajectory, producing a
+faster algebraic decay of $\widetilde{C}^2(r_y)$.
+
+An alternative explanation involves the boundary conditions on the charge
+sector: perfect correction enforces approximate $\hat{Q} \approx N_xN_y$
+at the ensemble level, which may impose additional off-diagonal coherences
+across unit cells that the post-selected trajectory (which selects one
+charge sector deterministically) does not share.  Distinguishing these
+mechanisms conclusively would require access to the full sample covariance
+matrix $\langle G_{\alpha\beta} G_{\gamma\delta}\rangle_S$, which is not
+currently saved.
+
+% ============================================================
+\section{Physical Implications}
+\label{sec:implications}
+% ============================================================
+
+\paragraph{Rapid purification and topological ordering.}
+The most striking observation from Campaign~I is the speed of purification.
+Within $O(N_y)$ adaptive Markov cycles the system transitions from a
+maximally disordered maxmix state to a near-pure Chern-insulator state
+with $|\mathcal{C}_\text{RS}|\approx 1$ and charge variance
+$\ll N_xN_y/2$.  This is consistent with the theoretical expectation that
+adaptive circuits in the ``area-law'' phase of the MIPT can purify
+exponentially fast~\cite{Gullans2020}.  The convergence of the real-space
+Chern number confirms that the steady state selected by the adaptive
+feedback is topologically nontrivial---the measurement back-action drives
+the system toward a specific topological phase rather than a featureless
+Fock state.
+
+\paragraph{Charge conservation and measurement-induced order.}
+The U(1) charge symmetry of the Class~A circuit has a direct effect on
+the charge-variance dynamics.  The rapid suppression of $\operatorname{Var}
+(\hat{Q})$ from the maxmix baseline is not merely purification (which would
+decrease all entropy sources equally) but reflects a specific \emph{charge
+crystallization}: individual measurement trajectories localize in a narrow
+charge sector much more rapidly than a symmetry-breaking circuit would.
+The persistence of small residual charge variance ($\sim 10^{-2}$) at late
+times under perfect correction, compared to the even smaller residual under
+post-selection, quantifies how strongly the ensemble spread in charge
+deviates from the post-selected pure-state value.
+
+\paragraph{Critical correlations in the domain-wall geometry.}
+Campaign~II reveals that in the presence of a topological domain wall,
+the circuit generates long-range algebraic correlations in the off-diagonal
+covariance $\widetilde{C}^2(r_y) \propto r_y^\alpha$.  The fact that the
+entropy grows logarithmically with chord length (consistent with
+Eq.~\eqref{eq:cftscaling} with finite $c$) and the correlator decays
+as a power law are hallmarks of a critical or weakly volume-law entangled
+state.  Whether this represents true criticality (i.e., the circuit sits
+at or near a measurement-induced critical point) or a crossover between
+a bulk topological phase and edge-localized modes is not yet determined;
+a systematic $N_y$ scaling analysis of $c$ and $\alpha$ is needed to
+distinguish these scenarios.
+
+\paragraph{Protocol dependence and its diagnostic implications.}
+The systematic difference in correlator scaling between perfect correction
+and post-selection (Sec.~\ref{sec:diagnostics}) has implications for the
+interpretation of circuit simulations.  If the slope excess is physical
+rather than artifactual, it implies that the measurement-averaged ensemble
+(perfect correction) and the individual trajectory (post-selection) belong
+to different universality classes of the MIPT, in agreement with the
+general principle that the MIPT is a property of the distribution
+of quantum states rather than any single trajectory.  Verifying this
+interpretation requires larger system sizes and, ideally, access to the
+replica structure~\cite{Bao2020,Jian2020} of the measurement-averaged state.
+
+\paragraph{Future directions.}
+Several extensions are immediately motivated:
+(i) completing the $N_y = 60$ streaming covariance run to extend the
+finite-size scaling of $c$ and $\alpha$;
+(ii) computing the two-copy (second-R\'enyi) entropy to access the
+entanglement negativity spectrum and probe the MIPT universality class more
+directly;
+(iii) analyzing the spatial charge density profile near the domain wall to
+extract the localization length of the edge modes as a function of cycle;
+(iv) performing a finite-size scaling collapse of $\widetilde{C}^2(r_y)$
+to extract the critical exponent $\nu$ of the MIPT.
+
+% ============================================================
+\begin{acknowledgments}
+Computations were performed on NVIDIA A100 GPUs via Google Colab.
+\end{acknowledgments}
+
+\begin{thebibliography}{99}
+
+\bibitem{Nahum2017}
+A.~Nahum, J.~Ruhman, S.~Vijay, and J.~Haah,
+\textit{Quantum Entanglement Growth Under Random Unitary Dynamics},
+Phys.\ Rev.\ X \textbf{7}, 031016 (2017).
+
+\bibitem{Li2018}
+Y.~Li, X.~Chen, and M.~P.~A.~Fisher,
+\textit{Quantum Zeno effect and the many-body entanglement transition},
+Phys.\ Rev.\ B \textbf{98}, 205136 (2018).
+
+\bibitem{Skinner2019}
+B.~Skinner, J.~Ruhman, and A.~Nahum,
+\textit{Measurement-Induced Phase Transitions in the Dynamics of Entanglement},
+Phys.\ Rev.\ X \textbf{9}, 031009 (2019).
+
+\bibitem{Chan2019}
+A.~Chan, R.~M.~Nandkishore, M.~Pretko, and G.~Smith,
+\textit{Unitary-projective entanglement dynamics},
+Phys.\ Rev.\ B \textbf{99}, 224307 (2019).
+
+\bibitem{Bao2020}
+Y.~Bao, S.~Choi, and E.~Altman,
+\textit{Theory of the phase transition in random unitary circuits with measurements},
+Phys.\ Rev.\ B \textbf{101}, 104301 (2020).
+
+\bibitem{Kitaev2006}
+A.~Kitaev,
+\textit{Anyons in an exactly solved model and beyond},
+Ann.\ Phys.\ \textbf{321}, 2 (2006).
+
+\bibitem{Calabrese2004}
+P.~Calabrese and J.~Cardy,
+\textit{Entanglement entropy and quantum field theory},
+J.\ Stat.\ Mech.\ \textbf{2004}, P06002 (2004).
+
+\bibitem{Gullans2020}
+M.~J.~Gullans and D.~A.~Huse,
+\textit{Dynamical Purification Phase Transition Induced by Quantum Measurements},
+Phys.\ Rev.\ X \textbf{10}, 041020 (2020).
+
+\bibitem{Jian2020}
+C.-M.~Jian, Y.-Z.~You, R.~Vasseur, and A.~W.~W.~Ludwig,
+\textit{Measurement-induced criticality in random quantum circuits},
+Phys.\ Rev.\ B \textbf{101}, 104302 (2020).
+
+\end{thebibliography}
+
+\end{document}

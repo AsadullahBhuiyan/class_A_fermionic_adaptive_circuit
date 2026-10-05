@@ -1,0 +1,67 @@
+{
+  "schema": "modular_handedness_cpu_campaign_v1",
+  "sampling_revision": "modular_handedness_nx20_ny40_s100_v1",
+  "root_seed": 2026090302,
+  "geometry": {
+    "Nx": 20,
+    "Ny": 40,
+    "nshell": 1,
+    "cycles": 80,
+    "samples_per_construction": 100,
+    "DW": true,
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "filling_frac": 0.5,
+    "trial_orbitals": "X"
+  },
+  "constructions": {
+    "hard": {
+      "dw_truncation": true,
+      "meas_slab_only": true,
+      "description": "support-truncated domain wall with slab-only dynamics"
+    },
+    "soft": {
+      "dw_truncation": false,
+      "meas_slab_only": false,
+      "description": "untruncated explicit-interface domain wall"
+    }
+  },
+  "dynamics": {
+    "canonical_entry_point": "src.fgtn.classA_U1FGTN.classA_U1FGTN.run_markov_circuit",
+    "sequence": "raster_y",
+    "perfect_correction": true,
+    "postselect": false,
+    "init_mode": "default",
+    "state_representation": "physical_frame",
+    "dtype": "complex128",
+    "samples_per_task": 1,
+    "parallelize_samples": false,
+    "save_intermediate_cycles": false
+  },
+  "modular_analysis": {
+    "subsystem_width": 20,
+    "translated_cuts": 40,
+    "wall_x": [5, 15],
+    "packet_y_rel": [0, 19],
+    "packet_orbitals": [0, 1],
+    "time_start": 0.0,
+    "time_stop": 8.0,
+    "time_step": 0.01,
+    "spectral_cutoffs": [1e-10, 1e-12, 1e-8],
+    "primary_spectral_cutoff": 1e-10,
+    "wall_window_radii": [1, 2, 3],
+    "primary_wall_window_radius": 2,
+    "fit_windows": [[1.0, 5.0], [0.0, 3.0], [2.0, 8.0], [0.0, 8.0]],
+    "primary_fit_window": [1.0, 5.0],
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 2026090303,
+    "time_chunk": 64
+  },
+  "execution": {
+    "workers": 28,
+    "blas_threads_per_worker": 1,
+    "tmux_session": "modular_handedness_s100",
+    "output_subdirectory": "outputs/modular_handedness_nx20_ny40_hard_soft_s100_v1"
+  }
+}
+

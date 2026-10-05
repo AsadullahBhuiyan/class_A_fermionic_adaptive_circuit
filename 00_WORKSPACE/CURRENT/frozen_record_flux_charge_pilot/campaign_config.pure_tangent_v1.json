@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "campaign": "frozen_record_flux_pure_tangent_pilot",
+  "root_seed": 2026090202,
+  "geometry": {
+    "Nx": 16,
+    "Ny": 20,
+    "cycles": 40,
+    "nshell": 1,
+    "filling_frac": 0.5,
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "trial_orbitals": "X",
+    "dw_interval": [4, 12]
+  },
+  "arms": [
+    {
+      "name": "soft",
+      "dw_truncation": false,
+      "meas_slab_only": false
+    },
+    {
+      "name": "hard",
+      "dw_truncation": true,
+      "meas_slab_only": true
+    }
+  ],
+  "dynamics": {
+    "sequence": "raster_y",
+    "perfect_correction": true,
+    "postselect": false,
+    "postselect_probability": 0.0,
+    "physical_covariance_update": "rank1",
+    "state_representation": "physical_frame",
+    "dtype": "complex128"
+  },
+  "twist": {
+    "phi_offset": 1e-7,
+    "points_per_direction": 17,
+    "directions": [
+      {"name": "ccw", "sigma": 1},
+      {"name": "cw", "sigma": -1}
+    ],
+    "grid_rule": "phi_j = -sigma*phi_offset + sigma*2*pi*j/(points_per_direction-1)"
+  },
+  "regions": {
+    "left_x_start": 0,
+    "left_x_stop_exclusive": 8,
+    "right_x_start": 8,
+    "right_x_stop_exclusive": 16
+  },
+  "tangent": {
+    "basis_mode": "pure_occupied_empty",
+    "start_cycle": 1,
+    "full_space": true,
+    "singular_tolerance": 1e-12,
+    "candidate_mode_count": 64,
+    "minimum_candidate_mode_count": 32,
+    "tracked_mode_count": 32,
+    "effective_gap_convention": "gap_per_cycle = -2*(occupied_log + empty_log)/cycles"
+  },
+  "references": {
+    "mode": "generate_zero_twist_raster_y",
+    "root": "references",
+    "legacy_random_serial_provenance_root": "results/N16x20_frozen_flux_charge_v1/references",
+    "legacy_random_serial_pins": {
+      "soft": {
+        "reference_hash": "c34a9bad97769fa19df7ccabbee5df4642a681e1f7dd1bca10c4e355b43e2ca1",
+        "completion_sha256": "66ca0c21a0059db6733cba52f68eb28001926ca7d77d11a8c4c417bf22394066",
+        "record_sha256": "fdb695f9aefd01a598540d271a7a2defe1137f62716adb078081c3596a73937d",
+        "state_sha256": "a7f7e0ba118e7f5626483ff17803c6f5c7310c0563a98dc1174b9610b92d2f8f"
+      },
+      "hard": {
+        "reference_hash": "b6651aa11275b0f29abe684fe4c599b9247f490f8d1ea4fa70a382da9b4d4100",
+        "completion_sha256": "e6566d6831b45aae113a41511ee0364b3dee6549ecf88385930a28f46e225753",
+        "record_sha256": "7634806202cc662178779c471116475137508d9210721f8e6348cf4b17f88b0a",
+        "state_sha256": "4b47fd9ca83f41a7405255e1b41981e5d67c9e5e916a7d53ebb19b511189fe76"
+      }
+    }
+  },
+  "parallel": {
+    "cpu_list": "28-55",
+    "workers": 28,
+    "blas_threads": 1
+  },
+  "acceptance": {
+    "initial_purity_tolerance": 1e-9,
+    "replay_probability_tolerance": 1e-14,
+    "charge_continuity_tolerance": 1e-9,
+    "maximum_svd_residual": 1e-8
+  },
+  "canonical_dynamics_entry_point": "classA_U1FGTN.run_markov_circuit",
+  "claim_boundary": "Projective tangent gaps and spectral wall excitation charge; not a quantized monitored pump."
+}

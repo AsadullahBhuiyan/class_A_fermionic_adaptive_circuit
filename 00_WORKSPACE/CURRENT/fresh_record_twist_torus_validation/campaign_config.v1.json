@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "campaign": "fresh_record_twist_torus_validation",
+  "root_seed": 2026082302,
+  "geometry": {
+    "Nx": 16,
+    "Ny": 16,
+    "cycles": 32,
+    "twist_grid_x": 16,
+    "twist_grid_y": 16,
+    "nshell": 1,
+    "filling_frac": 0.5,
+    "DW": false,
+    "alpha_1": 1.0,
+    "alpha_2": 1.0,
+    "trial_orbitals": "X",
+    "dw_truncation": false,
+    "meas_slab_only": false
+  },
+  "protocols": [
+    "fresh_full_record",
+    "fresh_outcomes"
+  ],
+  "dynamics": {
+    "sequence": "random",
+    "perfect_correction": true,
+    "postselect": false,
+    "postselect_probability": 0.0,
+    "dtype": "complex128",
+    "state_representation": "physical_frame",
+    "physical_covariance_update": "rank1"
+  },
+  "half_region": {
+    "y_start": 0,
+    "y_stop_exclusive": 8
+  },
+  "terminal_window": {
+    "start_cycle": 24,
+    "stop_cycle_inclusive": 32
+  },
+  "parallel": {
+    "workers": 56,
+    "blas_threads": 1,
+    "physical_cores_only": true,
+    "idle_cpu_threshold_percent": 20.0,
+    "wait_seconds": 60
+  },
+  "acceptance": {
+    "gram_hard": 1e-9,
+    "target_zero_projector_hard": 1e-10,
+    "target_closure_hard": 1e-10,
+    "target_chern_hard": 1e-10,
+    "link_singular_value_hard": 1e-10,
+    "chern_integer_hard": 1e-8,
+    "real_space_marker_hard": 0.02,
+    "replay_probability_tolerance": 1e-14
+  },
+  "analysis": {
+    "figure_width_inches": 7.05,
+    "dpi": 300,
+    "chern_orientation": "positive_matches_repository_real_space_marker"
+  },
+  "canonical_dynamics_entry_point": "classA_U1FGTN.run_markov_circuit"
+}

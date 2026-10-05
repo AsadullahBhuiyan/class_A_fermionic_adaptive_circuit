@@ -1,0 +1,491 @@
+\documentclass[aps,prb,twocolumn,floatfix,nofootinbib,superscriptaddress]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\hypersetup{
+  pdftitle={Protocol for Frozen-Record Boundary-Twist Charge Redistribution in an Adaptive Chern Circuit},
+  pdfauthor={Asadullah Bhuiyan}
+}
+
+\begin{document}
+
+\title{\texorpdfstring{Protocol for Frozen-Record Boundary-Twist Charge
+Redistribution\\in an Adaptive Chern Circuit}{Protocol for Frozen-Record
+Boundary-Twist Charge Redistribution in an Adaptive Chern Circuit}}
+\author{Asadullah Bhuiyan}
+\affiliation{Class-A fermionic adaptive-circuit project}
+\date{September 3, 2026}
+
+\begin{abstract}
+We specify a compact CPU pilot for diagnosing boundary-twist charge
+redistribution in the class-A adaptive free-fermion circuit.  A zero-twist
+Born record is generated once and then imposed in independent static replays
+at a grid of twisted boundary conditions.  Separate records are required for
+soft explicit interfaces and hard support-terminated walls because their
+active measurement sets differ.  The primary geometry is a
+$16\times20$ cylinder evolved for $2N_y=40$ perfect-correction cycles with a
+pure half-filled initial state, random serial measurement order,
+$n_{\mathrm{shell}}=1$, and complex128 arithmetic.  Both increasing and
+decreasing sweeps use 17 points with the signed origin convention
+$\phi_j^{(\sigma)}=-\sigma10^{-7}+\sigma2\pi j/16$.  Only the final
+left/right regional charges are evaluated.  The same imposed record fixes the
+total injected charge at every twist, so twist-dependent redistribution is
+isolated by subtracting the corresponding infinitesimally displaced origin.
+The experiment is a conditional static-response probe, not a quantized
+monitored pump: neighboring twists are not dynamically connected and the
+$2\pi$ endpoint must close by a large gauge transformation.  This note fixes
+the scientific contract, offset rationale, charge estimator, numerical
+checks, parallel execution, resumability, output schema, and claim boundary;
+production plots and numerical conclusions are intentionally deferred.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\onecolumngrid
+\tableofcontents
+\twocolumngrid
+
+\section{Purpose and status}
+
+The adaptive preparation protocol of Bhuiyan, Pan, and Jian measures localized
+overcomplete-Wannier (OW) occupations and applies outcome-dependent fermionic
+feedback without postselection~\cite{BhuiyanPanJian2026}.  A twist around the
+periodic $y$ direction probes transverse redistribution between two
+$x$-separated interfaces, in the spirit of the Laughlin cylinder
+argument~\cite{Laughlin1981,Halperin1982}.  Twisted boundary conditions also
+provide a real-space formulation that does not require translation
+symmetry~\cite{NiuThouless1984,NiuThoulessWu1985}.
+
+This document describes a deliberately small, reproducible numerical pilot.
+It records what is being calculated and how its correctness is established;
+it does not report or interpret production curves.  The pilot is intended to
+answer a narrow implementation question before a more expensive ensemble or
+online-ramp calculation: if the stochastic word and therefore the net
+feedback source are held fixed, does changing a static boundary twist alter
+the final partition of charge between the two walls?
+
+Four related constructions must not be conflated:
+
+\begin{enumerate}
+  \item The exact flattened-Hamiltonian benchmark continuously follows
+  occupied wall branches and can exhibit nearly integer endpoint transfer.
+  \item The present frozen-record experiment applies one imposed stochastic
+  word in independent static simulations.
+  \item An online monitored pump changes the twist during one uninterrupted
+  Born-sampled trajectory and requires cycle-resolved source subtraction.
+  \item Modular charge spreading evolves a localized packet in modular time;
+  it is a propagation diagnostic rather than physical monitored time.
+\end{enumerate}
+
+Only item 2 is implemented here.
+
+\section{Scientific contract}
+
+\subsection{Geometry and OW measurements}
+
+The physical system has $N_x\times N_y=16\times20$ unit cells with two
+physical orbitals per cell.  A domain-wall mass profile places a topological
+Chern-insulator region with $\alpha_1=1$ on $x\in[4,12]$ and a matched
+trivial exterior with $\alpha_2=30$.  The OW basis uses trial family $X$ and
+$n_{\mathrm{shell}}=1$.  Distinct OW stabilizers need not commute, and the OW
+states form an overcomplete localized frame rather than an orthonormal Wannier
+basis.
+
+The two wall implementations are
+
+\begin{itemize}
+  \item \emph{soft}: \code{dw\_truncation=False} and
+  \code{meas\_slab\_only=False}, retaining full OW tails and measurements
+  throughout the system;
+  \item \emph{hard}: \code{dw\_truncation=True} and
+  \code{meas\_slab\_only=True}, terminating OW support and restricting
+  measurements to the topological slab.
+\end{itemize}
+
+These are distinct stochastic protocols, so each receives its own reference
+record.  They are compared at identical geometry, cycle count, initialization,
+ordering, filling, and arithmetic precision.
+
+\begin{table}[b]
+\caption{Locked pilot configuration.}
+\label{tab:contract}
+\begin{ruledtabular}
+\begin{tabular}{ll}
+geometry & $N_x\times N_y=16\times20$ \\
+domain wall & $x\in[4,12]$, $\alpha_1=1$, $\alpha_2=30$ \\
+OW basis & trial $X$, $n_{\mathrm{shell}}=1$ \\
+initial state & pure random, half filling \\
+measurement order & random serial \\
+feedback & perfect correction, no postselection \\
+duration & $40=2N_y$ physical cycles \\
+arithmetic & complex128 \\
+twist points & $17$ per direction \\
+independent records & one soft, one hard \\
+canonical entry point & \code{classA\_U1FGTN.run\_markov\_circuit} \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+\subsection{State representation and dynamics}
+
+The canonical CPU engine stores the centered covariance $\Gamma$.  The
+physical single-particle correlation matrix is
+\begin{equation}
+  G=\frac{\mathbf{1}+\Gamma}{2},
+  \qquad
+  G_{ij}=\operatorname{Tr}
+  (\hat\rho\,\hat c_i^\dagger\hat c_j),
+  \label{eq:correlation}
+\end{equation}
+where $\hat c_i$ is a physical lattice fermion and $\mathbf{1}$ is the
+single-particle identity.  The runner calls
+\code{classA\_U1FGTN.run\_markov\_circuit} for every sampled reference and
+every forced replay.  It neither copies the Markov-cycle loop nor stores a
+cycle-resolved covariance history.
+
+Each trajectory begins from the same deterministic root seed and evolves for
+40 complete cycles with pure-state rank-one covariance updates.  The reference
+calculation records the ordered site identifiers, measurement outcomes,
+conditional correction targets, and selected-branch probabilities required
+for an exact replay.
+
+\section{Reference record and static replay}
+
+\subsection{Zero-twist record}
+
+Let $\boldsymbol m_a$ denote the complete ordered word for arm
+$a\in\{\mathrm{soft},\mathrm{hard}\}$.  It is generated by an ordinary
+Born-sampled run at $\phi=0$.  The runner saves
+
+\begin{equation}
+  \bigl\{
+  G_{a,\mathrm{init}}(0),
+  G_{a,\mathrm{final}}(0),
+  \boldsymbol m_a,
+  \Delta N_{\mathrm{inj},a}
+  \bigr\}.
+\end{equation}
+
+Before any twist tasks are admitted, a forced replay at $\phi=0$ must
+reproduce the sampled final covariance.  The preregistered discrepancy is
+\begin{equation}
+  \epsilon_{0,a}
+  =\frac{\lVert
+  \Gamma_{a,\mathrm{replay}}(0)
+  -\Gamma_{a,\mathrm{sampled}}(0)
+  \rVert_F}{2N_xN_y}
+  \le 10^{-12}.
+  \label{eq:zero-parity}
+\end{equation}
+This check validates the record serialization, event ordering, initial state,
+and deterministic replay path on a common input.
+
+\subsection{Signed twist grid}
+
+Write $\sigma=+1$ for increasing/counterclockwise flux and $\sigma=-1$ for
+decreasing/clockwise flux.  The 17-point grid is
+\begin{equation}
+  \boxed{
+  \phi_j^{(\sigma)}
+  =-\sigma\varepsilon
+   +\sigma\frac{2\pi j}{16}},
+  \qquad
+  j=0,\ldots,16,
+  \qquad
+  \varepsilon=10^{-7}.
+  \label{eq:twist-grid}
+\end{equation}
+Thus the increasing sweep starts at $-10^{-7}$ and the decreasing sweep starts
+at $+10^{-7}$.  The same exactly zero-twist reference word is used for both
+directions; the offset changes the static evaluation point, not the sampled
+record.
+
+At each $\phi_j^{(\sigma)}$, the model and OW projectors are rebuilt at that
+static twist.  The reference initial state is placed in the uniform gauge,
+\begin{equation}
+  G_{a,\mathrm{init}}(\phi)
+  =U_\phi G_{a,\mathrm{init}}(0)U_\phi^\dagger,
+  \qquad
+  [U_\phi]_{xy\mu,xy\mu}
+  =e^{\ii\phi y/N_y},
+  \label{eq:gauge-init}
+\end{equation}
+and $\boldsymbol m_a$ is imposed through all 40 cycles.  Every twist is a
+fresh static simulation.  There is no state transfer from point $j$ to
+$j+1$.
+
+\subsection{Why the \texorpdfstring{$10^{-7}$}{1e-7} offset is used}
+
+The offset is not a physical mass, broadening, or Hamiltonian regulator.  It
+resolves a convention at the exponentially small avoided crossing of the two
+physical-wall branches at zero flux.  In the exact flattened-Hamiltonian
+$20\times40$ benchmark, the closest levels at $\phi=0$ are approximately
+\begin{align}
+  E&=\pm5.49\times10^{-10} &&(\text{soft}),\\
+  E&=\pm7.51\times10^{-10} &&(\text{hard}).
+\end{align}
+Starting infinitesimally to one side selects an unambiguous wall-localized
+branch.  The quantization-favoring choice has sign opposite to the winding
+direction, which is precisely Eq.~\eqref{eq:twist-grid}.  The exact continued
+benchmark then gives
+
+\begin{table}[b]
+\caption{Continued exact-Hamiltonian reference at $20\times40$.  These values
+motivate the signed origin convention; they are not acceptance targets for
+the frozen-record circuit.}
+\label{tab:exact}
+\begin{ruledtabular}
+\begin{tabular}{lrr}
+wall & increasing from $-10^{-7}$ & decreasing from $+10^{-7}$ \\
+\colrule
+Soft & $+0.9999999976$ & $-0.9999999924$ \\
+Hard & $+0.9999999987$ & $-0.9999999994$ \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+Using the opposite side of the crossing gives magnitudes $0.98397184$ for the
+soft wall and $0.98080969$ for the hard wall.  Those deficits reflect the
+small initial weight on the opposite wall, not an inadequate flux grid.
+Nearly integer transfer belongs to continuously tracked exact-Hamiltonian
+branches.  Because the present pilot re-evaluates each twist independently,
+quantization is explicitly excluded from its acceptance criteria.
+
+\section{Endpoint charge observable}
+
+\subsection{Fixed injected charge}
+
+For a measurement event $e$, let $m_e\in\{0,1\}$ be the measured occupation
+and $s_e\in\{0,1\}$ the perfect-correction target.  The imposed word fixes
+the net particle source
+\begin{equation}
+  \Delta N_{\mathrm{inj},a}
+  =\sum_{e\in\boldsymbol m_a}(s_e-m_e).
+  \label{eq:injection}
+\end{equation}
+This integer is identical at every twist and for both orientations within the
+same arm.  Each replay must satisfy global charge continuity,
+\begin{equation}
+  N_{\mathrm{final}}(\phi)
+  -N_{\mathrm{initial}}(\phi)
+  =\Delta N_{\mathrm{inj},a}
+  \label{eq:global-continuity}
+\end{equation}
+to absolute tolerance $10^{-9}$.  The pilot deliberately measures charge only
+after the entire record has been applied; no intermediate $\Delta N(\phi)$
+is assigned.
+
+\subsection{Left--right partition}
+
+The cylinder is divided into two disjoint half-system regions,
+\begin{align}
+  R_L&:x=0,\ldots,7, & R_R&:x=8,\ldots,15,\\
+  R_L+R_R&=\mathbf{1}.&&
+  \label{eq:regions}
+\end{align}
+The endpoint regional charges are
+\begin{equation}
+  N_b(\phi)
+  =\tr\!\left[
+  R_bG_{a,\mathrm{final}}(\phi)
+  \right],
+  \qquad b=L,R.
+\end{equation}
+Each orientation is referenced to its own infinitesimally displaced origin,
+\begin{align}
+  \Delta N_b^{(\sigma)}(\phi_j)
+  &=N_b(\phi_j^{(\sigma)})
+    -N_b(\phi_0^{(\sigma)}),\\
+  q_{\mathrm{wall}}^{(\sigma)}(\phi_j)
+  &=\frac{
+  \Delta N_R^{(\sigma)}(\phi_j)
+  -\Delta N_L^{(\sigma)}(\phi_j)}{2}.
+  \label{eq:qwall}
+\end{align}
+No regional source term is subtracted.  The global source is already identical
+at all twists, so it cancels when the same-word origin is subtracted.  The
+residual check
+\begin{equation}
+  \Delta N_L^{(\sigma)}
+  +\Delta N_R^{(\sigma)}
+  =0
+  \label{eq:regional-balance}
+\end{equation}
+must hold to $10^{-9}$.
+
+\subsection{Large-gauge closure}
+
+The points $j=0$ and $j=16$ differ by a signed $2\pi$ flux and are related by
+a large gauge transformation.  Endpoint covariances are retained only for
+these two points, and the closure diagnostic is
+\begin{equation}
+  \epsilon_{\mathrm{cl}}^{(a,\sigma)}
+  =\frac{
+  \lVert
+  U_{-\sigma2\pi}
+  \Gamma_a(\phi_{16}^{(\sigma)})
+  U_{-\sigma2\pi}^{\dagger}
+  -\Gamma_a(\phi_0^{(\sigma)})
+  \rVert_F}{2N_xN_y}.
+  \label{eq:closure}
+\end{equation}
+The preregistered ceiling is $10^{-8}$.  A valid static replay should therefore
+return $q_{\mathrm{wall}}(2\pi)$ to zero.  This closure is a correctness
+condition and is the principal reason that the final point must not be read as
+a quantized pump endpoint.
+
+\section{Execution and resumability}
+
+\subsection{Parallel task decomposition}
+
+The full scan contains
+\begin{equation}
+  2\ \text{walls}
+  \times2\ \text{directions}
+  \times17\ \text{twists}
+  =68
+\end{equation}
+deterministic replay tasks, plus two reference-record tasks.  The soft and hard
+references are sampled in parallel.  Once both are verified, the 68 static
+replays are distributed across a process pool.  The default host allocation
+uses CPU cores 0--55, 56 workers, and one BLAS thread per worker.  Independent
+twists of the same record are safe to parallelize because they share immutable
+serialized inputs and no evolving state.
+
+A single parent \code{tqdm} bar reports completed and failed twist points.
+Worker stdout is suppressed to prevent 56 copies of the canonical engine
+progress stream from making the log unreadable.  The campaign is launched
+inside tmux so terminal detachment does not terminate the calculation.
+
+\subsection{Completion-based resume}
+
+Each twist task writes one compressed NPZ followed by one completion JSON.  The
+completion file binds
+
+\begin{itemize}
+  \item the deterministic task and configuration hashes,
+  \item the exact wall-specific record SHA-256,
+  \item the result filename and byte count, and
+  \item the result SHA-256.
+\end{itemize}
+
+On restart, a point is skipped only if the result and completion files both
+exist and every declared identity, size, and checksum matches.  Missing,
+partial, or mismatched pairs are rerun.  The expensive scientific unit is one
+static replay, which is comfortably shorter than the repository threshold for
+intra-task state checkpointing; therefore no cycle-level checkpoint, pointer
+protocol, lease, Drive API, or distributed coordination layer is present.
+
+The reference records use the same principle but bind three files: the
+compressed trajectory word, the parent-state NPZ, and a completion JSON.  A
+campaign-identity file prevents a changed configuration or source from being
+silently resumed under the same identifier.
+
+\section{Saved products and planned analysis}
+
+The runner saves only what is required to reconstruct and audit the endpoint
+response:
+
+\begin{table}[b]
+\caption{Pilot data products.}
+\label{tab:products}
+\begin{ruledtabular}
+\begin{tabular}{lp{0.60\columnwidth}}
+reference word & ordered measurement and correction events, gzip JSON \\
+reference state & initial/final covariance, injection, replay diagnostics \\
+twist point & $N_L,N_R,N_{\mathrm{tot}}$, $x$ profile, likelihood diagnostics \\
+endpoint only & full covariance at $j=0,16$ for closure \\
+completion & task/record/config identity, bytes, SHA-256 \\
+aggregate & CSV and NPZ over all 68 points \\
+manifest & configuration, sources, residual maxima, closure values \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+Full covariance histories are deliberately excluded.  After all verified
+points exist, the planned two-column diagnostic figure will show: (a) soft-wall
+$\Delta N_L$ and $\Delta N_R$; (b) hard-wall $\Delta N_L$ and
+$\Delta N_R$; (c) $q_{\mathrm{wall}}$ for both arms and directions; and
+(d) $|\Delta N_L+\Delta N_R|$ against the preregistered tolerance.  No error
+bars belong on the pilot curves because the 17 points are deterministic
+functions of one shared word, not independent samples.
+
+The first analysis pass must report, without threshold tuning,
+
+\begin{enumerate}
+  \item the two reference injections and zero-twist replay errors;
+  \item the minimum selected-branch probability;
+  \item maximum global-continuity and regional-balance residuals;
+  \item four large-gauge closure errors;
+  \item the peak and half-loop wall response for each arm and direction; and
+  \item any disagreement between clockwise and counterclockwise static
+  evaluations at gauge-equivalent twists.
+\end{enumerate}
+
+\section{Allowed interpretation}
+
+If the structural checks pass and a finite $q_{\mathrm{wall}}(\phi)$ is
+observed, the strongest justified pilot statement is:
+\begin{quote}
+For each of two explicit perfect-correction trajectories, the final Gaussian
+state conditioned on the realized measurement word redistributes charge
+between the two wall basins as a function of static boundary twist, while the
+global feedback injection remains fixed.
+\end{quote}
+
+This is a trajectory-conditioned response statement.  It is not an ensemble
+mean because there is only one independent record per wall.  It is not a
+quantized pump because neighboring twists are independent static
+recalculations and the $2\pi$ endpoint closes.  It is not evidence for a
+physical current because the twist does not vary during monitored time.
+
+A paper-level conditional-response result would repeat the full construction
+for independent records and use the trajectory as the resampling unit.  A
+physical monitored-pump claim would instead require one online Born trajectory
+with a cycle-dependent twist, live charge accounting, and explicit
+source-subtracted regional balance.  The present pilot should be used to
+validate twist plumbing, record replay, wall partitioning, charge continuity,
+and sign conventions before either extension.
+
+\section{Reproducibility}
+
+The self-contained project is
+\path{00_WORKSPACE/CURRENT/frozen_record_flux_charge_pilot/}.
+Its locked configuration is \code{campaign\_config.v1.json}; the campaign
+runner is \code{run\_campaign.py}; and the local launcher is
+\code{launch\_tmux.sh}.  The nominal campaign identifier is
+\code{N16x20\_frozen\_flux\_charge\_v1}, with root seed 2026090202.
+The result root is
+\code{results/N16x20\_frozen\_flux\_charge\_v1/}.
+
+The implementation has unit and small end-to-end CPU tests for the exact
+68-task expansion, signed twist convention, injection parser, regional charge
+partition, checksum failure, deterministic serial/parallel agreement, and
+completion-based resume.  Production data are not part of this protocol note;
+when incorporated later, their manifest and generated analysis inputs must be
+treated as the numerical authority rather than values copied manually into
+the manuscript.
+
+\section{Conclusion}
+
+This protocol isolates a useful but deliberately limited observable: the
+endpoint charge response of a fixed monitored-circuit word to a static
+boundary twist.  Its two wall constructions, signed $10^{-7}$ origins, fixed
+injection identity, half-system partition, and large-gauge closure test are
+fully specified before inspection of production curves.  The design is small,
+parallel, and completion-resumable, while avoiding engineering layers that do
+not protect scientific correctness.  Its eventual output will decide whether
+the conditional response is promising enough to justify an ensemble
+extension; it cannot by itself establish quantized or dynamical pumping.
+
+\bibliographystyle{apsrev4-2}
+\bibliography{references}
+
+\end{document}

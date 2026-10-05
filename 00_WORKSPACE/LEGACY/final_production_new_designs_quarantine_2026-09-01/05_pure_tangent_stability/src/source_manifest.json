@@ -1,0 +1,35 @@
+{
+  "canonical_gpu_sha256": "562a5dc2ec42e64d15a19b0fb2ffce56f5e7daba82f60689c087e1868e7ba702",
+  "files": {
+    "__init__.py": {
+      "repository_source": "generated",
+      "sha256": "7a0df3eca372952f3494a4c51a48e24e842b8ca76996a4c09fbbd2e7b8f2038b"
+    },
+    "classA_U1FGTN_gpu.py": {
+      "repository_source": "src/fgtn/classA_U1FGTN_gpu.py",
+      "sha256": "562a5dc2ec42e64d15a19b0fb2ffce56f5e7daba82f60689c087e1868e7ba702"
+    },
+    "drive_storage_guard.py": {
+      "repository_source": "final_production_new_designs/_shared_src/drive_storage_guard.py",
+      "sha256": "50a43ada77f556de6678a8ebefa73a5fd7a9fdde9afd8d4b9f7abc90530f2864"
+    },
+    "g5_analysis.py": {
+      "repository_source": "final_production_new_designs/05_pure_tangent_stability/src/g5_analysis.py",
+      "sha256": "84f26064873ecb1e9e835c41598aa666b76e91c4f2a9425806329e72ece7c350"
+    },
+    "g5_runner.py": {
+      "repository_source": "final_production_new_designs/05_pure_tangent_stability/src/g5_runner.py",
+      "sha256": "29ff5f37a027e8166e0417e08b4fcca57f6b9eb4ab3df02cedf0ffd3f7fe4125"
+    },
+    "g5_tangent_observer.py": {
+      "repository_source": "final_production_new_designs/05_pure_tangent_stability/src/g5_tangent_observer.py",
+      "sha256": "5f9b8d152ba2d471fd84d1eebb750cd4d298b82311e07aa0c309f08e9724e960"
+    },
+    "occupied_frame_gpu.py": {
+      "repository_source": "src/fgtn/occupied_frame_gpu.py",
+      "sha256": "bfc10cefea98ce00184a88b5c375eadfcda8e3dc6954d9f66183d566008951b0"
+    }
+  },
+  "schema_version": 1,
+  "warning": "Generated copies; edit repository sources and rerun sync_bundle_sources.py."
+}

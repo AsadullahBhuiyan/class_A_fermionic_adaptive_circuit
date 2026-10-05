@@ -1,0 +1,454 @@
+\documentclass[aps,prx,twocolumn,superscriptaddress,longbibliography,nofootinbib,floatfix]{revtex4-2}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\newcommand{\One}{\hat{\mathbf{1}}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\fSWAP}{\operatorname{fSWAP}}
+\newcommand{\ketket}[1]{\lvert #1\rangle\!\rangle}
+\newcommand{\braketket}[2]{\langle\!\langle #1\vert #2\rangle\!\rangle}
+\newcommand{\Abar}{\overline A}
+
+\hypersetup{
+  pdftitle={Entangling Capacity of a Local Adaptive Fermion Circuit},
+  pdfauthor={Class-A Fermionic Adaptive-Circuit Project}
+}
+
+\begin{document}
+
+\title{Entangling Capacity of a Local Adaptive Fermion Circuit}
+\author{Class-A Fermionic Adaptive-Circuit Project}
+\noaffiliation
+\date{Internal technical note --- August 29, 2026}
+
+\begin{abstract}
+Local measurements and feedforward can evade correlation-spreading bounds that
+constrain unitary dynamics, but they do not provide unlimited entangling
+capacity.  We give a branchwise proof that a local adaptive circuit increases
+the Hartley entropy across a spatial cut by at most the sum of the logarithmic
+operator-Schmidt ranks of the operations crossing that cut.  For bounded-range
+circuit layers this reproduces the Lu--Lessa--Kim--Hsieh bound
+$\Delta S_0=O(D_{\rm circ}|\partial A|)$.  We then specialize the result to a
+postselection-free class-A fermion circuit with overcomplete-Wannier occupation
+measurements and fresh-ancilla fSWAP correction.  Its four conditional branches
+have operator-Schmidt rank at most four or two, yielding an explicit
+trajectory-record bound.  Applied to a critical interface embedded in two
+dimensions, the result requires $D_{\rm circ}N_x=\Omega(\log N_y)$ rather than
+$D_{\rm circ}=\Omega(\log N_y)$.  The extra transverse boundary is therefore a
+resource allowed by the theorem, not a violation of it.
+\end{abstract}
+
+\maketitle
+
+\section{Question and result}
+
+Adaptive circuits combine local quantum operations with classical control
+conditioned on earlier measurement outcomes.  They can prepare long-range
+entangled states faster than local unitary circuits because the retained
+classical record invalidates a unitary Lieb--Robinson argument.  Nevertheless,
+Lu, Lessa, Kim, and Hsieh proved that their entanglement production remains
+bounded~\cite{LuLessaKimHsieh2022}.  The purpose of this note is to state that
+bound with all branchwise assumptions visible and apply it to the local
+fermionic controller of Bhuiyan, Pan, and Jian (BPJ)~\cite{BhuiyanPanJian2026}.
+
+Two points will be central.  First, the bound concerns the Hartley entropy, or
+logarithm of Schmidt rank.  It survives projective measurements, singular
+conditional operators, and arbitrary classical feedforward.  Second, its
+geometric factor is the boundary of the subsystem in the dimension in which
+the circuit is local.  A one-dimensional critical interface embedded in a
+two-dimensional circuit therefore does not inherit the $O(1)$ cut boundary of
+an intrinsically one-dimensional preparation problem.  Figure~\ref{fig:cuts}
+contrasts the abstract cut with the strip used for the interface observable.
+
+\begin{figure*}[t]
+\centering
+\begin{minipage}{0.47\textwidth}
+\centering
+\begin{tikzpicture}[x=0.76cm,y=0.76cm,>=Latex,font=\footnotesize]
+  \fill[blue!7] (0,0) rectangle (3.7,2.55);
+  \fill[orange!10] (3.7,0) rectangle (7.4,2.55);
+  \draw[thick] (0,0) rectangle (7.4,2.55);
+  \draw[very thick,dashed] (3.7,0) -- (3.7,2.55);
+  \node at (0.35,2.25) {$A$};
+  \node at (7.02,2.25) {$\Abar$};
+  \draw[rounded corners,fill=white] (0.75,0.55) rectangle (2.35,1.25);
+  \node at (1.55,0.90) {$\hat O_A$};
+  \draw[rounded corners,fill=white] (5.05,1.40) rectangle (6.65,2.10);
+  \node at (5.85,1.75) {$\hat O_{\Abar}$};
+  \draw[rounded corners,fill=white] (2.85,0.92) rectangle (4.55,1.62);
+  \node at (3.70,1.27) {$\hat O_j$};
+  \draw[<->,thick] (3.10,0.72) -- node[below] {$r_j$} (4.30,0.72);
+  \node[align=center] at (3.70,-0.35)
+    {(a) Only a crossing branch can increase $\chi_A$.};
+\end{tikzpicture}
+\end{minipage}
+\hfill
+\begin{minipage}{0.49\textwidth}
+\centering
+\begin{tikzpicture}[x=0.73cm,y=0.73cm,>=Latex,font=\footnotesize]
+  \fill[blue!7] (0,0.62) rectangle (7.7,1.92);
+  \draw[thick] (0,0) rectangle (7.7,2.55);
+  \draw[very thick,dashed] (0,0.62) -- (7.7,0.62);
+  \draw[very thick,dashed] (0,1.92) -- (7.7,1.92);
+  \draw[very thick,red!70!black] (2.25,0) -- (2.25,2.55);
+  \draw[very thick,red!70!black] (5.45,0) -- (5.45,2.55);
+  \node[blue!60!black] at (6.85,1.27) {$A_\ell$};
+  \node[red!70!black,rotate=90] at (2.02,1.27) {wall};
+  \node[red!70!black,rotate=90] at (5.22,1.27) {wall};
+  \draw[<->] (0,-0.18) -- node[below] {$N_x$} (7.7,-0.18);
+  \draw[<->] (7.92,0.62) -- node[right] {$\ell$} (7.92,1.92);
+  \node[align=center] at (3.85,-0.67)
+    {(b) Each dashed component of $\partial A_\ell$ has length $N_x$.};
+\end{tikzpicture}
+\end{minipage}
+\caption{Entangling capacity and the relevant geometry.  (a) A branch
+operator supported entirely on one side cannot increase Schmidt rank; a
+crossing operator with operator-Schmidt rank $r_j$ multiplies it by at most
+$r_j$.  (b) The interface observable uses a full-width strip on an
+$N_x\times N_y$ torus.  Its two entanglement cuts are transverse to the walls
+and have total boundary size $2N_x$, even if the entanglement contour is
+concentrated near the walls.}
+\label{fig:cuts}
+\end{figure*}
+
+\section{Branchwise entangling-capacity theorem}
+
+Fix a spatial bipartition of a finite fermionic lattice,
+$\mathcal H=\mathcal H_A\widehat\otimes\mathcal H_{\Abar}$, where
+$\widehat\otimes$ denotes the graded tensor product.  For a pure state
+$\ketket{\psi}$, let $\chi_A(\psi)$ be its Schmidt rank across this cut and
+define its Hartley entropy by
+\begin{equation}
+ S_0(A;\psi)=\log\chi_A(\psi).
+ \label{eq:S0}
+\end{equation}
+All logarithms are natural.  Once a graded factorization is fixed, define the
+operator-Schmidt rank $r(\hat O)$ as the smallest $r$ for which
+\begin{equation}
+ \hat O=\sum_{\alpha=1}^{r}
+ \sigma_\alpha\hat O^A_\alpha\otimes\hat O^{\Abar}_\alpha .
+ \label{eq:operator-schmidt}
+\end{equation}
+Parity strings required by an odd fermionic operator are included in one of
+the two factors.
+
+For a fixed adaptive record
+$\boldsymbol m=(m_1,\ldots,m_M)$, the unnormalized branch state is
+\begin{equation}
+ \ketket{\widetilde\psi_{\boldsymbol m}}
+ =\hat O_M(\boldsymbol m_{<M})\cdots
+  \hat O_1\ketket{\psi_{\rm in}}.
+ \label{eq:branch-word}
+\end{equation}
+The choice of $\hat O_j$ may depend arbitrarily on the preceding classical
+record $\boldsymbol m_{<j}$.  We restrict attention to nonzero branches,
+$\braketket{\widetilde\psi_{\boldsymbol m}}
+ {\widetilde\psi_{\boldsymbol m}}>0$, so normalization is defined.
+
+\begin{theorem}[Branchwise entangling capacity]
+Let $\mathcal C_\partial(\boldsymbol m)$ be the operations in
+Eq.~\eqref{eq:branch-word} whose support intersects both $A$ and $\Abar$, and
+write $r_j=r(\hat O_j)$.  Every nonzero adaptive branch obeys
+\begin{equation}
+ \boxed{
+ S_0^{\rm out}(A)-S_0^{\rm in}(A)
+ \leq \sum_{j\in\mathcal C_\partial(\boldsymbol m)}\log r_j .}
+ \label{eq:exact-bound}
+\end{equation}
+No invertibility or lower bound on the branch probability is required.
+\end{theorem}
+
+\begin{proof}
+Write an input of Schmidt rank $\chi$ as
+\begin{equation}
+ \ketket{\psi}=\sum_{i=1}^{\chi}\sqrt{p_i},
+ \ketket{\phi_i}_A\otimes\ketket{\theta_i}_{\Abar}.
+\end{equation}
+Applying Eq.~\eqref{eq:operator-schmidt} gives
+\begin{equation}
+ \hat O\ketket{\psi}
+ =\sum_{\alpha=1}^{r}\sum_{i=1}^{\chi}
+ \sigma_{\alpha}\sqrt{p_i},
+ \hat O^A_\alpha\ketket{\phi_i}_A\otimes
+ \hat O^{\Abar}_\alpha\ketket{\theta_i}_{\Abar},
+ \label{eq:rank-product}
+\end{equation}
+where scalar coefficients have been absorbed into either factor except for
+the displayed $\sigma_\alpha$.  Equation~\eqref{eq:rank-product} is a sum of
+at most $r\chi$ product vectors, so the output Schmidt rank is no greater
+than $r\chi$.  If $\hat O$ is supported entirely within $A$ or $\Abar$, it
+has a one-term product representation and cannot increase $\chi$.  Applying
+this statement successively along the realized word gives
+$\chi_A^{\rm out}\leq\chi_A^{\rm in}
+\prod_{j\in\mathcal C_\partial}r_j$.  Taking the logarithm proves
+Eq.~\eqref{eq:exact-bound}.  Dividing a nonzero branch by the square root of
+its Born probability is multiplication by a scalar and leaves its rank
+unchanged.  The proof is therefore independent of the outcome-dependent
+choice of later operators.
+\end{proof}
+
+\begin{corollary}[Local depth bound]
+Suppose a depth-$D_{\rm circ}$ circuit consists of nonoverlapping operations
+in each layer, with fixed support diameter, fixed onsite Hilbert-space
+dimension, and bounded lattice coordination.  Then a geometry-dependent
+constant $\kappa$ independent of system size and depth exists such that
+\begin{equation}
+ S_0^{\rm out}(A)-S_0^{\rm in}(A)
+ \leq \kappa D_{\rm circ}|\partial A|.
+ \label{eq:Lu-bound}
+\end{equation}
+\end{corollary}
+
+Indeed, each layer has at most $\nu|\partial A|$ crossing operations and
+each has $r_j\leq r_*$, with $\nu,r_*=O(1)$; hence
+$\kappa=\nu\log r_*$.  For a pure product input,
+$S_0^{\rm in}=0$, and monotonicity of R\'enyi entropies in their index gives
+\begin{equation}
+ S_n^{\rm out}(A)\leq S_0^{\rm out}(A)
+ \leq \kappa D_{\rm circ}|\partial A|,
+ \qquad n>0,
+ \label{eq:renyi-bound}
+\end{equation}
+including the von Neumann limit $n\to1$.
+
+The product-input qualification cannot be replaced by a bound on the initial
+von Neumann entropy alone.  Let $f\subset A$ be a local flag and choose a
+volume-law state $\ketket{\Phi_L}$ across the remaining cut, with its
+$\Abar$ support orthogonal to a product state $\ketket{0}$.  The state
+\begin{equation}
+ \sqrt{1-\epsilon}\ketket{0}_f\ketket{0}
+ +\sqrt{\epsilon}\ketket{1}_f\ketket{\Phi_L}
+ \label{eq:filter-example}
+\end{equation}
+has $S_1=H_2(\epsilon)+\epsilon S_1(\Phi_L)=O(1)$ when
+$\epsilon=O(L^{-1})$, but projecting the flag onto $1$ produces
+$\ketket{\Phi_L}$ with $S_1=\Theta(L)$.  Its initial Hartley entropy was
+already extensive, so Eq.~\eqref{eq:exact-bound} remains intact.  This is why
+the robust statement is about Schmidt rank and why
+Eq.~\eqref{eq:renyi-bound} uses a product input.
+
+\section{Corrected fermionic occupation measurements}
+
+We now specialize the theorem to one finite-range overcomplete-Wannier (OW)
+controller mode in the BPJ circuit.  Suppressing its position, family, and
+band labels, let
+\begin{equation}
+ \hat a_\chi\equiv\hat\chi_{\boldsymbol r,\nu,n}
+ =\sum_{x\in X}\chi_x\hat c_x,
+ \qquad \sum_{x\in X}|\chi_x|^2=1,
+ \label{eq:ow-mode}
+\end{equation}
+where the fixed patch $X$ is obtained by truncating and renormalizing an OW
+state.  The algebra is
+$\{\hat c_x^\dagger,\hat c_y\}=\delta_{xy}$.  Define
+\begin{equation}
+ \hat N_\chi=\hat a_\chi^\dagger\hat a_\chi,
+ \qquad \hat\Pi_1=\hat N_\chi,
+ \qquad \hat\Pi_0=\One-\hat N_\chi.
+ \label{eq:projectors}
+\end{equation}
+The lower-band target is $s=1$ and the upper-band target is $s=0$.  Measuring
+$\hat N_\chi$ gives $m\in\{0,1\}$, after which perfect correction has the
+system Kraus operators
+\begin{equation}
+\begin{array}{c|cc}
+ &m=0&m=1\\ \hline
+ s=0&\hat K_{0|0}=\hat\Pi_0&\hat K_{1|0}=\hat a_\chi\\[1mm]
+ s=1&\hat K_{0|1}=\hat a_\chi^\dagger&\hat K_{1|1}=\hat\Pi_1
+\end{array}.
+\label{eq:kraus-table}
+\end{equation}
+They satisfy
+\begin{align}
+ \hat K_{m|s}^\dagger\hat K_{m|s}&=\hat\Pi_m,
+ &\hat\Pi_s\hat K_{m|s}&=\hat K_{m|s},\nonumber\\
+ \sum_m\hat K_{m|s}^\dagger\hat K_{m|s}&=\One.&&
+ \label{eq:kraus-checks}
+\end{align}
+Thus the Born outcome remains random while every nonzero branch leaves the
+measured mode at its target occupation.  On a mismatch, a colocated fresh
+ancilla $\hat d$ prepared in $\ketket{s}_d$ supplies the dilation
+\begin{equation}
+ \fSWAP(\hat a_\chi,\hat d):
+ \ketket{m}_\chi\ketket{s}_d
+ \longmapsto\ketket{s}_\chi\ketket{m}_d .
+ \label{eq:fswap}
+\end{equation}
+The outgoing ancilla is a known factorized mode and may be discarded; no
+ancilla outcome is postselected.  Taking its appropriate matrix element
+reproduces the odd Kraus operators in Eq.~\eqref{eq:kraus-table}.
+
+To calculate the entangling capacity, split the OW mode across the cut.  In a
+fixed graded factorization,
+\begin{equation}
+ \hat a_\chi=\hat a_A\otimes\One_{\Abar}
+ +\hat P_A\otimes\hat a_{\Abar},
+ \qquad \hat P_A=(-1)^{\hat F_A}.
+ \label{eq:graded-split}
+\end{equation}
+This is already a two-term operator-Schmidt representation, and the same is
+true of its adjoint.  Multiplying the two representations gives
+\begin{align}
+ \hat N_\chi={}&
+ \hat a_A^\dagger\hat a_A\otimes\One_{\Abar}
+ +\hat a_A^\dagger\hat P_A\otimes\hat a_{\Abar}
+ \nonumber\\
+ &+\hat P_A\hat a_A\otimes\hat a_{\Abar}^\dagger
+ +\One_A\otimes\hat a_{\Abar}^\dagger\hat a_{\Abar}.
+ \label{eq:number-split}
+\end{align}
+Similarly, $\One-\hat N_\chi$ is the sum of the four product terms obtained
+by replacing the first factor in the first term by
+$\One_A-\hat a_A^\dagger\hat a_A$ and changing the signs of the remaining
+three terms.  We have therefore proved the following circuit-specific ranks.
+
+\begin{proposition}[OW branch ranks]
+For an OW mode crossing the cut,
+\begin{equation}
+ r(\hat a_\chi),r(\hat a_\chi^\dagger)\leq2,
+ \qquad
+ r(\hat N_\chi),r(\One-\hat N_\chi)\leq4.
+ \label{eq:ow-ranks}
+\end{equation}
+Consequently every nonzero trajectory record $\boldsymbol m$ obeys
+\begin{equation}
+ \boxed{
+ \Delta S_0^{\boldsymbol m}(A)
+ \leq2\log2\,N_=^\partial(\boldsymbol m)
+ +\log2\,N_{\ne}^\partial(\boldsymbol m).}
+ \label{eq:record-bound}
+\end{equation}
+Here $N_=^\partial$ counts crossing branches with $m=s$, whose Kraus
+operator is a rank-at-most-four projector, and $N_{\ne}^\partial$ counts
+crossing branches with $m\ne s$, whose Kraus operator is
+$\hat a_\chi$ or $\hat a_\chi^\dagger$.
+\end{proposition}
+
+The ranks in Eq.~\eqref{eq:ow-ranks} are upper bounds: they can decrease for
+special orbitals or cuts.  Equation~\eqref{eq:record-bound}, however, is
+deterministic once the physical record and cut are fixed.  It requires
+neither averaging nor a minimum Born probability and can be checked directly
+along any pure trajectory.
+
+\section{Two-dimensional interface application}
+
+The finite-range class-A controller acts on an $N_x\times N_y$ torus.  Its
+two periodic domain walls run in the $y$ direction.  The entropy diagnostic
+uses the full-width strip
+\begin{equation}
+ A_\ell=\{(x,y):0\leq x<N_x,\ 0\leq y<\ell\}.
+ \label{eq:strip}
+\end{equation}
+As Fig.~\ref{fig:cuts}(b) shows, $\partial A_\ell$ has two transverse
+components of length $N_x$:
+\begin{equation}
+ |\partial A_\ell|=2N_x.
+ \label{eq:strip-boundary}
+\end{equation}
+Localizing an entanglement contour near a wall does not change this
+subsystem or turn Eq.~\eqref{eq:strip-boundary} into an $O(1)$ boundary.
+
+Suppose a pure product input is prepared by a local circuit into states whose
+strip entropy has the proposed two-wall conformal form
+\begin{equation}
+ S_1(A_\ell)=b(N_x)+\frac{c_L+c_R}{6}
+ \log\!\left[
+  \frac{N_y}{\pi a}\sin\!\left(\frac{\pi\ell}{N_y}\right)
+ \right]+o(1),
+ \label{eq:cft-entropy}
+\end{equation}
+where $a$ is a microscopic cutoff~\cite{CalabreseCardy2004}.  At
+$\ell=N_y/2$, Eqs.~\eqref{eq:renyi-bound} and
+\eqref{eq:strip-boundary} imply, conditional on this CFT scaling,
+\begin{gather}
+ 2\kappa D_{\rm circ}N_x
+ \geq\frac{c_L+c_R}{6}\log N_y-O(1),\nonumber\\[-1mm]
+ \boxed{D_{\rm circ}N_x=\Omega(\log N_y).}
+ \label{eq:2d-resource}
+\end{gather}
+For fixed $N_x$ this recovers a logarithmic depth requirement.  When the
+transverse resource $N_x$ grows, however, the Lu--Lessa--Kim--Hsieh theorem
+permits smaller depth, including size-independent depth when the boundary
+capacity is already at least logarithmic.  This is the direct reason that a
+critical interface in a two-dimensional local circuit does not contradict
+the intrinsically one-dimensional conclusion.
+
+The record-resolved statement is sharper.  Combining
+Eqs.~\eqref{eq:record-bound} and \eqref{eq:cft-entropy} at half circumference
+gives, for every trajectory that individually exhibits the stated entropy,
+\begin{equation}
+ 2N_=^\partial(\boldsymbol m)+N_{\ne}^\partial(\boldsymbol m)
+ \geq\frac{c_L+c_R}{6\log2}\log N_y-O(1).
+ \label{eq:record-resource-general}
+\end{equation}
+For two oppositely oriented complex-fermion walls,
+$c_L=c_R=1$, so
+\begin{equation}
+ \boxed{
+ 2N_=^\partial(\boldsymbol m)+N_{\ne}^\partial(\boldsymbol m)
+ \geq\frac{\log N_y}{3\log2}-O(1).}
+ \label{eq:record-resource}
+\end{equation}
+If only the Born average $\overline{S_1}$ is known to have the logarithmic
+coefficient, averaging the branchwise inequality yields the corresponding
+bound on
+$2\overline{N_=^\partial}+\overline{N_{\ne}^\partial}$; it does not by itself
+establish Eq.~\eqref{eq:record-resource} for every record.  Conversely, the
+fact that the output is an ensemble supplies no loophole: the underlying
+upper bound, Eq.~\eqref{eq:record-bound}, holds before averaging for every
+nonzero trajectory.
+
+\section{Assumptions, scope, and conclusion}
+
+The conclusions above use the following assumptions explicitly.
+
+\emph{Pure nonzero branches.---}The Schmidt-rank theorem concerns normalized
+pure trajectories with nonzero Born probability.  It does not bound an
+entanglement measure of the discarded-record mixed state.
+
+\emph{Bounded quantum locality.---}The depth corollary assumes fixed onsite
+dimension, bounded coordination, bounded operation diameter, and only a
+constant local ancillary overhead.  It applies directly to OW modes truncated
+at fixed $n_{\rm shell}$.  Exact OW modes with exponential tails are not
+strictly bounded-support operations; a range that grows with system size
+must be retained in the constants instead of being called $O(1)$.
+
+\emph{Input state.---}Equation~\eqref{eq:exact-bound} applies to any pure
+input, but the preparation lower bounds
+Eqs.~\eqref{eq:2d-resource}--\eqref{eq:record-resource} use
+$S_0^{\rm in}=0$.  A generic random Slater determinant is already spatially
+entangled.  A maximally mixed state is not a pure input; applying a pure-state
+bound requires a specified purification and a cut that includes the retained
+reference modes.
+
+\emph{Physical depth and encoding.---}$D_{\rm circ}$ denotes actual layers
+of mutually nonoverlapping bounded-support quantum operations, not an
+algorithmic update counter.  The locality statement is native to the graded
+fermionic tensor product.  A qubit realization must separately include the
+locality and depth overhead of its fermion-to-qubit encoding.
+
+Within these assumptions, the logical status is unambiguous.  The general
+bound is branchwise; the OW Kraus operators satisfy it with the explicit ranks
+in Eq.~\eqref{eq:ow-ranks}; and the full-width strip supplies a boundary of
+size $2N_x$.  The circuit therefore obeys the Lu--Lessa--Kim--Hsieh bound.
+What is not proved here is that the wall realizes the conformal form
+Eq.~\eqref{eq:cft-entropy}, how rapidly it converges, or that it is prepared in
+constant total depth.  Those are independent physical questions.  This note
+establishes only the entangling-capacity theorem, its record-resolved fermionic
+refinement, and the conditional resource constraint that any such interface
+state must satisfy.
+
+\clearpage
+\bibliographystyle{apsrev4-2}
+\bibliography{references}
+
+\end{document}

@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "campaign": "occupied_frame_validation",
+  "root_seed": 2026082201,
+  "geometry": {
+    "Nx": 16,
+    "Ny": 16,
+    "cycles": 32,
+    "samples": 10,
+    "nshell": 1,
+    "filling_frac": 0.5,
+    "DW": false,
+    "alpha_1": 1.0,
+    "alpha_2": 1.0,
+    "trial_orbitals": "X",
+    "dw_truncation": false,
+    "meas_slab_only": false
+  },
+  "protocol": {
+    "sequence": "random",
+    "perfect_correction": true,
+    "postselect": false,
+    "postselect_probability": 0.0,
+    "dtype": "complex128",
+    "physical_covariance_update": "rank1"
+  },
+  "initializations": [
+    {
+      "label": "random_pure",
+      "init_mode": "default",
+      "frame_representation": "physical_frame"
+    },
+    {
+      "label": "maxmix",
+      "init_mode": "maxmix",
+      "frame_representation": "purification_frame"
+    }
+  ],
+  "backends": ["covariance", "frame"],
+  "checkpoint_cycles": [0, 1, 8, 16, 24, 32],
+  "dense_choi_audit_samples": [0],
+  "half_region": {
+    "y_start": 0,
+    "y_stop_exclusive": 8
+  },
+  "parallel": {
+    "workers": 10,
+    "blas_threads": 1,
+    "same_numa_node": true,
+    "idle_cpu_threshold_percent": 15.0,
+    "wait_seconds": 60
+  },
+  "acceptance": {
+    "covariance_target": 1e-10,
+    "covariance_hard": 1e-8,
+    "branch_probability_target": 1e-11,
+    "branch_probability_hard": 1e-8,
+    "log_weight_target": 1e-9,
+    "log_weight_hard": 1e-7,
+    "entropy_target": 1e-9,
+    "entropy_hard": 1e-7,
+    "gram_target": 1e-11,
+    "gram_hard": 1e-9,
+    "choi_target": 1e-9,
+    "choi_hard": 1e-7,
+    "replay_probability_tolerance": 1e-14
+  },
+  "physics_gate": {
+    "observable": "disk_partition_real_space_chern",
+    "target_source": "finite_size_uniform_alpha_1_ground_state",
+    "expected_chern": 1.0,
+    "terminal_absolute_error_hard": 0.25,
+    "terminal_window_start_cycle": 24,
+    "terminal_window_drift_hard": 0.15,
+    "require_improvement_from_cycle_zero": true,
+    "maxmix_global_entropy_density_hard": 0.10,
+    "maxmix_require_entropy_reduction": true
+  },
+  "analysis": {
+    "paired_bootstrap_repetitions": 10000,
+    "practical_equivalence_fraction": 0.05,
+    "figure_width_inches": 7.05,
+    "dpi": 300
+  },
+  "canonical_dynamics_entry_point": "classA_U1FGTN.run_markov_circuit"
+}

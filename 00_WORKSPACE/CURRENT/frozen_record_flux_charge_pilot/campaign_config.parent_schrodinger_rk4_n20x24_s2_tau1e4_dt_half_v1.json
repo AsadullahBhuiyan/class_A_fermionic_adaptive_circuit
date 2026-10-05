@@ -1,0 +1,13 @@
+{
+  "schema": "parent_schrodinger_rk4_refinement_v1",
+  "campaign_id": "N20x24_parent_schrodinger_rk4_s2_tau1e4_dt_half_v1",
+  "primary_config": "campaign_config.parent_schrodinger_rk4_n20x24_s50_tau1e4_v1.json",
+  "primary_output_root": "results/N20x24_parent_schrodinger_rk4_s50_tau1e4_v1",
+  "sample_ids": [0],
+  "walls": ["soft", "hard"],
+  "directions": ["ccw", "cw"],
+  "steps_per_interval": 640,
+  "workers": 4,
+  "checkpoint_every_intervals": 4,
+  "purpose": "RK4 step-halving convergence check for one endpoint per wall and both ramp directions"
+}

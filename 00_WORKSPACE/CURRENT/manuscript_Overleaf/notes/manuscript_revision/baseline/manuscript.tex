@@ -1,0 +1,749 @@
+\documentclass[aps,prb,twocolumn,superscriptaddress,longbibliography,floatfix]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{float}      % [H] placement for figures and the algorithm box
+\usepackage{needspace}
+\usepackage{graphicx}
+\usepackage{capt-of}
+\graphicspath{{figures/}}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=blue,citecolor=blue]{hyperref}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{bm}
+\usepackage{soul}
+\usepackage{pifont}
+\usepackage{mathtools}
+\usepackage{tikz}
+\usetikzlibrary{tikzmark,arrows.meta,positioning,shapes.geometric,calc}
+\usepackage{array}
+\usepackage[normalem]{ulem}
+\usepackage{mdframed}
+\usepackage{enumitem}
+\usepackage{makecell}
+\usepackage{physics}
+\usepackage{comment}
+\usepackage[ruled,lined]{algorithm2e}
+\SetKwInput{KwInit}{Initialization}
+\SetKwInput{KwOutput}{Output}
+\SetKwComment{Comment}{\# }{}
+\SetCommentSty{textit}
+\SetAlgoCaptionSeparator{.}
+\SetArgSty{textrm}
+\DontPrintSemicolon
+
+\DeclareMathOperator\arctanh{arctanh}
+\DeclareMathOperator{\Sgn}{Sgn}
+
+% ── Shorthands ──
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mr}[1]{\mathrm{#1}}
+\newcommand{\mf}[1]{\mathfrak{#1}}
+\newcommand{\mb}[1]{\mathbb{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\h}[1]{\hat{#1}}
+\newcommand{\Id}{\mathbf{1}}
+
+% ── Physics objects ──
+\newcommand{\bfr}{\boldsymbol r}
+\newcommand{\bk}{\boldsymbol k}
+\newcommand{\kett}[1]{\ket{#1}\!\rangle}
+\newcommand{\braa}[1]{\langle\!\bra{#1}}
+\newcommand{\CI}{\kett{\mr{CI}}}
+\newcommand{\fSWAP}{\operatorname{fSWAP}}
+\newcommand{\rec}{\bs m}   % measurement record
+
+% ── Draft annotation ──
+\newcommand{\drafthighlight}[1]{\textcolor{red}{#1}}
+\newcommand{\cmjadd}[1]{\drafthighlight{#1}}
+\newcommand{\abadd}[1]{\drafthighlight{#1}}
+\newcommand{\HPadd}[1]{\drafthighlight{#1}}
+\newcommand{\cmjCom}[1]{\textcolor{red}{[CMJ: #1]}}
+\newcommand{\abcom}[1]{\textcolor{purple}{[AB: #1]}}
+\newcommand{\HPcom}[1]{\textcolor{cyan}{[HP: #1]}}
+
+\begin{document}
+\raggedbottom
+
+\title{Chiral Domain Wall Modes in Adaptive Quantum Dynamics}
+\author{Asadullah Bhuiyan, Haining Pan, Chao-Ming Jian}
+\noaffiliation
+\date{\today}
+
+\begin{abstract}
+\end{abstract}
+
+\maketitle
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Introduction}
+
+Dynamical quantum systems involving both unitary evolution and stochastic wavefunction collapse from measurements provide a rich setting for new types of non-equilibrium matter~\cite{PotterVasseur2022,FisherKhemaniNahumVijay2023}.
+In particular, the discovery of measurement-induced phase
+transitions~\cite{LiChenFisher2018,SkinnerRuhmanNahum2019,ChanNandkishorePretkoSmith2019,LiChenFisher2019,GullansHuse2020}
+sparked rapid progress in our understanding of non-equilibrium physics. The landscape of such transitions is further enriched by global symmetries~\cite{SangHsieh2021,BaoChoiAltman2021,LavasaniAlaviradBarkeshli2021,AgrawalEtAl2022,BarrattEtAl2022,MajidyEtAl2023}, reshaped by unitary feedback conditioned on measurement outcomes~\cite{IadecolaEtAl2023,RavindranathEtAl2023,PiroliEtAl2023,SierantTurkeshi2023,ODeaEtAl2024}, and qualitatively modified by
+decoherence~\cite{WeinsteinBaoAltman2022,LiSangHsieh2023,LiuLiZhangJian2024,IvakiOjanenMoghaddam2025}.
+
+In this work, we seek to better understand the role of topology in these dynamical systems. In equilibrium, topological phases, such as Chern insulators, are a staple in
+the study of quantum matter. For free fermion systems, topological phases are organized according to symmetry and dimensionality tenfold way~\cite{AltlandZirnbauer1997,SchnyderRyuFurusakiLudwig2008,Kitaev2009,RyuSchnyderFurusakiLudwig2010,ChiuTeoSchnyderRyu2016}.
+Such phases cannot be smoothly deformed into a topologically distinct phase without closing the gap or breaking the relevant symmetry. At the interface between distinct bulk topological phases, boundary-localized, gapless modes robust against symmetry-preserving
+perturbations emerge~\cite{Halperin1982,Hatsugai1993,TeoKane2010}. This bulk-boundary correspondence is a cornerstone of both experimental and theoretical condensed matter physics~\cite{HasanKane2010,QiZhang2011}. A key feature of these phases is their robustness to spatial disorder. In particular, the bulk invariant survives gap-preserving spatial disorder, such that chiral boundary modes 
+evade Anderson localization~\cite{Halperin1982,EversMirlin2008}. Monitored dynamics provides a new arena in which to study this robustness, since the randomness of measurement outcomes acts as spatiotemporal disorder~\cite{JianBauerKeselmanLudwig2022}. Distinct from typical disorder however, Born rule are subject to temporal disorder that is correlated with the state itself~\cite{JianShapourianBauerLudwig2023,FavaEtAl2023}.
+
+Recently, the role of topology in monitored quantum dynamics has advanced notably, particularly for free fermions. Concrete $1+1$D models with topologically distinct area-law phases have been identified~\cite{KellsMeidanRomito2023,BehrendsVennBeri2024,PanShapourianJian2025,Oshima2025, yang2026decoding}, while Refs.~\cite{BhuiyanPanJian2026,XiaoKawabata2026} develop topological classifications of free-fermion monitored dynamics based on the AZ symmetry classification.
+
+There has also been notable progress in the physics of boundary modes in topological dynamical phases.  Refs.~\cite{PanShapourianJian2025, Oshima2025} identified dynamical topological modes localized on $0+1$D domain walls between $1+1$D topological dynamical phases. Ref.~\cite{XiaoKawabata2026}
+established an analog of the bulk-boundary correspondence in which non-trivial bulk topology corresponds to the gapless modes in the Lyapunov spectrum of the dynamics. Their $2+1$D construction, however, postselects the measurement outcomes, so it is unclear whether chiral boundary modes survive genuine stochastic, monitored dynamics. Whether chiral, gapless boundary modes can be realized under genuine Born-rule dynamics is of interest to this work.
+
+In this paper, we consider a 2+1D adaptive quantum circuit consisting of finite-range occupation measurements, local unitary feedback, and ancilla modes. The adaptive circuit steers towards the topological phase by measuring truncated, overcomplete Wannier (OW) modes and swapping in fresh ancilla modes with the target occupancy whenever an undesired occupancy is observed. For finite-range OW measurements, the overcompleteness leads to measurement-outcome frustration and so does not steer towards a common dark state. Instead, the dynamics approach a disordered ensemble of Chern insulator states.
+ 
+By tracing out ancilla degrees of freedom, we show that unitary feedback becomes equivalent to fermion-counting operations on the physical system, consisting of particle gain and loss operations in the OW basis that correct undesired measurement outcomes. This simplified model will be the main system of interest in this work.
+
+We then introduce dynamical domain walls into the adaptive dynamics. First, we define a parameter $\alpha$ that controls the dynamical topological phase~\cite{BhuiyanPanJian2026}. By promoting $\alpha$ to a spatially dependent circuit parameter, we can introduce programmable domain walls in our adaptive circuit. Indeed, the adaptive dynamics will steer towards topological phases confined to finite spatial regions, with the complementary region being topologically trivial. At their interface, we show that the dynamics can prepare dynamical analogs of anomalous boundary modes. Furthermore, the prepared boundary modes show evidence of chirality and criticality, consistent with the expected universal conformal-field-theory description of the boundary physics~\cite{CalabreseCardy2004}. Finally, we study slow purification behavior and initial state sensitivity, connecting them through the appearance of zero modes in the associated Lyapunov spectra of the dynamics.
+
+\section{Topological Adaptive Circuit with Domain Walls}
+\label{sec:Model}
+
+In this section, we construct the adaptive circuit studied in the rest of this work. It is a variant of the topological adaptive circuit of Ref.~\cite{BhuiyanPanJian2026}, which steers a two-dimensional fermionic system toward a Chern insulator by repeatedly measuring localized stabilizers and correcting undesired outcomes with unitary feedforward operations. We make two modifications. First, we replace the finite ancillary bath of Ref.~\cite{BhuiyanPanJian2026} by a supply of fresh ancillas, so that every undesired outcome is corrected. Once the ancillas are traced out, the feedforward operations reduce to single-fermion gain and loss, i.e., to fermion counting. Second, we let the parameter which controls the steady-state topological phase vary in space, which introduces domain walls between topologically distinct dynamical phases.
+
+In Sec.~\ref{sec:Stabilizers}, we review the stabilizer formalism introduced in Ref.~\cite{BhuiyanPanJian2026} for a Chern insulator in terms of overcomplete Wannier (OW) modes. In Sec.~\ref{sec:TruncatedOW}, we truncate the OW modes to a finite-range and discuss the resulting frustration. In Sec.~\ref{sec:FermionCounting}, we present the measurement-and-feedforward operation with fresh ancillas and its reduction to single fermion gain and loss operations. In Sec.~\ref{sec:DomainWalls}, we introduce the domain walls. Finally, in Sec.~\ref{sec:Circuit}, we assemble these ingredients into the adaptive circuit and describe its numerical implementation.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{domain_wall_adaptive_circuit.pdf}
+    \caption{\textbf{Domain-wall adaptive circuit.} (a) The $N_x\times N_y$ geometry, with periodic boundary conditions in both directions, repeated through circuit time. The two interfaces are marked in deep blue, and a local OW occupation operator is shown within its $3\times3$ unit-cell support. (b) One elementary step of Algorithm~\ref{alg:Circuit}. The OW occupation is measured with Born-random outcome $m$. If $m\neq s_\sigma$, an fSWAP with a fresh ancilla restores the target occupation. The two branches then join before the next OW mode is measured.}
+    \label{fig:Circuit}
+\end{figure*}
+
+\subsection{Stabilizer formalism for a Chern insulator}
+\label{sec:Stabilizers}
+
+We target a Chern insulator $\CI$ given by the half-filled ground state of a variant of the Qi--Wu--Zhang (QWZ) Hamiltonian~\cite{QiWuZhang2006}. The system is defined on a 2d square lattice with two fermion modes $\hat c_{\bfr,1}$ and $\hat c_{\bfr,2}$ per unit cell, where the unit-cell coordinate $\bfr=(x,y)\in\mathbb Z^2$ is a pair of integers. With the Fourier convention $\hat c_\mu(\bk)=\sum_{\bfr}e^{\ii\bk\cdot\bfr}\hat c_{\bfr,\mu}$, the parent Hamiltonian reads
+\begin{equation}
+    \hat H_{\mr{CI}}=\int_{\mr{BZ}}\frac{d^2\bk}{(2\pi)^2}\,
+    \hat c^\dagger(\bk)\big[\boldsymbol n(\bk)\cdot\boldsymbol\sigma\big]\hat c(\bk),
+    \label{eq:QWZ}
+\end{equation}
+with
+\begin{equation}
+    \boldsymbol n(\bk)=(\sin k_x,\ \sin k_y,\ \alpha-\cos k_x-\cos k_y).
+    \label{eq:SpectralVector}
+\end{equation}
+Here, $\boldsymbol\sigma$ is the vector of Pauli matrices, $\hat c(\bk)=(\hat c_1(\bk),\hat c_2(\bk))^{\mathsf T}$, and $\alpha\in\mathbb R$ tunes the target state. The Chern insulator $\CI$ fully occupies the lower band of $\hat H_{\mr{CI}}$ and leaves the upper band empty.  Here and below, the double ket $\kett{\cdots}$ denotes many-body states and the single ket $|\cdots\rangle$ single-particle states. Continuing, note that the band gap is finite for $\alpha\neq0,\pm2$, which we assume unless stated otherwise. The single-particle projectors onto the upper ($\sigma=+$) and lower ($\sigma=-$) bands are
+\begin{equation}
+    P_\sigma(\bk)=\frac12\left[\Id+\sigma\,\frac{\boldsymbol n(\bk)}{|\boldsymbol n(\bk)|}\cdot\boldsymbol\sigma\right].
+    \label{eq:BandProjectors}
+\end{equation}
+We define the Chern number of $\CI$ as that of its occupied band,
+\begin{equation}
+    \mc C=\frac{1}{2\pi\ii}\int_{\mr{BZ}}d^2\bk\,
+    \operatorname{tr}\!\Big(P_-\big[\partial_{k_x}P_-,\partial_{k_y}P_-\big]\Big),
+    \label{eq:ChernNumber}
+\end{equation}
+which gives $\mc C=1$ for $\alpha\in(0,2)$, $\mc C=-1$ for $\alpha\in(-2,0)$, and $\mc C=0$ for $|\alpha|>2$. Note that our convention is related to that of Ref.~\cite{BhuiyanPanJian2026} by $\alpha\to-\alpha$.
+
+Following Ref.~\cite{BhuiyanPanJian2026}, we describe $\CI$ using localized stabilizers built from OW modes. Concretely, we project a local trial orbital onto either band,
+\begin{equation}
+    W_{\bfr,\nu,\sigma}(\bfr',\mu)\propto\int_{\mr{BZ}}\frac{d^2\bk}{(2\pi)^2}\,
+    e^{\ii\bk\cdot(\bfr-\bfr')}\big[P_\sigma(\bk)\,\tau_\nu\big]_\mu,
+    \label{eq:OWWavefunction}
+\end{equation}
+where $[\cdots]_\mu$ denotes the $\mu$th component and the proportionality constant normalizes $W_{\bfr,\nu,\sigma}$. We use the two eigenvectors of $\sigma^x$ as trial orbitals, $\tau_A=(1,1)^{\mathsf T}/\sqrt2$ and $\tau_B=(1,-1)^{\mathsf T}/\sqrt2$. The associated OW fermion operators and their number operators are
+\begin{equation}
+    \hat\chi^\dagger_{\bfr,\nu,\sigma}=\sum_{\bfr',\mu}W_{\bfr,\nu,\sigma}(\bfr',\mu)\,\hat c^\dagger_{\bfr',\mu},
+    \qquad
+    \hat{\mc N}_{\bfr,\nu,\sigma}=\hat\chi^\dagger_{\bfr,\nu,\sigma}\hat\chi_{\bfr,\nu,\sigma}.
+    \label{eq:OWOperators}
+\end{equation}
+Since $W_{\bfr,\nu,\sigma}$ is normalized, each $\hat{\mc N}_{\bfr,\nu,\sigma}$ is a projector with eigenvalues 0 and 1. For $\alpha\neq0,\pm2$, $W_{\bfr,\nu,\sigma}$ is exponentially localized around $\bfr$, with a localization length that diverges as the band gap closes. The parameter $\alpha$ thus controls both the topology of the target state and the range of the OW modes.
+
+For a band with nonzero Chern number, a single family of OW modes cannot span the band. Writing $P_\sigma(\bk)=|u_\sigma(\bk)\rangle\langle u_\sigma(\bk)|$, the weight of the family $\nu$ at momentum $\bk$ is set by the overlap $\langle u_\sigma(\bk)|\tau_\nu\rangle$, which must vanish somewhere in the Brillouin zone~\cite{LiDongLedwithKhalaf2024,BhuiyanPanJian2026}. The two families together, however, do span the band, since $\tau_A$ and $\tau_B$ form an orthonormal basis and hence $\sum_{\nu}|\langle u_\sigma(\bk)|\tau_\nu\rangle|^2=1$ for every $\bk$. This overcompleteness guarantees that $\CI$ is the unique many-body state satisfying the stabilizing conditions
+\begin{equation}
+    \hat{\mc N}_{\bfr,\nu,-}\CI=\CI,
+    \qquad
+    \big(\hat\Id-\hat{\mc N}_{\bfr,\nu,+}\big)\CI=\CI,
+    \label{eq:StabilizingConditions}
+\end{equation}
+for all $\bfr$ and $\nu=A,B$. The first condition fills every lower-band OW mode and hence the entire lower band, while the second empties the entire upper band.
+
+Note that these stabilizers do not always commute. For two OW modes $a$ and $b$ of the same band,
+\begin{equation}
+    \big[\hat{\mc N}_a,\hat{\mc N}_b\big]=\langle W_a|W_b\rangle\,\hat\chi^\dagger_a\hat\chi_b-\mr{h.c.},
+    \label{eq:StabilizerCommutator}
+\end{equation}
+which is nonzero whenever the two modes overlap. Nevertheless, the stabilizing conditions are frustration free: $\CI$ satisfies all of them simultaneously.
+
+\subsection{Finite-range truncation}
+\label{sec:TruncatedOW}
+
+While exponentially localized, the OW modes are supported on the entire lattice. To obtain a circuit with strictly finite-range operations, we truncate each OW function to a $(2w+1)\times(2w+1)$ window around its center and renormalize it,
+\begin{equation}
+    \widetilde W_{\bfr,\nu,\sigma}(\bfr',\mu)\propto g_{w,\bfr}(\bfr')\,W_{\bfr,\nu,\sigma}(\bfr',\mu),
+    \label{eq:TruncatedOW}
+\end{equation}
+where $g_{w,\bfr}(\bfr')=1$ if $|x-x'|\leq w$ and $|y-y'|\leq w$ (distances on the periodic lattice) and $g_{w,\bfr}(\bfr')=0$ otherwise. In the figures, the truncation range $w$ is denoted by $n_{\rm shell}$. Throughout the main text, we use $w=1$, i.e., $3\times3$ windows. Henceforth, $\hat\chi_{\bfr,\nu,\sigma}$ and $\hat{\mc N}_{\bfr,\nu,\sigma}$ denote the truncated OW modes and their number operators.
+
+Truncation frustrates the stabilizing conditions~\eqref{eq:StabilizingConditions}. The two untruncated lower-band OW modes per unit cell are linearly dependent, since the lower band contains only one state per unit cell. A truncated OW mode, however, leaks into the opposite band, so the truncated lower-band modes generically span the entire single-particle space, and so do the truncated upper-band modes. No many-body state can then fill all of the former while emptying all of the latter. Hence, the finite-range circuit does not converge to $\CI$ itself. Instead, each trajectory approaches a pure state in the same Chern-insulator phase, with small record-to-record fluctuations in the total charge.
+
+The frustration is weak. As we show in Appendix~\ref{app:Truncation}, at $w=1$ and $\alpha=1$ only about $0.4\%$ of the weight of a truncated OW mode lies in the opposite band. The translation-invariant parent Hamiltonian built from the truncated modes remains gapped with Chern number 1, and its topological transition is shifted only slightly, to $\alpha_c(1)\approx1.80$. Consistently, the real-space Chern number of the states prepared without domain walls converges to 1 as the system size increases. Conceptually, truncation deforms the stabilizing conditions rather than destroying the target phase, in the same way that a gapped topological phase is robust against weak perturbations.
+
+\subsection{Feedforward with fresh ancillas and fermion counting}
+\label{sec:FermionCounting}
+
+In Ref.~\cite{BhuiyanPanJian2026}, an undesired measurement outcome is corrected by a fermionic SWAP (fSWAP) gate with a local mode of an ancillary layer,
+\begin{align}
+    \fSWAP(\hat\chi,\hat d)
+    &=\exp\!\left[\ii\frac{\pi}{2}(\hat\chi^\dagger-\hat d^\dagger)(\hat\chi-\hat d)\right]\nonumber\\
+    &=\hat\Id-\hat{\mc N}-\hat n_a+\hat\chi^\dagger\hat d+\hat d^\dagger\hat\chi,
+    \label{eq:fSWAP}
+\end{align}
+where $\hat{\mc N}=\hat\chi^\dagger\hat\chi$ and $\hat n_a=\hat d^\dagger\hat d$. The correction succeeds only if the ancillary mode has the desired occupation, which in Ref.~\cite{BhuiyanPanJian2026} happens with a finite probability set by the random redistribution of particles in the ancillary layer.
+
+Here, we consider an idealized, Markovian version of this construction. Rather than tracking a finite ancillary layer, we can imagine an unlimited supply of ancillary modes and bring in a fresh one, prepared with the desired occupation, whenever a correction is needed. Concretely, an undesired outcome of a lower-band mode, i.e., the projector $\hat\Id-\hat{\mc N}_{\bfr,\nu,-}$, is followed by an fSWAP with a fresh occupied ancilla $\kett{1}_a$, and an undesired outcome of an upper-band mode, $\hat{\mc N}_{\bfr,\nu,+}$, is followed by an fSWAP with a fresh empty ancilla $\kett{0}_a$. Every correction then succeeds.
+
+After the fSWAP, the ancilla carries the former occupation of the physical mode, which is known from the measurement outcome. Discarding it therefore leaves a single operator acting on the physical system,
+\begin{align}
+    \braa{0}_a\fSWAP(\hat\chi_{\bfr,\nu,-},\hat d)\big(\hat\Id-\hat{\mc N}_{\bfr,\nu,-}\big)\kett{1}_a&=\hat\chi^\dagger_{\bfr,\nu,-},\nonumber\\
+    \braa{1}_a\fSWAP(\hat\chi_{\bfr,\nu,+},\hat d)\,\hat{\mc N}_{\bfr,\nu,+}\kett{0}_a&=\hat\chi_{\bfr,\nu,+},
+    \label{eq:GainLoss}
+\end{align}
+with the ancilla operators ordered to the left of the physical ones (see Appendix~\ref{app:FermionCounting} for the derivation). The upshot is that the unitary feedforward reduces to single-fermion gain and loss in the physical system. In other words, the circuit physically applies fSWAP gates, but since each ancilla is used only once and then traced out, the dynamics of the physical system alone is described by fermion gain and loss operations. These operations remain Gaussian but no longer conserve the physical particle number. In the composite system, both the occupation measurement and the fSWAP gate conserve the total charge, so the dynamics has a strong $U(1)$ symmetry. After the ancillas are discarded, only a weak $U(1)$ symmetry remains: the Born-averaged channel commutes with $U(1)$ rotations, but individual Kraus operators do not~\cite{BucaProsen2012,AlbertJiang2014}.
+
+Monitored gain and loss of fermions is known as fermion counting, in analogy with photon counting~\cite{StarchlFischerSieberer2025,KloiberTollingerSieberer2026,SoaresLeGalSchiro2025}. Our measurement-and-feedforward step is single-mode fermion counting run to completion. Continuously counting gain into a mode $\hat\chi$ for a time much longer than the inverse counting rate yields at most one click, since $(\hat\chi^\dagger)^2=0$, and reproduces exactly the pair of operations $\{\hat{\mc N},\hat\chi^\dagger\}$ above (Appendix~\ref{app:FermionCounting}). Compared with Ref.~\cite{BhuiyanPanJian2026}, the fresh ancillas remove the finite failure probability of each correction, which noticeably speeds up the convergence toward the target phase (Appendix~\ref{app:Truncation}).
+
+\subsection{Domain walls}
+\label{sec:DomainWalls}
+
+We introduce domain walls by letting $\alpha$ depend on the center of each OW mode,
+\begin{equation}
+    \alpha_{\bfr}=
+    \begin{cases}
+        \alpha_1, & x_L\leq x\leq x_R,\\
+        \alpha_2, & \text{otherwise},
+    \end{cases}
+    \label{eq:DomainWallAlpha}
+\end{equation}
+where $\alpha_1$ controls a slab and $\alpha_2$ the exterior. The OW mode centered at $\bfr$ is constructed from the translation-invariant projector with parameter $\alpha_{\bfr}$. We fix $\alpha_2=30$, deep in the trivial phase, and vary $\alpha_1$. Since the lattice is periodic in both directions, the slab produces two interfaces with opposite orientations, which we place $N_x/2$ unit cells apart. For $N_x=20$, the interfaces sit at $x_L=5$ and $x_R=15$.
+
+In addition, we truncate the OW modes at the interfaces, which we refer to as a hard wall. Every OW mode that crosses an interface loses its support on the far side and is renormalized, as illustrated in Fig.~\ref{fig:HardWall}. The measurements on one side of an interface therefore never reach into the other side. In this sense, the hard wall acts like an open boundary for the circuit, even though the lattice remains periodic and the exterior degrees of freedom are still present. The circuit now steers the slab toward a Chern insulator (for $0<\alpha_1<\alpha_c$) and the exterior toward a trivial state. The question is what the dynamics prepares at the interfaces, which we address in Sec.~\ref{sec:Results}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{ow_overlap_truncation_schematic_v2.pdf}
+    \caption{\textbf{Hard domain wall.} The parameter $\alpha$ takes the value $\alpha_2$ in the exterior (left) and $\alpha_1$ in the slab (right). OW modes centered on either side of the interface (dashed line) are truncated at the interface and renormalized, so their supports (shaded) do not cross it.}
+    \label{fig:HardWall}
+\end{figure}
+
+\subsection{Adaptive circuit}
+\label{sec:Circuit}
+
+We now assemble these ingredients into the adaptive circuit summarized in Algorithm~\ref{alg:Circuit} and Fig.~\ref{fig:Circuit}. Each elementary step measures the occupation of one truncated OW mode. If the outcome disagrees with the target occupation, the step applies an fSWAP with a fresh ancilla, which is then discarded. For brevity, we write $i=(\bfr,\nu)$ and denote the truncated lower- and upper-band OW modes by $\hat\chi_{i,-}$ and $\hat\chi_{i,+}$. A measurement of $\hat{\mc N}_{i,\sigma}$ returns $m=1$ with Born probability $\langle\hat{\mc N}_{i,\sigma}\rangle$ and $m=0$ otherwise, where the expectation value is taken in the conditioned state just before the measurement.
+
+Recall from Sec.~\ref{sec:FermionCounting} that the discarded ancilla is left in a state fixed by the measurement outcome, so tracing it out leaves the gain or loss operator of Eq.~\eqref{eq:GainLoss} on the physical system. Each elementary step therefore acts on the physical system alone through a pair of Kraus operators. For a lower-band mode,
+\begin{equation}
+    \hat K_{i,-}(m)=m\,\hat{\mc N}_{i,-}+(1-m)\,\hat\chi^\dagger_{i,-},
+    \label{eq:KrausLower}
+\end{equation}
+where the outcome $m=1$ leaves the state unchanged and the outcome $m=0$ is followed by gain. For an upper-band mode,
+\begin{equation}
+    \hat K_{i,+}(m)=(1-m)\big(\hat\Id-\hat{\mc N}_{i,+}\big)+m\,\hat\chi_{i,+},
+    \label{eq:KrausUpper}
+\end{equation}
+where the outcome $m=0$ leaves the state unchanged and the outcome $m=1$ is followed by loss. Both pairs are Gaussian and satisfy $\sum_{m=0,1}\hat K^\dagger_{i,\sigma}(m)\hat K_{i,\sigma}(m)=\hat\Id$. In words, $\hat K_{i,-}$ always leaves the lower-band mode filled and $\hat K_{i,+}$ always leaves the upper-band mode empty, regardless of the outcome. Algorithm~\ref{alg:Circuit} describes the circuit as it would be implemented, with ancillas, while Eqs.~\eqref{eq:KrausLower} and \eqref{eq:KrausUpper} describe the same circuit on the physical system alone, which is what we simulate.
+
+One cycle visits every unit cell and applies the four updates $(A,+)$, $(A,-)$, $(B,+)$, $(B,-)$ at each. Since truncated OW modes centered on nearby unit cells overlap, their measurements generally do not commute, so the order within a cycle is part of the protocol. We use a raster order, increasing $y$ at fixed $x$ before advancing to the next column, so that a cycle contains $4N_xN_y$ elementary steps. Note that measurements with nonoverlapping supports commute, so a cycle can also be organized into a system-size-independent number of layers of mutually commuting operations, as in Ref.~\cite{BhuiyanPanJian2026}. We expect the universal properties studied below not to depend on this choice.
+
+\begin{algorithm}[t]
+\caption{Adaptive protocol with domain walls, steering the slab toward the Chern insulator phase and the exterior toward the trivial phase.}
+\label{alg:Circuit}
+\KwInit{Arbitrary free-fermion state of the physical system; a supply of fresh ancillary modes.}
+\KwOutput{The slab converges to the Chern insulator phase and the exterior to the trivial phase, leaving gapless modes on the interfaces.}
+\BlankLine
+\Comment{Adaptive Protocol}
+\textbf{Step 1: Stabilizer measurements and error-correcting feedforward operations}\;
+\For{$\bfr\in$ unit cell coordinates (raster order)}{
+  \For{$\nu=A,B$}{
+    \BlankLine
+    \Comment{Deplete upper band of $\hat H_{\mr{CI}}(\alpha_{\bfr})$}
+    Measure $\hat{\mc N}_{\bfr,\nu,+}$\;
+    \If{$\hat{\mc N}_{\bfr,\nu,+}=1$}{
+      Apply $\fSWAP(\hat\chi_{\bfr,\nu,+},\hat d)$ with a fresh empty ancilla $\hat d$\;
+      Discard $\hat d$ \Comment*[r]{net loss $\hat\chi_{\bfr,\nu,+}$}
+    }
+    \BlankLine
+    \Comment{Fill lower band of $\hat H_{\mr{CI}}(\alpha_{\bfr})$}
+    Measure $\hat{\mc N}_{\bfr,\nu,-}$\;
+    \If{$\hat{\mc N}_{\bfr,\nu,-}=0$}{
+      Apply $\fSWAP(\hat\chi_{\bfr,\nu,-},\hat d)$ with a fresh occupied ancilla $\hat d$\;
+      Discard $\hat d$ \Comment*[r]{net gain $\hat\chi^\dagger_{\bfr,\nu,-}$}
+    }
+  }
+}
+\BlankLine
+\textbf{Step 2: Iterate}\;
+Repeat Step 1 for $T$ cycles.\;
+\end{algorithm}
+
+For a measurement record $\rec$ accumulated over $t$ cycles, the conditioned state is
+\begin{equation}
+    \hat\rho_{\rec}(t)=\frac{\hat V_{\rec}\,\hat\rho_0\,\hat V_{\rec}^\dagger}{p(\rec)},
+    \qquad
+    p(\rec)=\Tr\!\big[\hat V_{\rec}\hat\rho_0\hat V_{\rec}^\dagger\big],
+    \label{eq:ConditionedState}
+\end{equation}
+where $\hat V_{\rec}$ is the ordered product of all Kraus operators along the record and $p(\rec)$ is its Born probability. The object of interest is the ensemble $\{p(\rec),\hat\rho_{\rec}(t)\}$. Following Ref.~\cite{BhuiyanPanJian2026}, we refer to quantities that require the resolution of individual records, such as entanglement entropies, as \emph{trajectory resolved}. We refer to quantities that follow from the averaged state $\overline{\hat\rho}(t)=\sum_{\rec}p(\rec)\hat\rho_{\rec}(t)$ as \emph{trajectory averaged}. We denote the Born-weighted average of a trajectory-resolved quantity by an overline. For nonlinear quantities, such as the entanglement entropy, the quantity is always evaluated in each trajectory before the average is taken. Hence, $\overline{S}$ denotes the average entropy of the conditioned states, not the entropy of $\overline{\hat\rho}$.
+
+Since every operation is Gaussian, each conditioned state remains Gaussian and is fully characterized by its two-point function
+\begin{equation}
+    C_{ij}=\Tr\!\big(\hat\rho\,\hat c_j^\dagger\hat c_i\big),
+    \label{eq:TwoPoint}
+\end{equation}
+where $i,j$ now run over unit cells and orbitals. With this ordering, the two-point function of a pure Gaussian state is the projector onto its occupied single-particle states. In general, its eigenvalues lie in $[0,1]$. Writing $P_j=|W_j\rangle\langle W_j|$ for the single-particle projector onto the measured OW mode, $Q_j=\Id-P_j$, and $G=2C-\Id$, the Born probability of outcome $m$ is $p_j(m)=[1+\eta_m\operatorname{tr}(P_jG)]/2$ with $\eta_m=2m-1$. The conditional update, including the feedforward to the target occupation $s_-=1$ or $s_+=0$, is~\cite{bravyi2004lagrangian,BhuiyanPanJian2026}
+\begin{equation}
+    G'=Q_j\big(\Id+\eta_mGP_j\big)^{-1}GQ_j+\eta_sP_j,
+    \qquad \eta_s=2s_\sigma-1.
+    \label{eq:CovarianceUpdate}
+\end{equation}
+The inverse exists for every outcome with nonzero probability, since $\det(\Id+\eta_mGP_j)=2p_j(m)$. We implement Algorithm~\ref{alg:Circuit} by iterating Eq.~\eqref{eq:CovarianceUpdate}.
+
+
+
+\section{Dynamical Chiral Domain-Wall Modes}
+\label{sec:Results}
+
+In the following, we numerically study the adaptive circuit of Sec.~\ref{sec:Model} with hard domain walls. Unless stated otherwise, we use $N_x=20$ with interfaces at $x=5$ and $15$, $\alpha_2=30$, and truncation range $w=1$. We take $\alpha_1=1$ inside the slab, where the target state has $\mc C=1$, and use $\alpha_1=3$ as a trivial control. In Ref.~\cite{BhuiyanPanJian2026}, we found that the degrees of freedom near such a domain wall purify algebraically slowly, and we anticipated nonequilibrium analogs of chiral edge modes there. In this section, we characterize these modes.
+
+We first study the pure states prepared by the circuit. In Sec.~\ref{sec:Correlations}, we show that they carry algebraic correlations localized on the walls. In Sec.~\ref{sec:Entanglement}, we show that their entanglement and charge fluctuations along the walls scale logarithmically, with the coefficients expected for a charge-one complex fermion. In Sec.~\ref{sec:ChiralCentralCharge}, we resolve these coefficients wall by wall and find half of a unit central charge per wall, as expected for a single chiral branch. In Sec.~\ref{sec:ModularEvolution}, we show that the two walls have opposite chiralities using the modular Hamiltonian. We then turn to the dynamics itself. In Sec.~\ref{sec:Purification}, we show that the walls purify slowly and trace this to gapless Lyapunov modes localized on them. Finally, in Sec.~\ref{sec:TrajectoryAveraged}, we ask which of these signatures survive when the measurement record is discarded.
+
+\subsection{Algebraic correlations along the walls}
+\label{sec:Correlations}
+
+We start with the pure states prepared by the circuit. Unless stated otherwise, we evolve random pure half-filled states for $2N_y$ cycles and average over $100$ independent trajectories per system size. The most direct signature of gapless wall modes is in the correlations along the walls. Within each pure Gaussian trajectory, the connected density correlation between distinct modes is $\langle\hat n_i\hat n_j\rangle_c=-|C_{ij}|^2$. We therefore study the squared correlation along $y$,
+\begin{equation}
+    C_G(x,r_y)=\frac{1}{2N_y}\sum_{y,\mu,\nu}\big|C_{(x,y,\mu),(x,y+r_y,\nu)}\big|^2,
+    \label{eq:SquaredCorrelator}
+\end{equation}
+together with its average $C_G^{\rm av}(r_y)$ over $x$. We average over trajectories after squaring. For a free chiral fermion, $\overline{C_G}$ decays as $r^{-2}$ in the chord distance $d_{N_y}(r_y)=(N_y/\pi)\sin(\pi r_y/N_y)$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.94\columnwidth]{hard_wall_correlator_summary_3x1.pdf}
+    \caption{\textbf{Algebraic correlations on the walls.} (a) Squared correlation $\overline{C^{\rm av}_G}(r_y)$ averaged over $x$ at $N_y=60$ for $\alpha_1=1$ and $3$. (b) Column-resolved $\overline{C_G}(x,r_y)$ at $\alpha_1=1$ and $N_y=60$ for the wall columns $x=5,15$, their inward neighbors $x=6,14$, and the slab center $x=10$. (c) Collapse of $\overline{C^{\rm av}_G}(r_y)$, normalized by its value at $r_y=N_y/2$, for $N_y=24,\ldots,60$ at $\alpha_1=1$. The dashed line is a common power-law fit with exponent $\beta\approx2.19$. All data use 100 trajectories after $2N_y$ cycles.}
+    \label{fig:Correlations}
+\end{figure}
+
+Figure~\ref{fig:Correlations}(a) shows that the correlations are long ranged at $\alpha_1=1$ and short ranged at $\alpha_1=3$, even though $\alpha$ jumps across the interfaces in both cases. The column-resolved correlations in Fig.~\ref{fig:Correlations}(b) show that the long-range part comes from the wall columns, while the correlations at the slab center decay rapidly. Normalizing by the value at the antipodal distance collapses all circumferences onto a single power law [Fig.~\ref{fig:Correlations}(c)] with exponent $\beta\approx2.2$, slightly above the free-chiral-fermion value $\beta=2$ at these system sizes. Therefore, the walls of the $\mc C=1$ slab host critical, one-dimensional modes, while the gapped regions on either side remain short-range correlated. In the following sections, we identify these modes as chiral.
+
+\subsection{Entanglement and charge fluctuations along the walls}
+\label{sec:Entanglement}
+
+We now quantify the wall modes using entanglement and charge fluctuations, with $N_y=30,35,\ldots,60$. For each trajectory, we consider the full-width strip
+\begin{equation}
+    A(y_0,A_y)=[0,N_x)\times[y_0,y_0+A_y)\pmod{N_y},
+    \label{eq:Strip}
+\end{equation}
+which crosses both walls. The restriction $C_A$ of the two-point function to $A$ has eigenvalues $\zeta_a\in[0,1]$, which determine both the von Neumann entropy and the charge variance of $A$~\cite{KlichLevitov2009,SongFlindtRachel2011},
+\begin{equation}
+    S(A)=\sum_a h(\zeta_a),
+    \qquad
+    F(A)=\sum_a\zeta_a(1-\zeta_a),
+    \label{eq:EntropyVariance}
+\end{equation}
+with $h(u)=-u\log u-(1-u)\log(1-u)$.
+Here, $F(A)$ measures the charge fluctuations within a single conditioned state, not the variation of its mean charge between records.
+
+The expected long-distance description is a pair of spatially separated chiral branches. For an interval on a circle of circumference $N_y$, conformal invariance replaces the interval length by the chord distance, $X(A_y)=\log[(N_y/\pi)\sin(\pi A_y/N_y)]$. A single chiral branch with central charge $c_w$ contributes $(c_w/6)X$ to the entropy~\cite{CalabreseCardy2004}, and a charge-one chiral $U(1)$ current at level $k_w$ contributes $(k_w/2\pi^2)X$ to the charge variance~\cite{DiFrancescoMathieuSenechal1997}. The full-width strip intersects both walls, whose contributions add despite their opposite propagation directions. Hence, we expect
+\begin{align}
+    \overline{S}(A_y)&=\frac{c}{3}X(A_y)+\text{const.},\nonumber\\
+    \overline{F}(A_y)&=\frac{k}{\pi^2}X(A_y)+\text{const.},
+    \label{eq:CFTScaling}
+\end{align}
+with $c=k=1$ for a charge-one complex fermion on each wall. Here, $S$ and $F$ are first averaged over the strip position $y_0$ within each trajectory, which improves the statistics without changing the scaling form, and we leave this average implicit. To compare circumferences, we subtract from each curve its value at the half-strip $A_y=\lfloor N_y/2\rfloor$, which removes the nonuniversal constants.
+
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=\columnwidth]{endpoint_entropy_charge_spectrum_3x1.pdf}
+ \caption{\textbf{Entanglement and charge fluctuations.} (a) Entropy and (b) charge variance of the full-width strip, averaged over strip positions and 100 trajectories, for $N_y=30,35,\ldots,60$ after $2N_y$ cycles. Each curve is shifted by its value at $A_y=\lfloor N_y/2\rfloor$. Dashed lines are common fits to Eq.~\eqref{eq:CFTScaling} over $8\leq A_y\leq\lfloor N_y/2\rfloor$ (shaded). (c) Distribution of the eigenvalues $\zeta_a$ of $C_A$ for the half-strip at $N_y=24,28,32$, pooled over trajectories, excluding eigenvalues within $10^{-8}$ of 0 or 1. The vertical axis is logarithmic.}
+ \label{fig:EntropyCharge}
+\end{figure}
+
+Figure~\ref{fig:EntropyCharge}(a,b) shows that both quantities collapse onto the predicted logarithmic forms for all circumferences. The fits give $c\approx1.04$ and $k\approx1.04$. The common excess of about $4\%$ over the value one is larger than the statistical uncertainty and reflects finite-size and fitting-window corrections. Nevertheless, the agreement of the two coefficients is what one expects for level-one complex-fermion branches, since both the entanglement and the charge fluctuations are governed by the same free-fermion correlations. The eigenvalue distribution in Fig.~\ref{fig:EntropyCharge}(c) is concentrated near 0 and 1, with a small density of partially occupied modes, and has a similar shape for all circumferences.
+
+As a complementary check, Appendix~\ref{app:MutualInformation} shows that the mutual information between two antipodal strips approaches the free-Dirac value at $\alpha_1=1$ and vanishes once the slab becomes trivial, $\alpha_1\gtrsim2$. Since $\alpha$ jumps across the interfaces in both cases, the wall signal originates from the topology of the slab rather than from the mismatch in $\alpha$.
+
+\subsection{Half a unit of central charge per wall}
+\label{sec:ChiralCentralCharge}
+
+The full-width strip only reveals the sum of the two walls. A single chiral branch with left- and right-moving central charges $c_L$ and $c_R$ contributes $(c_L+c_R)X/6$ to the entropy of an interval~\cite{CalabreseCardy2004,CastroDetournayIqbalPerlmutter2014}, i.e., half of the familiar nonchiral coefficient $c/3$. The nontrivial statement is therefore that the coefficient $c\approx1$ of Sec.~\ref{sec:Entanglement} splits in real space into one half from each wall. Note that a nonchiral wall with a single Dirac fermion would give the full coefficient on one wall.
+
+To resolve the two walls, we use the entanglement contour~\cite{BhuiyanPanJian2026}
+\begin{equation}
+    s(\bfr;A)=\sum_\mu\langle\bfr,\mu|\,h(C_A)\,|\bfr,\mu\rangle,
+    \label{eq:Contour}
+\end{equation}
+which distributes $S(A)$ over the sites of $A$. For a half-strip, the averaged contour is concentrated on the two wall columns, apart from area-law contributions along the cuts inside the slab, while the trivial exterior contributes almost nothing.
+\abcom{Show the averaged contour of the half-strip $[0,20)\times[0,30)$ at $N_y=60$ as the inset of Fig.~\ref{fig:WallEntropy}, in place of the current grid insets.}
+We then average the contour of each trajectory over the strip position $y_0$, with coordinates $\delta y=y-y_0$ measured from the start of the strip, and integrate it over a three-column window centered on each wall,
+\begin{align}
+    \overline{S}^{\rm wall}_{L}(A_y)&=\sum_{x=4}^{6}\sum_{\delta y=0}^{A_y-1}\overline{s}(x,\delta y),\nonumber\\
+    \overline{S}^{\rm wall}_{R}(A_y)&=\sum_{x=14}^{16}\sum_{\delta y=0}^{A_y-1}\overline{s}(x,\delta y),
+    \label{eq:WallEntropy}
+\end{align}
+Fitting each to $m_w X(A_y)$, as in Eq.~\eqref{eq:CFTScaling}, the magnitude of the chiral central charge of wall $w=L,R$ is $|c_-^{(w)}|=6m_w$, with $c_-\equiv c_R-c_L$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{hard_wall_chiral_central_charge_2x1.pdf}
+    \caption{\textbf{Half-unit entropy coefficient on each wall.} Entanglement contour integrated over (a) $x=4,5,6$ and (b) $x=14,15,16$ [Eq.~\eqref{eq:WallEntropy}], for $N_y=30,35,40,45,55$ after $2N_y$ cycles, averaged over 100 trajectories and shifted by the value at $A_y=\lfloor N_y/2\rfloor$. Dashed lines are common fits over the shaded window. Insets mark the two walls and the integration window.}
+    \label{fig:WallEntropy}
+\end{figure}
+
+As shown in Fig.~\ref{fig:WallEntropy}, each wall contributes roughly half of the full-strip coefficient, $3m_L\approx0.52$ and $3m_R\approx0.49$, whose sum $3(m_L+m_R)\approx1.01$ agrees with the full-strip value. This is precisely what one expects if each wall hosts a single chiral branch with $|c_-|=1$. The small difference between the two walls depends on the choice of window, which redistributes contour weight between a wall and its tails. Hence, we regard the half-unit contributions and their sum, rather than their difference, as the meaningful result. We emphasize that entropy determines only the magnitude of $c_-$. The two walls have opposite orientations, so their signed chiral central charges should be opposite, which requires a directional probe.
+
+\subsection{Opposite chiralities from modular evolution}
+\label{sec:ModularEvolution}
+
+To probe the direction of the wall modes, we use the modular (entanglement) Hamiltonian of a half-cylinder region as a generator of dynamics. For a region $A$ containing $N_y/2$ consecutive rows and all columns, the single-particle modular Hamiltonian of a conditioned state is
+\begin{equation}
+    h_A=\log\!\big[(\Id_A-C_A)\,C_A^{-1}\big],
+    \label{eq:ModularHamiltonian}
+\end{equation}
+so that the reduced density matrix of $A$ is $\hat\rho_A\propto\exp(-\sum_{ij}[h_A]_{ij}\hat c^\dagger_i\hat c_j)$. Conceptually, $h_A$ plays the role of the parent Hamiltonian of the prepared state near the region. We place a localized packet $\varphi(0)$ on one wall in the middle of the region, far from the entanglement cuts, and evolve it in modular time,
+\begin{equation}
+    \varphi(t_{\rm mod})=e^{-\ii h_At_{\rm mod}}\varphi(0).
+    \label{eq:ModularEvolution}
+\end{equation}
+A chiral wall transports the packet in one direction along the wall, so its center of mass drifts. A nonchiral wall would spread it symmetrically, and a gapped region would leave it in place.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.58\columnwidth]{modular_packets_n20x32_y8_stacked.pdf}
+    \caption{\textbf{Modular evolution on the walls.} Packets occupying both orbitals of one unit cell are placed at $(x,y-y_0)=(5,8)$ and $(15,8)$, in the middle of a half-cylinder region of 16 rows, and evolved with Eq.~\eqref{eq:ModularEvolution}. States are prepared on a $20\times32$ lattice with 64 cycles, and the results are averaged over the 32 region positions and 100 trajectories. (a,b) Mean packet densities at $t_{\rm mod}=0,0.1,0.2$ (purple, orange, green) for (a) $\alpha_1=3$ and (b) $\alpha_1=1$. Dotted lines mark the wall columns. (c) Center-of-mass displacement along $y$ of the packets started at $(5,8)$ (solid) and $(15,8)$ (dashed) for $\alpha_1=1$, computed from the charge within five columns of the source wall. Bands denote one standard error.}
+    \label{fig:Modular}
+\end{figure}
+
+Figure~\ref{fig:Modular} shows the result. For the trivial control $\alpha_1=3$, the packets remain essentially at their sources [Fig.~\ref{fig:Modular}(a)]. For $\alpha_1=1$, they spread along the walls, and part of the weight leaks into the slab [Fig.~\ref{fig:Modular}(b)]. Crucially, the centers of mass of the two packets drift in opposite directions [Fig.~\ref{fig:Modular}(c)]. The opposite signs persist when we change the regularization of $h_A$ near eigenvalues 0 and 1 of $C_A$, whereas the oscillation period and the magnitude of the drift do not. Therefore, the two walls carry chiral modes of opposite chirality, as required by their opposite orientations. Combined with Sec.~\ref{sec:ChiralCentralCharge}, each wall hosts a single chiral branch with $c_-=\pm1$. We note that modular time is not circuit time: Fig.~\ref{fig:Modular} characterizes the handedness of the prepared states rather than the real-time propagation of charge under the circuit.
+\abcom{Absolute direction: in our Fourier convention, a QWZ edge packet at a wall with the trivial region on its left ($x=5$) moves toward $-y$, and at $x=15$ toward $+y$. Fig.~\ref{fig:Modular}(c) shows the opposite. If $h_A$ was built from $\langle\hat c_i^\dagger\hat c_j\rangle$, the transpose of Eq.~\eqref{eq:TwoPoint}, its evolution is complex conjugated and every drift reverses. Check before stating an absolute direction.}
+
+\subsection{Slow purification and gapless Lyapunov spectrum}
+\label{sec:Purification}
+
+So far, we have characterized the states prepared by the circuit. We now turn to a property of the dynamics itself: how fast the circuit purifies a mixed initial state. In Ref.~\cite{BhuiyanPanJian2026}, we found that the degrees of freedom near a domain wall purify much more slowly than those in the bulk. Here, we quantify this slow purification and trace it to gapless modes in the Lyapunov spectrum of the dynamics. This is the analog of the bulk-boundary correspondence of Ref.~\cite{XiaoKawabata2026}, now realized under Born-rule dynamics without postselection.
+
+Concretely, we initialize the slab in the maximally mixed state and the exterior in a pure product state, run the circuit for $T$ cycles, and average over 100 trajectories~\cite{GullansHuse2020}. Along each record, we track the von Neumann entropy of the conditioned state,
+\begin{equation}
+    S_{\rec}(t)=\sum_jh(\nu_j),
+    \label{eq:BinaryEntropy}
+\end{equation}
+where $\nu_j$ are the eigenvalues of $C_{\rec}(t)$ and $h(u)$ is defined below Eq.~\eqref{eq:EntropyVariance}. To see where the remaining entropy is located, we distribute it over the lattice using the entropy contour $s_{\rec}(\bfr,t)=\sum_\mu\langle\bfr,\mu|\,h(C_{\rec})\,|\bfr,\mu\rangle$, which sums to $S_{\rec}(t)$. We then sum the contour over $y$ to obtain the entropy $s_x(t)$ carried by column $x$.
+
+Figure~\ref{fig:Purification}(a) shows the average entropy at $N_y=30$. For the trivial control $\alpha_1=3$, the entropy drops to the numerical floor within about ten cycles. For $\alpha_1=1$, it instead decays slowly and remains finite over the entire simulated time. Figure~\ref{fig:Purification}(b) shows where this residual entropy is located. The two wall columns retain almost all of it and purify slowly, while the columns deep in the trivial exterior on either side purify within a few cycles, as fast as the $\alpha_1=3$ control. In other words, the slow purification is a property of the walls.
+\abcom{Consider adding the slab-center column ($x=10$) to panel (b), as in the earlier version of the figure. It shows directly that the topological bulk also purifies quickly, which is the cleanest evidence that only the walls are slow.}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\columnwidth]{purification_ny30_full_measurement_4x1.pdf}
+\caption{\textbf{Slow purification at the domain walls.} Purification of a maximally mixed slab, averaged over 100 trajectories. (a) Entropy per unit length, $\overline{S}/N_y$ [Eq.~\eqref{eq:BinaryEntropy}], as a function of cycle $t/N_y$ for $\alpha_1=1$ (red triangles) and $\alpha_1=3$ (blue circles) at $N_y=30$. The $\alpha_1=3$ plateau is the numerical entropy floor. (b) Column entropy $\overline{s_x}/N_y$ at $\alpha_1=1$ and $N_y=30$ for the two wall columns and for columns deep in the trivial exterior to the left and right of the slab. (c) Lyapunov gap $\overline{\Delta}$ [Eq.~\eqref{eq:LyapunovFromOccupations}] after $T=2N_y$ cycles as a function of $N_y$. The dashed line is the fit $\overline{\Delta}\propto N_y^{-z}$ with $z=1.08\pm0.05$. (d) Probability density $\overline{p_{\min}}(x,y)$ [Eq.~\eqref{eq:SlowestModeDensity}] of the slowest Lyapunov mode at $\alpha_1=1$, $N_y=30$, and $T=2N_y$. The slowest mode is nondegenerate in every trajectory. Error bars and bands denote one standard error.}
+\label{fig:Purification}
+\end{figure}
+
+To understand the origin of this slow purification, we recast the monitored evolution as stochastic imaginary-time evolution~\cite{Oshima2025,XiaoKawabata2026,yamamoto2026measurement}. Let $\hat V_{\rec}$ be the evolution operator after $T$ cycles, and write its polar decomposition as
+\begin{equation}
+    \hat V_{\rec}=\big(\hat V_{\rec}\hat V_{\rec}^\dagger\big)^{1/2}\,\hat U_{\rec}\propto e^{-T\hat{\mc H}_{\rec}}\,\hat U_{\rec},
+    \label{eq:PolarDecomposition}
+\end{equation}
+where $\hat U_{\rec}$ is the polar factor and
+\begin{equation}
+    \hat{\mc H}_{\rec}=-\frac{1}{2T}\Big[\log\big(\hat V_{\rec}\hat V_{\rec}^\dagger\big)-\log s_0^2\Big]
+    \label{eq:EffectiveHamiltonian}
+\end{equation}
+is an effective Hamiltonian, with $s_0$ the largest singular value of $\hat V_{\rec}$. An initial state $\kett{\psi_0}$ thus evolves into $\kett{\psi_{\rec}}\propto e^{-T\hat{\mc H}_{\rec}}\hat U_{\rec}\kett{\psi_0}$: it is first rotated by $\hat U_{\rec}$ and then evolved in imaginary time by $\hat{\mc H}_{\rec}$. The eigenvalues of $\hat{\mc H}_{\rec}$ are $E_k=-T^{-1}\log(s_k/s_0)\geq0$, where $s_k$ are the singular values of $\hat V_{\rec}$. They are the Lyapunov exponents of the dynamics. For a generic initial state, the components along excited eigenstates of $\hat{\mc H}_{\rec}$ are suppressed by $e^{-T(E_k-E_0)}$, so the gap $E_1-E_0$ sets the time scale over which the conditioned state forgets its initial condition. Under suitable conditions, Oseledets' theorem ensures that this spectrum becomes deterministic as $T\to\infty$. Regardless, it serves as a useful diagnostic of relaxation. Directions annihilated by projective measurements have $s_k=0$ and hence infinite Lyapunov exponents.
+
+In our circuit, each Kraus operator is Gaussian and changes the particle number by a definite amount, so $\hat V_{\rec}\hat V_{\rec}^\dagger$ is Gaussian and number conserving. Hence, $\hat{\mc H}_{\rec}=\sum_{ij}[h_{\rec}]_{ij}\hat c^\dagger_i\hat c_j+\text{const.}$, where the single-particle generator $h_{\rec}$ has real eigenvalues $\lambda_j$ of either sign. The many-body ground state of $\hat{\mc H}_{\rec}$ fills every mode with $\lambda_j<0$, and its lowest excitation flips the mode closest to zero. The many-body gap is therefore the single-particle Lyapunov gap
+\begin{equation}
+    \Delta=\min_j|\lambda_j|.
+    \label{eq:LyapunovGap}
+\end{equation}
+
+Purification gives direct access to this spectrum. Starting from the maximally mixed state, the conditioned state after $T$ cycles is $\hat\rho_{\rec}\propto\hat V_{\rec}\hat V_{\rec}^\dagger\propto e^{-2T\hat{\mc H}_{\rec}}$, i.e., a thermal state of the effective Hamiltonian at inverse temperature $2T$. Its occupation spectrum $\{\nu_j\}$, the eigenvalues of $C_{\rec}$, therefore determines the Lyapunov spectrum (see Appendix~\ref{app:Lyapunov}):
+\begin{equation}
+    \nu_j=\frac{1}{1+e^{2T\lambda_j}},
+    \qquad
+    \Delta=\frac{1}{2T}\min_j\left|\log\frac{1-\nu_j}{\nu_j}\right|,
+    \label{eq:LyapunovFromOccupations}
+\end{equation}
+with $T$ measured in cycles. A mode with $T|\lambda_j|\gg1$ is essentially pure, and its entropy decays as $(1+2T|\lambda_j|)\,e^{-2T|\lambda_j|}$. The upshot is that slow purification is equivalent to a small Lyapunov gap. A gapped Lyapunov spectrum purifies in a number of cycles independent of system size, whereas a gap that closes with $N_y$ signals gapless modes.
+
+This is precisely what we find. The Lyapunov gap closes as $\overline{\Delta}\propto N_y^{-z}$ with $z\approx1.1$ [Fig.~\ref{fig:Purification}(c)]. An exponent close to one is natural for a linearly dispersing boundary mode, whose smallest momentum along a wall of length $N_y$ scales as $1/N_y$.
+
+To locate the gapless modes, we examine the slowest one. In each trajectory, let $|\phi_{\min}\rangle$ be the eigenvector of $C_{\rec}$ whose eigenvalue is closest to $1/2$, i.e., the eigenvector of $h_{\rec}$ with $|\lambda_j|=\Delta$. Its probability density on unit cell $(x,y)$ is
+\begin{equation}
+    p_{\min}(x,y)=\sum_\mu\big|\langle x,y,\mu|\phi_{\min}\rangle\big|^2,
+    \label{eq:SlowestModeDensity}
+\end{equation}
+which sums to one over the lattice. Figure~\ref{fig:Purification}(d) shows its average over trajectories. In individual trajectories, the slowest mode is localized on a single wall. The average covers both walls because either wall can host it. The density is concentrated on the two wall columns and spread along their entire length, with negligible weight both in the slab interior and in the exterior. Hence, the slow modes are localized on the walls, and they are extended along them, as expected for boundary modes of a two-dimensional bulk. This also explains Fig.~\ref{fig:Purification}(b). At late times, the entropy is dominated by the modes with the smallest $|\lambda_j|$ (Appendix~\ref{app:Lyapunov}), so the residual entropy inherits the spatial profile of the slowest modes.
+
+The upshot is that the walls host gapless modes of the Born-rule dynamics itself, not only of the states it prepares. We caution that $\Delta$ is evaluated at $T=2N_y$, where finite-time corrections to the Lyapunov exponents, of order $1/T$, also scale as $1/N_y$.
+\abcom{Before submission: check that $\Delta$ at fixed $N_y$ is unchanged for $T=4N_y,8N_y$, so that $z$ is not set by the finite-time correction.}
+
+The slow dynamics near the walls also shows up in how the prepared states approach their steady state. Figure~\ref{fig:Ceff} shows the effective central charge extracted from the strip entropy of Sec.~\ref{sec:Entanglement} as a function of cycle, starting from random pure states. It starts well above one, reflecting the entanglement of the initial states, and settles near $c_{\rm eff}\approx1$ within about 30 cycles for all three circumferences.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{ceff_vs_cycle_Nx20_Ny30_40_50_S100.pdf}
+    \caption{\textbf{Emergence of the logarithmic scaling.} Effective central charge $c_{\rm eff}=3m$, where $m$ is the slope of the strip entropy versus $\log\sin(\pi A_y/N_y)$ over $8\leq A_y\leq N_y/2$, as a function of cycle for $N_y=30,40,50$. Each point averages 100 trajectories initialized in random pure states. Error bars denote the fit uncertainty. The dashed line marks $c_{\rm eff}=1$.}
+    \label{fig:Ceff}
+\end{figure}
+
+Figure~\ref{fig:Ceff} shows how this scaling emerges in time. The effective central charge starts well above one, reflecting the entanglement of the random initial states, and settles near $c_{\rm eff}\approx1$ within about 30 cycles for all three circumferences.
+
+\subsection{Trajectory-averaged dynamics}
+\label{sec:TrajectoryAveraged}
+
+Finally, we ask which of these signatures survive when the measurement record is discarded. Averaging over outcomes, each elementary step becomes the channel $\mc E_{i,\sigma}(\hat\rho)=\sum_m\hat K_{i,\sigma}(m)\hat\rho\hat K^\dagger_{i,\sigma}(m)$. Using Eqs.~\eqref{eq:KrausLower} and \eqref{eq:KrausUpper}, it can be written exactly as $\mc E_{i,\sigma}=\mathrm{Id}+\mc L_{i,\sigma}$ with
+\begin{equation}
+    \mc L_{i,-}=\mc D[\hat\chi^\dagger_{i,-}]+\mc D[\hat{\mc N}_{i,-}],
+    \qquad
+    \mc L_{i,+}=\mc D[\hat\chi_{i,+}]+\mc D[\hat{\mc N}_{i,+}],
+    \label{eq:AveragedChannel}
+\end{equation}
+where $\mc D[\hat L]\hat\rho=\hat L\hat\rho\hat L^\dagger-\tfrac12\{\hat L^\dagger\hat L,\hat\rho\}$. The first term implements gain or loss, and the second is the dephasing associated with the measurement. This is an exact identity for the discrete step, not a short-time approximation, and it is the fresh-ancilla limit of the effective Lindbladian of Ref.~\cite{BhuiyanPanJian2026}. Although the averaged state is not Gaussian, its two-point function evolves in closed form,
+\begin{equation}
+    \overline C'=Q_j\overline CQ_j+s_\sigma P_j,
+    \label{eq:AveragedUpdate}
+\end{equation}
+so we can compute the trajectory-averaged dynamics exactly without sampling trajectories.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{hard_wall_mean_channel_summary_2x1.pdf}
+    \caption{\textbf{Trajectory-averaged dynamics.} Steady state of the averaged channel for $\alpha_1=1$ (blue circles) and $\alpha_1=3$ (red triangles), with $N_y=64$, started from the maximally mixed state and evolved for $2N_y$ cycles. (a) Occupation spectrum of $\overline C$ as a function of $k_y$, after averaging over translations along $y$. The dashed line marks occupation $1/2$. (b) Squared correlation of $\overline C$, averaged over $x$, as a function of chord distance.}
+    \label{fig:TrajectoryAveraged}
+\end{figure}
+
+The averaged dynamics converges to a steady state within the simulated time. Its occupation spectrum in Fig.~\ref{fig:TrajectoryAveraged}(a) shows two branches that interpolate between the filled and empty bands at $\alpha_1=1$, crossing near occupation $1/2$ at $k_y=0$, while the $\alpha_1=3$ control stays near 0 and 1. These branches are the averaged counterpart of the wall modes, similar to the boundary branches found in the dissipatively prepared Chern insulators of Ref.~\cite{Goldstein2019}. In contrast, the correlations of the averaged state are short ranged for both $\alpha_1=1$ and $3$ [Fig.~\ref{fig:TrajectoryAveraged}(b)].
+
+The upshot is that the algebraic correlations and the logarithmic entanglement of the walls are properties of the record-resolved ensemble. They are invisible in the averaged state, which is a mixed state with short-range correlations. This is consistent with the constraints on dissipative preparation of Chern insulators with finite-range jump operators~\cite{Goldstein2019}. Retaining the measurement record is what gives access to the pure, critical states on the walls.
+
+\appendix
+
+\section{Finite-Range Truncation and Bulk Preparation}
+\label{app:Truncation}
+
+In this Appendix, we analyze how the finite-range truncation of Eq.~\eqref{eq:TruncatedOW} modifies the OW modes and the dynamics without domain walls. We first show that each truncated mode retains the momentum-space obstruction of the target Chern band. We then quantify how strongly truncation mixes the two bands, which is the origin of the frustration discussed in Sec.~\ref{sec:TruncatedOW}. Next, we show that a parent Hamiltonian built from the truncated modes remains in the target phase. Finally, we verify numerically that the circuit without domain walls prepares states with Chern number 1. Throughout, we write $\mc C_\pm$ for the Chern number of band $\pm$, defined as in Eq.~\eqref{eq:ChernNumber} with $P_-$ replaced by $P_\pm$, so that $\mc C_-=\mc C$ and $\mc C_+=-\mc C$.
+
+\subsection{Momentum-space obstruction}
+
+Let $P_\pm(\bk)=|u_\pm(\bk)\rangle\langle u_\pm(\bk)|$ in a local gauge. The form factor associated with the trial orbital $\tau_\nu$ is
+\begin{equation}
+    f_{\nu,\pm}(\bk)\propto\langle u_\pm(\bk)|\tau_\nu\rangle,
+    \qquad
+    P_\pm(\bk)|\tau_\nu\rangle\propto f_{\nu,\pm}(\bk)|u_\pm(\bk)\rangle,
+    \label{eq:FormFactor}
+\end{equation}
+normalized over the Brillouin zone. For a band with nonzero Chern number, the form factor cannot be smooth and nonzero everywhere~\cite{BhuiyanPanJian2026}. Its isolated zeros carry phase windings $\omega_a=(2\pi)^{-1}\oint_{\partial D_a}d\bk\cdot\nabla_{\bk}\arg f_{\nu,\pm}$ around counterclockwise loops $\partial D_a$, which satisfy
+\begin{equation}
+    \sum_a\omega_a=-\mc C_\pm.
+    \label{eq:ZeroWinding}
+\end{equation}
+At $\alpha=1$, the lower-band $A$-family form factor has a single zero at $\bk/\pi=(1/2,0)$ with winding $-1$.
+
+The truncation window multiplies the OW function in real space and therefore convolves it in momentum space. Writing $\widetilde g_w(\bs q)$ for the Fourier transform of the centered window, the Bloch transform of a truncated OW mode and its effective form factor are
+\begin{align}
+    |\phi_{\nu,\pm;w}(\bk')\rangle&\propto\int_{\mr{BZ}}\frac{d^2\bk}{(2\pi)^2}\,\widetilde g_w(\bk'-\bk)\,f_{\nu,\pm}(\bk)\,|u_\pm(\bk)\rangle,\nonumber\\
+    f^{\rm eff}_{\nu,\pm;w}(\bk')&\propto\langle u_\pm(\bk')|\phi_{\nu,\pm;w}(\bk')\rangle.
+    \label{eq:EffectiveFormFactor}
+\end{align}
+Since $|\phi_{\nu,\pm;w}(\bk)\rangle$ is a finite Fourier sum, it is smooth and periodic. The in-band component $P_\pm|\phi_{\nu,\pm;w}\rangle\propto f^{\rm eff}_{\nu,\pm;w}|u_\pm\rangle$ thus plays the same role as $P_\pm|\tau_\nu\rangle$, with the constant trial orbital replaced by a smooth momentum-dependent one. Hence, the zeros of $f^{\rm eff}_{\nu,\pm;w}$ also obey Eq.~\eqref{eq:ZeroWinding}. A finite window may move, split, or recombine the zeros, but it cannot remove them while $\mc C_\pm\neq0$.
+
+Figure~\ref{fig:Truncation}(a,b) confirms this for the lower-band $A$-family mode at $\alpha=1$. The zero stays on the line $k_y=0$ and carries winding $-1$ for every $w=1,\ldots,12$. It sits at $k_x/\pi\approx0.492$ for $w=1$ and rapidly approaches the untruncated position $k_x/\pi=1/2$ as $w$ increases.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{ow_truncation_summary.pdf}
+    \caption{\textbf{Truncated OW modes at $\alpha=1$.} (a) Effective form factor $|f^{\rm eff}_{A,-;w}|$ along $k_y=0$ for $w=1,2,4,6,8,\infty$. Symbols mark the zeros, and the dotted line marks the untruncated zero. (b) Position of the winding-$(-1)$ zero (red, left axis) and the critical parameter $\alpha_c(w)$ of the truncated parent Hamiltonian (blue, right axis) with the fit of Eq.~\eqref{eq:CriticalDrift}. Dashed lines mark the $w=\infty$ values. (c) Deviation of the half-filling gap $\Delta_0(w)$ of the truncated parent Hamiltonian from its untruncated value, with an exponential fit for $w\geq4$. (d) Fraction of the squared OW norm retained inside the window.}
+    \label{fig:Truncation}
+\end{figure}
+
+\subsection{Band mixing and frustration}
+
+The effective form factor is only the in-band part of the truncated mode. Because $\langle u_\mp(\bk')|u_\pm(\bk)\rangle\neq0$ for $\bk\neq\bk'$, the convolution in Eq.~\eqref{eq:EffectiveFormFactor} also generates a component in the opposite band, which vanishes only in the untruncated limit, where $\widetilde g_w$ becomes a delta function. At $\alpha=1$, the weight of a truncated mode in the opposite band,
+\begin{equation}
+    \epsilon_w=\int_{\mr{BZ}}\frac{d^2\bk}{(2\pi)^2}\,\big|\langle u_\mp(\bk)|\phi_{\nu,\pm;w}(\bk)\rangle\big|^2,
+    \label{eq:BandLeakage}
+\end{equation}
+is $\epsilon_1\approx4\times10^{-3}$, $\epsilon_2\approx4\times10^{-4}$, and $\epsilon_4\approx1\times10^{-5}$, identical for all four choices of $\nu$ and $\pm$. At $w=1$, this is about half of the $0.8\%$ of squared weight discarded by the window [Fig.~\ref{fig:Truncation}(d)].
+
+This band mixing lifts the linear dependence among the OW modes. On an $8\times8$ periodic lattice at $\alpha=1$, the 128 untruncated lower-band OW modes span exactly the 64-dimensional lower band. For $w=1$ and $w=2$, the 128 truncated lower-band modes instead span the entire 128-dimensional single-particle space, as do the truncated upper-band modes. Filling every truncated lower-band mode would then fill every single-particle state, which is incompatible with emptying any truncated upper-band mode. Hence, no many-body state satisfies all truncated stabilizing conditions. The smallest singular value of the matrix whose rows are the truncated lower-band modes is about $10^{-3}$ at $w=1$, so the modes are only weakly independent and the frustration is correspondingly weak.
+
+\subsection{Truncated parent Hamiltonian}
+
+To determine whether the truncated modes still describe the target phase, we construct the translation-invariant single-particle parent Hamiltonian generated by the truncated OW frame,
+\begin{align}
+    h_w(\bk)=\sum_{\nu=A,B}\Big[&|\phi_{\nu,+;w}(\bk)\rangle\langle\phi_{\nu,+;w}(\bk)|\nonumber\\
+    &-|\phi_{\nu,-;w}(\bk)\rangle\langle\phi_{\nu,-;w}(\bk)|\Big],
+    \label{eq:TruncatedParent}
+\end{align}
+which is traceless. If every truncated mode remained in its band, $h_w(\bk)=a(\bk)P_+(\bk)-b(\bk)P_-(\bk)$ with $a,b\geq0$, and its occupied band would coincide with the target lower band wherever $h_w$ is gapped. Band mixing is what can change its topology.
+
+At $\alpha=1$, the half-filling gap $\Delta_0(w)=\min_{\bk,n}|E_n[h_w(\bk)]|$ rapidly approaches its untruncated value $\Delta_0(\infty)=2$ [Fig.~\ref{fig:Truncation}(c)]. Already at $w=1$, the parent is well gapped, with $\Delta_0(1)\approx1.80$, and its occupied band carries Chern number 1, equal to that of the target band. In contrast, the onsite limit $w=0$ gives a momentum-independent $h_0$ with a trivial occupied band. Thus, $w=1$ suffices to keep the truncated parent in the target phase, which is why we use $w=1$ in the main text.
+
+As $\alpha$ increases, the gap of $h_w$ closes at the $\Gamma$ point at a $w$-dependent value $\alpha_c(w)<2$ [Fig.~\ref{fig:Truncation}(b)], with $\alpha_c(1)\approx1.80$, $\alpha_c(2)\approx1.93$, and $\alpha_c(4)\approx1.98$. For $w\geq3$, the drift is well described by
+\begin{equation}
+    2-\alpha_c(w)\simeq\frac{0.40}{(w+0.42)^2},
+    \label{eq:CriticalDrift}
+\end{equation}
+which extrapolates to the untruncated transition $\alpha_c(\infty)=2$. For $\alpha_c(w)<\alpha<2$, the occupied band of $h_w$ is trivial while the target band has $\mc C=1$. For instance, at $\alpha=1.9$, the occupied band of $h_w$ has Chern number 0 for $w=1$ and 1 for $w=4$. This shift is a direct consequence of band mixing.
+
+\subsection{Bulk preparation without domain walls}
+
+We now verify that the circuit prepares states in the target phase in the absence of domain walls. Each conditioned trajectory is a pure Gaussian state, whose two-point function $C$ [Eq.~\eqref{eq:TwoPoint}] is the projector onto its occupied states. Following Appendix C.3 of Ref.~\cite{Kitaev2006}, we compute the real-space Chern number by dividing a disk of radius $R$ centered at $\bfr_0$ into three counterclockwise sectors $A$, $B$, and $C$ (Fig.~\ref{fig:ChernPartition}),
+\begin{equation}
+    \mc C_G=12\pi\,\mathrm{Re}\Big\{\ii\big[\operatorname{tr}(C_{CA}C_{AB}C_{BC})-\operatorname{tr}(C_{AC}C_{CB}C_{BA})\big]\Big\},
+    \label{eq:KitaevChern}
+\end{equation}
+where $C_{XY}$ is the block of $C$ with rows in $X$ and columns in $Y$, and both orbitals of a unit cell belong to the same sector. The radius must exceed the correlation length while remaining inside the homogeneous region.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\columnwidth]{real_space_chern_partition.pdf}
+    \caption{\textbf{Real-space Chern number.} A disk of radius $R$ centered at $\bfr_0$ is divided into three counterclockwise sectors $A$, $B$, and $C$ for Eq.~\eqref{eq:KitaevChern}.}
+    \label{fig:ChernPartition}
+\end{figure}
+
+We use square systems with $N_x=N_y=L$, initialize random pure states at half filling, and evolve them at $\alpha=1$ for 40 cycles, with $\bfr_0=(L/2,L/2)$ and $R=0.4L$. As shown in Fig.~\ref{fig:BulkChern}, the average Chern number $\overline{\mc C_G}$ reaches 1 within a few cycles for all system sizes and truncation ranges. This convergence is noticeably faster than in Ref.~\cite{BhuiyanPanJian2026}, where each correction succeeds only with a finite probability. The late-time deviation $|\overline{\mc C_G}-1|$, estimated from cycles 21--40, decreases with system size for every truncation range (Fig.~\ref{fig:BulkChernScaling}). This provides evidence that the finite-range circuit prepares states in the target phase in the thermodynamic limit.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{bulk_chern_cycle_convergence.pdf}
+    \caption{\textbf{Bulk preparation without domain walls.} (a) Average real-space Chern number $\overline{\mc C_G}$ and (b) its deviation from 1 as a function of cycle, for $L=16,24,32$ (red, green, blue) and $w=1,2,\infty$ (line styles and markers), averaged over 100 trajectories. Shading denotes one standard error.}
+    \label{fig:BulkChern}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{bulk_chern_final_size_scaling.pdf}
+    \caption{\textbf{Finite-size convergence.} (a) Late-time average of $\overline{\mc C_G}$ over cycles 21--40 and (b) its deviation from 1 as a function of system size $L$ for $w=1,2,\infty$. Error bars denote one standard error.}
+    \label{fig:BulkChernScaling}
+\end{figure}
+
+Since gain and loss change the particle number along each record, we also track the total charge $Q_{\rec}$ of each trajectory, which is a definite integer. Its offset $\Delta Q=Q_{\rec}-L^2$ from half filling therefore fluctuates from record to record rather than within a state. As shown in Fig.~\ref{fig:BulkCharge}, the relative offset is small and decreases with system size. At $L=32$ and $w=1$, the mean offset is $\overline{|\Delta Q|}\approx1.3$ out of $L^2=1024$ unit cells. The untruncated circuit stays exactly at half filling.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{bulk_global_charge_fluctuations.pdf}
+    \caption{\textbf{Total charge.} (a) Late-time mean of $|\Delta Q|/L^2$ over cycles 21--40 as a function of $L$ for $w=1,2,\infty$. (b) Mean deviation of the filling fraction from $1/2$ as a function of cycle at $L=32$. (c) Distribution of $\Delta Q$ over 100 trajectories after 40 cycles at $L=32$ and $w=1$.}
+    \label{fig:BulkCharge}
+\end{figure}
+
+\section{Ancilla Elimination and Fermion Counting}
+\label{app:FermionCounting}
+
+In this Appendix, we derive the gain and loss operations of Eq.~\eqref{eq:GainLoss}, their $U(1)$ symmetry, and their relation to fermion counting. We write $\hat\chi$ for a single normalized truncated OW mode, $\hat{\mc N}=\hat\chi^\dagger\hat\chi$, and $\hat d$ for a fresh ancillary mode, which anticommutes with $\hat\chi$ and $\hat\chi^\dagger$.
+
+\subsection{Gain and loss from the fSWAP gate}
+
+For gain, let $|\psi_0\rangle=(\hat\Id-\hat{\mc N})|\psi\rangle$ for an arbitrary physical state $|\psi\rangle$, so that $\hat\chi|\psi_0\rangle=0$. With the ancilla operator ordered to the left, the fresh occupied ancilla gives the composite state $\hat d^\dagger|\psi_0\rangle$. Acting with the three parts of Eq.~\eqref{eq:fSWAP} and using $\hat n_a\hat d^\dagger|\psi_0\rangle=\hat d^\dagger|\psi_0\rangle$, we find
+\begin{align}
+    (\hat\Id-\hat{\mc N}-\hat n_a)\,\hat d^\dagger|\psi_0\rangle&=-\hat d^\dagger\hat{\mc N}|\psi_0\rangle=0,\nonumber\\
+    \hat\chi^\dagger\hat d\,\hat d^\dagger|\psi_0\rangle&=\hat\chi^\dagger(\hat\Id-\hat d^\dagger\hat d)|\psi_0\rangle=\hat\chi^\dagger|\psi_0\rangle,\nonumber\\
+    \hat d^\dagger\hat\chi\,\hat d^\dagger|\psi_0\rangle&=-(\hat d^\dagger)^2\hat\chi|\psi_0\rangle=0.
+    \label{eq:GainSteps}
+\end{align}
+Hence, $\fSWAP\,\hat d^\dagger|\psi_0\rangle=\hat\chi^\dagger|\psi_0\rangle$ with the ancilla left empty. Projecting onto the empty ancilla gives $\hat\chi^\dagger(\hat\Id-\hat{\mc N})|\psi\rangle=\hat\chi^\dagger|\psi\rangle$, since $\hat\chi^\dagger\hat{\mc N}=(\hat\chi^\dagger)^2\hat\chi=0$. This is the first line of Eq.~\eqref{eq:GainLoss}.
+
+For loss, let $|\psi_1\rangle=\hat{\mc N}|\psi\rangle$ with the ancilla empty. Then $(\hat\Id-\hat{\mc N}-\hat n_a)|\psi_1\rangle=0$ and $\hat\chi^\dagger\hat d|\psi_1\rangle=0$, so $\fSWAP\,|\psi_1\rangle=\hat d^\dagger\hat\chi|\psi_1\rangle$ with the ancilla left occupied. Removing the occupied ancilla gives $\hat\chi\hat{\mc N}|\psi\rangle=\hat\chi|\psi\rangle$, since $\hat\chi\hat{\mc N}=(\hat\Id-\hat\chi^\dagger\hat\chi)\hat\chi=\hat\chi$. This is the second line of Eq.~\eqref{eq:GainLoss}. In both cases, the final ancilla state is fixed by the measurement outcome, so the composite state is a product state, and discarding the ancilla leaves exactly these operators.
+
+\subsection{Weak $U(1)$ symmetry}
+
+Let $\hat Q=\sum_{\bfr,\mu}\hat c^\dagger_{\bfr,\mu}\hat c_{\bfr,\mu}$ be the physical charge. Since $\hat\chi^\dagger$ is a linear combination of the $\hat c^\dagger_{\bfr,\mu}$, we have $e^{\ii\theta\hat Q}\hat\chi^\dagger e^{-\ii\theta\hat Q}=e^{\ii\theta}\hat\chi^\dagger$. Each Kraus operator in Eqs.~\eqref{eq:KrausLower} and \eqref{eq:KrausUpper} therefore carries a definite charge $q(m)$,
+\begin{equation}
+    e^{\ii\theta\hat Q}\hat K(m)e^{-\ii\theta\hat Q}=e^{\ii\theta q(m)}\hat K(m),
+    \label{eq:KrausCharge}
+\end{equation}
+with $q\in\{0,+1\}$ for the lower band and $q\in\{0,-1\}$ for the upper band. The phases cancel between $\hat K$ and $\hat K^\dagger$ in the averaged channel, so
+\begin{equation}
+    \mc E\big(e^{\ii\theta\hat Q}\hat\rho\,e^{-\ii\theta\hat Q}\big)=e^{\ii\theta\hat Q}\,\mc E(\hat\rho)\,e^{-\ii\theta\hat Q}.
+    \label{eq:WeakU1}
+\end{equation}
+This is a weak $U(1)$ symmetry~\cite{BucaProsen2012,AlbertJiang2014}. It is not a strong symmetry, since the gain and loss operators do not commute with $\hat Q$. In the composite system, by contrast, both the occupation measurement and the fSWAP gate commute with $\hat Q+\hat n_a$.
+
+\subsection{Fermion counting run to completion}
+
+Consider continuous, perfectly efficient monitoring of gain into the mode $\hat\chi$ at rate $\gamma$, i.e., quantum jumps generated by $\sqrt\gamma\,\hat\chi^\dagger$ with every jump recorded~\cite{StarchlFischerSieberer2025}. Since $\hat\chi\hat\chi^\dagger=\hat\Id-\hat{\mc N}$ is a projector, the evolution without a click over a time $t$ is
+\begin{equation}
+    \hat M_0(t)=e^{-\gamma t\,\hat\chi\hat\chi^\dagger/2}=\hat{\mc N}+e^{-\gamma t/2}(\hat\Id-\hat{\mc N}).
+    \label{eq:NoClick}
+\end{equation}
+A click at time $t'\in(0,t)$ gives
+\begin{equation}
+    \hat M(t')=e^{-\gamma(t-t')\hat\chi\hat\chi^\dagger/2}\sqrt\gamma\,\hat\chi^\dagger e^{-\gamma t'\hat\chi\hat\chi^\dagger/2}=\sqrt\gamma\,e^{-\gamma t'/2}\,\hat\chi^\dagger,
+    \label{eq:Click}
+\end{equation}
+where we used $\hat\chi^\dagger\hat{\mc N}=0$ and $(\hat\Id-\hat{\mc N})\hat\chi^\dagger=0$. A second click is impossible, since $(\hat\chi^\dagger)^2=0$. These operators are complete,
+\begin{align}
+    &\hat M_0^\dagger(t)\hat M_0(t)+\int_0^tdt'\,\hat M^\dagger(t')\hat M(t')\nonumber\\
+    &\qquad=\hat{\mc N}+e^{-\gamma t}(\hat\Id-\hat{\mc N})+(1-e^{-\gamma t})(\hat\Id-\hat{\mc N})=\hat\Id.
+    \label{eq:CountingCompleteness}
+\end{align}
+For $\gamma t\gg1$, $\hat M_0(t)\to\hat{\mc N}$, and every click branch leaves the same normalized state $\hat\chi^\dagger|\psi\rangle/\|\hat\chi^\dagger|\psi\rangle\|$, independent of the click time. Recording only whether a click occurred therefore reproduces the lower-band Kraus operators of Eq.~\eqref{eq:KrausLower}, with $m=1$ corresponding to no click and $m=0$ to a click. Monitoring loss with jumps $\sqrt\gamma\,\hat\chi$ reproduces Eq.~\eqref{eq:KrausUpper} in the same way. At finite $\gamma t$, the no-click branch retains the component $e^{-\gamma t/2}(\hat\Id-\hat{\mc N})$, and the correction is incomplete.
+
+\section{Antipodal Mutual Information}
+\label{app:MutualInformation}
+
+In this Appendix, we present an additional entanglement diagnostic of the domain walls, the mutual information between two antipodal full-width strips. It relies on the same free-fermion conformal description as the entropy scaling in Sec.~\ref{sec:Entanglement}, so it is not independent evidence of criticality. Its use is as a function of $\alpha_1$: it shows that the wall signal disappears once the slab becomes trivial.
+
+Concretely, we take two full-width strips $a$ and $b$ of width $\ell=N_y/4$ on opposite sides of the cylinder [inset of Fig.~\ref{fig:MutualInformation}] and compute
+\begin{equation}
+    I_{a,b}=S(a)+S(b)-S(a\cup b).
+    \label{eq:MutualInformation}
+\end{equation}
+The two counterpropagating wall branches together form a single free Dirac fermion, for which the mutual information of two intervals depends only on their cross ratio $x$~\cite{CasiniHuerta2009,CalabreseCardyTonni2009}. On a circle of circumference $N_y$, with interval lengths $\ell$ and separation $N_y/2-\ell$, this gives
+\begin{equation}
+    I^{\rm Dirac}_{a,b}=-\frac{c}{3}\log(1-x),
+    \qquad
+    x=\sin^2\!\left(\frac{\pi\ell}{N_y}\right),
+    \label{eq:DiracMI}
+\end{equation}
+with $c=1$. For $\ell=N_y/4$, the cross ratio is fixed at $x=1/2$ for every $N_y$, and Eq.~\eqref{eq:DiracMI} yields the parameter-free value $I^{\rm Dirac}_{a,b}=(\log2)/3\approx0.231$. Since the cross ratio is fixed, a critical wall should give a size-independent constant rather than a logarithm.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{hard_wall_nshell1_bmi_with_geometry.pdf}
+    \caption{\textbf{Antipodal mutual information.} Mutual information $\overline{I}_{a,b}$ [Eq.~\eqref{eq:MutualInformation}] between two antipodal full-width strips of width $N_y/4$ (inset) as a function of $\alpha_1$, for $N_y=20,24,28$ after $2N_y$ cycles. Each point averages over strip positions and 100 trajectories. The dashed line is the free-Dirac value $(\log 2)/3$.}
+    \label{fig:MutualInformation}
+\end{figure}
+
+As shown in Fig.~\ref{fig:MutualInformation}, at $\alpha_1=1$ the mutual information approaches the Dirac value from above as $N_y$ increases. It vanishes for $\alpha_1\gtrsim2$, where the slab is trivial and the walls carry no gapless modes. The peak near $\alpha_1\approx1.7$ lies close to the transition $\alpha_c(1)\approx1.8$ of the truncated parent Hamiltonian (Appendix~\ref{app:Truncation}), where the slab correlation length becomes comparable to $N_x/2$ and bulk correlations contribute as well. It decreases with system size.
+
+Note that the parameter $\alpha$ jumps across the interfaces for every $\alpha_1\neq\alpha_2$, including $\alpha_1=3$, where the mutual information vanishes. Hence, the wall signal originates from the topology of the slab rather than from the mismatch in $\alpha$.
+
+\section{Lyapunov Spectrum from Purification}
+\label{app:Lyapunov}
+
+In this Appendix, we derive the relation~\eqref{eq:LyapunovFromOccupations} between the occupation spectrum of a purifying state and the Lyapunov spectrum, together with the late-time decay of the entropy. In the simulations of Sec.~\ref{sec:Purification}, only the slab is initialized in the maximally mixed state, while the exterior starts in a product state $\hat\Pi_{\rm ext}$. The derivation below applies after replacing $\hat V_{\rec}$ by $\hat V_{\rec}\hat\Pi_{\rm ext}$, which is again Gaussian and number conserving in the sense of Sec.~\ref{sec:Purification}.
+
+Diagonalize the single-particle generator, $h_{\rec}=\sum_j\lambda_j|\phi_j\rangle\langle\phi_j|$, and define the normal modes $\hat d_j=\sum_i\langle\phi_j|i\rangle\,\hat c_i$. Then $\hat{\mc H}_{\rec}=\sum_j\lambda_j\hat d^\dagger_j\hat d_j+\text{const.}$, and since the normal-mode number operators commute,
+\begin{equation}
+    \hat\rho_{\rec}=\prod_j\frac{e^{-2T\lambda_j\hat d^\dagger_j\hat d_j}}{1+e^{-2T\lambda_j}}.
+    \label{eq:ThermalProduct}
+\end{equation}
+Each factor is a two-level density matrix, so
+\begin{equation}
+    \nu_j\equiv\langle\hat d^\dagger_j\hat d_j\rangle=\frac{e^{-2T\lambda_j}}{1+e^{-2T\lambda_j}}=\frac{1}{1+e^{2T\lambda_j}},
+    \label{eq:ModeOccupation}
+\end{equation}
+while all cross correlations $\langle\hat d^\dagger_j\hat d_k\rangle$ with $j\neq k$ vanish. The two-point function~\eqref{eq:TwoPoint} is therefore diagonal in the same basis, $C_{\rec}=\sum_j\nu_j|\phi_j\rangle\langle\phi_j|$, or equivalently $C_{\rec}=(\Id+e^{2Th_{\rec}})^{-1}$. Inverting Eq.~\eqref{eq:ModeOccupation} gives $\lambda_j=(2T)^{-1}\log[(1-\nu_j)/\nu_j]$ and hence Eq.~\eqref{eq:LyapunovFromOccupations}. Modes eliminated by projective measurements have $\nu_j\in\{0,1\}$ and $|\lambda_j|=\infty$.
+
+The entropy of mode $j$ is $h(\nu_j)$ with $h(u)=-u\log u-(1-u)\log(1-u)$. For $T|\lambda_j|\gg1$, let $u=\min(\nu_j,1-\nu_j)=(1+e^{2T|\lambda_j|})^{-1}\simeq e^{-2T|\lambda_j|}$. Then $-u\log u\simeq2T|\lambda_j|\,e^{-2T|\lambda_j|}$ and $-(1-u)\log(1-u)\simeq u$, so
+\begin{equation}
+    h(\nu_j)\simeq\big(1+2T|\lambda_j|\big)\,e^{-2T|\lambda_j|}.
+    \label{eq:ModeEntropy}
+\end{equation}
+At late times, the total entropy $S=\sum_jh(\nu_j)$ is dominated by the modes with $|\lambda_j|$ closest to $\Delta$, which sets the purification time $\tau_{\rm P}\simeq1/(2\Delta)$ cycles.
+
+\bibliographystyle{apsrev4-2}
+\bibliography{references}
+
+\end{document}

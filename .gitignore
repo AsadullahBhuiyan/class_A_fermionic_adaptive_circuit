@@ -4,11 +4,67 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Massive generated data
-cache/
+cache/*
+!cache/README.md
 *.npz
+*.npy
+*.pt
+*.pth
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+*.tar.gz
+*.tgz
+
+# Campaign data and generated analysis products belong in external storage.
+**/gpu_data/
+**/cpu_data/
+**/cache/
+**/results/
+**/analysis_outputs/
+
+# Local build and test debris
+.tmp/*
+!.tmp/.gitkeep
+.pytest_cache/
+# NOTES now owns canonical standalone documents. Ignore only its generated navigation.
+NOTES/ALL_BY_SOURCE/
+NOTES/RECENCY_INDEX.md
+NOTES/00_CURRENT/*
+!NOTES/00_CURRENT/README.md
+NOTES/10_MANUSCRIPTS/*
+!NOTES/10_MANUSCRIPTS/README.md
+NOTES/20_THEORY_AND_METHODS/*
+!NOTES/20_THEORY_AND_METHODS/README.md
+!NOTES/20_THEORY_AND_METHODS/standalone/
+!NOTES/20_THEORY_AND_METHODS/standalone/**
+NOTES/30_PROJECT_DOCUMENTATION/*
+!NOTES/30_PROJECT_DOCUMENTATION/README.md
+NOTES/40_EXTERNAL_PAPERS/*
+!NOTES/40_EXTERNAL_PAPERS/README.md
+!NOTES/40_EXTERNAL_PAPERS/sources/
+!NOTES/40_EXTERNAL_PAPERS/sources/**
+NOTES/90_LEGACY/*
+!NOTES/90_LEGACY/README.md
+!NOTES/90_LEGACY/root_imports/
+!NOTES/90_LEGACY/root_imports/**
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.toc
 
 # If you don't need figures versioned:
 figs/
 *.png
 *.gif
 
+# Preserve the loose root media that was physically filed during cleanup.
+!figs/
+figs/*
+!figs/legacy_root_outputs/
+!figs/legacy_root_outputs/**

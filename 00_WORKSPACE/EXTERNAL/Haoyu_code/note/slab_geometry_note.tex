@@ -1,0 +1,625 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,bm}
+\usepackage{graphicx}
+\usepackage[colorlinks=true,linkcolor=blue]{hyperref}
+
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\rd}{\mathrm{d}}
+\newcommand{\tr}{\mathrm{tr}}
+\newcommand{\sgn}{\mathrm{sgn}}
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\TI}{\mathrm{TI}}
+\newcommand{\triv}{\mathrm{triv}}
+\newcommand{\strip}{\mathrm{strip}}
+
+\begin{document}
+
+\title{Slab-Geometry Note: Embedded TI/Trivial Interface and Local Chern Marker}
+\author{}
+\date{\today}
+
+\maketitle
+
+\section{Purpose}
+
+This note records the setup and current numerical results for the slab/interface
+calculation implemented in \texttt{src/interface\_chern}.  The geometry is a
+finite explicit slab
+\begin{equation}
+  -M \le y \le M-1
+\end{equation}
+embedded between two semi-infinite bulk regions:
+\begin{equation}
+  y \ge M:\ \TI,\qquad y \le -M-1:\ \triv.
+\end{equation}
+Translation invariance is kept in the \(x\) direction, so the calculation is
+done in mixed \((k_x,y)\) representation.
+
+The main observable is the row-resolved local Chern-marker profile.  The two
+results worth keeping as reference are:
+\begin{itemize}
+\item the equilibrium \(M=100\) slab develops a sharp interface crossover from a
+  trivial-side marker near \(0\) to a TI-side plateau near \(-0.81\),
+\item in the current monitored setup, a single monitored row at \(y=0\) already
+  collapses the marker profile to nearly zero for all scanned \(\Gamma>0\).
+\end{itemize}
+
+\section{Geometry and Hamiltonian}
+
+The bulk lattice Hamiltonian is the same Chern-insulator model used in
+\texttt{monitored\_CI2.tex}:
+\begin{equation}
+  h_r(k_x,k_y)
+  =
+  t_0\Big[
+    \sigma^1 \sin k_x
+    + \sigma^2 \sin k_y
+    + \sigma^3(r-\cos k_x-\cos k_y)
+  \Big].
+\end{equation}
+We take
+\begin{equation}
+  r_{\TI}=1,\qquad r_{\triv}=3,
+\end{equation}
+so the upper bulk is topological and the lower bulk is trivial.
+
+In mixed \((k_x,y)\) representation the explicit slab Hamiltonian is
+\begin{equation}
+  H_{\strip}(k_x)=
+  \begin{pmatrix}
+    h_{-M} & V & 0 & \cdots & 0\\
+    V^\dagger & h_{-M+1} & V & \ddots & \vdots\\
+    0 & V^\dagger & h_{-M+2} & \ddots & 0\\
+    \vdots & \ddots & \ddots & \ddots & V\\
+    0 & \cdots & 0 & V^\dagger & h_{M-1}
+  \end{pmatrix},
+\end{equation}
+with
+\begin{equation}
+  h_y(k_x)
+  =
+  t_0\Big[
+    \sigma^1\sin k_x
+    + \sigma^3(r_y-\cos k_x)
+  \Big],
+\end{equation}
+\begin{equation}
+  V=\frac{\sigma^2}{2\ii}-\frac{\sigma^3}{2},
+\end{equation}
+and sharp interface profile
+\begin{equation}
+  r_y=
+  \begin{cases}
+    r_{\triv}, & -M \le y \le -1,\\[3pt]
+    r_{\TI}, & 0 \le y \le M-1.
+  \end{cases}
+\end{equation}
+
+\section{Lead Embedding}
+
+The explicit slab is not given hard walls.  Instead, the boundary rows are
+coupled to semi-infinite equilibrium leads through embedding self-energies:
+\begin{equation}
+  G_{\strip}^R(\omega,k_x)
+  =
+  \Big[
+    (\omega+\ii \eta)\Id
+    - H_{\strip}(k_x)
+    - \Sigma_{\TI}^R(\omega,k_x)
+    - \Sigma_{\triv}^R(\omega,k_x)
+    - \Sigma_M^R
+  \Big]^{-1}.
+\end{equation}
+The lead self-energies are obtained numerically from surface Green's functions
+using Lopez-Sancho decimation.  In equilibrium, with no monitoring,
+\begin{equation}
+  G_{\strip}^K(\omega,k_x)
+  =
+  \sgn(\omega)\Big(G_{\strip}^R-G_{\strip}^A\Big),
+\end{equation}
+so the fixed bulks satisfy zero-temperature FDT exactly.
+
+\section{Monitoring Setup}
+
+The monitored runs use the following specific choice:
+\begin{itemize}
+\item only the single row \(y=0\) is monitored,
+\item both \(\sigma^3\)-basis orbitals on that row are monitored,
+\item the monitored retarded self-energy is
+  \(\Sigma_M^R = -\ii \Gamma/2\) on the \(y=0\) row block,
+\item for the large-\(M\) sweep we assume the half-filled monitored saddle,
+  \(\Sigma_M^K=0\), and verify the corresponding monitored densities
+  posteriori.
+\end{itemize}
+
+With this assumption the monitored calculation is a single pass rather than a
+self-consistent iteration.  For the scanned \(M=100\) runs, the posterior
+deviation of the monitored orbital densities from \(1/2\) is at most
+\(4.7\times 10^{-11}\), so the half-filling assumption is numerically
+self-consistent for this setup.
+
+\section{Local Chern Marker}
+
+The equal-time correlation matrix is
+\begin{equation}
+  C(k_x)
+  =
+  \frac{1}{2}\Id
+  - \frac{\ii}{2}\int \frac{\rd\omega}{2\pi}\, G_{\strip}^K(\omega,k_x).
+\end{equation}
+The row-resolved marker is evaluated as
+\begin{equation}
+  c(y)
+  =
+  2\pi \int_{-\pi}^{\pi}\frac{\rd k_x}{2\pi}\,
+  \tr_{\mathrm{orb}}
+  \Big[
+    \langle y|
+    C(k_x)\,[\partial_{k_x}C(k_x),[Y,C(k_x)]]
+    |y\rangle
+  \Big],
+\end{equation}
+with
+\begin{equation}
+  Y_{yy'}=y\,\delta_{yy'}.
+\end{equation}
+For equilibrium runs this is the standard projector-based marker with
+\(C(k_x)=P(k_x)\).  For monitored runs it is used as a nonequilibrium local
+Hall/Chern-marker diagnostic.
+
+\section{Alternative Boundary-First Reconstruction (\texorpdfstring{$M=0$}{M=0})}
+
+An analytically cleaner route is to step back from the explicit slab and first
+solve only the monitored \emph{boundary} problem at \(y=0\), then reconstruct
+the Green's function deeper in the bulk from that boundary data.  This is most
+natural for the semi-infinite edge geometry \(y\ge 0\), and is the right
+starting point if the eventual goal is to build the equal-time correlation
+matrix in a finite window near the edge.
+
+Let \(g_{nm}(\omega,k_x)\), with \(n,m\ge 0\), denote the Green's function of
+the \emph{unmonitored} half-space problem, and let the monitoring self-energy be
+strictly local to the boundary row,
+\begin{equation}
+  \Sigma_M(\omega,k_x)
+  =
+  |0\rangle\,\hat\Sigma_M(\omega,k_x)\,\langle 0|,
+\end{equation}
+where \(\hat\Sigma_M\) is a \(2\times 2\) matrix in orbital space.  The full
+Green's function satisfies the contour Dyson equation
+\begin{equation}
+  G = g + g\,\Sigma_M\,G.
+\end{equation}
+Because \(\Sigma_M\) has support only on \(y=0\), this equation closes exactly
+into a boundary \(T\)-matrix problem:
+\begin{equation}
+  G_{nm} = g_{nm} + g_{n0}\,T\,g_{0m},
+\end{equation}
+with
+\begin{equation}
+  T
+  =
+  \bigl(1-\hat\Sigma_M g_{00}\bigr)^{-1}\hat\Sigma_M
+  =
+  \hat\Sigma_M\bigl(1-g_{00}\hat\Sigma_M\bigr)^{-1}.
+\end{equation}
+
+For the retarded and advanced components,
+\begin{equation}
+  G_{nm}^{R/A}
+  =
+  g_{nm}^{R/A}
+  +
+  g_{n0}^{R/A}\,T^{R/A}\,g_{0m}^{R/A},
+\end{equation}
+where
+\begin{equation}
+  T^{R/A}
+  =
+  \bigl(1-\hat\Sigma_M^{R/A} g_{00}^{R/A}\bigr)^{-1}\hat\Sigma_M^{R/A}.
+\end{equation}
+The Keldysh component follows from the Langreth rules,
+\begin{equation}
+  G_{nm}^{K}
+  =
+  g_{nm}^{K}
+  +
+  g_{n0}^{R}\,T^{R}\,g_{0m}^{K}
+  +
+  g_{n0}^{K}\,T^{A}\,g_{0m}^{A}
+  +
+  g_{n0}^{R}\,T^{K}\,g_{0m}^{A},
+\end{equation}
+with
+\begin{equation}
+  T^{K}
+  =
+  \bigl(1+T^{R}g_{00}^{R}\bigr)\hat\Sigma_M^{K}\bigl(1+g_{00}^{A}T^{A}\bigr)
+  +
+  T^{R}g_{00}^{K}T^{A}.
+\end{equation}
+Equivalently, all mixed and bulk blocks are reconstructed from the
+unmonitored-half-space propagators \(g_{nm}^{R/A/K}\) and the local boundary
+matrix \(T^{R/A/K}\).
+
+Once \(G_{nm}^{K}\) is known, the equal-time correlation matrix in an edge
+window \(0\le n,m\le N_{\mathrm{edge}}\) is
+\begin{equation}
+  C_{nm}(k_x)
+  =
+  \frac{1}{2}\delta_{nm}\Id_{\mathrm{orb}}
+  -
+  \frac{\ii}{2}\int\frac{\rd\omega}{2\pi}\,G_{nm}^{K}(\omega,k_x).
+\end{equation}
+This produces the full correlation matrix supported near the edge without ever
+introducing a large explicit slab.
+
+\paragraph{What information is needed beyond the current lead boundary condition?}
+
+This point is important.  The present embedding code uses only the
+\emph{surface-surface} Green's function \(g_{00}\) of the semi-infinite bulk in
+order to build the self-energy.  That is sufficient to determine the local
+boundary Green's function \(G_{00}\), but it is \emph{not} sufficient to
+reconstruct \(G_{nm}\) in the bulk.  The formulas above show that one needs, in
+addition,
+\begin{equation}
+  g_{n0}^{R/A/K},\qquad g_{0m}^{R/A/K},\qquad g_{nm}^{R/A/K}
+  \quad (n,m>0),
+\end{equation}
+or, equivalently, the bulk propagation data that generates these objects.
+Concretely, this means that the current lead boundary condition encodes only the
+surface self-energy, while the boundary-first reconstruction requires
+\emph{surface-to-bulk columns} and, for a whole edge window, the restricted
+half-space block of the unmonitored bulk Green's function.
+
+For a homogeneous nearest-neighbor bulk this extra information is still
+calculable: it can be generated from the same half-space problem by a transfer
+matrix or surface-to-bulk recursion.  The key warning is simply that the
+surface self-energy alone does \emph{not} determine the bulk distribution of the
+correlator.  One must supplement the current boundary condition with explicit
+propagation data into the bulk.
+
+\subsection*{Implementation-ready edge-window formulation}
+
+For coding, the cleanest route is not to propagate directly from \(G_{00}\).
+Instead, choose an edge window
+\begin{equation}
+  E=\{0,1,\dots,N_{\mathrm{edge}}\}
+\end{equation}
+inside the monitored half-space \(y\ge 0\), and compute the full Green's
+function on that window exactly by embedding the \emph{tail} \(y\ge
+N_{\mathrm{edge}}+1\) back into the last row of the window.
+
+For the single-edge TI problem the half-space bulk is uniform, with
+\begin{equation}
+  h_{\mathrm{bulk}}(k_x)
+  =
+  t_0\Big[
+    \sigma^1\sin k_x
+    + \sigma^3(r_{\TI}-\cos k_x)
+  \Big],
+\end{equation}
+\begin{equation}
+  V=\frac{\sigma^2}{2\ii}-\frac{\sigma^3}{2}.
+\end{equation}
+The finite edge-window Hamiltonian is the block tridiagonal matrix
+\begin{equation}
+  H_E(k_x)=
+  \begin{pmatrix}
+    h_{\mathrm{bulk}} & V & 0 & \cdots & 0\\
+    V^\dagger & h_{\mathrm{bulk}} & V & \ddots & \vdots\\
+    0 & V^\dagger & h_{\mathrm{bulk}} & \ddots & 0\\
+    \vdots & \ddots & \ddots & \ddots & V\\
+    0 & \cdots & 0 & V^\dagger & h_{\mathrm{bulk}}
+  \end{pmatrix},
+\end{equation}
+whose rows are indexed by \(n=0,\dots,N_{\mathrm{edge}}\).
+
+Let \(g_{\mathrm{tail},s}^{R/A}(\omega,k_x)\) denote the surface Green's
+function of the homogeneous semi-infinite tail \(n\ge N_{\mathrm{edge}}+1\).
+It satisfies the usual surface Dyson equation
+\begin{equation}
+  g_{\mathrm{tail},s}^{R}
+  =
+  \Big[
+    (\omega+\ii 0^+)\Id_{\mathrm{orb}}
+    - h_{\mathrm{bulk}}
+    - V g_{\mathrm{tail},s}^{R} V^\dagger
+  \Big]^{-1},
+\end{equation}
+with \(g_{\mathrm{tail},s}^{A}=(g_{\mathrm{tail},s}^{R})^\dagger\).  The tail
+self-energy acting on the last row of the edge window is
+\begin{equation}
+  \Sigma_{\mathrm{tail}}^{R/A/K}
+  =
+  |N_{\mathrm{edge}}\rangle\,
+  \hat\Sigma_{\mathrm{tail}}^{R/A/K}\,
+  \langle N_{\mathrm{edge}}|,
+\end{equation}
+\begin{equation}
+  \hat\Sigma_{\mathrm{tail}}^{R/A}
+  =
+  V g_{\mathrm{tail},s}^{R/A} V^\dagger,
+\end{equation}
+\begin{equation}
+  \hat\Sigma_{\mathrm{tail}}^{K}
+  =
+  \sgn(\omega)\Big(
+    \hat\Sigma_{\mathrm{tail}}^{R}
+    -
+    \hat\Sigma_{\mathrm{tail}}^{A}
+  \Big),
+\end{equation}
+since the bulk tail is fixed in equilibrium at zero temperature.
+
+The exact \emph{unmonitored} Green's function on the entire edge window is then
+\begin{equation}
+  g_E^{R}
+  =
+  \Big[
+    (\omega+\ii 0^+)\Id
+    - H_E(k_x)
+    - \Sigma_{\mathrm{tail}}^{R}
+  \Big]^{-1},
+\end{equation}
+\begin{equation}
+  g_E^{A}=(g_E^{R})^\dagger,
+\end{equation}
+\begin{equation}
+  g_E^{K}
+  =
+  g_E^{R}\Sigma_{\mathrm{tail}}^{K}g_E^{A}
+  =
+  \sgn(\omega)\Big(g_E^{R}-g_E^{A}\Big).
+\end{equation}
+This gives all matrix elements \(g_{nm}^{R/A/K}\) for \(0\le n,m\le
+N_{\mathrm{edge}}\) in one inversion, with no separate surface-to-bulk
+recursion.
+
+Monitoring is then added only on the boundary row \(n=0\):
+\begin{equation}
+  \Sigma_M^{R/A/K}
+  =
+  |0\rangle\,\hat\Sigma_M^{R/A/K}\,\langle 0|.
+\end{equation}
+For the monitored problem on the window one may either use the boundary
+\(T\)-matrix formulas above, or simply solve the embedded window Dyson equation
+directly,
+\begin{equation}
+  G_E^{R}
+  =
+  \Big[
+    (\omega+\ii 0^+)\Id
+    - H_E(k_x)
+    - \Sigma_{\mathrm{tail}}^{R}
+    - \Sigma_M^{R}
+  \Big]^{-1},
+\end{equation}
+\begin{equation}
+  G_E^{A}=(G_E^{R})^\dagger,
+\end{equation}
+\begin{equation}
+  G_E^{K}
+  =
+  G_E^{R}\Big(
+    \Sigma_{\mathrm{tail}}^{K}
+    +
+    \Sigma_M^{K}
+  \Big)G_E^{A}.
+\end{equation}
+The correlation matrix supported near the edge is then
+\begin{equation}
+  C_{nm}(k_x)
+  =
+  \frac{1}{2}\delta_{nm}\Id_{\mathrm{orb}}
+  - \frac{\ii}{2}\int\frac{\rd\omega}{2\pi}\,
+  \bigl[G_E^{K}(\omega,k_x)\bigr]_{nm},
+  \qquad 0\le n,m\le N_{\mathrm{edge}}.
+\end{equation}
+
+For the monitor used in the present code,
+\begin{equation}
+  \hat\Sigma_M^{R}=-\frac{\ii\Gamma}{2}\Id_{\mathrm{orb}},\qquad
+  \hat\Sigma_M^{A}=+\frac{\ii\Gamma}{2}\Id_{\mathrm{orb}},
+\end{equation}
+and, if one keeps the general self-consistent form,
+\begin{equation}
+  \hat\Sigma_M^{K}
+  =
+  -\ii\Gamma
+  \begin{pmatrix}
+    1-2n_1 & 0\\
+    0 & 1-2n_2
+  \end{pmatrix},
+\end{equation}
+with monitored orbital occupancies extracted from the boundary block
+\begin{equation}
+  n_a
+  =
+  \int_{-\pi}^{\pi}\frac{\rd k_x}{2\pi}
+  \left[
+    \frac{1}{2}
+    -
+    \frac{\ii}{2}\int\frac{\rd\omega}{2\pi}\,
+    \bigl[G_{00}^{K}(\omega,k_x)\bigr]_{aa}
+  \right].
+\end{equation}
+At the half-filled monitored saddle used in the large-\(M\) scans,
+\begin{equation}
+  \hat\Sigma_M^{K}=0,
+\end{equation}
+so the full window Keldysh component reduces to
+\begin{equation}
+  G_E^{K}
+  =
+  G_E^{R}\Sigma_{\mathrm{tail}}^{K}G_E^{A}.
+\end{equation}
+
+\paragraph{Minimal data another agent actually needs.}
+
+The implementation can therefore be based on the following minimal set of bulk
+inputs:
+\begin{enumerate}
+\item the local bulk row Hamiltonian \(h_{\mathrm{bulk}}(k_x)\),
+\item the nearest-row hopping \(V\),
+\item the bulk-tail surface Green's function \(g_{\mathrm{tail},s}^{R/A}\),
+\item equilibrium FDT for the tail, which fixes \(\Sigma_{\mathrm{tail}}^{K}\).
+\end{enumerate}
+No explicit bath distribution matrix beyond equilibrium FDT is needed.  What is
+\emph{not} sufficient is the already-monitored local boundary Green's function
+\(G_{00}\) by itself: one must still rebuild the whole edge window with the tail
+embedding, because \(G_{00}\) alone does not determine the off-diagonal bulk
+blocks \(G_{nm}\).
+
+\section{Numerical Settings Used for the Reference Runs}
+
+The large-\(M\) runs shown below use
+\begin{equation}
+  M=100,\qquad Nk_x=41,
+\end{equation}
+\begin{equation}
+  \omega_{\mathrm{dense}}=2,\quad
+  \omega_{\max}=6,\quad
+  \Delta\omega_{\mathrm{dense}}=0.05,\quad
+  \Delta\omega_{\mathrm{coarse}}=0.15.
+\end{equation}
+The code now enforces
+\begin{equation}
+  \eta \ge 2\Delta\omega_{\mathrm{dense}},
+\end{equation}
+so these runs use
+\begin{equation}
+  \eta=0.1.
+\end{equation}
+For the equilibrium \(M=100\) run the diagnostics are
+\begin{equation}
+  \texttt{fdt\_max\_error}=0,\qquad
+  \texttt{lead\_residual\_max}=4.56\times 10^{-14}.
+\end{equation}
+
+\section{Results}
+
+\subsection{Equilibrium slab}
+
+The equilibrium \(M=100\) marker profile is shown in
+Fig.~\ref{fig:eq-marker}.  Numerically,
+\begin{equation}
+  \bar c_{\TI}=-0.8066,\qquad \bar c_{\triv}=-0.00556,
+\end{equation}
+and representative rows are
+\begin{equation}
+  c(-1)=-0.1036,\qquad c(0)=-0.5511,\qquad c(1)=-0.8078.
+\end{equation}
+So the crossover is localized to the interface region, while the deep TI side
+quickly saturates to a stable plateau.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.82\linewidth]{output/interface_chern_M100_eq/interface_chern_M100_eq_marker.pdf}
+  \caption{Equilibrium row-resolved Chern marker for the embedded
+  \(M=100\) TI/trivial slab.  The trivial side stays near \(0\), while the TI
+  side develops a plateau near \(-0.81\).}
+  \label{fig:eq-marker}
+\end{figure}
+
+The corresponding equilibrium spectral output is shown in
+Fig.~\ref{fig:eq-spectral}.  The top panel is the interface-window spectral sum
+used by the code, while the remaining panels are selected row-resolved spectra
+from the trivial side, interface region, and TI side.  This is the direct
+spectral companion to the marker profile in Fig.~\ref{fig:eq-marker}.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\linewidth,height=0.78\textheight,keepaspectratio]{output/interface_chern_M100_eq/interface_chern_M100_eq_spectral.pdf}
+  \caption{Equilibrium spectral output for the \(M=100\) slab.  The first panel
+  is the interface-window sum; the remaining panels are row-resolved spectral
+  functions for selected rows, with \(y<0\) in the left column and \(y\ge 0\) in
+  the right column.  All row panels share one color scale.}
+  \label{fig:eq-spectral}
+\end{figure}
+
+\subsection{Single-row monitoring at \texorpdfstring{$y=0$}{y=0}}
+
+For a single monitored row \(y=0\), monitoring both \(\sigma^3\)-basis
+orbitals, the marker profile is strongly suppressed.  At \(\Gamma=0.5\),
+Fig.~\ref{fig:mon-marker} shows that the profile is already nearly flat, with
+\begin{equation}
+  \bar c_{\TI}=-1.21\times 10^{-4},\qquad
+  \bar c_{\triv}=-2.16\times 10^{-5},
+\end{equation}
+and
+\begin{equation}
+  c(-1)\approx 0,\qquad c(0)\approx 0,\qquad c(1)\approx 0.
+\end{equation}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.82\linewidth]{output/interface_chern_M100_mon_half_fill/interface_chern_M100_mon_half_fill_marker.pdf}
+  \caption{Monitored \(M=100\) marker profile for a single monitored row
+  \(y=0\) with \(\Gamma=0.5\), monitoring both \(\sigma^3\)-basis orbitals and
+  imposing the half-filled saddle \(\Sigma_M^K=0\).  The diagnostic collapses
+  to nearly zero across the entire slab.}
+  \label{fig:mon-marker}
+\end{figure}
+
+The monitored spectral output at the same parameters is shown in
+Fig.~\ref{fig:mon-spectral}.  It is useful mainly as a reference diagnostic to
+compare directly against the equilibrium spectral panels and against the marker
+collapse in Fig.~\ref{fig:mon-marker}.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\linewidth,height=0.78\textheight,keepaspectratio]{output/interface_chern_M100_mon_half_fill/interface_chern_M100_mon_half_fill_spectral.pdf}
+  \caption{Monitored spectral output for the \(M=100\) slab at \(\Gamma=0.5\),
+  with only the row \(y=0\) monitored and the half-filled monitored saddle
+  imposed.  As in the equilibrium case, the first panel is the interface-window
+  sum, while the row-resolved spectral panels are arranged as \(y<0\) on the
+  left and \(y\ge 0\) on the right with a shared row color scale.}
+  \label{fig:mon-spectral}
+\end{figure}
+
+\subsection{Measurement-rate sweep}
+
+The \(\Gamma\)-sweep is shown in Fig.~\ref{fig:gamma-sweep}.  The equilibrium
+profile is included as the top-left reference panel, while the monitored panels
+cover
+\begin{equation}
+  \Gamma = 0.05,\ 0.1,\ 0.2,\ 0.5,\ 1,\ 2,\ 5.
+\end{equation}
+Within this current setup, the collapse is essentially immediate: every
+monitored panel is already close to zero for the full scanned range
+\(\Gamma\ll t_0\) through \(\Gamma\gg t_0\).
+
+This observation should be interpreted narrowly: it applies to the current
+choice of monitoring both \(\sigma^3\) orbitals on a single row with the
+half-filled monitored saddle enforced.  It is not yet evidence that any local
+monitoring protocol would produce the same behavior.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\linewidth]{output/interface_chern_gamma_sweep_M100/interface_chern_gamma_sweep_M100_marker_panels_zoom.pdf}
+  \caption{Panelized \(\Gamma\)-sweep for the \(M=100\) slab.  The equilibrium
+  panel shows the nontrivial interface profile.  All monitored panels in the
+  current setup are already collapsed near zero, even for \(\Gamma=0.05\ll
+  t_0\).}
+  \label{fig:gamma-sweep}
+\end{figure}
+
+\section{Takeaway}
+
+For the embedded \(M=100\) slab, the equilibrium calculation shows a clear
+interface-localized Chern-marker crossover.  In contrast, the present monitored
+implementation --- single monitored row, both \(\sigma^3\) orbitals, half-filled
+monitored saddle --- removes that profile almost completely for all scanned
+nonzero \(\Gamma\).
+
+The next natural follow-up calculations are:
+\begin{itemize}
+\item monitor only one orbital projector instead of both orbitals on the row,
+\item repeat on smaller \(M\) with the full self-consistent \(\Sigma_M^K\),
+\item compare the marker collapse against the corresponding spectral-function
+  evolution at the interface.
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "status": "non_gating_pilot",
+  "provisional_width": 20,
+  "shard_indices": [
+    0
+  ],
+  "trajectories_per_stochastic_case": 5,
+  "credit_rate_per_a100_hour": 5.3,
+  "available_credits_reference": 1666.0,
+  "available_a100_hours_reference": 314.33962264150944,
+  "rules": [
+    "Pilot archives are written under classA_pilot_outputs, never the production output tree.",
+    "The provisional width is inherited from the accepted exact B0 reference but is not a W1 gate decision.",
+    "Pilot samples are diagnostic and are not pooled automatically with the 100-trajectory production matrix.",
+    "Run calibration first and replace planning estimates with manifest-measured synchronized A100 times.",
+    "Bundle 06 B1 is required and runs after bundle 01 in the first three-session Colab lane."
+  ],
+  "planning_caps": {
+    "calibration_total_gpu_hours": 35.0,
+    "science_core_total_gpu_hours": 120.0,
+    "optional_h3_flux_pilot_total_gpu_hours": 20.0,
+    "science_plus_flux_pilot_total_gpu_hours": 140.0,
+    "science_plus_flux_pilot_credits": 742.0,
+    "credits_left_from_reference": 924.0
+  },
+  "frozen_record_flux_insertion": {
+    "default_stage": "single_record_65_point_closed_circle",
+    "pilot_geometry": "N20x24",
+    "pilot_grid_points": 65,
+    "pilot_shards": [0],
+    "parent_records_in_shard": 5,
+    "replayed_record_indices": [0],
+    "replayed_records_per_case": 1,
+    "science_replayed_records_per_case": 10,
+    "science_parent_shards": [0, 1],
+    "promotion_order": ["one_record_65_points", "ten_records_65_points", "ten_records_129_points", "additional_shards_or_sizes"],
+    "promotion_rule": "Do not promote beyond one record at 65 points until its manifest has finite closure, branch-replay, elapsed-time, and peak-memory diagnostics and the projected credit cost has been reviewed.",
+    "full_production_default": false,
+    "collaborator_handoff_recommended_for_dense_grid": true
+  },
+  "profile_case_shard_indices": {
+    "calibration": {},
+    "science": {
+      "02_pure_wall_master": {
+        "MASTER_N20x24_explicit_interface": [0, 1],
+        "MASTER_N20x24_explicit_interface_matched_trivial": [0, 1]
+      },
+      "03_chirality_replay": {
+        "H3_N20x24_explicit_interface_gauge-seam_grid-65_seam-0": [0, 1],
+        "H3_N20x24_explicit_interface_matched_trivial_gauge-seam_grid-65_seam-0": [0, 1]
+      }
+    }
+  },
+  "calibration": {
+    "00_validation": [
+      "V0_engine_record_replay_validation"
+    ],
+    "01_bulk_width_gate": [
+      "P1_N20x20_uniform_topological_init-pure_nsh-2_rev-shell_sweep_v2",
+      "P1_N20x20_uniform_topological_init-pure_nsh-1_rev-shell_sweep_v2",
+      "P1_N20x20_uniform_topological_init-pure_nsh-none_rev-shell_sweep_v2",
+      "W1_N20x48_explicit_interface",
+      "W1_N20x80_explicit_interface"
+    ],
+    "02_pure_wall_master": [
+      "MASTER_N20x24_explicit_interface",
+      "MASTER_N20x24_explicit_interface_matched_trivial",
+      "MASTER_N20x32_explicit_interface"
+    ],
+    "03_chirality_replay": [
+      "H3_N20x24_explicit_interface_gauge-seam_grid-65_records-1_seam-0"
+    ],
+    "04_maxmix_master": [
+      "P2_N20x24_explicit_interface_init-maxmix",
+      "P2_N20x24_explicit_interface_matched_trivial_init-maxmix"
+    ],
+    "05_scans_and_controls": [
+      "S2_N20x24_alpha_wall_alpha-1p875_init-pure",
+      "S2_N20x24_alpha_wall_alpha-1p875_init-maxmix",
+      "M2_N20x32_imperfect_error-0p1",
+      "M2_N20x32_postselect",
+      "M3BULK_N20x20_uniform_topological_sigma-0p4"
+    ],
+    "06_b1_controller_frame": [
+      "B1_N20x48_explicit_interface"
+    ]
+  },
+  "science": {
+    "00_validation": [
+      "V0_engine_record_replay_validation"
+    ],
+    "01_bulk_width_gate": [
+      "P1_N20x20_uniform_topological_init-pure_nsh-2_rev-shell_sweep_v2",
+      "P1_N20x20_uniform_topological_init-pure_nsh-1_rev-shell_sweep_v2",
+      "P1_N20x20_uniform_topological_init-pure_nsh-none_rev-shell_sweep_v2",
+      "P1_N20x20_uniform_trivial_init-pure_nsh-2_rev-shell_sweep_v2",
+      "P1_N20x20_uniform_trivial_init-pure_nsh-1_rev-shell_sweep_v2",
+      "P1_N20x20_uniform_trivial_init-pure_nsh-none_rev-shell_sweep_v2",
+      "W1_N20x48_explicit_interface",
+      "W1_N20x48_explicit_interface_matched_trivial",
+      "W1_N20x48_support_terminated",
+      "W1_N20x48_support_terminated_matched_trivial",
+      "W1_N28x48_explicit_interface",
+      "W1_N28x48_explicit_interface_matched_trivial",
+      "W1_N20x80_explicit_interface",
+      "W1_N20x80_explicit_interface_matched_trivial"
+    ],
+    "02_pure_wall_master": [
+      "MASTER_N20x24_explicit_interface",
+      "MASTER_N20x24_explicit_interface_matched_trivial",
+      "MASTER_N20x32_explicit_interface",
+      "MASTER_N20x32_explicit_interface_matched_trivial",
+      "MASTER_N20x32_support_terminated",
+      "MASTER_N20x32_support_terminated_matched_trivial",
+      "R1_N20x20_explicit_interface",
+      "R1_N20x20_explicit_interface_matched_trivial"
+    ],
+    "03_chirality_replay": [
+      "H3_N20x24_explicit_interface_gauge-seam_grid-65_seam-0",
+      "H3_N20x24_explicit_interface_matched_trivial_gauge-seam_grid-65_seam-0"
+    ],
+    "04_maxmix_master": [
+      "P2_N20x24_explicit_interface_init-maxmix",
+      "P2_N20x24_explicit_interface_matched_trivial_init-maxmix",
+      "P2_N20x48_explicit_interface_init-maxmix",
+      "P2_N20x48_explicit_interface_matched_trivial_init-maxmix"
+    ],
+    "05_scans_and_controls": [
+      "S2_N20x24_alpha_wall_alpha-1p0_init-pure",
+      "S2_N20x24_alpha_wall_alpha-1p0_init-maxmix",
+      "S2_N20x24_alpha_wall_alpha-1p875_init-pure",
+      "S2_N20x24_alpha_wall_alpha-1p875_init-maxmix",
+      "S2_N20x24_alpha_wall_alpha-2p125_init-pure",
+      "S2_N20x24_alpha_wall_alpha-2p125_init-maxmix",
+      "S2_N20x24_alpha_wall_alpha-3p0_init-pure",
+      "S2_N20x24_alpha_wall_alpha-3p0_init-maxmix",
+      "S2_N20x48_alpha_wall_alpha-1p875_init-pure",
+      "S2_N20x48_alpha_wall_alpha-1p875_init-maxmix",
+      "S2_N20x48_alpha_wall_alpha-2p125_init-pure",
+      "S2_N20x48_alpha_wall_alpha-2p125_init-maxmix",
+      "M2_N20x32_perfect",
+      "M2_N20x32_imperfect_error-0p1",
+      "M2_N20x32_imperfect_error-0p5",
+      "M2_N20x32_postselect",
+      "M3BULK_N20x20_uniform_topological_sigma-0p0",
+      "M3BULK_N20x20_uniform_topological_sigma-0p2",
+      "M3BULK_N20x20_uniform_topological_sigma-0p4",
+      "M3BULK_N20x20_uniform_topological_sigma-0p7"
+    ],
+    "06_b1_controller_frame": [
+      "B1_N20x48_explicit_interface",
+      "B1_N20x48_explicit_interface_matched_trivial"
+    ]
+  }
+}

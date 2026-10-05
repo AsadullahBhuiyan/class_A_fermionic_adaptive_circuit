@@ -1,0 +1,305 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,mathtools,bm}
+\usepackage{microtype}
+\usepackage{hyperref}
+
+\newcommand{\I}{\mathbf{1}}
+
+\title{Support-Reduced Markov Update from the Two-Leg Contraction}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Purpose}
+
+This note records the explicit reduction used by the production
+\texttt{run\_markov\_circuit(...)} code when the Wannier modes have finite
+support (\texttt{nshell} finite). The point is that one does not need to build a
+full-system Choi covariance for each local channel. Instead, the two-leg Gaussian
+contraction can be reduced analytically to a solve on the support block of the
+measured mode.
+
+\section*{1. Generic two-leg composition formula}
+
+Suppose
+\begin{equation}
+\Psi^{(1)} =
+\begin{pmatrix}
+A_{11} & A_{12} \\
+A_{21} & A_{22}
+\end{pmatrix},
+\qquad
+\Psi^{(2)} =
+\begin{pmatrix}
+B_{11} & B_{12} \\
+B_{21} & B_{22}
+\end{pmatrix}.
+\end{equation}
+Contracting the output leg of $\Psi^{(1)}$ with the input leg of $\Psi^{(2)}$
+gives
+\begin{equation}
+\Psi^{(2)} \circ \Psi^{(1)}
+=
+\begin{pmatrix}
+A_{11} & 0 \\
+0 & B_{22}
+\end{pmatrix}
+-
+\begin{pmatrix}
+A_{12} & 0 \\
+0 & B_{21}
+\end{pmatrix}
+\begin{pmatrix}
+A_{22} & -\I \\
+-\I & B_{11}
+\end{pmatrix}^{-1}
+\begin{pmatrix}
+A_{21} & 0 \\
+0 & B_{12}
+\end{pmatrix}.
+\label{eq:composechoi}
+\end{equation}
+Equivalently,
+\begin{equation}
+\Psi^{(2)} \circ \Psi^{(1)} = M - N K^{-1} N^\dagger,
+\end{equation}
+with
+\begin{align}
+M &= \operatorname{diag}(A_{11}, B_{22}), \\
+N &= \operatorname{diag}(A_{12}, B_{21}), \\
+K &=
+\begin{pmatrix}
+A_{22} & -\I \\
+-\I & B_{11}
+\end{pmatrix}.
+\end{align}
+For Hermitian Gaussian covariances, $A_{21} = A_{12}^\dagger$ and
+$B_{12} = B_{21}^\dagger$, so the rightmost block factor is exactly
+$N^\dagger$.
+
+\section*{2. Dense state update from a two-leg Gaussian tensor}
+
+Let the top-layer covariance be
+\begin{equation}
+G \in \mathbb{C}^{N \times N}.
+\end{equation}
+If a two-leg Gaussian tensor has block form
+\begin{equation}
+\Psi =
+\begin{pmatrix}
+\Psi_{11} & \Psi_{12} \\
+\Psi_{21} & \Psi_{22}
+\end{pmatrix},
+\end{equation}
+then contraction with the state tensor gives the dense update
+\begin{equation}
+G' = \Psi_{22} - \Psi_{21}(G\Psi_{11} - \I)^{-1} G \Psi_{12}.
+\label{eq:dense_update}
+\end{equation}
+
+For a rank-one projector
+\begin{equation}
+P = |\chi\rangle\langle \chi|, \qquad Q = \I - P,
+\end{equation}
+the measurement branches are represented by
+\begin{equation}
+\Psi_{\mathrm{occ}} =
+\begin{pmatrix}
+-P & Q \\
+Q & P
+\end{pmatrix},
+\qquad
+\Psi_{\mathrm{emp}} =
+\begin{pmatrix}
+P & Q \\
+Q & -P
+\end{pmatrix}.
+\end{equation}
+This is exactly the formula above with the first tensor taken to be the state
+tensor
+\begin{equation}
+\Sigma(G) =
+\begin{pmatrix}
+0 & \I \\
+\I & G
+\end{pmatrix},
+\end{equation}
+so that $A_{11}=0$, $A_{12}=A_{21}=\I$, $A_{22}=G$, and the lower-right block of
+\eqref{eq:composechoi} becomes \eqref{eq:dense_update}. Substituting the
+measurement tensors into \eqref{eq:dense_update} yields the exact dense
+measurement update.
+
+\section*{3. Support decomposition}
+
+Assume the mode $\chi$ has support only on a subset $s$ of indices. Let $r$ be
+the complement. After reordering indices so that $s$ comes first, write
+\begin{equation}
+G =
+\begin{pmatrix}
+G_{ss} & G_{sr} \\
+G_{rs} & G_{rr}
+\end{pmatrix},
+\qquad
+P =
+\begin{pmatrix}
+p & 0 \\
+0 & 0
+\end{pmatrix},
+\qquad
+Q =
+\begin{pmatrix}
+q & 0 \\
+0 & \I_r
+\end{pmatrix},
+\end{equation}
+where
+\begin{equation}
+p = \chi_s \chi_s^\dagger,
+\qquad
+q = \I_s - p.
+\end{equation}
+
+The production code stores exactly this data: the support indices, the
+complement indices, and the restricted mode vector $\chi_s$.
+
+\section*{4. Occupied branch}
+
+For the occupied branch, set
+\begin{equation}
+H_{11} = -P, \qquad H_{21} = Q, \qquad H_{22} = P.
+\end{equation}
+Then \eqref{eq:dense_update} becomes
+\begin{equation}
+G' = P - QX, \qquad X = (GH_{11} - \I)^{-1} G H_{21}^\dagger.
+\end{equation}
+In block form,
+\begin{equation}
+A_+ := GH_{11} - \I =
+\begin{pmatrix}
+-(\I_s + G_{ss}p) & 0 \\
+-G_{rs}p & -\I_r
+\end{pmatrix},
+\qquad
+B := GH_{21}^\dagger = GQ =
+\begin{pmatrix}
+G_{ss}q & G_{sr} \\
+G_{rs}q & G_{rr}
+\end{pmatrix}.
+\end{equation}
+Define
+\begin{equation}
+K_+ := \I_s + G_{ss}p.
+\end{equation}
+Writing
+\begin{equation}
+X =
+\begin{pmatrix}
+X_{11} & X_{12} \\
+X_{21} & X_{22}
+\end{pmatrix},
+\qquad
+Y := -X_{12},
+\qquad
+Z := -X_{11},
+\end{equation}
+the first block row gives the two support solves
+\begin{equation}
+K_+ Y = G_{sr},
+\qquad
+K_+ Z = G_{ss}q.
+\label{eq:kplus_solves}
+\end{equation}
+The updated blocks are then
+\begin{align}
+G'_{ss} &= p + qZ, \\
+G'_{sr} &= qY, \\
+G'_{rr} &= G_{rr} - G_{rs}pY,
+\end{align}
+with $G'_{rs} = (G'_{sr})^\dagger$.
+
+So the only inverse information needed is the solution of
+\eqref{eq:kplus_solves} on the support block. No inverse of the projector $p$ or
+$q$ is required.
+
+\section*{5. Empty branch}
+
+For the empty branch, set
+\begin{equation}
+H_{11} = P, \qquad H_{21} = Q, \qquad H_{22} = -P.
+\end{equation}
+Now
+\begin{equation}
+A_- := GH_{11} - \I =
+\begin{pmatrix}
+-(\I_s - G_{ss}p) & 0 \\
+G_{rs}p & -\I_r
+\end{pmatrix},
+\end{equation}
+so define
+\begin{equation}
+K_- := \I_s - G_{ss}p.
+\end{equation}
+With the same definitions of $Y$ and $Z$, the support solves are
+\begin{equation}
+K_- Y = G_{sr},
+\qquad
+K_- Z = G_{ss}q.
+\label{eq:kminus_solves}
+\end{equation}
+The updated blocks are
+\begin{align}
+G'_{ss} &= -p + qZ, \\
+G'_{sr} &= qY, \\
+G'_{rr} &= G_{rr} + G_{rs}pY,
+\end{align}
+again with $G'_{rs} = (G'_{sr})^\dagger$.
+
+\section*{6. Reset / pump channel}
+
+The deterministic reset channel has the affine form
+\begin{equation}
+G' = QGQ + sP,
+\qquad
+s \in \{+1,-1\}.
+\end{equation}
+In support blocks this is immediate:
+\begin{align}
+G'_{ss} &= q G_{ss} q + s p, \\
+G'_{sr} &= q G_{sr}, \\
+G'_{rr} &= G_{rr},
+\end{align}
+with $G'_{rs} = (G'_{sr})^\dagger$.
+
+\section*{7. What the production code actually does}
+
+For finite \texttt{nshell}, the production code does not construct a local Choi
+covariance and then re-derive the Schur complement numerically at each site.
+Instead, it implements the reduced formulas above directly:
+\begin{itemize}
+\item solve on the support with $K_+$ or $K_-$,
+\item update the support-support and support-rest blocks,
+\item add the induced correction to the rest-rest block,
+\item use the affine support formula directly for the reset step.
+\end{itemize}
+This is mathematically equivalent to the dense two-leg contraction specialized to
+a compactly supported rank-one projector channel.
+
+\section*{8. Numerical verification}
+
+A local numerical check was run in this repository on a small
+\texttt{classA\_U1FGTN(4,4,DW=True,nshell=1)} instance. For one site and
+twenty random Hermitian test matrices $G$, the reduced formulas were compared
+against the dense full-space update:
+\begin{itemize}
+\item measurement branch maximum entrywise discrepancy:
+  $1.8 \times 10^{-12}$,
+\item reset branch maximum entrywise discrepancy:
+  $4.5 \times 10^{-16}$.
+\end{itemize}
+These are consistent with roundoff-level agreement.
+
+\end{document}

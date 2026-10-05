@@ -1,0 +1,259 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\Chern}{\mathcal{C}}
+\newcommand{\GO}{G_{\rm OW}}
+\newcommand{\Hflat}{H_{\rm flat}}
+
+\begin{document}
+
+\title{Supervisor 01 Theory Synthesis: Domain-Wall Target States, OW Truncation, and Modular Diagnostics}
+\author{Supervisor 01}
+\date{June 11, 2026}
+
+\begin{abstract}
+This supervisor note synthesizes Workers 01--04 and an independent read-only audit of the exact domain-wall benchmark, flattened-Hamiltonian and domain-wall truncation analysis, overcomplete-Wannier form-factor truncation theory, perturbative expansion notes, and modular charge-spreading diagnostics.  The combined evidence supports a coherent target-state narrative: the exact domain-wall Chern-insulator ground state supplies a controlled chiral-edge benchmark; the overcomplete-Wannier (OW) flattened Hamiltonian supplies a practical Gaussian target covariance with robust edge entanglement already at one shell; finite OW truncation should be judged by the effective overlap form factor rather than by the Chern number of the compact-support spinor itself; and modular spectra show striking agreement between exact and OW states while spatial modular dynamics remain eigenvector-sensitive.  The main adjustments are that domain-wall-sector truncation is a physically active hard boundary rather than a passive numerical improvement, that OW one-shell entanglement fidelity is stronger than OW one-shell Chern quantization, and that perturbative projection results justify local contraction intuition but not exact global convergence to the flattened-Hamiltonian target.
+\end{abstract}
+
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Source Scope}
+
+I first read \texttt{REPO\_POLICY.md}.  I then read only the assigned worker notes
+\begin{itemize}
+\item \texttt{repo\_synthesis/main\_pass/worker\_notes/worker\_01\_exact\_dw\_benchmark.tex},
+\item \texttt{repo\_synthesis/main\_pass/worker\_notes/worker\_02\_flattened\_hamiltonian\_dwtrunc.tex},
+\item \texttt{repo\_synthesis/main\_pass/worker\_notes/worker\_03\_ow\_form\_factor\_nshell.tex},
+\item \texttt{repo\_synthesis/main\_pass/worker\_notes/worker\_04\_modular\_charge\_spreading.tex}.
+\end{itemize}
+For the independent audit I inspected authored notes, notebook source text, small CSV summaries, and JSON metadata in the corresponding theory/target-state areas:
+\texttt{exact\_DW\_benchmark\_notes/},
+\texttt{notebooks/exact\_DW\_GS\_benchmark.ipynb},
+\texttt{notebooks/flattened\_hamiltonian\_analysis/},
+\texttt{form\_factor\_analysis/},
+\texttt{perturbative\_expansion/}, and
+\texttt{notebooks/modular\_charge\_spreading/}.
+I did not edit files, execute notebooks, inspect other worker notes, inspect supervisor or boss notes, or load large binary arrays.  Paths containing \texttt{haining}, \texttt{haoyu}, or \texttt{erroneous}, case-insensitively, were excluded.
+
+\section{Synthesis of Worker Claims}
+
+\subsection{Exact domain-wall benchmark}
+
+Worker 01's central claim is well supported.  The exact benchmark realizes a two-orbital lattice Dirac-Chern model
+\begin{equation}
+h(\bm{k})=\sin k_x\,\sigma_x+\sin k_y\,\sigma_y+
+(\alpha-\cos k_x-\cos k_y)\sigma_z ,
+\end{equation}
+with a spatial mass slab and two domain walls.  The exact Gaussian state is obtained by diagonalizing the one-body Hamiltonian, occupying negative-energy modes, and forming
+\begin{equation}
+G=2P_- - \Id .
+\end{equation}
+The fixed-wall squared correlator follows the chiral-fermion expectation
+\begin{equation}
+|\langle \psi^\dagger(y)\psi(0)\rangle|^2\sim
+\sin^{-2}(\pi y/L),
+\end{equation}
+with reported wall slopes near $-2.025$ and excellent $R^2$.  The integrated entanglement contour gives a full-width log-chord slope near $0.344$ and wall-window slopes near $0.169$, consistent with two additive chiral wall contributions.
+
+The most important procedural point is that the contour subsystem is the full-width strip in $x$; the later $x$ window is only a diagnostic restriction on the already-computed contour.  The Boss should preserve this distinction because changing the subsystem would change the entanglement problem.
+
+\subsection{Flattened Hamiltonian and DW truncation}
+
+Worker 02 correctly identifies the OW flattened Hamiltonian as a signed sum of rank-one projected Wannier modes,
+\begin{equation}
+\Hflat=
+\sum_{\bm R}\left(P_{A+}(\bm R)+P_{B+}(\bm R)
+-P_{A-}(\bm R)-P_{B-}(\bm R)\right),
+\end{equation}
+with target covariance
+\begin{equation}
+\GO=2P_{\rm occ}-\Id .
+\end{equation}
+The audit confirms the hierarchy: at $N_x\times N_y=20\times 40$, $\alpha_1=1$, $\alpha_2=30$, one-shell OW states reproduce edge entanglement slopes very accurately, while Chern quantization is much more sensitive to support and sector leakage.  In the small CSV summary, no-truncation full-support variants sit near $\Chern\simeq0.796$, whereas full-support DW-truncated variants reach $\Chern=0.99999895$.
+
+The adjustment is conceptual: DW-sector truncation is not merely a better cutoff.  The source explicitly treats it as a hard OW-function boundary at the domain-wall interfaces.  It can expose edge channels even when both sectors are topological, and in the physical $\alpha_2$ sweep it counts the loss of flank-sector chiral channels as $\alpha_2$ crosses the topological transition.
+
+\subsection{OW form-factor truncation and perturbative expansion}
+
+Worker 03's distinction is essential for the final theory narrative.  A finite-support OW spinor is not itself the object whose Chern number should be equated with the target band topology.  The relevant scalar is the effective overlap form factor
+\begin{equation}
+f^{(g)}(\bm{k}') =
+\frac{1}{N}\sum_{\bm{k}}
+\tilde g(\bm{k}'-\bm{k})e^{-i(\bm{k}'-\bm{k})\cdot\bm R}
+f(\bm{k})\langle u_{\bm{k}'}|u_{\bm{k}}\rangle ,
+\end{equation}
+whose zero and winding encode the obstruction seen by the truncated OW measurement channel.  For the $\alpha=1$, $X$-trial case, the $n_{\rm shell}=1$ square mask retains $0.992155$ of the untruncated OW norm and preserves the overlap zero, displaced to $k_x/\pi\simeq0.4922$ from the unwindowed $0.5$.
+
+The perturbative result should be used locally.  Around a fixed branch satisfying $G_*P=PG_*=sP$, a rank-one update linearizes to
+\begin{equation}
+\delta G'=(\Id-P)\delta G(\Id-P),
+\end{equation}
+and a raster cycle composes these projectors as $\delta G\mapsto L\delta G L^\dagger$.  This is strong evidence for contractive projection intuition, but it is not by itself a proof that the full nonlinear circuit converges exactly to $\GO$.
+
+\subsection{Modular charge spreading}
+
+Worker 04's modular summary is also supported.  The modular diagnostic compares the exact DW ground state with eight flattened-$\sigma_x$ OW surrogates on a $20\times40$ torus.  The half-system covariance is averaged over translated half-cuts before constructing
+\begin{equation}
+h_{\rm mod}=-2V\,\operatorname{diag}(\operatorname{arctanh}g_i)\,V^\dagger .
+\end{equation}
+The small spectrum CSV records identical modular ranges for all nine states:
+\begin{equation}
+\varepsilon_{\min}=-23.718998027710036,\qquad
+\varepsilon_{\max}=+23.718998027710036,
+\end{equation}
+with $800$ modes and zero Hermiticity error.
+
+The important caveat is that spectral equality does not imply eigenvector equality.  Standard OW surrogates qualitatively reproduce chiral, wall-guided spreading but leak more charge into the trivial region than the exact state.  DW-truncated OW variants impose exact confinement by construction.
+
+\section{Independent Repo-Audit Adjustments}
+
+First, the notation for $\alpha_1,\alpha_2$ is not uniform across source areas.  The exact benchmark note uses $\alpha_{\rm triv}\equiv\alpha_1$ and $\alpha_{\rm topo}\equiv\alpha_2$ with default values $(30,1)$, whereas the flattened-Hamiltonian and modular analyses use $\alpha_1=1$ for the topological slab and $\alpha_2=30$ for the trivial flanks.  The physics is consistent, but the Boss should avoid merging these conventions without an explicit translation.
+
+Second, the strongest robust target-state claim is entanglement-structural, not full topological quantization at smallest shell.  One-shell OW gives wall-window slopes near $1/6$ and full-width slopes near $1/3$, but its Chern diagnostic remains near $0.795$ rather than $1$.  The source itself interprets this as entanglement being less sensitive to finite OW support than the global Chern marker.
+
+Third, DW truncation should be described as a boundary condition in OW-function space.  It improves full-support Chern quantization and enforces modular confinement, but it can also change eigenvectors relative to the exact DW ground state.  Thus it is excellent for isolating topological-region dynamics, but not always the literal spatial response of the exact Hamiltonian ground state.
+
+Fourth, the post-selected circuit comparison is approximate.  The CPU metadata records the canonical entry point \texttt{classA\_U1FGTN.run\_markov\_circuit}.  The normalized Frobenius distance to $\GO$ drops rapidly but saturates near $0.753$ without DW truncation and $0.721$ with DW truncation at 40 cycles.  This should be framed as approach to the OW target up to a finite fixed-point offset, not exact preparation.
+
+Fifth, the modular spectrum equality is striking enough to preserve, but it should be presented with its construction attached: $y$-averaged half-cylinder covariance, large trivial mass, and flattened-$\sigma_x$ OW variants.  Spatial modular observables remain discriminating even when spectra coincide.
+
+\section{Key Evidence Table}
+
+\begin{ruledtabular}
+\begin{tabular}{p{0.28\linewidth}p{0.17\linewidth}p{0.48\linewidth}}
+Source & Lines & Evidence \\
+\hline
+\texttt{exact\_DW\_benchmark\_notes/exact\_DW\_GS\_benchmark\_revtex.tex}
+& 41--179
+& Defines the two-orbital DW Chern-insulator model, Bloch Hamiltonian, mass-slab convention, and exact Gaussian covariance $G=2P_- -\Id$. \\
+Same & 334--357
+& Reports near-$-2$ log-chord squared-correlator slopes localized on the DW slices and exterior neighbors. \\
+Same & 586--610
+& Establishes that contour windows are applied after computing the full-$x$ subsystem contour. \\
+Same & 648--770
+& Defines OW flattened-H trial-orbital surrogate and reports close exact-vs-$X/Y$ entanglement-contour slope agreement. \\
+\texttt{notebooks/flattened\_hamiltonian\_analysis/docs/flattened\_hamiltonian\_analysis.tex}
+& 100--185
+& Defines topological strip, trivial flanks, finite \texttt{nshell}, and DW-sector truncation as a hard boundary at DW interfaces. \\
+Same & 187--232
+& Defines $\Hflat$ and target covariance $\GO=2P_{\rm occ}-\Id$. \\
+Same & 254--290
+& States Chern hierarchy: no-truncation saturates near $0.795$--$0.796$, full-support DW truncation reaches $\Chern\simeq1$, and trivial check stays near zero. \\
+Same & 302--373
+& Gives log-chord entropy interpretation: wall-window target $1/6$, full-$x$ target $1/3$, and one-shell slope agreement. \\
+Same & 448--503
+& Interprets the physical $\alpha_2$ sweep as chiral-channel counting, with $c_{\rm est}\approx2$ for topological flanks and $c_{\rm est}\approx1$ once flanks are trivial. \\
+Same & 575--650
+& Describes post-selected convergence setup and finite residual Frobenius distance to $\GO$. \\
+\texttt{notebooks/flattened\_hamiltonian\_analysis/data/flattened\_chern\_df.csv}
+& 2--17
+& Small CSV values confirm $\Chern=0.99999895$ for full-support DW-truncated variants and $\Chern\simeq0.795$--$0.796$ for one-shell or standard variants. \\
+\texttt{notebooks/flattened\_hamiltonian\_analysis/data/combined\_fit\_summary\_df.csv}
+& 2--44
+& Records one-shell wall-window slopes near $0.16674$ and full-$x$ slopes near $0.33394$, with exact wall-window slope $0.168621$. \\
+\texttt{form\_factor\_analysis/docs/windowed\_chern.tex}
+& 46--100
+& Defines $f(\bm{k})$, the Chern obstruction as overlap winding, and the effective truncated form factor as a Bloch-overlap-dressed convolution. \\
+Same & 339--396
+& Documents square \texttt{nshell} mask, $\xi_{\rm rms}=0.673521a$, $\xi_{\rm exp}=1.442695a$, and retained norm $0.992155$ for $n_{\rm shell}=1$. \\
+Same & 412--453
+& Shows $n_{\rm shell}=0$ produces a full-BZ average with an accidental displaced zero, while $n_{\rm shell}=1,2$ preserve a shifted zero near $k_x/\pi\simeq0.492$. \\
+Same & 522--560
+& Warns that compact-support spinor FHS Chern can be zero even while the overlap winding remains $-1$. \\
+\texttt{perturbative\_expansion/README.md}
+& 10--37
+& States the rank-one linearized update $\delta G'=(I-P)\delta G(I-P)$ and raster composition by ordered complementary projectors. \\
+\texttt{notebooks/modular\_charge\_spreading/docs/modular\_charge\_spreading\_notes.tex}
+& 78--99
+& Defines modular diagnostic geometry: $20\times40$, DWs at $x=6,14$, $\alpha_1=1$ topological slab, $\alpha_2=30$ trivial flanks. \\
+Same & 159--208
+& Defines $y$-averaged half-cylinder covariance and modular kernel $h_{\rm mod}=-2\operatorname{arctanh}G_A$. \\
+Same & 259--295
+& Reports identical modular spectra for exact DW and all OW variants. \\
+Same & 360--390
+& Quantifies topological charge fractions at $T=40$: exact $0.959$, standard OW $0.896$ and $0.859$, DW-truncated OW $1.000$. \\
+Same & 437--469
+& Explains that DW truncation changes modular eigenvectors and enforces exact topological/trivial block structure. \\
+\texttt{notebooks/modular\_charge\_spreading/modular\_hamiltonian\_spectrum\_summary.csv}
+& 1--10
+& CSV confirms all nine modular spectra have identical extrema $\pm23.718998027710036$, $800$ modes, and zero Hermiticity error. \\
+\end{tabular}
+\end{ruledtabular}
+
+\section{Contradictions and Caveats}
+
+The main convention caveat is the swapped use of $\alpha_1,\alpha_2$ between the exact benchmark and later OW/modular analyses.  The Boss should refer to ``topological mass'' and ``trivial mass'' when synthesizing across folders, or explicitly state the local convention.
+
+The modular note contains a covariance-language tension: it describes a Majorana-like anti-Hermitian convention in prose but then uses the complex-fermion relation $C=(\Id+G)/2$ and a Hermitian spectral construction.  The numerical summaries report Hermitian modular kernels.  The final narrative should emphasize the operational formula rather than overstate a convention.
+
+The exact equality of all nine modular spectra is source-supported, but surprisingly strong.  Since I did not reload arrays or rerun notebooks, this should be treated as a recorded repository result.  It is safe to preserve, but worth scrutinizing if the Boss wants an independently regenerated flagship claim.
+
+The post-selected Frobenius comparison does not establish exact convergence to the OW flattened-Hamiltonian ground state.  It establishes rapid approach followed by a nonzero offset in the inspected finite-size, one-shell runs.
+
+The finite-shell form-factor conclusion is strongest for the documented $\alpha=1$, $X$-trial, square-mask case.  Other trial orbitals, gauges, disorder, or DW-sector masks may require their own effective-form-factor check.
+
+\section{Confidence}
+
+Confidence is high for the exact DW benchmark structure, quoted slopes, OW construction, one-shell entanglement robustness, full-support DW-truncated Chern quantization, form-factor distinction, and modular spectrum table because these are repeated in worker notes and independently visible in source notes or small summaries.
+
+Confidence is moderate-high for the modular charge-spreading interpretation because the numerical conservation and summary files are present, but I did not inspect trajectory arrays or videos.
+
+Confidence is moderate for extrapolations from perturbative contraction to many-cycle nonlinear circuit behavior.  The local linear result is clean; the global fixed-point relationship to $\GO$ remains finite-size and construction-dependent in the inspected data.
+
+\section{What the Boss Should Preserve or Scrutinize}
+
+Preserve the exact DW benchmark as the clean reference: chiral correlator slope near $-2$, additive wall entanglement slopes, local Chern marker, and the full-subsystem-before-window contour convention.
+
+Preserve the target-state hierarchy: OW one-shell captures chiral entanglement very well, while full Chern quantization requires better support and, in these data, DW-sector separation.
+
+Preserve the form-factor lesson: finite OW truncation should be judged by the zero and winding of $f_n^{\rm eff}$, not by assigning a naive nonzero Chern number to a compact-support spinor.
+
+Preserve the modular distinction: exact and OW targets can share the half-system modular spectrum while differing in spatial modular eigenvectors and charge leakage.
+
+Scrutinize the $\alpha_1,\alpha_2$ convention before writing any cross-folder equation or caption.
+
+Scrutinize any sentence that says DW truncation merely improves numerics; the source treats it as an active boundary condition.
+
+Scrutinize any claim of exact adaptive-circuit preparation of $\GO$; the inspected Frobenius data show rapid relaxation to a finite offset, not exact equality.
+
+\section{Cross-Supervisor Addendum}
+
+\subsection{Cross-note agreements}
+
+The five supervisor notes agree on the basic separation of objects.  The exact DW and OW flattened-Hamiltonian states define target-state and benchmark structure, while the production adaptive circuit is a trajectory-resolved Born-sampled Markov process.  Perfect correction is not postselection: it samples Born outcomes and then applies deterministic correction after mismatches.  Full postselection is a forced-branch control, often represented by one actual trajectory in saved products.
+
+There is also agreement that DW physics supplies the slow or critical sector.  Supervisor 01 identifies the exact DW state and OW surrogates as chiral-edge target states; Supervisor 03 sees near-\(1/3\) strip-entanglement scaling in perfect-correction trajectories; Supervisor 04 finds near-marginal Lyapunov and Choi-transfer channels in DW geometry but strong contraction in uniform geometry.  These are mutually supportive, provided one does not identify their operators or ensembles literally.
+
+All notes agree that provenance must be part of the scientific claim.  The robust evidence layer is the modern manifest/run-summary layer with canonical entry points, actual sample counts, observer policy, and source identity.  Legacy caches, stale copied sources, hard-coded plotting fallbacks, and postselection sample downgrades require explicit qualification.
+
+\subsection{Corrections and qualifications to Supervisor 01}
+
+My original note should more sharply distinguish \(\GO\) as a target covariance from the actual finite-time adaptive-circuit ensemble.  The Frobenius comparison already showed a nonzero offset from \(\GO\); Supervisors 02--04 strengthen the point that local perturbative contraction, postselected controls, Lyapunov transfer frames, and Choi particle-transfer gaps are not proofs of exact adaptive preparation of the OW ground state.
+
+The modular-spectrum claim should be preserved but treated as a target-state diagnostic with provenance caveats.  Supervisor 05's reliability audit reinforces my caution that striking equality statements should be tied to their precise generated tables, not generalized through summary figures or legacy cache products.
+
+My note's DW-truncation warning is confirmed and should be elevated: DW truncation is an active OW boundary condition, and cross-notes show analogous boundary/protocol choices can strongly alter dynamics, confinement, finite-mode counts, and apparent critical metrics.
+
+Finally, the \(\alpha_1,\alpha_2\) convention warning remains essential.  Cross-supervisor synthesis should use ``topological mass'' and ``trivial mass'' unless a local folder convention is explicitly stated.
+
+\subsection{Boss priorities}
+
+\begin{enumerate}
+\item Preserve the hierarchy of evidence: exact DW target state \(\rightarrow\) OW surrogate \(\rightarrow\) trajectory-resolved adaptive ensemble \(\rightarrow\) transfer/Choi/Lindblad controls, without collapsing them into one object.
+
+\item Make protocol language exact: perfect correction is a Born-sampled corrected ensemble; postselection is a forced-branch control; partial postselection is an interpolation knob with finite-system evidence.
+
+\item Use entropy and transfer-stability results as the leading dynamical evidence, but avoid precision claims for correlator exponents, thermodynamic scaling laws, or equality between Lyapunov and Choi spectra.
+
+\item Require manifest-level provenance for final claims: canonical entry point, actual sample count, source checksum or copied-source identity, saved-observable policy, and analysis input completeness.
+
+\item Flag known weak links before synthesis: stale Colab/OSG source copies, root OSG and merge-script issues, postselection sample-count semantics, hard-coded \(\alpha_2\) fallback tables, and legacy cache dependence.
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,66 @@
+{
+  "schema": "frozen_record_continuous_ramp_campaign_v1",
+  "campaign_id": "N16x20_frozen_record_continuous_ramp_s10_v1",
+  "root_seed": 2026090302,
+  "burnin_source": {
+    "campaign_id": "N16x20_online_flux_ramp_s10_v1",
+    "config": "campaign_config.online_ramp_s10_v1.json",
+    "output_root": "results/N16x20_online_flux_ramp_s10_v1"
+  },
+  "geometry": {
+    "Nx": 16,
+    "Ny": 20,
+    "DW": true,
+    "dw_interval": [4, 12],
+    "nshell": 1,
+    "filling_frac": 0.5,
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "trial_orbitals": "X"
+  },
+  "walls": {
+    "soft": {"dw_truncation": false, "meas_slab_only": false},
+    "hard": {"dw_truncation": true, "meas_slab_only": true}
+  },
+  "dynamics": {
+    "burn_in_cycles": 40,
+    "reference_cycles": 64,
+    "ramp_cycles": [16, 32, 64],
+    "sequence": "raster_y",
+    "perfect_correction": true,
+    "postselect": false,
+    "postselect_probability": 0.0,
+    "state_representation": "physical_frame",
+    "physical_covariance_update": "rank1",
+    "controller_twist_gauge": "uniform",
+    "dtype": "complex128",
+    "canonical_entry_point": "classA_U1FGTN.run_markov_circuit"
+  },
+  "twist": {
+    "directions": {"ccw": 1, "cw": -1},
+    "schedule": "phi_j = sigma * 2*pi*j/M, j=0,...,M",
+    "spectral_origin_offset": null
+  },
+  "regions": {
+    "left_x_start": 0,
+    "left_x_stop_exclusive": 8,
+    "right_x_start": 8,
+    "right_x_stop_exclusive": 16
+  },
+  "ensemble": {
+    "samples_per_wall": 10,
+    "paired_unit": "wall-specific burn-in sample_id and frozen record",
+    "uncertainty": "sample standard deviation"
+  },
+  "execution": {
+    "cpu_list": "28-55",
+    "workers": 28,
+    "blas_threads": 1
+  },
+  "acceptance": {
+    "charge_continuity_tolerance": 1e-09,
+    "frame_gram_tolerance": 1e-08,
+    "trajectory_replay_probability_tolerance": 1e-14,
+    "paired_integer_history_tolerance": 0
+  }
+}
