@@ -1,0 +1,36 @@
+% Standalone fragment: needs amsmath/amssymb, no project-specific macros.
+% Suggested location: existing gain/loss appendix, after the Kraus and U(1)
+% discussion. It has NOT been inserted into the manuscript.
+\paragraph*{Gain and loss as Gaussian boundary limits.}
+Although the conditional operators $\hat\chi^\dagger$ and $\hat\chi$ are
+nilpotent, they arise as singular limits of invertible Gaussian operators.
+For a normalized fermion mode, put
+$\hat n=\hat\chi^\dagger\hat\chi$,
+$\hat\Gamma=\hat\chi+\hat\chi^\dagger$, and
+$\lambda=-\tfrac12\log\varepsilon$. Then
+\begin{equation}
+ \hat v_\pm(\varepsilon)
+ =\hat\Gamma e^{\mp\lambda(2\hat n-\hat{\mathbf{1}})},\qquad
+ \sqrt\varepsilon\,\hat v_+(\varepsilon)\to\hat\chi^\dagger,
+ \quad
+ \sqrt\varepsilon\,\hat v_-(\varepsilon)\to\hat\chi.
+ \label{eq:GainLossGaussianBoundary}
+\end{equation}
+Each finite-$\varepsilon$ operator is a weak occupation filter followed
+by a Majorana flip and induces a conjugation matrix in
+$O(2N,\mathbb C)$ for $N$ complex modes. The endpoint is a projective
+operator limit, not a finite singular element of that group. To obtain a
+normalized instrument, use
+$\hat M_0=[\hat{\mathbf{1}}-\hat n+\varepsilon\hat n]/\sqrt{1+\varepsilon^2}$
+and
+$\hat M_1=[\hat n+\varepsilon(\hat{\mathbf{1}}-\hat n)]/\sqrt{1+\varepsilon^2}$.
+Feedback on the undesired outcome gives
+$\{\hat\Gamma\hat M_0,\hat M_1\}\to\{\hat\chi^\dagger,\hat n\}$
+for filling and
+$\{\hat M_0,\hat\Gamma\hat M_1\}\to
+\{\hat{\mathbf{1}}-\hat n,\hat\chi\}$ for depletion. For every fixed
+finite record with nonzero limiting probability, the normalized
+conditional state converges. This auxiliary regularization generally
+breaks $U(1)$ at finite $\varepsilon$; it does not change the symmetry of
+the exact protocol or justify exchanging the regulator and long-time
+limits.

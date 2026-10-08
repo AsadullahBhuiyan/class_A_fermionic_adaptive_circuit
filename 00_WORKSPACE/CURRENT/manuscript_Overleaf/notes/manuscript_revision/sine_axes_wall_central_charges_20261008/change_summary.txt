@@ -1,0 +1,11 @@
+Implemented all six figure comments.
+
+- Figure 6 is now two panels, both with log[sin(pi Ay/Ny)] x-axis labels and exact entropy/charge fit forms in the dashed-line legends. D(Ny/2)=Ny/pi, so its ratio with D(Ay) equals sin(pi Ay/Ny). The plotted coordinate and fits are unchanged.
+- The independent pure-state entropy-coefficient convergence histories and residual inset are their own Figure 8. The removed Nx/S title remains absent; the caption retains sampling details and regression uncertainty.
+- Figure 9 is a full-width horizontal row: paired contour maps with a shared color scale, left-wall fit, right-wall fit. The size legend is beneath the contours. Both wall axes and legends use the log-sine coordinate.
+- Wall annotations report c_L=1.0358 +/- 0.0032 and c_R=0.9799 +/- 0.0034; values and SEMs are exactly six times the original slopes. Dashed-line legends use c_L/6 and c_R/6. Text distinguishes physical wall labels from directional central charges; entropy alone still does not determine chirality.
+- Figure references, index, preview overview, renderer receipts, manifest, and validation notes updated. The manuscript remains 20 pages; affected figures appear on pages 10, 11, and 12.
+
+Preservation: all 54 scientific NPZ/CSV products unchanged; other figure PDF/PNG assets unchanged; bibliography unchanged; full outlook and its comments byte-for-byte unchanged. Original manuscript and complete figure bundle are archived in notes/manuscript_revision/sine_axes_wall_central_charges_20261008. No new simulation or fit was performed.
+
+Validation: isolated latexmk build with no undefined references/citations, overfull boxes, or oversized floats; figures inspected at manuscript size; Computer Modern/AMS font and data verifier passed, followed by a read-only manifest recheck. Only the pre-existing nameref-label and RevTeX float-package notices remain.

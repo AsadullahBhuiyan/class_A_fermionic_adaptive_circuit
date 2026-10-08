@@ -1,0 +1,24 @@
+Trajectory-spectrum connection restored, 8 October 2026
+
+The current manuscript is 19 pages. Four appendices and all existing figures are retained.
+
+Section III.B now displays the trajectory operator's left polar decomposition and the filtering of a pure input, V=(VV†)^(1/2)U and |psi_m> proportional to exp(-t H_m)U|psi_0>. The text explicitly leads with purification from maximal mixing as access to the trajectory operator's Lyapunov spectrum, including the spectrum filtering pure Gaussian trajectories. A short pointer connects relative spectral separations to loss of initial-state memory and local stability in the sense of dynamical systems theory.
+
+Appendix C is renamed “Purification, trajectory response, and the Lyapunov spectrum.” Its full “Response to initial-state perturbations” subsection is restored: inverse-free branch differential, chronological tangent product, measured-mode proof of impurity transport, exact maximally mixed covariance response identities, projected pure-state response, relative polar-factor filtering, and physical particle-hole perturbation sector. This restores the archived construction rather than replacing it with the smaller proposed subsection.
+
+The wording distinguishes weak contraction from a frozen mode. A zero limiting contraction rate still permits subexponential forgetting. The accessible charge sector, singular support, overlap and spectral-limit conditions remain explicit, as do the distinctions between the all-sector purification gap and the physical particle-hole response gap, between fixed-record statements and Born ensembles, and between trajectory response and averaged-channel relaxation.
+
+Bulchandani–Sondhi–Chalker (2024) is cited for loss of initial-state memory; Oshima et al. (2025) for related spectral transitions. Both references were already present in references.bib. The positive spectrum is obtained from mixed-state purification, not from the already pinned full-system occupations of a pure Gaussian state. No entanglement-phase conclusion follows from a gap closing alone.
+
+Validation
+- latexmk build in isolated /tmp/manuscript_spectrum_bridge_build passes; no undefined citations/references, duplicate labels, or overfull boxes.
+- Main-text equation and restored appendix inspected at pages 7,16,17; appendix-to-bibliography placement inspected at pages 18,19.
+- Entire outlook and its comments remain byte-for-byte unchanged.
+- All figure PDFs and PNGs and all 48 pre-existing scientific data products are unchanged. Figure-bundle read-only audit passes.
+- Bibliography now includes Yusipov et al. (2019); citation and cross-reference keys resolve.
+- Chronological multiplication, adjoints, and factors of two were checked against the existing covariance and purification equations. Pinned occupations give null covariance response directions; gamma=0 gives unit finite-time response in the maximal-mixing identity, without implying permanent memory.
+- No new simulations, fits, or asymptotic extrapolations.
+
+Files: manuscript.pdf; manuscript.tex; references.bib; validation_notes.json; manuscript_sources.zip. The ZIP includes all 13 vector figure assets and the float-placement helper. Build it with latexmk -pdf -outdir=build manuscript.tex.
+
+Citation update, 8 October 2026: Appendix C now cites Yusipov et al., Chaos 29, 063130 (2019), DOI 10.1063/1.5094324, for Lyapunov diagnostics in quantum-jump unravelings, explicitly distinguishing that setting from the fixed-record Gaussian response. Rebuilt in /tmp/manuscript_yusipov_citation_build. All 72 cited keys resolve; no overfull boxes or undefined references. Page 17 inspected; new bibliography entry verified on page 19. Manuscript remains 19 pages. Only the one blue sentence and one BibTeX entry were added; outlook and figure assets unchanged.

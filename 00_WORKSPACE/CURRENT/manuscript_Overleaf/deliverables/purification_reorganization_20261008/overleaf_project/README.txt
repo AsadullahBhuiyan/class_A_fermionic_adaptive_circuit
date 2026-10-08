@@ -1,0 +1,1 @@
+Upload all files to Overleaf and set manuscript.tex as the main document. Use pdfLaTeX with BibTeX/latexmk. All figure paths are relative to figures/. The supplied revtex_float_placement.tex includes the compatibility helper and mandatory fresh-page breaks for multirow figures. There are13 included vector PDFs. The separately delivered normalized contour preview is not included.

@@ -1,74 +1,48 @@
 # Manuscript figure bundle
 
-Fifteen figure versions, each with a vector PDF and 300-dpi PNG: Figures 1–2 belong to Section II, Figures 3–11 to Section III, and A1–A2 are the only appendix figures. The standalone hard-wall close-up and soft/hard-wall alternative are retained but excluded from the manuscript. Filenames retain their stable bundle numbers; the index shows current manuscript numbers. Original figures, the earlier `restructured` bundle, and campaign data remain unchanged; this bundle accompanies the authorized manuscript revision.
+14 manuscript figures and 5 archived or standalone versions. Figures 1–12 are in the main text; A1–A2 are in the four appendices. Stable asset filenames are independent of manuscript numbering.
 
-[Combined figure notes](FIGURE_NOTES.md) · [Ordered overview](overview.png) · [Verification](validation.json)
+[Combined figure notes](FIGURE_NOTES.md) · [Overview including archived assets](overview.png) · [Verification](validation.json)
 
 ## Ordered index
 
-| Figure | Section | Contents | Previous figure | Change | Files |
-|---|---|---|---|---|---|
-| 1 | II | Domain-wall geometry and local supports | 1 | Dashed walls meet top border; exterior dimension arrows/labels removed; periodic single/double slashes retained; support and operator layout preserved | [PDF](Figure_01_schematic.pdf) · [Preview](Figure_01_schematic.png) · [Notes](FIGURE_NOTES.md#figure-01-schematic) |
-| 2 | II | Adaptive measurement and feedback | 1(b) | Aligned vertical stages; equal measurement boxes; plain T-junction; grouped ancilla labels; continuation arrow | [PDF](Figure_02_adaptive_circuit.pdf) · [Preview](Figure_02_adaptive_circuit.png) · [Notes](FIGURE_NOTES.md#figure-02-adaptive-circuit) |
-| 3 | III | Bulk topology | 11 + recent bulk validation | 3×1; taller convergence panel; larger marker map and shorter colorbar; data preserved | [PDF](Figure_03_bulk_topology.pdf) · [Preview](Figure_03_bulk_topology.png) · [Notes](FIGURE_NOTES.md#figure-03-bulk-topology) |
-| 4 | III | Slow purification | 7 | Overlined means; original four panels and fit preserved | [PDF](Figure_04_purification.pdf) · [Preview](Figure_04_purification.png) · [Notes](FIGURE_NOTES.md#figure-04-purification) |
-| 5 | III | Correlation functions | 3 | Remove x=6,14 from B only; common D chord label | [PDF](Figure_05_correlations.pdf) · [Preview](Figure_05_correlations.png) · [Notes](FIGURE_NOTES.md#figure-05-correlations) |
-| 6 | III | Entropy and charge fluctuations | 4A/B | Two panels; omit Ay=1; overlined means; common D chord label | [PDF](Figure_06_entropy_charge.pdf) · [Preview](Figure_06_entropy_charge.png) · [Notes](FIGURE_NOTES.md#figure-06-entropy-charge) |
-| 7 | III | Occupation spectrum, energy spectrum, and mode count | Replaces 4C; recent spectra analysis | Compact 3×1; both normalized histograms pool all 32 origins; raw alpha1=1 count preserved; common D chord label; fit annotation repositioned | [PDF](Figure_07_entanglement_spectrum.pdf) · [Preview](Figure_07_entanglement_spectrum.png) · [Notes](FIGURE_NOTES.md#figure-07-entanglement-spectrum) |
-| 8 | III | Central-charge convergence and size dependence | 8 + recent endpoint-size panel | Recent two-panel figure; 2×1 vertical | [PDF](Figure_08_central_charge.pdf) · [Preview](Figure_08_central_charge.png) · [Notes](FIGURE_NOTES.md#figure-08-central-charge) |
-| 9 | III | Entropy carried by each wall | 5 | Two-column windows; omit Ay=1; overlined means; common D chord label | [PDF](Figure_09_wall_entropy.pdf) · [Preview](Figure_09_wall_entropy.png) · [Notes](FIGURE_NOTES.md#figure-09-wall-entropy) |
-| 10 | III | Modular evolution | 6 | Three original snapshot times; overlined mean displacement | [PDF](Figure_10_modular_evolution.pdf) · [Preview](Figure_10_modular_evolution.png) · [Notes](FIGURE_NOTES.md#figure-10-modular-evolution) |
-| 11 | III | Trajectory-averaged dynamics and channel gap | 9 | Compact 4×1; dimensionless channel-gap scan and inverse-length fit; common D chord label | [PDF](Figure_11_mean_channel.pdf) · [Preview](Figure_11_mean_channel.png) · [Notes](FIGURE_NOTES.md#figure-11-mean-channel) |
-| A1 | Appendix | Truncated OW modes | 10 | Consistent typography; scientific curves and fits preserved | [PDF](Figure_A01_ow_truncation.pdf) · [Preview](Figure_A01_ow_truncation.png) · [Notes](FIGURE_NOTES.md#figure-a01-ow-truncation) |
-| A2 | Appendix | Entropy contours and antipodal mutual information | 15 | 2×1: all-origin entropy-contour comparison above unchanged mutual information | [PDF](Figure_A02_mutual_information.pdf) · [Preview](Figure_A02_mutual_information.png) · [Notes](FIGURE_NOTES.md#figure-a02-mutual-information) |
-| Standalone (former 2) | Not included | Hard-wall support truncation | 2 | Preserved close-up; content incorporated into Figure 1 | [PDF](Figure_02_hard_wall.pdf) · [Preview](Figure_02_hard_wall.png) · [Notes](FIGURE_NOTES.md#figure-02-hard-wall) |
-| Alternative | Not included | Soft and hard walls | Original attachment | Consistent typography; diagram geometry preserved; excluded from manuscript | [PDF](Figure_02_alt_soft_and_hard_walls.pdf) · [Preview](Figure_02_alt_soft_and_hard_walls.png) · [Notes](FIGURE_NOTES.md#figure-02-alt-soft-and-hard-walls) |
+| Figure | Section | Contents | Change | Files |
+|---|---|---|---|---|
+| 1 | II | Domain-wall geometry and adaptive circuit | Full-width horizontal geometry and circuit; all four-slice coordinates, supports, periodic marks, transparency and circuit connections retained | [PDF](Figure_01_schematic.pdf) · [Preview](Figure_01_schematic.png) · [Notes](FIGURE_NOTES.md#figure-01-schematic) |
+| Standalone circuit | Supplementary | Adaptive measurement and feedback | Standalone flowchart retained; included as panel (b) of Figure 1 | [PDF](Figure_02_adaptive_circuit.pdf) · [Preview](Figure_02_adaptive_circuit.png) · [Notes](FIGURE_NOTES.md#figure-02-adaptive-circuit) |
+| 2 | III | Bulk topology | Only panel letters (a,b) shifted 0.10 source inches left; subplot and colorbar positions restored; geometry border remains flush with convergence left axis; overlines cover function symbols only; unlabeled inward minor ticks on logarithmic axes; inset labels beside axes with raised, shortened inset for clearance; centered periodic slashes and raised alpha labels; convergence legend lower left; compact inset labels closer to axes | [PDF](Figure_03_bulk_topology.pdf) · [Preview](Figure_03_bulk_topology.png) · [Notes](FIGURE_NOTES.md#figure-03-bulk-topology) |
+| 3 | III | Slow purification and residual entropy at the walls | Two-row purification figure with equal axes aspect ratios; panel (a) enlarged to match the compact contour panel. | [PDF](Figure_04_purification.pdf) · [Preview](Figure_04_purification.png) · [Notes](FIGURE_NOTES.md#figure-04-purification) |
+| 4 | III | Occupation spectra and finite-time Lyapunov gap | Original 3x1 vertical occupation/gap stack restored; saved spectra, gap fit and errors unchanged. | [PDF](Figure_04_lyapunov.pdf) · [Preview](Figure_04_lyapunov.png) · [Notes](FIGURE_NOTES.md#figure-04-lyapunov) |
+| 5 | III | Correlation functions | Original 2x1 vertical correlation comparison and collapse restored; retained data and fit unchanged. | [PDF](Figure_05_correlations.pdf) · [Preview](Figure_05_correlations.png) · [Notes](FIGURE_NOTES.md#figure-05-correlations) |
+| 6 | III | Entropy and charge fluctuations | Full-width horizontal entropy and charge-variance fits; compact marker-only size legend; all SEM bars and fitted values preserved | [PDF](Figure_06_entropy_charge.pdf) · [Preview](Figure_06_entropy_charge.png) · [Notes](FIGURE_NOTES.md#figure-06-entropy-charge) |
+| 7 | III | Restricted occupation and energy spectra | Two histogram panels retained; window-count panel restored for both phases, with existing alpha1=1 fit unchanged and saved alpha1=3 endpoint counts added.; panel (c) marker-only legend, actual SEM bars retained | [PDF](Figure_07_entanglement_spectrum.pdf) · [Preview](Figure_07_entanglement_spectrum.png) · [Notes](FIGURE_NOTES.md#figure-07-entanglement-spectrum) |
+| 8 | III | Entropy-coefficient convergence | Original single-column convergence figure and residual inset restored; values and errors unchanged. | [PDF](Figure_08_central_charge.pdf) · [Preview](Figure_08_central_charge.png) · [Notes](FIGURE_NOTES.md#figure-08-central-charge) |
+| 9 | III | Entropy carried by each wall | Original 2x1 vertical wall fits restored with current legends, coefficients and log-sine labels. | [PDF](Figure_09_wall_entropy.pdf) · [Preview](Figure_09_wall_entropy.png) · [Notes](FIGURE_NOTES.md#figure-09-wall-entropy) |
+| 10 | III | Modular evolution | Two snapshots over wide displacement; aligned white-backed alpha labels clear of axes borders and (left)/(right) legend; data unchanged | [PDF](Figure_10_modular_evolution.pdf) · [Preview](Figure_10_modular_evolution.png) · [Notes](FIGURE_NOTES.md#figure-10-modular-evolution) |
+| 11 | III | Spectrum and entropy of the outcome-averaged state | Former panels (a,b): unchanged occupation spectrum and averaged-state entropy contour in a separate 2x1 figure. | [PDF](Figure_11_mean_channel.pdf) · [Preview](Figure_11_mean_channel.png) · [Notes](FIGURE_NOTES.md#figure-11-mean-channel) |
+| 12 | III | Correlations and relaxation of the averaged channel | Former panels (c,d), relabeled (a,b), in a separate 2x1 figure; data and fits unchanged. | [PDF](Figure_12_channel_relaxation.pdf) · [Preview](Figure_12_channel_relaxation.png) · [Notes](FIGURE_NOTES.md#figure-12-channel-relaxation) |
+| A1 | Appendix | Truncated parent gap and retained norm | Native parent-gap and retained-norm curves preserved as two stacked panels; other panels archived; explicit exponential-fit legend with convergence length defined in caption; w=1 retained weight moved to text | [PDF](Figure_A01_ow_truncation.pdf) · [Preview](Figure_A01_ow_truncation.png) · [Notes](FIGURE_NOTES.md#figure-a01-ow-truncation) |
+| Archived A2 | Archived | Entropy contours and antipodal mutual information | Removed from compressed manuscript; original asset and numerical data preserved for review | [PDF](Figure_A02_mutual_information.pdf) · [Preview](Figure_A02_mutual_information.png) · [Notes](FIGURE_NOTES.md#figure-a02-mutual-information) |
+| A2 | Appendix | Finite-time purification and raw-gap growth | Saved Ny30 rate and raw-gap histories plus seven-size half-secant growth rates over 3Ny–4Ny; paired trajectory SEMs and existing weighted size fits; explicitly finite-window quantities. | [PDF](Figure_A05_gap_convergence.pdf) · [Preview](Figure_A05_gap_convergence.png) · [Notes](FIGURE_NOTES.md#figure-a05-gap-convergence) |
+| Archived A4 | Archived | Parameter dependence of the averaged-channel gap | Removed from compressed manuscript; original asset and numerical data preserved for review | [PDF](Figure_A04_channel_gap_scan.pdf) · [Preview](Figure_A04_channel_gap_scan.png) · [Notes](FIGURE_NOTES.md#figure-a04-channel-gap-scan) |
+| Standalone (former 2) | Not included | Hard-wall support truncation | Preserved close-up; content incorporated into Figure 1 | [PDF](Figure_02_hard_wall.pdf) · [Preview](Figure_02_hard_wall.png) · [Notes](FIGURE_NOTES.md#figure-02-hard-wall) |
+| Alternative | Not included | Soft and hard walls | Consistent typography; diagram geometry preserved; excluded from manuscript | [PDF](Figure_02_alt_soft_and_hard_walls.pdf) · [Preview](Figure_02_alt_soft_and_hard_walls.png) · [Notes](FIGURE_NOTES.md#figure-02-alt-soft-and-hard-walls) |
 
-Old Figures 12–14 and the old Figure 4(c) are excluded. The old tri-junction schematic is incorporated into manuscript Figure 3 (asset Figure_03); manuscript Figure 7 (asset Figure_07) contains the replacement occupation and entanglement-energy comparisons.
+## Current revision, 8 October 2026
 
-## Data and interpretation
+Figures 1 and 6 retain their full-width horizontal layouts. Figure 3 pairs raw total purification entropy with the alpha1=1 cycle60 full-system entropy contour; both axes now have the same width and height, and the alpha label remains centered. Figures 4 and 5 restore the original single-column vertical stacks. Figure 8 restores the original single-column convergence plot and inset, and Figure 9 restores the two vertically stacked wall fits. PDF placement checks enforce at most one vertical figure stack per page.
+Figure 7 retains the occupation and conditional-energy histograms and restores window counts for both phases. The original topological fit is unchanged; trivial-control counts come from saved endpoint frames.
+Figures 6(a,b) and 9(a,b) use the fresh endpoint campaign with Ny=24,28,32,40,50,60, 100 independent trajectories per size at 2Ny cycles. Half-strip labels use Ny/2 exactly. Joint fits and errors match the imported per-trajectory data, including covariance between widths. Figure 8 presents independent convergence histories. Figure 11 contains the ordered spectrum and entropy contour of the averaged Gaussian state. Figure 12 separately contains the correlator and channel-gap fits, relabeled (a,b). The contour is evaluated from the averaged state, not averaged trajectory contours. Figure 9 contains only the two vertically aligned wall fits; the contour comparison is excluded.
+Figure A1 retains only the native parent-gap and retained-norm arrays. The form-factor and transition panels are preserved in the dated review bundle.
+Figure A2 displays saved slab-only Ny=30 histories through 4Ny, with 100 trajectories and one trajectory SEM. The full-measurement protocol is not pooled. Every mean and SEM is verified against saved sample rows, and g_mod=2t Delta is checked. Panel (c) compares the seven-size half-secant growth rates over 3Ny–4Ny with the existing 2Ny rates, with paired trajectory SEMs and SEM-weighted power-law fits. No simulation or asymptotic extrapolation is used.
+Figure 8 contains the pure-state c_eff convergence curves and inset as its own figure. The c_eff(t) axis label is simplified; its extraction is defined in the caption. Its initialization and regression errors differ from the purification diagnostic. The mutual-information and parameter-scan figures remain archived and are excluded from the manuscript.
+Other figures, correlation conventions, minor ticks, averaging order, scientific arrays and retained fit values are preserved. Parameter colors are defined in sources/manuscript_palette.py. The complete original manuscript, figures and source scripts are preserved in notes/manuscript_revision/compression_review_20261007 at the manuscript root.
 
-The figure numbers in the following provenance summary are stable bundle IDs (the numeric filename prefixes), not the renumbered manuscript labels. Use the index above for current manuscript numbers.
+## Separate previews and analysis, 8 October 2026
 
-- Figure 3 uses the complete S=100 square-system Chern analysis. The finite-disk estimator and local marker are distinct observables; the marker retains periodic-coordinate seam effects.
-- Figure 4 retains its original purification data and independent gap-size ensemble. Scientific protocol details remain in the combined note.
-- Figure 7 pools all 32 strip origins within each of 100 trajectories per parameter value at Ny=32. The full occupation histograms contain 2,048,000 observations each; the conditional energy histograms contain 95,398 and 83,326 retained observations for alpha1=1 and 3. Both histogram types integrate to one. Panel (c) retains the raw mean window count for alpha1=1 and its unchanged fit and trajectory SEM.
-- Figure 8 uses separate ensembles. Panel (a) bars are regression errors of mean-entropy fits; panel (b) bars propagate trajectory sampling fluctuations.
-- Figure 9 integrates two-column wall windows x=5,6 and x=14,15. Its displayed Ay=1 points are excluded without changing the fits.
-- Figure 10 retains snapshots at modular times 0, 0.1, and 0.2. Absolute direction depends on the explicitly stated correlation-matrix index convention; the numerical curves are preserved.
-- Figure 11 uses deterministic outcome-averaged dynamics and the dimensionless channel gap g_C=1−rho(A)^2. The inverse-length fits use fixed Nx=20; they are not a simultaneous two-dimensional thermodynamic extrapolation.
-- Figure A2(a) compares origin-averaged half-strip entropy contours for alpha1=1 and 3 at Nx=20, Ny=32, Ay=16, cycle 64: average all 32 origins within each trajectory, then average 100 trajectories. The maps share a square-root color scale. Panel (b) preserves the 63-point mutual-information scan and trajectory SEMs.
-
-All input data, fit windows, averaging order, uncertainties, exclusions, and notation conventions are documented in the combined note. No new circuit simulations were used.
+The occupation-density previews and late-gap slope comparison are in deliverables/spectral_updates_20261008 at the manuscript root. The occupation-density previews remain excluded. The late-window comparison is now incorporated in Appendix C with a main-text pointer; its growth rate is distinguished from an asymptotic gap. The late endpoint and OLS slopes give finite-window size exponents 1.0682 +/- 0.0859 and 1.0751 +/- 0.0921, using paired trajectory SEMs and formal weighted-regression exponent errors, without bootstrapping.
 
 ## Reproduction
 
-Run the matching renderer from this directory. Renderers use bundled compact data and write only inside this bundle. The original large trajectory datasets are not needed for plotting.
-
-| Figure | Command |
-|---|---|
-| 1 | `python sources/plot_schematic.py --only geometry` |
-| 2 | `python sources/plot_schematic.py --only circuit` |
-| 3 | `python sources/plot_bulk_topology.py` |
-| 4 | `python sources/plot_purification.py` |
-| 5 | `python sources/plot_correlations.py` |
-| 6 | `python sources/plot_entropy_charge.py` |
-| 7 | `python sources/plot_entanglement_spectrum.py` |
-| 8 | `python sources/plot_central_charge.py` |
-| 9 | `python sources/plot_wall_entropy.py` |
-| 10 | `python sources/plot_modular_evolution.py` |
-| 11 | `python sources/plot_mean_channel.py` |
-| A1 | `python sources/plot_ow_truncation.py` |
-| A2 | `python sources/plot_mutual_information.py` |
-| Standalone (former 2) | `python sources/plot_wall_schematics.py` |
-| Alternative | `python sources/plot_wall_schematics.py` |
-
-All fifteen versions now use dedicated renderers to preserve their typography updates. `restore_existing.py` rejects restoring an outdated figure over these products; its `--check-only` mode verifies original source assets without writing files.
-
-Requirements: Python, NumPy, Matplotlib, Pillow, pypdf, Poppler, and a working LaTeX installation with AMS, bm, type1cm/type1ec (cm-super), and dvipng. All figure text and mathematics are rendered through LaTeX in Computer Modern; no font fallback is allowed. The shared sources/manuscript_typography.py enforces final-print sizes: axes and panel letters 9 pt, ticks/legends/annotations 8 pt, prominent schematic labels 10–11 pt. The non-included hard-wall close-up retains its historical 0.8-column print-size calibration. Per-figure records are in data/typography/. Figures 3, 7, and 11 retain their stacked layouts; A1 retains its original canvas aspect ratio.
-
-After intentional edits, rebuild this index and overview with `python sources/build_index.py`, then record the validated bundle with `python sources/verify_bundle.py --record`. Use `python sources/verify_bundle.py` for a read-only check. The verifier checks the original assets against `notes/manuscript_revision/baseline/original_figure_checksums.json`; it permits the authorized manuscript and bibliography revision. The top-level `manifest.json` binds the delivered bundle to SHA-256 checksums.
-
-## Separate diagnostics
-
-[Earlier fixed-origin energy comparison](diagnostics/normalized_entanglement_energy_alpha1_1_vs_3.pdf) and [normalized mode-fraction diagnostic](diagnostics/normalized_mode_fraction_vs_log_chord.pdf) are retained for reference. Neither is included in the manuscript; the spectrum figure (asset Figure_07, manuscript Figure 7) uses all origins and raw mean counts.
+Run the matching sources/plot_*.py renderer with the compact bundled data. Renderers require NumPy, Matplotlib, Pillow, Poppler, LaTeX and dvipng. All final figure fonts are Computer Modern/AMS through LaTeX; receipts record printed font sizes and bounds.
+After an intentional revision, run python sources/build_index.py and python sources/verify_bundle.py --record. Run python sources/verify_bundle.py for a read-only audit. The manifest binds the delivered bundle to SHA-256 checksums; the verifier also checks pre-revision numerical products and the protected outlook.

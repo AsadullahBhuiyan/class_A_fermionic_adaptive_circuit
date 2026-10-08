@@ -1,0 +1,15 @@
+Imported endpoint data, 2026-10-08
+
+Preserved the supplied ZIP and extracted its 289 members into extracted/. All 288 files listed in SHA256SUMS.json match their hashes and sizes. All 120 NPZ shards and receipts were inspected, with IDs 0..99 exactly once for each of six sizes.
+
+Protocol: Nx=20; Ny=24,28,32,40,50,60; T=2Ny; 100 independent random-pure half-filled trajectories per size with Born-conditioned pure exterior. alpha_1=1, alpha_2=30, n_shell=1; slab-only hard-wall measurements, raster_y, perfect correction, no postselection. Recorded canonical entry point: classA_U1FGTN_gpu.run_markov_circuit. Frozen source files are archival provenance, not replacements for current canonical sources.
+
+Payload: per-trajectory full-strip von Neumann entropy, intrinsic quantum charge variance, and all-origin-averaged entropy contours for every width Ay=0..Ny/2. Contour axes are (sample, Ay, x, relative dy). No raw occupied frames, covariance matrices, occupation spectra, alpha_1=3 controls, or time histories are included.
+
+Provided figures: Figure_06_entropy_charge (two panels) and Figure_09_wall_entropy (two panels), each vector PDF and PNG. Source/ includes generation/analysis/validation scripts; metadata, seed/schedule records, benchmark reports, original GPU parity/resume receipts are supplied.
+
+Independent recheck from all 600 trajectories reproduces every saved curve statistic and all four fit coefficients, uncertainties, and uncentered R0-squared values. Maximum contour-entropy closure error: 7.11e-15. Equal total fit weight per size, Ay>=8; errors preserve trajectory covariance across widths and the shared half-strip anchor. Origins are not treated as independent samples.
+
+Results (trajectory SEM): c=1.043804 +/- 0.002165; k=1.041848 +/- 0.002209; m_L=0.172637 +/- 0.000527; m_R=0.163323 +/- 0.000562.
+
+Visual inspection: collapse is close to logarithmic chord scaling within the shaded fit window; short widths depart from the fitted lines. Supplied plot labels use R0^2 rather than the current manuscript's R^2 display convention. Original supplied figures were preserved. No manuscript edits or new simulations were made.

@@ -1,0 +1,1 @@
+Removed the Nx=20, S=100 title from Figure 6(c). The information remains in the caption. All other figure pixels, data, fits, and manuscript text are unchanged. The manuscript was rebuilt and page 10 inspected; figure data/typography/hash checks passed.

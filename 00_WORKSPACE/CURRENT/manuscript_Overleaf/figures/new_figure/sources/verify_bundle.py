@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import sys
 
 from manuscript_typography import verify_typography
 
@@ -39,13 +40,13 @@ def main():
     args = parser.parse_args()
     rows = read_json('data/figure_index.json')
     stems = {row['stem'] for row in rows}
-    assert len(rows) == len(stems) == 15
+    assert len(rows) == len(stems) == 19
     # Included figure numbers are distinct from stable asset filename prefixes.
     manuscript = (ROOT.parents[1] / 'manuscript.tex').read_text()
     included = re.findall(r'\\includegraphics\[.*?\]\{(Figure_[^}]+)\.pdf\}', manuscript)
     assert included == [row['stem'] for row in rows if row['included']]
-    assert len(included) == 13
-    assert [row['number'] for row in rows if row['included']] == [str(i) for i in range(1, 12)] + ['A1', 'A2']
+    assert len(included) == 14
+    assert [row['number'] for row in rows if row['included']] == [str(i) for i in range(1, 13)] + ['A1', 'A2']
     assert r'fig:HardWall' not in manuscript
     assert r'Fig.~\ref{fig:Geometry}' in manuscript
     assert r'Fig.~\ref{fig:Circuit}(a)' not in manuscript
@@ -86,7 +87,7 @@ def main():
         for name, expected in row['outputs'].items():
             assert digest(ROOT / name) == expected
     a1 = read_json('data/ow_truncation/typography_validation.json')
-    assert a1['scientific_line_arrays_equal_to_native'] and a1['preserved_line_artists'] == 21
+    assert a1['scientific_line_arrays_equal_to_native'] and a1['preserved_line_artists'] == 4 and a1['native_axis_indices'] == [2,3]
     assert not a1['clipped_text']
     for ext, expected in a1['outputs'].items():
         assert digest(ROOT / ('Figure_A01_ow_truncation.' + ext)) == expected['sha256']
@@ -100,9 +101,24 @@ def main():
         assert 'Type 3' not in fonts, stem
 
     typography = {stem: verify_typography(stem) for stem in sorted(stems)}
-    for stem in ('Figure_01_schematic', 'Figure_02_adaptive_circuit'):
-        assert typography[stem]['panel_letters'] == [], stem
+    assert typography['Figure_01_schematic']['panel_letters'] == ['(a)', '(b)']
+    assert typography['Figure_02_adaptive_circuit']['panel_letters'] == []
     for name, expected in read_json('data/typography/preserved_inputs.json').items():
+        if name in ('data/correlations/plotted_data.csv', 'data/mean_channel/panel_b_plotted_data.csv'):
+            # Derived display flags changed by request; every numerical field is
+            # checked below against the preserved original, not a new baseline.
+            continue
+        if name == 'data/entanglement_spectrum/occupation_histogram.csv':
+            # Authorized coordinate conversion: preserve the old receipt and
+            # verify the exact transformation instead of resetting its baseline.
+            old = ROOT.parents[1] / 'notes/manuscript_revision/before_nu_spectrum_20261006/figures/new_figure' / name
+            assert digest(old) == expected
+            before = np.loadtxt(old, delimiter=',', skiprows=1)
+            after = np.loadtxt(ROOT / name, delimiter=',', skiprows=1)
+            np.testing.assert_array_equal(after[:, :2], (before[:, :2]+1)/2)
+            np.testing.assert_array_equal(after[:, 2:4], before[:, 2:4])
+            np.testing.assert_allclose(after[:, 4:], 2*before[:, 4:], rtol=1e-13, atol=1e-14)
+            continue
         assert digest(ROOT / name) == expected, ('Scientific input changed', name)
 
     # Cross-check audit receipts against the files actually delivered.
@@ -113,15 +129,32 @@ def main():
             assert digest(ROOT / name) == expected, (path, name)
 
     old = csv_rows('data/correlations/original_plotted_data.csv')
-    kept = [row for row in old if row['panel'] in ('a', 'c') or
-            (row['panel'] == 'b' and row['series'] in ('$x=5$', '$x=10$', '$x=15$'))]
+    endpoints = {int(row['Ny']):float(row['unmasked_correlator']) for row in old
+                 if row['panel'] == 'c' and int(row['ry']) == int(row['Ny'])//2}
+    kept = []
+    for old_row in old:
+        if old_row['panel'] not in ('a','c') or int(old_row['ry']) < 2:
+            continue
+        row = dict(old_row)
+        ny, r, value = int(row['Ny']), int(row['ry']), float(row['unmasked_correlator'])
+        row['source_log_x'], row['source_log_y'] = row['x'], row['y']
+        row['x'] = str(float(r) if row['panel'] == 'a' else float(np.sin(np.pi*r/ny)))
+        row['y'] = str(value if row['panel'] == 'a' else value/endpoints[ny])
+        row['displayed'] = str(row['panel'] == 'c' or value > 1e-20)
+        kept.append(row)
     assert kept == csv_rows('data/correlations/plotted_data.csv')
     corr = read_json('data/correlations/validation.json')
-    assert corr['panel_b_columns'] == [5, 10, 15]
+    assert corr['display_min_ry'] == 2 and corr['panel_a_cutoff'] == 1e-20
+    assert corr['display_panel_source_mapping'] == {'a': 'a', 'b': 'c'}
+    assert corr['requested_presentation_values_matched']
+    assert typography['Figure_05_correlations']['panel_letters'] == ['(a)', '(b)']
     assert abs(corr['primary_beta_archived'] - corr['primary_beta_independently_recovered']) < 1e-14
     for folder in ('entropy_charge', 'wall_entropy'):
         receipt = read_json(f'data/{folder}/validation.json')
-        assert receipt['display_min_Ay'] == 2 and receipt['fits_unchanged']
+        assert receipt['display_min_Ay'] == 2 and receipt['fits_match_imported_campaign']
+        assert receipt['sizes'] == [24,28,32,40,50,60]
+        assert receipt['fit_window'] == '8 <= Ay <= Ny/2'
+        assert digest(ROOT/'data/endpoint_even_20261008/sample_curves.npz') == receipt['input_sha256']
         # Labels have intentionally changed. Validate scientific inputs and fits,
         # not obsolete pixel equality with the original labels.
         provenance = read_json(f'data/{folder}/input_provenance.json')
@@ -129,14 +162,104 @@ def main():
             compact = ROOT / 'data' / folder / Path(source['path']).name
             if compact.is_file() and compact.suffix == '.csv':
                 assert digest(compact) == source['sha256'], compact
-    assert read_json('data/bulk_topology/validation.json')['layout'] == [3, 1]
+    bulk = read_json('data/bulk_topology/validation.json')
+    assert bulk['layout'] == [2, 1] and bulk['top_row'] == ['geometry', 'marker']
+    assert bulk['marker_color_norm'] == 'tanh of trajectory mean, linear color scale [-1,1]'
+    assert bulk['convergence_legend']=='lower left' and bulk['phase_labels_raised']
+    assert bulk['periodic_edge_marks']=={'top_bottom':'centered single slash','left_right':'centered double slash'}
+    assert read_json('data/central_charge/validation.json')['y_label']=='c_eff(t); extraction defined in caption'
+    assert read_json('data/ow_truncation/typography_validation.json')['retained_weight_annotation_removed']
+    assert all(label in manuscript for label in ('app:PurificationSpectroscopy','app:FiniteTimeGap','app:TrajectoryResponse','app:PureTrajectoryResponse'))
+    assert r'fig:WallEntropy}(b,c)' not in manuscript
+    assert r'Figure~\ref{fig:WallEntropy}(a) compares' not in manuscript
+    assert typography['Figure_04_purification']['panel_letters'] == ['(a)', '(b)']
+    purification = read_json('data/purification/notation_validation.json')
+    assert purification['layout'] == [2, 1]
+    assert purification['displayed_panels'] == ['total_entropy', 'raw_entropy_contour_alpha1_1']
+    assert purification['spatial_panel_displayed'] and purification['fit_unchanged']
+    assert not purification['slowest_mode_panel_displayed'] and not purification['contour_normalized']
+    assert typography['Figure_04_lyapunov']['panel_letters'] == ['(a)', '(b)', '(c)']
+    assert purification['lyapunov_layout'] == [3,1]
+    assert purification['lyapunov_panels'] == ['occupation_alpha1_3','occupation_alpha1_1','lyapunov_gap']
+    assert purification['entropy_geometry_inches']['heatmap_height'] == 1.5
+    assert purification['entropy_geometry_inches']['alpha_annotation_axes_coordinates'] == [.5,.5]
+    assert purification['entropy_geometry_inches']['alpha_font_matches_entropy_legend']
+    assert purification['entropy_geometry_inches']['entropy_heatmap_axes_aspect_ratios_equal']
+    assert purification['entropy_geometry_inches']['entropy_axes_width_over_height'] == 4/3
+    assert read_json('data/correlations/validation.json')['layout'] == [2,1]
+    assert read_json('data/central_charge/validation.json')['figure_inches'] == [3.375,2.8]
+    assert purification['entropy_scaling_factor'] == 30
+    for alpha in (1,3):
+        selected = sorted((r for r in csv_rows('data/purification/total_entropy_curves.csv')
+                           if int(r['alpha_1']) == alpha),key=lambda r:int(r['cycle']))
+        for key,outkey in [('mean','mean'),('sem','trajectory_SEM')]:
+            np.testing.assert_array_equal(purification['entropy_plotted_arrays'][str(alpha)][outkey],
+                                          30*np.array([float(r[key]) for r in selected]))
+    contour = read_json('data/purification/entropy_contour_provenance.json')
+    assert contour['status'] == 'passed' and not contour['new_simulations']
+    assert not contour['normalization_in_manuscript'] and contour['samples'] == 100
+    assert digest(ROOT/'data/purification/Ny030_entropy_contour_cycle60.npz') == contour['output_sha256']
+    with np.load(ROOT/'data/purification/Ny030_entropy_contour_cycle60.npz') as z:
+        np.testing.assert_array_equal(z['sample_ids'],np.arange(100))
+        np.testing.assert_array_equal(z['mean_raw_contour'],z['raw_contours'].mean(0))
+        np.testing.assert_allclose(z['raw_contours'].sum((1,2)),z['entropy_per_trajectory'],atol=1e-14,rtol=1e-13)
+        np.testing.assert_allclose(z['normalized_contours'].sum((1,2)),1,atol=1e-12)
+        np.testing.assert_array_equal(z['mean_normalized_contour'],z['normalized_contours'].mean(0))
+        np.testing.assert_allclose(z['mean_raw_contour'].sum(),purification['contour_mean_sum'],atol=1e-14)
+    assert r'\includegraphics[width=\textwidth]{Figure_01_schematic.pdf}' in manuscript
+    assert manuscript.count(r'\StartStackedFigurePage') == 0
+    assert manuscript.count(r'\StackedFigure') == sum(row['vertical_stack'] for row in rows if row['included'])
+    assert r'\label{eq:SlowestModeDensity}' not in manuscript
+    assert r'\label{eq:PurificationEntropyContour}' in manuscript
+    pagination = json.loads(subprocess.check_output([
+        sys.executable, str(ROOT/'sources/verify_stack_pages.py'),
+        str(ROOT.parents[1]/'manuscript.pdf')], text=True))
+    assert pagination['status'] == 'passed' and pagination['maximum_vertical_stacks_per_page'] == 1
+    assert purification['occupation_cycles'] == [1,5,60]
+    occ = read_json('data/purification/occupation_validation.json')
+    assert occ['status'] == 'passed' and occ['rank_mean_and_sem_match_raw']
+    assert digest(ROOT/'data/purification/ranked_occupation_means.csv') == occ['csv_sha256']
+    with (ROOT/'data/purification/ranked_occupation_means.csv').open() as stream:
+        occupations = list(csv.DictReader(stream))
+    assert len(occupations) == 2*3*1200
+    for alpha in (1,3):
+        for cycle in (1,5,60):
+            selected = sorted((r for r in occupations if int(r['alpha_1'])==alpha and int(r['cycle'])==cycle), key=lambda r:int(r['rank']))
+            np.testing.assert_array_equal([int(r['rank']) for r in selected],np.arange(1,1201))
+            assert all(int(r['samples'])==100 for r in selected)
+            values = np.array([float(r['mean_occupation']) for r in selected])
+            assert np.isfinite(values).all() and np.all(np.diff(values)>=0)
+
     assert read_json('data/entanglement_spectrum/validation.json')['layout'] == [3, 1]
-    assert read_json('data/central_charge/validation.json')['layout'] == [2, 1]
+    for group in ('entropy_charge', 'wall_entropy'):
+        legend_receipt = read_json(f'data/{group}/validation.json')
+        assert legend_receipt['size_legend'] == {
+            'title':'N_y','columns':3,'entries':[24,28,32,40,50,60],
+            'marker_only':True,'errorbar_glyphs':False}
+        assert legend_receipt['plotted_errorbars_retained']
+    spectrum_receipt = read_json('data/entanglement_spectrum/validation.json')
+    assert spectrum_receipt['count_legend'] == {'marker_only':True,'errorbar_glyphs':False}
+    assert spectrum_receipt['plotted_errorbars_retained']
+    assert read_json('data/central_charge/validation.json')['layout'] == [1, 1]
+    assert typography['Figure_08_central_charge']['panel_letters'] == []
 
     channel = read_json('data/mean_channel/validation.json')
-    assert channel['layout'] == [4, 1] and channel['panel_c_scan_points'] == 105
-    assert channel['panel_b_display_cutoff'] == 1e-8
-    assert channel['panel_b_displayed_separations'] == {'1': [1, 2, 3, 4], '3': [1, 2, 3, 4]}
+    assert channel['layout'] == [2, 1] and channel['relaxation_layout'] == [2, 1] and channel['appendix_scan_points'] == 105
+    assert channel['appendix_scan_layout'] == [1, 1]
+    assert typography['Figure_11_mean_channel']['panel_letters'] == ['(a)', '(b)']
+    assert typography['Figure_12_channel_relaxation']['panel_letters'] == ['(a)', '(b)']
+    assert typography['Figure_A04_channel_gap_scan']['panel_letters'] == []
+    assert channel['relaxation_panel_a_display_cutoff'] == 1e-20 and channel['relaxation_panel_a_min_ry'] == 2
+    assert channel['relaxation_panel_a_axes'] == {'x': 'r_y', 'y': 'C_Gbar(r_y)', 'xscale': 'log', 'yscale': 'log'}
+    contour_source = read_json('data/mean_channel/entropy_contour_provenance.json')
+    assert not contour_source['new_simulations'] and contour_source['displayed_alpha'] == 1
+    assert digest(ROOT/'data/mean_channel/entropy_contours.npz') == contour_source['cache_sha256']
+    with np.load(ROOT/'data/mean_channel/entropy_contours.npz') as z:
+        assert z['alpha1_contour'].shape == (20,64)
+        np.testing.assert_allclose(z['alpha1_contour'].sum(),channel['panel_b_entropy_contour']['total_entropy_nats'],atol=1e-12)
+        np.testing.assert_allclose(z['alpha1_contour'].sum(),contour_source['cases']['1']['saved_spectrum_entropy_nats'],atol=1e-8)
+    assert channel['displayed_panels'] == ['occupation_spectrum','averaged_state_entropy_contour','mean_correlator','gap_size_fit']
+    assert r'fig:ChannelRelaxation}(b)' in manuscript
     channel_source = read_json('data/mean_channel/provenance.json')
     for name, expected in channel_source['compact_inputs_sha256'].items():
         assert digest(ROOT / 'data/mean_channel' / name) == expected
@@ -174,6 +297,12 @@ def main():
         r_squared = 1-np.sum((y-np.polynomial.polynomial.polyval(1/n, fitted))**2)/np.sum((y-y.mean())**2)
         np.testing.assert_allclose(r_squared, saved['r_squared'], rtol=0, atol=1e-14)
     with np.load(ROOT / 'data/mean_channel/curves.npz') as curves:
+        for alpha in (1, 3):
+            values = curves[f'alpha{alpha}_xavg'][1:]
+            selected = np.flatnonzero(np.isfinite(values) & (values >= 1e-20) & (np.arange(1, len(values)+1) >= 2)) + 1
+            assert channel['relaxation_panel_a_displayed_separations'][str(alpha)] == selected.tolist()
+            exported = [int(row['r_y']) for row in csv_rows('data/mean_channel/panel_b_plotted_data.csv') if int(row['alpha_1']) == alpha]
+            assert exported == selected.tolist()
         for row in csv_rows('data/mean_channel/panel_b_plotted_data.csv'):
             value = curves[f"alpha{row['alpha_1']}_xavg"][int(row['r_y'])]
             assert value == float(row['squared_mean_correlator'])
@@ -202,15 +331,22 @@ def main():
         occupation_edges = np.linspace(-1, 1, 101)
         occupation_counts = np.array([np.histogram(np.clip(v.ravel(), -1, 1), occupation_edges)[0] for v in spectra])
         np.testing.assert_array_equal(occupation_counts.sum(axis=1), [2048000, 2048000])
+        occupation_edges = (occupation_edges + 1) / 2
         occupation_density = occupation_counts / (2048000 * np.diff(occupation_edges))
         np.testing.assert_allclose((occupation_density * np.diff(occupation_edges)).sum(axis=1), 1, atol=1e-14)
         saved_occupation = np.genfromtxt(ROOT / 'data/entanglement_spectrum/occupation_histogram.csv', delimiter=',', names=True)
+        np.testing.assert_array_equal(saved_occupation['nu_left'], occupation_edges[:-1])
+        np.testing.assert_array_equal(saved_occupation['nu_right'], occupation_edges[1:])
+        assert not np.any(np.abs(spectra) == .99)
+        # Main-text occupations use nu; Appendix B's filter strength uses lambda.
+        main_text = manuscript.split(r'\appendix', 1)[0]
+        assert r'\lambda' not in main_text and 'λ' not in main_text
         for index, alpha in enumerate((1, 3)):
             np.testing.assert_array_equal(occupation_counts[index], saved_occupation[f'alpha1_{alpha}_count'])
             np.testing.assert_array_equal(occupation_density[index], saved_occupation[f'alpha1_{alpha}_density'])
 
     energy_edges = np.linspace(-np.log(199), np.log(199), 102)
-    selected_energies = [np.log1p(-v[np.abs(v) <= .99]) - np.log1p(v[np.abs(v) <= .99]) for v in spectra]
+    selected_energies = [np.log1p(-v[np.abs(v) < .99]) - np.log1p(v[np.abs(v) < .99]) for v in spectra]
     energy_counts = np.array([np.histogram(v, energy_edges)[0] for v in selected_energies])
     retained_totals = energy_counts.sum(axis=1)
     np.testing.assert_array_equal(retained_totals, [95398, 83326])
@@ -242,14 +378,28 @@ def main():
         assert abs(mean - 29.811875) < 1e-12
         sem = half_counts.mean(axis=1).std(ddof=1) / 10
 
+    comparison_source = read_json('data/entanglement_spectrum/window_count_comparison_provenance.json')
+    assert digest(ROOT/'data/entanglement_spectrum/window_count_comparison.npz') == comparison_source['compact_sha256']
+    with np.load(ROOT/'data/entanglement_spectrum/window_count_comparison.npz') as comparison:
+        counts_by_width = comparison['counts']
+        assert counts_by_width.shape == (2,100,16,32)
+        with np.load(ROOT/'data/entanglement_spectrum/inputs.npz') as original:
+            np.testing.assert_array_equal(counts_by_width[0], original['counts_by_sample_width_origin'])
+        np.testing.assert_array_equal(counts_by_width[:,:,-1,:],window_counts)
+        averaged = counts_by_width.mean(-1)
+        receipt = read_json('data/entanglement_spectrum/validation.json')['count_comparison']
+        np.testing.assert_allclose(averaged.mean(1),receipt['means'],atol=1e-13)
+        np.testing.assert_allclose(averaged.std(1,ddof=1)/10,receipt['SEMs'],atol=1e-13)
+    assert typography['Figure_06_entropy_charge']['panel_letters'] == ['(a)','(b)']
+
     # The regenerated purification/modular/A2 figures are scientific-data
     # preserving renderers and must never be restored from obsolete PDFs.
     reusable = {row['stem'] for row in read_json('data/existing_assets.json')
                 if row.get('preserved', True)}
     assert reusable == set(), 'Typography-normalized figures must use their current renderers'
     assert all((ROOT / 'sources' / row['renderer']).is_file() for row in rows)
-    assert [row['number'] for row in rows if row['section'] == 'II'] == ['1', '2']
-    assert [row['number'] for row in rows if row['section'] == 'III'] == [str(i) for i in range(3,12)]
+    assert [row['number'] for row in rows if row['section'] == 'II'] == ['1']
+    assert [row['number'] for row in rows if row['section'] == 'III'] == [str(i) for i in range(2,13)]
     assert [row['number'] for row in rows if row['section'] == 'Appendix'] == ['A1', 'A2']
 
     purification = read_json('data/purification/notation_validation.json')
@@ -257,7 +407,8 @@ def main():
     assert purification['gap_points'] == 7
     expected_gap_fit = read_json('data/purification/analysis_manifest.json')['gap_fit']
     assert purification['fit'] == expected_gap_fit
-    np.testing.assert_allclose(purification['density_sum'], 1, atol=1e-14, rtol=0)
+    with np.load(ROOT/'data/purification/Ny030_slowest_mode_density.npz') as archived_density:
+        np.testing.assert_allclose(archived_density['mean'].sum(), 1, atol=1e-14, rtol=0)
     modular = read_json('data/modular_evolution/stacked_figure_metadata.json')
     assert not modular['data_changed'] and modular['snapshot_times'] == [0., .1, .2]
     assert modular['epsilon'] == 1e-10
@@ -289,6 +440,55 @@ def main():
     assert {int(r['Ny']) for r in mi} == {20,24,28}
     assert all(int(r['cycles']) == 2*int(r['Ny']) and int(r['width']) == int(r['Ny'])//4 for r in mi)
 
+    # Compression preserves the protected outlook and all pre-existing numerical products.
+    review = ROOT.parents[1] / 'notes/manuscript_revision/compression_review_20261007'
+    start = manuscript.index(r'\FloatBarrier'+'\n'+r'{\color{blue}\section{Conclusions and Outlook}')
+    end = manuscript.index(r'{\color{blue}'+'\n'+r'\begin{acknowledgments}', start)
+    assert manuscript[start:end] == (review/'outlook_exact.tex').read_text()
+    hashes = json.loads((review/'scientific_hashes.json').read_text())
+    for name, expected in hashes.items():
+        assert digest(ROOT.parents[1]/name) == expected, ('Compression changed scientific data',name)
+    wall = read_json('data/wall_entropy/validation.json')
+    assert wall['fits_match_imported_campaign']
+    assert wall['layout']==[2,1] and wall['contour_panel_removed']
+    from endpoint_even_support import load_fits
+    endpoint_fits, endpoint_contour, endpoint_source = load_fits()
+    assert digest(ROOT/'sources/extract_even_endpoint.py') == endpoint_source['extraction_source_sha256']
+    assert endpoint_contour.shape == (100,16,20)
+    assert endpoint_source['config']['Ny_values'] == [24,28,32,40,50,60]
+    for row in endpoint_source['inputs']:
+        path=Path(endpoint_source['source_root'])/row['path']
+        assert digest(path)==row['sha256']
+        assert digest(path.with_suffix('.json'))==row['receipt_sha256']
+    for key,folder,label in [('entropy','entropy_charge','c1'),('variance','entropy_charge','k'),('left','wall_entropy','left'),('right','wall_entropy','right')]:
+        groups,fit=endpoint_fits[key]
+        receipt=read_json(f'data/{folder}/validation.json')
+        if folder=='entropy_charge':
+            for field in ['slope','slope_covariance_SEM','converted_coefficient','converted_covariance_SEM','R0_squared']:
+                np.testing.assert_allclose(fit[field],receipt['fits'][label][field],atol=1e-14,rtol=1e-12)
+        else:
+            np.testing.assert_allclose(fit['slope'],receipt['slopes_independently_recovered'][label],atol=1e-14,rtol=1e-12)
+    assert typography['Figure_09_wall_entropy']['panel_letters'] == ['(a)', '(b)']
+    assert read_json('data/entropy_charge/validation.json')['layout'] == [1,2]
+    assert read_json('data/entropy_charge/validation.json')['convergence_separate']
+    for stem in ('Figure_06_entropy_charge', 'Figure_09_wall_entropy'):
+        text = subprocess.check_output(['pdftotext', str(ROOT/(stem+'.pdf')), '-'], text=True)
+        assert 'sin' in text and 'D(A' not in text
+    for w in ('left','right'):
+        np.testing.assert_allclose(wall['displayed_wall_coefficients'][w]['value'], 6*wall['slopes_independently_recovered'][w])
+    assert typography['Figure_07_entanglement_spectrum']['panel_letters'] == ['(a)', '(b)', '(c)']
+    gap = read_json('data/gap_convergence/validation.json')
+    assert gap['sample_means_and_SEMs_verified'] and gap['raw_gap_equals_2t_rate']
+    assert gap['cycle_range'][1] == 120 and gap['samples']==100 and gap['protocol']=='slab_only'
+    assert gap['time_fit_or_extrapolation'] and not gap['asymptotic_extrapolation'] and not gap['simulation']
+    assert gap['layout']==[3,1] and gap['paired_trajectory_SEMs_verified']
+    assert gap['slope_estimate_is_not_assumed_asymptotic_gap']
+    for name,expected in gap['late_window_inputs'].items():
+        assert digest(ROOT/'data/gap_convergence'/name)==expected
+    assert typography['Figure_A05_gap_convergence']['panel_letters']==['(a)','(b)','(c)']
+    for name, expected in gap['inputs'].items():
+        assert digest(ROOT/'data/gap_convergence'/name) == expected
+
     # All relative links in the delivered scientific notes/index must resolve.
     for path in (ROOT / 'FIGURE_NOTES.md', ROOT / 'README.md'):
         for target in re.findall(r'\]\(([^)]+)\)', path.read_text()):
@@ -303,24 +503,29 @@ def main():
 
     audit = {
         'all_checks_passed': True,
-        'figure_versions': 15,
-        'manuscript_figures': 13,
+        'figure_versions': len(rows),
+        'manuscript_figures': len(included),
         'numbering_convention': 'figure_N audit keys use stable asset IDs; index numbers match manuscript',
         'manuscript_figure_mapping': {row['stem']: row['number'] for row in rows if row['included']},
         'typography': typography,
         'combined_figure_note': 'FIGURE_NOTES.md',
-        'figure_3_layout': [3, 1],
+        'figure_3_layout': [2, 1],
+        'figure_4_layout': [3, 1],
+        'figure_1_layout': 'full-width horizontal geometry and circuit',
+        'stack_page_boundaries': 0,
+        'pagination': pagination,
         'figure_7_layout': [3, 1],
-        'figure_8_layout': [2, 1],
-        'figure_11_layout': [4, 1],
-        'figure_A2_layout': [2, 1],
+        'figure_9_layout': 'two single-column vertical wall fits; contour comparison removed',
+        'figure_11_layout': [2, 1],
+        'figure_12_layout': [2, 1],
+        'figure_A2_layout': [3, 1],
         'figure_A2_contour_origins': 32,
         'figure_A2_contour_trajectories_per_alpha': 100,
-        'figure_A2_mutual_information_points': len(mi),
+        'archived_mutual_information_points': len(mi),
         'restorable_figures': sorted(reusable),
         'figure_11_gap_scan_points': len(gap_rows),
-        'figure_11_gap_definition': channel['gap_definition'],
-        'figure_11_fits': channel['panel_d_saved_fits_recovered'],
+        'figure_12_gap_definition': channel['gap_definition'],
+        'figure_12_fits': channel['relaxation_panel_b_saved_fits_recovered'],
         'figure_11_original_sources_unchanged': len(channel_source['source_files_sha256']),
         'figure_11_proof': str(proof),
         'figure_11_proof_sha256': digest(proof),
@@ -329,22 +534,31 @@ def main():
         'preservation_baseline': str(baseline),
         'authorized_manuscript_and_bibliography_edits': True,
         'existing_PDFs_exact_source_copies': sum(row.get('preserved', True) for row in read_json('data/existing_assets.json')),
-        'correlation_rows_exact_source_subset': len(kept),
-        'correlation_panel_B_x': [5, 10, 15],
+        'correlation_rows_source_subset_with_display_mask': len(kept),
+        'correlation_excluded_ry': [0, 1],
+        'correlation_panel_A_cutoff': 1e-20,
         'correlation_fit_unchanged': True,
+        'correlation_display_panel_source_mapping': corr['display_panel_source_mapping'],
         'entropy_charge_and_wall_entropy_min_display_Ay': 2,
+        'entropy_charge_and_wall_entropy_sizes': [24,28,32,40,50,60],
+        'entropy_charge_and_wall_entropy_fits_match_imported_campaign': True,
+        'marker_only_legends_with_plotted_errorbars_retained': ['6(a)', '7(c)', '9(a)'],
+        'wall_contour_comparison_removed_from_manuscript': True,
         'retained_spectrum_observations': int(counts.sum()),
         'occupation_comparison': {'Ny': 32, 'Ay': 16, 'alpha_1': [1, 3],
                                   'counts_per_ensemble': occupation_counts.sum(axis=1).tolist(),
-                                  'normalization': 'unit-area density; full range [-1,1]', 'cut_origins': list(range(32))},
+                                  'normalization': 'unit-area density in nu; full range [0,1]', 'cut_origins': list(range(32))},
         'energy_comparison_retained_observations': retained_totals.tolist(),
         'histogram_bins': len(counts),
-        'histogram_normalization': 'occupation: unit area over [-1,1]; energy: unit area within window',
-        'count_panel': 'alpha_1=1; raw count, origin average within trajectory, then ensemble mean and trajectory SEM',
+        'histogram_normalization': 'occupation: unit area over [0,1]; energy: unit area within window',
+        'count_panel': 'restored for both controls; historical alpha_1=1 fit unchanged',
         'half_strip_mean_count': float(mean),
         'half_strip_trajectory_SEM': float(sem),
         'figures': figures,
         'visual_review': read_json('data/visual_review.json'),
+        'outlook_exactly_preserved': True,
+        'compression_scientific_products_unchanged': len(hashes),
+        'gap_convergence': gap,
         'scope': 'Existing results only. Original files checked against pre-work hashes; no circuit simulation was run.'
     }
     if args.record:

@@ -1,0 +1,61 @@
+--- before/manuscript.tex
++++ after/manuscript.tex
+@@ -227,7 +227,7 @@
+ 
+ In the following, we numerically study the adaptive circuit of Sec.~\ref{sec:Model} with hard domain walls. Unless stated otherwise, we use $N_x=20$ with interfaces at $x=5$ and $15$, $\alpha_2=30$, and truncation range $w=1$. We take $\alpha_1=1$ inside the slab, where the target state has $\mc C=1$, and use $\alpha_1=3$ as a trivial control. In Ref.~\cite{BhuiyanPanJian2026}, we found that the degrees of freedom near such a domain wall purify algebraically slowly, and we anticipated nonequilibrium analogs of chiral edge modes there. In this section, we characterize these modes.
+ {\color{blue}
+-Throughout this section, an overline denotes the Born-rule average over measurement trajectories, estimated using $S=100$ independent trajectories per parameter set unless stated otherwise. We use $t$ for the circuit cycle number throughout; modular evolution is parameterized separately by $t_{\rm mod}$. For subsystem observables, we also average over all translated origins $y_0$ along the periodic $y$ direction, first within each trajectory and then over trajectories. Entropies, charge variances, and other nonlinear observables are evaluated for each trajectory and subsystem position before averaging. Coordinates within a translated subsystem are reported relative to its origin, $\delta y=(y-y_0)\bmod N_y$. Additional spatial averages and exceptions are stated where they enter. Uncertainty bands and bars denote one trajectory SEM unless otherwise specified; the entropy and wall-fit errors retain correlations between strip widths, whereas the correlator exponent and $c_{\rm eff}$ use regression errors. For modular evolution we clip $2\nu-1$ at $\pm(1-10^{-10})$ when constructing $h_A$. The trivial-control purification histories use a numerically clipped covariance continuation after cycle 30.
++Throughout this section, an overline denotes the Born-rule average over measurement trajectories, estimated using $S=100$ independent trajectories per parameter set unless stated otherwise. We use $t$ for the circuit cycle number throughout; modular evolution is parameterized separately by $t_{\rm mod}$. For subsystem observables, we also average over all translated origins $y_0$ along the periodic $y$ direction, first within each trajectory and then over trajectories. Entropies, charge variances, and other nonlinear observables are evaluated for each trajectory and subsystem position before averaging. Coordinates within a translated subsystem are reported relative to its origin, $\delta y=(y-y_0)\bmod N_y$. Additional spatial averages and exceptions are stated where they enter. Uncertainty bands and bars denote one trajectory SEM unless otherwise specified; the entropy and wall-fit errors retain correlations between strip widths, whereas the correlator exponent and $c_{\rm eff}$ use regression errors. For half-strip-anchored fits, the displayed $R^2$ is the uncentered goodness-of-fit statistic. For modular evolution we clip $2\nu-1$ at $\pm(1-10^{-10})$ when constructing $h_A$. The trivial-control purification histories use a numerically clipped covariance continuation after cycle 30.
+ 
+  We begin with the topology of the prepared bulk and the slow purification of its boundaries. We then characterize the pure boundary states through correlations, entanglement, charge fluctuations, and their restricted spectra, before resolving the two walls and their modular propagation. Finally, we compare these trajectory-resolved signatures with the outcome-averaged channel.
+ }
+@@ -372,7 +372,7 @@
+ \label{sec:Entanglement}
+ 
+ {\color{blue}
+-We now quantify the wall modes using entanglement and charge fluctuations, with $N_y=30,35,\ldots,60$. For each trajectory, we consider the full-width strip
++We now quantify the wall modes using entanglement and charge fluctuations, with $N_y=24,28,32,40,50,60$. These endpoint ensembles use slab-only measurements and a Born-prepared pure exterior. For each trajectory, we consider the full-width strip
+ \begin{equation}
+     A(y_0,A_y)=[0,N_x)\times[y_0,y_0+A_y)\pmod{N_y},
+     \label{eq:Strip}
+@@ -401,21 +401,21 @@
+     \overline{F}(A_y)&=\frac{k}{\pi^2}\log D(A_y)+\text{const.},
+     \label{eq:CFTScaling}
+ \end{align}
+-\newtext{Here $c$ denotes the von Neumann coefficient, with $c=k=1$ for a charge-one complex fermion on each wall.} \newtext{The overlines include the average over $y_0$ within each trajectory.} To compare circumferences, we subtract from each curve its value at the half-strip \newtext{$A_y=\lfloor N_y/2\rfloor$}, which removes the nonuniversal constants. \newtext{The horizontal coordinate is $\log[D(A_y)/D(N_y/2)]$. In the ratio and plot labels, the reference argument $N_y/2$ is understood as $\lfloor N_y/2\rfloor$ for odd circumferences; $\Delta$ on the vertical axis denotes subtraction at the same reference width.}
++\newtext{Here $c$ denotes the von Neumann coefficient, with $c=k=1$ for a charge-one complex fermion on each wall.} \newtext{The overlines include the average over $y_0$ within each trajectory.} To compare circumferences, we subtract from each curve its value at the half-strip \newtext{$A_y=N_y/2$}, which removes the nonuniversal constants. \newtext{The horizontal coordinate is $\log[D(A_y)/D(N_y/2)]$. All circumferences in these fits are even, so the half-strip reference is exact; $\Delta$ on the vertical axis denotes subtraction at $A_y=N_y/2$.}
+ }
+ 
+ {\color{blue}
+ \begin{figure}[!htbp]
+     \centering
+     \includegraphics[width=\columnwidth]{Figure_06_entropy_charge.pdf}
+-    \caption{\newtext{\textbf{Entanglement and charge fluctuations.} All panels use $S=100$ independent random-pure half-filled trajectories per size, $N_x=20$. (a,b) Mean strip entropy and charge variance at $2N_y$ cycles for $N_y=30,35,\ldots,60$. Vertical $\Delta$ subtracts the half-strip value; $D(N_y/2)$ uses $\lfloor N_y/2\rfloor$ for odd $N_y$. Dashed joint fits to Eq.~\eqref{eq:CFTScaling} use $8\leq A_y\leq\lfloor N_y/2\rfloor$ (shaded); bars and fit errors are trajectory SEMs. $A_y=1$ is omitted only from display. (c) Saved $c_{\rm eff}=3m_1$ for $N_y=30,40,50$ through $2N_y$ cycles: free-intercept fits of mean entropy over $8\leq A_y\leq N_y/2$, shown every fifth cycle from $t=10$. Bars are three slope regression standard errors; the inset shows $|c_{\rm eff}-1|$ on a log axis.}}
++    \caption{\newtext{\textbf{Entanglement and charge fluctuations.} Each ensemble has $N_x=20$ and $S=100$ independent random-pure half-filled trajectories. (a,b) Mean strip entropy and charge variance for $N_y=24,28,32,40,50,60$ at $2N_y$ cycles, with slab-only measurements and a Born-prepared pure exterior. Vertical $\Delta$ subtracts each trajectory's value at $A_y=N_y/2$. Dashed joint fits to Eq.~\eqref{eq:CFTScaling} use $8\leq A_y\leq N_y/2$ (shaded), with equal total weight per size. Bars and fit errors are trajectory SEMs; $A_y=1$ is omitted only from display. (c) Independent $c_{\rm eff}=3m_1$ histories for $N_y=30,40,50$ through $2N_y$ cycles: free-intercept mean-entropy fits over $8\leq A_y\leq N_y/2$, every fifth cycle from $t=10$. Bars are three slope regression standard errors; the inset shows $|c_{\rm eff}-1|$ on a log axis.}}
+     \label{fig:EntropyCharge}
+ \end{figure}
+ }
+ 
+ 
+ {\color{blue}
+-Figure~\ref{fig:EntropyCharge} shows that both observables follow the logarithmic chord-length dependence. The fitted coefficients are close to $c\simeq k\simeq1.04$, with a common excess over one at these sizes. Their agreement is consistent with charge-one free-fermion branches. Equality of the two coefficients is a prediction of this comparison; sharing a Gaussian correlation matrix alone does not enforce it.
++Figure~\ref{fig:EntropyCharge} shows that both observables follow the logarithmic chord-length dependence. The fitted coefficients are $c=1.0438\pm0.0022$ and $k=1.0418\pm0.0022$, with a common excess over one at these sizes. Their agreement is consistent with charge-one free-fermion branches. Equality of the two coefficients is a prediction of this comparison; sharing a Gaussian correlation matrix alone does not enforce it.
+ 
+ The restricted spectrum gives a complementary view of this scaling. \claudeadd{Let $\nu_a\in[0,1]$ denote the eigenvalues of $G_A$.} The corresponding single-particle entanglement energies are
+ \begin{equation}
+@@ -464,13 +464,13 @@
+     \label{eq:WallEntropy}
+ \end{align}
+ These contour sums allocate portions of the full-strip entropy to the wall windows and generally differ from the entanglement entropy of each window treated as a separate subsystem~\cite{ChenVidal2014}. Interpreting their slopes as independent wall contributions assumes that the windows capture the leading logarithmic weight and that interwall coupling is negligible.
+-\newtext{Fitting the half-strip-subtracted curves against $\log[D(A_y)/D(N_y/2)]$ gives the slope $m_w$ and entropy weight $3m_w$. If the wall carries a single chiral branch, its central charge has magnitude $|c_-^{(w)}|=6m_w$, where $c_-=c_R-c_L$. Entropy alone measures $c_L+c_R$ and does not determine chirality.}
++\newtext{Fitting the half-strip-subtracted curves against $\log[D(A_y)/D(N_y/2)]$ gives the slope $m_w$ and entropy weight $3m_w$. If the wall carries a single chiral branch, its central charge has magnitude $|c_-^{(w)}|=6m_w$, where $c_-=c_R-c_L$. The endpoint fits give $m_{\rm L}=0.17264\pm0.00053$ and $m_{\rm R}=0.16332\pm0.00056$. Entropy alone measures $c_L+c_R$ and does not determine chirality.}
+ }
+ 
+ \begin{figure}[!htbp]
+     \centering
+     \includegraphics[width=\columnwidth]{Figure_09_wall_entropy.pdf}
+-    \caption{\newtext{\textbf{Spatial entanglement and entropy carried by each wall.} (a) Mean half-strip contours at $N_x=20$, $N_y=32$, cycle 64 for $\alpha_1=1,3$, on a shared square-root color scale; $\delta y$ is relative to the strip origin. (b,c) Contour weight in columns $x=5,6$ and $x=14,15$ at $\alpha_1=1$, for $N_y=30,35,40,45,55$ after $2N_y$ cycles. Each ensemble uses $S=100$ independent random-pure half-filled trajectories. The vertical-axis $\Delta$ subtracts the half-strip value; $D(N_y/2)$ denotes $D(\lfloor N_y/2\rfloor)$ for odd $N_y$. Dashed lines are joint fits over $8\leq A_y\leq\lfloor N_y/2\rfloor$ (shaded), with equal total weight per size. Bars and fit errors are trajectory SEMs. Insets mark the integrated columns; $A_y=1$ is omitted from display only.}}
++    \caption{\newtext{\textbf{Spatial entanglement and entropy carried by each wall.} Each ensemble uses $S=100$ independent random-pure half-filled trajectories, $N_x=20$, with a Born-prepared pure exterior. (a) Mean half-strip contours at $N_y=32$, cycle 64: the $\alpha_1=1$ endpoint ensemble of (b,c) and an independent $\alpha_1=3$ control, on a shared square-root scale; $\delta y$ is relative to the strip origin. (b,c) Contour weight in columns $x=5,6$ and $x=14,15$ at $\alpha_1=1$, for $N_y=24,28,32,40,50,60$ after $2N_y$ slab-only cycles. Vertical $\Delta$ subtracts each trajectory's half-strip value. Dashed joint fits use $8\leq A_y\leq N_y/2$ (shaded), with equal total weight per size. Bars and fit errors are trajectory SEMs. Insets mark the integrated columns; $A_y=1$ is omitted only from display.}}
+     \label{fig:WallEntropy}
+ \end{figure}
+ 

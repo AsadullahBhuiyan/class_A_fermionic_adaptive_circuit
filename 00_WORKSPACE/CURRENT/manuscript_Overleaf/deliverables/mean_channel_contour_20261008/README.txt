@@ -1,0 +1,1 @@
+Upload manuscript_overleaf.zip to Overleaf and select manuscript.tex as the main document. The package includes the bibliography, all 13 included vector figure PDFs, and the RevTeX float helper. Figure paths are relative to figures/. Compile with pdfLaTeX and BibTeX (latexmk handles this automatically). manuscript.pdf is the checked 21-page local build.

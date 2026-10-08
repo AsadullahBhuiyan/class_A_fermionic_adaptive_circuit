@@ -1,0 +1,24 @@
+% RevTeX 4.2f: check a deferred float only after an eligible-width pass.
+% This preserves layout and genuine stuck-float detection in the column pass.
+\makeatletter
+% Full-width floats cannot pass an earlier column float of the same type.
+% Check the queue head, rather than treating a later wide float as eligible.
+% The ordinary column pass still diagnoses a truly unplaceable column float.
+\let\manuscript@check@deferlist@stuck\check@deferlist@stuck
+\def\check@deferlist@stuck#1{%
+  \ifx#1\do@startpage
+    \begingroup
+    \def\manuscript@next{\endgroup}%
+    \def\@elt##1{%
+      \ifdim\wd##1<\textwidth\else
+        \def\manuscript@next{\endgroup\manuscript@check@deferlist@stuck#1}%
+      \fi
+      \let\@elt\@gobble}%
+    \@deferlist
+    \manuscript@next
+  \else
+    \manuscript@check@deferlist@stuck#1%
+  \fi}
+\makeatother
+
+% Normal float flow replaces blanket clearpage requests before multirow figures.

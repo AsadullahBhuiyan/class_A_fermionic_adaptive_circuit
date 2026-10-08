@@ -1,0 +1,20 @@
+Spectral updates — 8 October 2026
+
+Implemented in the 19-page manuscript:
+- Figure 6(c) now carries the saved pure-state c_eff convergence curves and residual inset. All values and regression errors are preserved. The former standalone appendix asset remains archived.
+- Figure 7(c) restores window counts for both phases. The original alpha1=1 fit over Ay=5..16, covariance SEM and R-squared are unchanged. Alpha1=3 counts are extracted from saved frames across all origins and widths, with no dynamics rerun; the large-width count saturates near 26.0394. The text defines N_0.99, cites Eisler–Peschel, and explains that its window-dependent slope is not a central charge.
+- Appendix C1 gains a motivating sentence about forgetting initial-state perturbations and fixed-record stability; the full tangent appendix and main polar equation remain.
+- The abstract gains the agreed qualified locality-constraint sentence. Numerical clipping is explained in the methods paragraph, removing its duplicate caption sentence.
+
+Standalone outputs, not inserted:
+- Occupation-density previews and a candidate Figure 3 at cycles 1,5,60, pooling all 1,200 modes from 100 trajectories per phase. Both endpoints included, 100 shared bins, unit-area normalization and logarithmic density, no near-purity cutoff or pseudocounts. The manuscript purification figure and rank-spectrum discussion remain.
+- Late-gap analysis from seven saved slab-only sizes: paired endpoint slopes give z=1.0682 +/- 0.0859, and late-window OLS slopes give z=1.0751 +/- 0.0921. Slopes use paired trajectory SEMs and exponents use formal SEM-weighted regression errors. No bootstrap. Constant-offset removal assumes affine raw-gap growth; these remain finite-window estimates. The manuscript gap claims, section title and Figures 4/A2 are unchanged.
+
+Validation:
+- Manuscript and two-page analysis report compile with no undefined citations/references, duplicate labels or overfull boxes.
+- All pre-existing NPZ/NPY/CSV data and retained fits are unchanged. Only Figures 6/7 PDFs and PNGs plus the derived overview changed among existing assets.
+- Figure typography/data audit passes. Pages 1,10,11,16 and both report pages inspected.
+- Outlook and comments are byte-for-byte unchanged. Bibliography source is unchanged this revision; the restored Eisler–Peschel citation resolves.
+- No new simulations or asymptotic extrapolations.
+
+The source ZIP includes TeX, bibliography, float-placement helper and all 12 included vector figures. Rebuild with latexmk -pdf -outdir=build manuscript.tex.

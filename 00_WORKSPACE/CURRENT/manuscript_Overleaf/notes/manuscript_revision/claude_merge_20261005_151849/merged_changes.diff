@@ -1,0 +1,238 @@
+--- before/manuscript.tex
++++ merged/manuscript.tex
+@@ -106,7 +106,7 @@
+ \claudeadd{The question is also natural from the perspective of state preparation. A single chiral branch is anomalous: it can only exist at the boundary of a two-dimensional region with nonzero Chern number. Preparing it therefore requires preparing a chiral bulk, which strictly local finite-depth unitary circuits cannot do~\cite{LuLessaKimHsieh2022}, and which finite-range dissipative dynamics cannot stabilize as a pure steady state~\cite{BardynEtAl2013,BudichZollerDiehl2015,Goldstein2019}. Adaptive circuits that combine measurements with classical feedforward circumvent some of these constraints. Reference~\cite{LuLessaKimHsieh2022} prepares chiral topological order in constant depth, given a chiral free-fermion resource state, and one-dimensional critical states in logarithmic depth using nonlocal classical communication. Here we ask whether a much simpler ingredient, repeated finite-range measurements with purely local feedback, can prepare chiral critical boundaries directly. We find that it can, but at the level of individual trajectories: each measurement record yields a pure state whose walls are critical and chiral, whereas the outcome-averaged state is short-range correlated.}
+ \claudecom{This paragraph is meant to replace the GPT novelty note below, which can then be deleted. Double-check that the summary of Ref.~\cite{LuLessaKimHsieh2022} matches your reading: they explicitly state that strictly local finite-depth unitaries cannot prepare a $p+\ii p$ state, and they obtain it by adiabatic evolution.}
+ 
+-In this paper, we consider a 2+1D adaptive quantum circuit consisting of finite-range occupation measurements, local unitary feedback, and ancilla modes. The adaptive circuit steers towards the topological phase by measuring truncated, overcomplete Wannier (OW) modes and swapping in fresh ancilla modes with the target occupancy whenever an undesired occupancy is observed. \claudedel{For finite-range OW measurements, the overcompleteness leads to measurement-outcome frustration and so does not steer towards a common dark state.}\claudeadd{For finite-range OW measurements, truncation mixes the two bands, so the stabilizers are frustrated and no common dark state exists. This frustration is unavoidable for any strictly local construction of a Chern band~\cite{DubailRead2015}.} Instead, the dynamics approach a disordered ensemble of Chern insulator states.
++In this paper, we consider a 2+1D adaptive quantum circuit consisting of finite-range occupation measurements, local unitary feedback, and ancilla modes. The adaptive circuit steers towards the topological phase by measuring truncated, overcomplete Wannier (OW) modes and swapping in fresh ancilla modes with the target occupancy whenever an undesired occupancy is observed. \claudedel{For finite-range OW measurements, the overcompleteness leads to measurement-outcome frustration and so does not steer towards a common dark state.}\claudeadd{For finite-range OW measurements, truncation mixes the two bands, so the stabilizers are frustrated and no common dark state exists. This frustration is unavoidable: compactly supported single-particle functions cannot both lie within a Chern band and span it at every momentum~\cite{DubailRead2015}.} Instead, the dynamics approach a disordered ensemble of Chern insulator states.
+ \GPT{The frustration is caused by finite-range truncation and band mixing, rather than overcompleteness alone: the untruncated OW stabilizers share a common dark state.}
+  
+ By tracing out ancilla degrees of freedom, we show that unitary feedback becomes equivalent to fermion-counting operations on the physical system, consisting of particle gain and loss operations in the OW basis that correct undesired measurement outcomes. This simplified model will be the main system of interest in this work.
+@@ -168,7 +168,7 @@
+ \end{equation}
+ where $g_{w,\bfr}(\bfr')=1$ if $|x-x'|\leq w$ and $|y-y'|\leq w$ (distances on the periodic lattice) and $g_{w,\bfr}(\bfr')=0$ otherwise. In the figures, the truncation range $w$ is denoted by $n_{\rm shell}$. Throughout the main text, we use $w=1$, i.e., $3\times3$ windows. Henceforth, $\hat\chi_{\bfr,\nu,\sigma}$ and $\hat{\mc N}_{\bfr,\nu,\sigma}$ denote the truncated OW modes and their number operators.
+ 
+-Truncation frustrates the stabilizing conditions. The two untruncated lower-band OW modes per unit cell are linearly dependent, since the lower band contains only one state per unit cell. A truncated OW mode, however, leaks into the opposite band, so the truncated lower-band modes generically span the entire single-particle space, and so do the truncated upper-band modes. No many-body state can then fill all of the former while emptying all of the latter. Hence, the finite-range circuit does not converge to $\CI$ itself. \claudeadd{This frustration is not an artifact of our particular truncation. A frustration-free set of strictly local stabilizers with a unique Chern-insulator common eigenstate would conflict with no-go results for strictly local free-fermion constructions of Chern bands~\cite{DubailRead2015}.} \claudecom{Check that this phrasing matches the precise statement of Dubail and Read before keeping it.} Instead, each trajectory approaches a pure state in the same Chern-insulator phase, with small record-to-record fluctuations in the total charge.
++Truncation frustrates the stabilizing conditions. The two untruncated lower-band OW modes per unit cell are linearly dependent, since the lower band contains only one state per unit cell. A truncated OW mode, however, leaks into the opposite band, so the truncated lower-band modes generically span the entire single-particle space, and so do the truncated upper-band modes. No many-body state can then fill all of the former while emptying all of the latter. Hence, the finite-range circuit does not converge to $\CI$ itself. \claudeadd{This frustration is not an artifact of our particular truncation. Compactly supported single-particle functions cannot both lie within a Chern band and span it at every momentum, even when the set is overcomplete~\cite{DubailRead2015}. Hence no finite-range set of OW stabilizers can fix the target band exactly, and the leakage into the opposite band is unavoidable.} Instead, each trajectory approaches a pure state in the same Chern-insulator phase, with small record-to-record fluctuations in the total charge.
+ 
+ The frustration is weak. As we show in Appendix~\ref{app:Truncation}, at $w=1$ and $\alpha=1$ only about $0.4\%$ of the weight of a truncated OW mode lies in the opposite band. The translation-invariant parent Hamiltonian built from the truncated modes remains gapped with Chern number 1, and its topological transition is shifted only slightly, to $\alpha_c(1)\approx1.80$. \newtext{Consistently, the real-space Chern number measured inside the slab approaches 1 as the system size increases (Sec.~\ref{sec:BulkTopology}).}
+ 
+@@ -211,7 +211,7 @@
+ Monitored gain and loss of fermions is known as fermion counting, in analogy with photon counting~\cite{StarchlFischerSieberer2025,KloiberTollingerSieberer2026,SoaresLeGalSchiro2025}. Our measurement-and-feedforward step is single-mode fermion counting run to completion. Continuously counting gain into a mode $\hat\chi$ for a time much longer than the inverse counting rate yields at most one click, since $(\hat\chi^\dagger)^2=0$, and reproduces exactly the pair of operations $\{\hat{\mc N},\hat\chi^\dagger\}$ above (Appendix~\ref{app:FermionCounting}).
+ 
+ 
+-We now assemble these ingredients into the adaptive circuit summarized in Fig.~\ref{fig:Circuit}. Each elementary step measures the occupation of one truncated OW mode. If the outcome disagrees with the target occupation, the step applies an fSWAP with a fresh ancilla, which is then discarded. For brevity, we write $i=(\bfr,\nu)$ and denote the truncated lower- and upper-band OW modes by $\hat\chi_{i,-}$ and $\hat\chi_{i,+}$. A measurement of $\hat{\mc N}_{i,\sigma}$ returns $\mathrm{m}=1$ with Born probability $\langle\hat{\mc N}_{i,\sigma}\rangle$ and $\mathrm{m}=0$ otherwise, where the expectation value is taken in the conditioned state just before the measurement.
++We now assemble these ingredients into the adaptive circuit summarized in Fig.~\ref{fig:Circuit}. Each elementary step measures the occupation of one truncated OW mode. If the outcome disagrees with the target occupation, the step applies an fSWAP with a fresh ancilla, which is then discarded. For brevity, we write $i=(\bfr,\nu)$ and denote the truncated lower- and upper-band OW modes by $\hat\chi_{i,-}$ and $\hat\chi_{i,+}$. A measurement of $\hat{\mc N}_{i,\sigma}$ returns $\newtext{\mathrm{m}}=1$ with Born probability $\langle\hat{\mc N}_{i,\sigma}\rangle$ and $\newtext{\mathrm{m}}=0$ otherwise, where the expectation value is taken in the conditioned state just before the measurement.
+ 
+ \begin{figure}[t]
+     \centering
+@@ -222,12 +222,12 @@
+ 
+ By Eq.~\eqref{eq:GainLoss}, each elementary step therefore acts on the physical system alone through a pair of Kraus operators,
+ \begin{align}
+-    \hat K_{i,-}(\mathrm{m})&=\mathrm{m}\,\hat{\mc N}_{i,-}+(1-\mathrm{m})\,\hat\chi^\dagger_{i,-},
++    \hat K_{i,-}(\newtext{\mathrm{m}})&=\newtext{\mathrm{m}}\,\hat{\mc N}_{i,-}+(1-\newtext{\mathrm{m}})\,\hat\chi^\dagger_{i,-},
+     \label{eq:KrausLower}\\
+-    \hat K_{i,+}(\mathrm{m})&=(1-\mathrm{m})\big(\hat\Id-\hat{\mc N}_{i,+}\big)+\mathrm{m}\,\hat\chi_{i,+},
++    \hat K_{i,+}(\newtext{\mathrm{m}})&=(1-\newtext{\mathrm{m}})\big(\hat\Id-\hat{\mc N}_{i,+}\big)+\newtext{\mathrm{m}}\,\hat\chi_{i,+},
+     \label{eq:KrausUpper}
+ \end{align}
+-for lower- and upper-band modes, respectively. For a lower-band mode, the outcome $\mathrm{m}=1$ leaves the state unchanged and the outcome $\mathrm{m}=0$ is followed by gain. For an upper-band mode, the outcome $\mathrm{m}=0$ leaves the state unchanged and the outcome $\mathrm{m}=1$ is followed by loss. Both pairs are Gaussian and satisfy $\sum_{\mathrm{m}=0,1}\hat K^\dagger_{i,\sigma}(\mathrm{m})\hat K_{i,\sigma}(\mathrm{m})=\hat\Id$. In words, $\hat K_{i,-}$ always leaves the lower-band mode filled and $\hat K_{i,+}$ always leaves the upper-band mode empty, regardless of the outcome.
++for lower- and upper-band modes, respectively. For a lower-band mode, the outcome $\newtext{\mathrm{m}}=1$ leaves the state unchanged and the outcome $\newtext{\mathrm{m}}=0$ is followed by gain. For an upper-band mode, the outcome $\newtext{\mathrm{m}}=0$ leaves the state unchanged and the outcome $\newtext{\mathrm{m}}=1$ is followed by loss. Both pairs are Gaussian and satisfy $\sum_{\newtext{\mathrm{m}}=0,1}\hat K^\dagger_{i,\sigma}(\newtext{\mathrm{m}})\hat K_{i,\sigma}(\newtext{\mathrm{m}})=\hat\Id$. In words, $\hat K_{i,-}$ always leaves the lower-band mode filled and $\hat K_{i,+}$ always leaves the upper-band mode empty, regardless of the outcome.
+ 
+ One cycle visits every unit cell and applies the four updates $(A,+)$, $(A,-)$, $(B,+)$, $(B,-)$ at each. Since truncated OW modes centered on nearby unit cells overlap, their measurements generally do not commute, so the order within a cycle is part of the protocol. We use a raster order, increasing $y$ at fixed $x$ before advancing to the next column, so that a cycle contains $4N_xN_y$ elementary steps. Note that measurements with nonoverlapping supports commute, so a cycle can also be organized into a system-size-independent number of layers of mutually commuting operations, as in Ref.~\cite{BhuiyanPanJian2026}. We expect the universal properties studied below not to depend on this choice.
+ \GPT{Disjoint-support operations commute, but regrouping a prescribed raster word into a bounded number of layers also changes the order of overlapping operations. Distinguish finite operation range from a demonstrated finite-depth implementation of this particular schedule.}
+@@ -237,18 +237,17 @@
+ 
+ Since every operation is Gaussian, each conditioned state remains Gaussian and is fully characterized by its two-point function
+ \begin{equation}
+-    \newtext{G_{ij}=\Tr\!\big(\hat\rho\,\hat c_i^\dagger\hat c_j\big),
+-    \qquad G_c=2G-\Id,}
++    \claudeadd{G_{ij}=\Tr\!\big(\hat\rho\,\hat c_j^\dagger\hat c_i\big),}
+     \label{eq:TwoPoint}
+ \end{equation}
+-where $i,j$ now run over unit cells and orbitals. With this ordering, \newtext{$G^{\mathsf T}$} for a pure Gaussian state is the projector onto its occupied single-particle states. In general, \newtext{the eigenvalues of $G$} lie in $[0,1]$. Writing \newtext{$P_j=(W_jW_j^\dagger)^{\mathsf T}$} for the single-particle projector onto the measured OW mode, $Q_j=\Id-P_j$, \newtext{with $W_j$ the column vector of its creation wavefunction,} the Born probability of outcome \newtext{$\mathrm m$} is \newtext{$p_j(\mathrm m)=[1+\eta_{\mathrm m}\operatorname{tr}(P_jG_c)]/2$} with \newtext{$\eta_{\mathrm m}=2\mathrm m-1$}. The conditional update, including the feedforward to the target occupation $s_-=1$ or $s_+=0$, is~\cite{bravyi2004lagrangian,BhuiyanPanJian2026}
+-\begin{equation}
+-    \newtext{G_c'=Q_j\big(\Id+\eta_{\mathrm m}G_cP_j\big)^{-1}G_cQ_j+\eta_sP_j,}
++where $i,j$ now run over unit cells and orbitals. With this ordering, \claudeadd{$G$} for a pure Gaussian state is the projector onto its occupied single-particle states. In general, \newtext{the eigenvalues of $G$} lie in $[0,1]$. Writing \claudeadd{$P_j=W_jW_j^\dagger$} for the single-particle projector onto the measured OW mode, $Q_j=\Id-P_j$, \newtext{with $W_j$ the column vector of its creation wavefunction,} the Born probability of outcome \newtext{$\mathrm m$} is \claudeadd{$p_j(1)=n_j$ and $p_j(0)=1-n_j$, with $n_j=\operatorname{tr}(P_jG)$ the mean occupation of the measured mode}. The conditional update, including the feedforward to the target occupation $s_-=1$ or $s_+=0$, is~\cite{bravyi2004lagrangian,BhuiyanPanJian2026}
++\begin{equation}
++    \claudeadd{G'=Q_jGQ_j-\eta_{\mathrm m}\,\frac{Q_jGP_jGQ_j}{p_j(\mathrm m)}+s_\sigma P_j,}
+     \label{eq:CovarianceUpdate}
+ \end{equation}
+-\newtext{where $\eta_s=2s_\sigma-1$.} The inverse exists for every outcome with nonzero probability, since \newtext{$\det(\Id+\eta_{\mathrm m}G_cP_j)=2p_j(\mathrm m)$}. We simulate the circuit by iterating Eq.~\eqref{eq:CovarianceUpdate}.
+-
+-\GPT{The transpose in $P_j$ follows from the index ordering in Eq.~\eqref{eq:TwoPoint}. It may help to state this convention explicitly when comparing with occupied-band projectors.}
++\claudeadd{where $\eta_{\mathrm m}=2\mathrm m-1$. Because $P_j$ has rank one, Eq.~\eqref{eq:CovarianceUpdate} requires no matrix inversion: its only denominator is the Born probability $p_j(\mathrm m)$, which is nonzero for every outcome that occurs.} We simulate the circuit by iterating Eq.~\eqref{eq:CovarianceUpdate}.
++
++\claudeadd{With this ordering, no transposes appear; Ref.~\cite{BhuiyanPanJian2026} used the transposed convention $G_{ij}=\langle\hat c_i^\dagger\hat c_j\rangle$.}
+ 
+ \FloatBarrier
+ \section{Dynamical Chiral Domain-Wall Modes}
+@@ -271,7 +270,7 @@
+     \left.\left.{}-\operatorname{tr}(P_{AC}P_{CB}P_{BA})\right]\right\},
+     \label{eq:KitaevChern}
+ \end{align}
+-where $P=G^{\mathsf T}$ and $P_{XY}$ is its block with rows in $X$ and columns in $Y$. Both orbitals of a cell belong to the same sector. We take radius $R=0.2L$ and center $x_0=L/2$, and average over ten randomly sampled transverse centers within each trajectory before taking the trajectory average.
++where \claudeadd{$P=G$} and $P_{XY}$ is its block with rows in $X$ and columns in $Y$. Both orbitals of a cell belong to the same sector. We take radius $R=0.2L$ and center $x_0=L/2$, and average over ten randomly sampled transverse centers within each trajectory before taking the trajectory average.
+ 
+ Figure~\ref{fig:BulkTopology}(b) shows that $\overline{\mc C_G}$ approaches one within a few cycles. At cycle 40, its deviation from one decreases from approximately $2.4\times10^{-3}$ at $L=20$ to $1.4\times10^{-5}$ at $L=40$. Thus the shortest OW range used here already prepares a bulk state with the target Chern number on the accessible sizes.
+ 
+@@ -392,7 +391,7 @@
+ {\color{blue}
+ Figure~\ref{fig:EntropyCharge} shows that both observables follow the logarithmic chord-length dependence. The fitted coefficients are close to $c\simeq k\simeq1.04$, with a common excess over one at these sizes. Their agreement is consistent with charge-one free-fermion branches\claudedel{, but does not by itself identify the conditioned states with an equilibrium ground state}\claudeadd{, since entanglement and charge fluctuations are governed by the same free-fermion correlations}.
+ 
+-The restricted spectrum gives a complementary view of this scaling. Write $\lambda_a=2\nu_a-1$ for the eigenvalues of $G_{c,A}$. The corresponding single-particle entanglement energies are
++The restricted spectrum gives a complementary view of this scaling. \claudeadd{Write $\lambda_a=2\nu_a-1$, where $\nu_a$ are the eigenvalues of $G_A$.} The corresponding single-particle entanglement energies are
+ \begin{equation}
+  \varepsilon_a=\log\frac{1-\nu_a}{\nu_a}
+  =\log\frac{1-\lambda_a}{1+\lambda_a}.
+@@ -469,12 +468,12 @@
+ 
+ To probe the handedness of the wall modes, we use the modular Hamiltonian of a half-cylinder containing all columns and $N_y/2$ consecutive rows. With the correlator convention of Eq.~\eqref{eq:TwoPoint}, define
+ \begin{equation}
+- h_A=\log[(\Id_A-G_A)G_A^{-1}]=-2\arctanh G_{c,A}.
++ h_A=\log[(\Id_A-G_A)G_A^{-1}]=-2\arctanh(2G_A-\Id_A).
+  \label{eq:ModularHamiltonian}
+ \end{equation}
+-The reduced state is $\hat\rho_A\propto e^{-\hat K_A}$, where $\hat K_A=\sum_{ij}[h_A]_{ji}\hat c_i^\dagger\hat c_j$. The transpose follows from $G_{ij}=\langle\hat c_i^\dagger\hat c_j\rangle$. Thus a coefficient vector of an annihilation mode, $\hat\chi_\varphi=\sum_i\varphi_i\hat c_i$, evolves under $e^{\ii\hat K_A t_{\rm mod}}\hat\chi_\varphi e^{-\ii\hat K_A t_{\rm mod}}$ as
+-\begin{equation}
+- \varphi(t_{\rm mod})=e^{-\ii h_A t_{\rm mod}}\varphi(0).
++The reduced state is $\hat\rho_A\propto e^{-\hat K_A}$, where \claudeadd{$\hat K_A=\sum_{ij}[h_A]_{ij}\hat c_i^\dagger\hat c_j$.} Thus a coefficient vector of an annihilation mode, $\hat\chi_\varphi=\sum_i\varphi_i\hat c_i$, evolves under $e^{\ii\hat K_A t_{\rm mod}}\hat\chi_\varphi e^{-\ii\hat K_A t_{\rm mod}}$ as
++\begin{equation}
++ \claudeadd{\varphi(t_{\rm mod})=e^{-\ii h_A^{\mathsf T} t_{\rm mod}}\varphi(0).}
+  \label{eq:ModularEvolution}
+ \end{equation}
+ This fixes the convention for the propagation plotted below.
+@@ -501,7 +500,7 @@
+  \mc L_{i,+}&=\mc D[\hat\chi_{i,+}]+\mc D[\hat{\mc N}_{i,+}],
+  \label{eq:AveragedChannel}
+ \end{align}
+-where $\mc D[\hat L]\hat\rho=\hat L\hat\rho\hat L^\dagger-\tfrac12\{\hat L^\dagger\hat L,\hat\rho\}$. This is an identity for the discrete reset, not a short-time approximation; the dephasing term belongs to the same measurement-and-feedback step. The two-point function closes, with $P_j=(W_jW_j^\dagger)^{\mathsf T}$, $Q_j=\Id-P_j$, and target occupation $s_j=s_\sigma$ for the mode reset at step $j$,
++where $\mc D[\hat L]\hat\rho=\hat L\hat\rho\hat L^\dagger-\tfrac12\{\hat L^\dagger\hat L,\hat\rho\}$. This is an identity for the discrete reset, not a short-time approximation; the dephasing term belongs to the same measurement-and-feedback step. The two-point function closes, with \claudeadd{$P_j=W_jW_j^\dagger$}, $Q_j=\Id-P_j$, and target occupation $s_j=s_\sigma$ for the mode reset at step $j$,
+ \begin{equation}
+  \overline G'=Q_j\overline GQ_j+s_jP_j.
+  \label{eq:AveragedUpdate}
+@@ -563,7 +562,7 @@
+ \label{app:Truncation}}
+ 
+ {\color{blue}
+-In this Appendix, we examine how the finite window in Eq.~\eqref{eq:TruncatedOW} changes the OW frame. We distinguish the persistence of the form-factor obstruction from the band mixing and critical-point shift caused by truncation. The dynamical bulk validation is given separately in Sec.~\ref{sec:BulkTopology}.
++In this Appendix, we examine how the finite window in Eq.~\eqref{eq:TruncatedOW} changes the OW frame. We distinguish the persistence of the form-factor obstruction from the band mixing and critical-point shift caused by truncation. \claudeadd{We then show that the parent Hamiltonian built from the truncated modes provably remains in the target phase whenever the truncation error is smaller than one half, a condition satisfied already for $w=1$.} The dynamical bulk validation is given separately in Sec.~\ref{sec:BulkTopology}.
+ }
+ 
+ \subsection{Momentum-space obstruction}
+@@ -611,6 +610,7 @@
+ This band mixing lifts the linear dependence among the OW modes. On an $8\times8$ periodic lattice at $\alpha=1$, the 128 untruncated lower-band OW modes span exactly the 64-dimensional lower band. For $w=1$ and $w=2$, the 128 truncated lower-band modes instead span the entire 128-dimensional single-particle space, as do the truncated upper-band modes. Filling every truncated lower-band mode would then fill every single-particle state, which is incompatible with emptying any truncated upper-band mode. Hence, no many-body state satisfies all truncated stabilizing conditions. The smallest singular value of the matrix whose rows are the truncated lower-band modes is about $10^{-3}$ at $w=1$, so the modes are only weakly independent and the frustration is correspondingly weak.
+ 
+ \subsection{Truncated parent Hamiltonian}
++\label{app:TruncatedParent}
+ 
+ To determine whether the truncated modes still describe the target phase, we construct the translation-invariant single-particle parent Hamiltonian generated by the truncated OW frame,
+ \begin{align}
+@@ -620,14 +620,51 @@
+ \end{align}
+ which is traceless. If every truncated mode remained in its band, $h_w(\bk)=a(\bk)P_+(\bk)-b(\bk)P_-(\bk)$ with $a,b\geq0$, and its occupied band would coincide with the target lower band wherever $h_w$ is gapped. Band mixing is what can change its topology.
+ 
+-At $\alpha=1$, the half-filling gap $\Delta_0(w)=\min_{\bk,n}|E_n[h_w(\bk)]|$ rapidly approaches its untruncated value $\Delta_0(\infty)=2$ [Fig.~\ref{fig:Truncation}(c)]. Already at $w=1$, the parent is well gapped, with $\Delta_0(1)\approx1.80$, and its occupied band carries Chern number 1, equal to that of the target band. In contrast, the onsite limit $w=0$ gives a momentum-independent $h_0$ with a trivial occupied band. Thus, $w=1$ suffices to keep the truncated parent in the target phase, which is why we use $w=1$ in the main text.
+-
+-As $\alpha$ increases, the gap of $h_w$ closes at the $\Gamma$ point at a $w$-dependent value $\alpha_c(w)<2$ [Fig.~\ref{fig:Truncation}(b)], with $\alpha_c(1)\approx1.80$, $\alpha_c(2)\approx1.93$, and $\alpha_c(4)\approx1.98$. For $w\geq3$, the drift is well described by
++{\color{orange}
++For the square window and the $\sigma^x$ trial orbitals, $h_w$ takes a simple form. Let $P_-(\boldsymbol d)=\int_{\mr{BZ}}\frac{d^2\bk}{(2\pi)^2}e^{\ii\bk\cdot\boldsymbol d}P_-(\bk)$ be the real-space kernel of the target projector, and define its windowed Fourier series
++\begin{equation}
++    F_w(\bk)=\sum_{|d_x|,|d_y|\leq w}P_-(\boldsymbol d)\,e^{-\ii\bk\cdot\boldsymbol d}.
++    \label{eq:WindowedProjector}
++\end{equation}
++Since the kernel is Hermitian, $P_-(\boldsymbol d)^\dagger=P_-(-\boldsymbol d)$, and the window is inversion symmetric, $F_w$ is Hermitian. Multiplying the centered OW function by the window and Fourier transforming gives the Bloch transforms
++\begin{equation}
++    |\phi_{\nu,-;w}\rangle=\frac{F_w|\tau_\nu\rangle}{\sqrt{Z_w}},
++    \qquad
++    |\phi_{\nu,+;w}\rangle=\frac{(\Id-F_w)|\tau_\nu\rangle}{\sqrt{Z_w}},
++    \label{eq:TruncatedBloch}
++\end{equation}
++where we used $P_+=\Id-P_-$ and the fact that the window contains the origin. The normalization $Z_w$ is the same for all four modes. To see this, write $F_w=\frac12(\Id-\boldsymbol d_w\cdot\boldsymbol\sigma)$. The Brillouin-zone average of $d_{w,x}$ vanishes by reflection symmetry, and $\tau_A$ and $\tau_B$ have vanishing expectation values of $\sigma^y$ and $\sigma^z$. Hence $Z_w=\int_{\mr{BZ}}\frac{d^2\bk}{(2\pi)^2}\langle\tau_\nu|F_w^2|\tau_\nu\rangle=\frac14(1+\langle|\boldsymbol d_w|^2\rangle_{\mr{BZ}})$ for both $\nu$, and the same holds for $\Id-F_w$. Substituting Eq.~\eqref{eq:TruncatedBloch} into Eq.~\eqref{eq:TruncatedParent} and using $\sum_\nu|\tau_\nu\rangle\langle\tau_\nu|=\Id$, the quadratic terms cancel, and
++\begin{equation}
++    h_w(\bk)=\frac{\Id-2F_w(\bk)}{Z_w}.
++    \label{eq:FrameIdentity}
++\end{equation}
++The occupied band of $h_w$ is therefore the spectral subspace of $F_w$ with eigenvalue above $1/2$. We denote its projector by $R_w(\bk)$.
++
++Equation~\eqref{eq:FrameIdentity} makes the topology of $h_w$ transparent, since $F_w$ is a truncation of $P_-$. Consider the straight path $F_s=P_-+s(F_w-P_-)$ with $s\in[0,1]$, and let
++\begin{equation}
++    \delta_w=\sup_{\bk}\big\|F_w(\bk)-P_-(\bk)\big\|_{\rm op}.
++    \label{eq:TruncationError}
++\end{equation}
++Along the path, the eigenvalues of $F_s$ stay within $s\delta_w$ of 0 and 1. If $\delta_w<1/2$, none of them crosses $1/2$, so the spectral projector of $F_s$ above $1/2$ deforms smoothly at fixed rank from $P_-$ to $R_w$. Since an integer cannot change continuously~\cite{AvronSeilerSimon1983}, the occupied band of $h_w$ then carries the target Chern number, and its gap obeys $\min_{\bk,n}|E_n[h_w(\bk)]|\geq(1-2\delta_w)/Z_w$. By the triangle inequality, $\delta_w$ is bounded by the discarded tail of the kernel,
++\begin{equation}
++    \delta_w\leq\sum_{\boldsymbol d\notin\text{window}}\big\|P_-(\boldsymbol d)\big\|_{\rm op},
++    \label{eq:TailBound}
++\end{equation}
++which decays exponentially with $w$ inside the gapped phase. At $\alpha=1$, the tail sum is about $0.46$ already for $w=1$, so the condition $\delta_1<1/2$ is guaranteed without sampling momenta. Evaluating Eq.~\eqref{eq:TruncationError} directly gives $\delta_1\approx0.10$ and $Z_1\approx0.496$, so the bound $(1-2\delta_1)/Z_1\approx1.62$ is consistent with the gap $\Delta_0(1)\approx1.80$ found below. Equivalently, the overlap $\operatorname{tr}[P_-(\bk)R_1(\bk)]$ stays above $0.99$ throughout the Brillouin zone, so the occupied band of $h_1$ never becomes orthogonal to the target band.
++
++Note that $h_w$ is finite range, gapped, and carries Chern number 1. This does not contradict the no-go theorem of Ref.~\cite{DubailRead2015}, which concerns compactly supported functions that span a Chern band. The projector $R_w$ is obtained from $F_w$ by a spectral projection, which restores exponential tails, so $R_w$ is not spanned by compactly supported functions.
++}
++
++At $\alpha=1$, the half-filling gap $\Delta_0(w)=\min_{\bk,n}|E_n[h_w(\bk)]|$ rapidly approaches its untruncated value $\Delta_0(\infty)=2$ [Fig.~\ref{fig:Truncation}(c)]. Already at $w=1$, the parent is well gapped, with $\Delta_0(1)\approx1.80$, and its occupied band carries Chern number 1, equal to that of the target band. In contrast, the onsite limit $w=0$ gives a momentum-independent $h_0$ with a trivial occupied band. \claudeadd{There, $\|F_0-P_-\|_{\rm op}\approx0.75$ at the $\Gamma$ point, so the condition $\delta_0<1/2$ fails, and the straight path closes its gap.} Thus, $w=1$ suffices to keep the truncated parent in the target phase, which is why we use $w=1$ in the main text.
++
++As $\alpha$ increases, the gap of $h_w$ closes at the $\Gamma$ point at a $w$-dependent value $\alpha_c(w)<2$ [Fig.~\ref{fig:Truncation}(b)], with $\alpha_c(1)\approx1.80$, $\alpha_c(2)\approx1.93$, and $\alpha_c(4)\approx1.98$. \claudeadd{By Eq.~\eqref{eq:FrameIdentity}, the gap closes where an eigenvalue of $F_w$ crosses $1/2$. At $\Gamma$, reflection symmetry removes the $\sigma^x$ and $\sigma^y$ components, so $F_w(\Gamma)=\frac12[\Id-d_{w,z}(\Gamma)\sigma^z]$, and $\alpha_c(w)$ is simply the root of the single function $d_{w,z}(\Gamma)$ of $\alpha$.} For $w\geq3$, the drift is well described by
+ \begin{equation}
+     2-\alpha_c(w)\simeq\frac{0.40}{(w+0.42)^2},
+     \label{eq:CriticalDrift}
+ \end{equation}
+-which extrapolates to the untruncated transition $\alpha_c(\infty)=2$. For $\alpha_c(w)<\alpha<2$, the occupied band of $h_w$ is trivial while the target band has $\mc C=1$. For instance, at $\alpha=1.9$, the occupied band of $h_w$ has Chern number 0 for $w=1$ and 1 for $w=4$. This shift is a direct consequence of band mixing.
++which extrapolates to the untruncated transition $\alpha_c(\infty)=2$. For $\alpha_c(w)<\alpha<2$, the occupied band of $h_w$ is trivial while the target band has $\mc C=1$. For instance, at $\alpha=1.9$, the occupied band of $h_w$ has Chern number 0 for $w=1$ and 1 for $w=4$. This shift is a direct consequence of band mixing\claudeadd{, through the growth of $\delta_w$ as the kernel $P_-(\boldsymbol d)$ becomes longer ranged near the target transition}.
++
++\claudeadd{We emphasize that these statements concern the auxiliary band of $h_w$, not the conditioned states of the circuit. They provide supporting evidence that finite-range truncation does not change the target phase, while the topology of the prepared states is established directly by the real-space Chern number in Sec.~\ref{sec:BulkTopology}.}
+ 
+ {\color{blue}
+ The shift in Fig.~\ref{fig:Truncation} concerns the translation-invariant parent built from the truncated modes, rather than a change of the original QWZ target transition. The mutual-information crossover in Fig.~\ref{fig:MutualInformation}(b) lies in the same parameter region, but its finite-width peak does not independently determine a dynamical critical point.
+@@ -654,9 +691,9 @@
+ 
+ \subsection{Weak \texorpdfstring{$U(1)$}{U(1)} symmetry}
+ 
+-Let $\hat Q=\sum_{\bfr,\mu}\hat c^\dagger_{\bfr,\mu}\hat c_{\bfr,\mu}$ be the physical charge. Since $\hat\chi^\dagger$ is a linear combination of the $\hat c^\dagger_{\bfr,\mu}$, we have $e^{\ii\theta\hat Q}\hat\chi^\dagger e^{-\ii\theta\hat Q}=e^{\ii\theta}\hat\chi^\dagger$. Each Kraus operator in Eqs.~\eqref{eq:KrausLower} and \eqref{eq:KrausUpper} therefore carries a definite charge $q(\mathrm{m})$,
+-\begin{equation}
+-    e^{\ii\theta\hat Q}\hat K(\mathrm{m})e^{-\ii\theta\hat Q}=e^{\ii\theta q(\mathrm{m})}\hat K(\mathrm{m}),
++Let $\hat Q=\sum_{\bfr,\mu}\hat c^\dagger_{\bfr,\mu}\hat c_{\bfr,\mu}$ be the physical charge. Since $\hat\chi^\dagger$ is a linear combination of the $\hat c^\dagger_{\bfr,\mu}$, we have $e^{\ii\theta\hat Q}\hat\chi^\dagger e^{-\ii\theta\hat Q}=e^{\ii\theta}\hat\chi^\dagger$. Each Kraus operator in Eqs.~\eqref{eq:KrausLower} and \eqref{eq:KrausUpper} therefore carries a definite charge $q(\newtext{\mathrm{m}})$,
++\begin{equation}
++    e^{\ii\theta\hat Q}\hat K(\newtext{\mathrm{m}})e^{-\ii\theta\hat Q}=e^{\ii\theta q(\newtext{\mathrm{m}})}\hat K(\newtext{\mathrm{m}}),
+     \label{eq:KrausCharge}
+ \end{equation}
+ with $q\in\{0,+1\}$ for the lower band and $q\in\{0,-1\}$ for the upper band. The phases cancel between $\hat K$ and $\hat K^\dagger$ in the averaged channel, so
+@@ -684,7 +721,7 @@
+     &\qquad=\hat{\mc N}+e^{-\gamma t}(\hat\Id-\hat{\mc N})+(1-e^{-\gamma t})(\hat\Id-\hat{\mc N})=\hat\Id.
+     \label{eq:CountingCompleteness}
+ \end{align}
+-For $\gamma t\gg1$, $\hat M_0(t)\to\hat{\mc N}$, and every click branch leaves the same normalized state $\hat\chi^\dagger\kett{\psi}/\|\hat\chi^\dagger\kett{\psi}\|$, independent of the click time. Recording only whether a click occurred therefore reproduces the lower-band Kraus operators of Eq.~\eqref{eq:KrausLower}, with $\mathrm{m}=1$ corresponding to no click and $\mathrm{m}=0$ to a click. Monitoring loss with jumps $\sqrt\gamma\,\hat\chi$ reproduces Eq.~\eqref{eq:KrausUpper} in the same way. At finite $\gamma t$, the no-click branch retains the component $e^{-\gamma t/2}(\hat\Id-\hat{\mc N})$, and the correction is incomplete.
++For $\gamma t\gg1$, $\hat M_0(t)\to\hat{\mc N}$, and every click branch leaves the same normalized state $\hat\chi^\dagger\kett{\psi}/\|\hat\chi^\dagger\kett{\psi}\|$, independent of the click time. Recording only whether a click occurred therefore reproduces the lower-band Kraus operators of Eq.~\eqref{eq:KrausLower}, with $\newtext{\mathrm{m}}=1$ corresponding to no click and $\newtext{\mathrm{m}}=0$ to a click. Monitoring loss with jumps $\sqrt\gamma\,\hat\chi$ reproduces Eq.~\eqref{eq:KrausUpper} in the same way. At finite $\gamma t$, the no-click branch retains the component $e^{-\gamma t/2}(\hat\Id-\hat{\mc N})$, and the correction is incomplete.
+ 
+ {\color{blue}
+ \section{Entropy Contours and Antipodal Mutual Information}
+@@ -736,11 +773,11 @@
+     \hat\rho_{\rec}(T)&\propto e^{-2T\hat{\mathcal H}_{\rec}(T)},
+     \nonumber\\
+     \hat{\mathcal H}_{\rec}(T)
+-    &=\sum_{ij}[h_{\rec}(T)^{\mathsf T}]_{ij}\hat c_i^\dagger\hat c_j
++    &=\sum_{ij}\claudeadd{[h_{\rec}(T)]_{ij}}\hat c_i^\dagger\hat c_j
+       +\text{const.}
+     \label{eq:PurificationEffectiveHamiltonian}
+ \end{align}
+-The transpose follows from our convention $G_{ij}=\langle\hat c_i^\dagger\hat c_j\rangle$. In this convention,
++\claudeadd{With the convention of Eq.~\eqref{eq:TwoPoint},}
+ \begin{equation}
+     G_{\rec}(T)=\big[\mathbf{1}+e^{2T h_{\rec}(T)}\big]^{-1}.
+     \label{eq:PurificationFermiFunction}
+@@ -773,7 +810,7 @@
+ \section{Relaxation gap of the averaged channel}
+ \label{app:ChannelGap}
+ 
+-Here we relate the two-point relaxation in Eq.~\eqref{eq:CycleChannel} to the many-body channel gap. We consider the perfect occupation resets of Sec.~\ref{sec:Model}, applied in a fixed order that repeats every cycle. The measured modes need not be orthogonal. Let $N$ be the number of single-particle modes, $P_j=(W_jW_j^\dagger)^{\mathsf T}$ the projector of the measured OW mode in the convention of Eq.~\eqref{eq:TwoPoint}, and $Q_j=\mathbf{1}-P_j$. The one-cycle map is
++Here we relate the two-point relaxation in Eq.~\eqref{eq:CycleChannel} to the many-body channel gap. We consider the perfect occupation resets of Sec.~\ref{sec:Model}, applied in a fixed order that repeats every cycle. The measured modes need not be orthogonal. Let $N$ be the number of single-particle modes, \claudeadd{$P_j=W_jW_j^\dagger$} the projector of the measured OW mode in the convention of Eq.~\eqref{eq:TwoPoint}, and $Q_j=\mathbf{1}-P_j$. The one-cycle map is
+ \begin{equation}
+     \overline G'=A\overline GA^\dagger+B,
+     \qquad A=Q_M\cdots Q_1,
+@@ -833,4 +870,4 @@
+ \bibliographystyle{apsrev4-2}
+ \bibliography{references}
+ 
+-\end{document}+\end{document}

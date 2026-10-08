@@ -1,0 +1,1134 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress,floatfix]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+\hypersetup{pdftitle={Channel relaxation and stationary-state occupation gaps},
+  pdfauthor={Asadullah Bhuiyan}}
+\newcommand{\Id}{\hat{\mathbf 1}}
+\newcommand{\id}{\mathbf 1}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\E}{\widetilde{\mathcal E}}
+\newcommand{\D}{\mathcal D}
+\newcommand{\spec}{\operatorname{spec}}
+\newcommand{\steady}{\mathrm{ss}}
+\begin{document}
+\title{Channel relaxation and stationary-state occupation gaps}
+\author{Asadullah Bhuiyan}
+\noaffiliation
+\date{October 6, 2026}
+\begin{abstract}
+We distinguish the relaxation spectrum of an outcome-averaged fermionic
+channel from the occupation spectrum of its stationary correlation
+matrix. For a fixed sequence of perfect occupation resets, we derive
+the complete charge-neutral correlation hierarchy and show that the
+neutral and parity-even many-body channel gaps are exactly
+$1-\rho(A)^2$, where $A$ is the ordered product of complementary
+single-particle projectors. This equality requires more than closure
+of the two-point equation. Explicit local and nonlocal examples
+separate stationary purity gaps from dynamical gaps. We also establish
+the gap relations under probabilistic application, Poissonization, and
+finite-time Lindblad evolution, with their sector and locality
+qualifications. Verified hard-wall data illustrate the distinction
+for fixed-width and square geometries; finite-size occupation gaps
+are not interpreted as thermodynamic extrapolations.
+\end{abstract}
+\maketitle
+\setcounter{tocdepth}{0}
+\makeatletter
+\let\l@subsection\@gobbletwo
+\makeatother
+\tableofcontents
+\appendix
+
+\section{Elementary resets and covariance evolution}
+\label{sec:reset}
+There are two different questions behind the word \emph{gap}. One asks
+how rapidly a perturbation of a state decays under repeated evolution.
+The other asks whether the stationary correlation matrix has an
+occupation close to $1/2$. The first concerns the map that evolves a
+state; the second concerns the state reached by that map. We will
+derive both objects explicitly rather than infer one spectrum from
+the other.
+
+The argument proceeds in three stages. First, we derive the action
+of one measurement-and-feedback step and compose the steps into a
+cycle. Second, we identify the covariance relaxation spectrum and
+prove when it determines the many-body gap. Third, we compare this
+dynamical information with stationary occupations and explain what
+changes on passing to continuous time. Simple matrix examples will
+make the distinctions concrete before we return to the numerical data.
+
+We consider the physical-layer channel obtained after discarding the
+measurement record and fresh ancillary modes of the adaptive circuit
+of Bhuiyan, Pan, and Jian (BPJ)~\cite{BPJ}. The assumptions throughout
+Apps.~\ref{sec:reset} and \ref{sec:spectrum} are perfect feedback,
+normalized measured modes, and a fixed sequence repeated each cycle.
+The measured overcomplete Wannier (OW) modes need not be orthogonal.
+Support truncation is allowed, provided each retained mode is
+normalized. We retain the measurement dephasing already present in
+the reset channel; we do not append an additional dephasing operation.
+
+\subsection{Kraus representation and exact dissipator identity}
+Let $\{\hat\psi_a,\hat\psi_b^\dagger\}=\delta_{ab}$ for $N$ fermion
+modes, and define
+\begin{equation}
+ \hat\chi_j=\sum_a v_{ja}\hat\psi_a,\qquad
+ v_j^\dagger v_j=1,\qquad \hat N_j=\hat\chi_j^\dagger\hat\chi_j.
+ \label{eq:mode}
+\end{equation}
+Here $v_j$ is a column of coefficients: the definition of
+$\hat\chi_j$ contains no implicit complex conjugation. Emptying and
+filling this mode correspond, respectively, to
+\begin{align}
+ \E_{j,0}(\hat\rho)&=\hat\chi_j\hat\rho\hat\chi_j^\dagger
+ +(\Id-\hat N_j)\hat\rho(\Id-\hat N_j),\nonumber\\
+ \E_{j,1}(\hat\rho)&=\hat\chi_j^\dagger\hat\rho\hat\chi_j
+ +\hat N_j\hat\rho\hat N_j. \label{eq:kraus}
+\end{align}
+Since $\hat N_j^2=\hat N_j$ and
+$\hat\chi_j\hat\chi_j^\dagger=\Id-\hat N_j$, each pair of Kraus
+operators satisfies $\sum_m\hat K_m^\dagger\hat K_m=\Id$.
+These are completely positive trace-preserving maps.
+
+The meaning of a reset can be seen without any lattice structure.
+For a single mode, in the empty/occupied basis, write
+\begin{equation}
+ \hat\rho=
+ \begin{pmatrix}1-f&z\\z^*&f\end{pmatrix},
+ \qquad
+ \E_0(\hat\rho)=
+ \begin{pmatrix}1&0\\0&0\end{pmatrix},
+ \qquad
+ \E_1(\hat\rho)=
+ \begin{pmatrix}0&0\\0&1\end{pmatrix}.
+ \label{eq:one_mode_reset}
+\end{equation}
+Here $f$ is the initial occupation and $z$ is a coherence; their
+allowed values are fixed by positivity of $\hat\rho$. The reset
+forgets both. A physical parity-even single-mode state has $z=0$;
+retaining $z$ here also displays the action on the formal odd sector.
+In the emptying map, an occupied input loses its
+particle through $\hat\chi$, while an empty input is left empty by
+$\Id-\hat N$. The filling map exchanges the two roles. Summing
+the branches discards the record, so the two alternatives are added
+as density matrices, not as coherent amplitudes.
+
+With the normalization
+\begin{equation}
+ \D[\hat L](\hat\rho)=\hat L\hat\rho\hat L^\dagger
+ -\tfrac12\{\hat L^\dagger\hat L,\hat\rho\},
+ \label{eq:dissipator}
+\end{equation}
+expanding the projector terms in Eq.~\eqref{eq:kraus} gives
+\begin{align}
+ \E_{j,0}&=\mathrm{Id}+\D[\hat\chi_j]+\D[\hat N_j],\nonumber\\
+ \E_{j,1}&=\mathrm{Id}+\D[\hat\chi_j^\dagger]+\D[\hat N_j].
+ \label{eq:idplusL}
+\end{align}
+For example, the two anticommutators in the emptying case sum to
+$-\{\hat N_j,\hat\rho\}$, while the remaining terms are
+$\hat\chi_j\hat\rho\hat\chi_j^\dagger+\hat N_j\hat\rho\hat N_j$.
+Adding $\hat\rho$ reproduces the first line of Eq.~\eqref{eq:kraus}.
+The filling case follows using $\hat\chi_j\hat\chi_j^\dagger=\Id-\hat N_j$.
+Equation~\eqref{eq:idplusL} is an exact discrete-channel identity,
+not a short-time approximation or a claim that $\E_j=e^{\mathcal L_j}$.
+
+\subsection{Closed two-point equation}
+For the outcome-averaged state define
+\begin{equation}
+ \overline G_{ab}=\Tr(\overline{\hat\rho}\,
+             \hat\psi_a^\dagger\hat\psi_b),\qquad
+ P_j=v_jv_j^\dagger,\quad Q_j=\id-P_j. \label{eq:G}
+\end{equation}
+The total charge is $\langle\hat N_F\rangle=\tr\overline G$, with
+$\tr$ the single-particle trace and $\Tr$ the many-body trace.
+No Gaussian-state assumption enters this definition. The canonical
+anticommutation relations give
+\begin{equation}
+ [\hat N_j,\hat\psi_b]=-v_{jb}^*\hat\chi_j,
+ \qquad [\hat N_j,\hat\psi_a^\dagger]=v_{ja}\hat\chi_j^\dagger.
+ \label{eq:commutators}
+\end{equation}
+Using these identities in
+$\D^\dagger[\hat N_j](\hat O)
+=-\tfrac12[\hat N_j,[\hat N_j,\hat O]]$, and evaluating the
+gain/loss term on $\hat O=\hat\psi_a^\dagger\hat\psi_b$,
+gives the two contributions
+\begin{align}
+ (\delta\overline G)_{\rm gain/loss}
+   &=-\tfrac12(P_j\overline G+\overline GP_j)+s_jP_j,\nonumber\\
+ (\delta\overline G)_{\rm deph}
+   &=P_j\overline GP_j-\tfrac12(P_j\overline G+\overline GP_j).
+ \label{eq:two_contributions}
+\end{align}
+Thus the exact elementary update is
+\begin{equation}
+ \overline G'=Q_j\overline GQ_j+s_jP_j,
+ \qquad s_j\in\{0,1\}. \label{eq:resetG}
+\end{equation}
+In a basis beginning with the measured mode, this erases its cross
+correlations and sets its occupation to $s_j$, leaving the
+orthogonal block unchanged. Explicitly, in that basis,
+\begin{equation}
+ \overline G=
+ \begin{pmatrix} f&b^\dagger\\ b&G_\perp\end{pmatrix}
+ \quad\longmapsto\quad
+ \overline G'=
+ \begin{pmatrix} s_j&0\\0&G_\perp\end{pmatrix}.
+ \label{eq:block_reset}
+\end{equation}
+The complementary projector $Q_j$ therefore retains only the part
+of the old correlations orthogonal to the measured mode, while
+$s_jP_j$ inserts the new occupation. Equations~\eqref{eq:mode} and
+\eqref{eq:G} fix the conjugation convention needed to use $P_j=v_jv_j^\dagger$.
+
+One cycle is the ordered composition
+\begin{equation}
+ \E=\prod_{j=M}^{1}\E_{j,s_j}
+   \equiv\E_{M,s_M}\circ\cdots\circ\E_{1,s_1},
+ \label{eq:product}
+\end{equation}
+where step 1 acts first. Iteration of Eq.~\eqref{eq:resetG} yields
+\begin{align}
+ \overline G'&=A\overline GA^\dagger+B,\nonumber\\
+ A&=Q_M\cdots Q_1,\qquad
+ B=\sum_{j=1}^{M}s_jR_jP_jR_j^\dagger,\nonumber\\
+ R_j&=Q_M\cdots Q_{j+1},\qquad R_M=\id.
+ \label{eq:affine}
+\end{align}
+Noncommuting projectors make the order physical. The targets $s_j$
+enter $B$, whereas $A$ depends only on the measured modes and order.
+The word \emph{affine} refers to the state-independent source $B$:
+the update is a linear transformation plus an additive term.
+After $n$ complete cycles, it reads
+\begin{equation}
+ \overline G_n=A^n\overline G_0(A^\dagger)^n+
+       \sum_{\ell=0}^{n-1}A^\ell B(A^\dagger)^\ell .
+ \label{eq:finite_cycles}
+\end{equation}
+The first term remembers the initial state; the sum collects
+occupations injected during earlier cycles and subsequently
+propagated by the remaining resets.
+In particular, the stationary equation is affine:
+\begin{equation}
+ G_\steady=AG_\steady A^\dagger+B. \label{eq:fixedG}
+\end{equation}
+For $r\equiv\rho(A)<1$ its unique solution is
+$G_\steady=\sum_{n=0}^{\infty}A^nB(A^\dagger)^n$.
+Stationarity therefore does not require an eigenvalue 1 of $A$.
+This point is essential: the many-body channel has a stationary
+eigenvector, but the smaller matrix $A$ describes the survival of
+initial correlations, not the entire state including its source.
+
+\section{Relaxation spectrum and many-body gap}
+\label{sec:spectrum}
+\subsection{Definitions and spectral inclusion}
+An eigenoperator $\hat X$ of the channel satisfies
+$\E(\hat X)=\mu\hat X$. After $n$ cycles its amplitude is multiplied
+by $\mu^n$. Thus $|\mu|$ determines decay and the phase of $\mu$
+determines oscillation. A multiplier $0.9$ decays more slowly than
+$0.2$; a multiplier $-0.9$ has the same decay envelope as $0.9$
+but alternates in sign. The slowest relaxing mode is therefore the
+one with modulus closest to 1, not the smallest eigenvalue.
+
+Fix an invariant linear operator sector $\mathcal V$ containing a
+stationary density matrix. The channel preserves the trace-zero
+subspace $\mathcal V_0$. This is the natural space of perturbations:
+the difference of any two normalized density matrices has zero trace.
+In particular, writing $\hat\rho=\hat\rho_\steady+\delta\hat\rho$ gives
+\begin{equation}
+ \E^n(\hat\rho)=\hat\rho_\steady+\E^n(\delta\hat\rho),
+ \qquad \Tr(\delta\hat\rho)=0.
+ \label{eq:state_perturbation}
+\end{equation}
+The first term is supposed to remain; only the second must decay
+for relaxation to occur. Excluding the stationary eigenvalue does
+not hide a slow perturbation: it removes the reference state itself.
+Define the absolute relaxation gap and
+logarithmic rate by
+\begin{align}
+ r_{\mathcal V}&=\rho(\E|_{\mathcal V_0}),&
+ g_{\mathcal V}&=1-r_{\mathcal V},\nonumber\\
+ \kappa_{\mathcal V}&=-\log r_{\mathcal V}.&&
+ \label{eq:gapdef}
+\end{align}
+When $r_{\mathcal V}<1$, the stationary eigenvalue is simple in this
+sector and all other eigenvalues lie strictly inside the unit circle;
+the channel is mixing~\cite{Burgarth,Wolf}. Removing the stationary
+mode means restricting away from this one fixed direction, not
+discarding all troublesome eigenvalues. An additional stationary
+state supplies a trace-zero fixed direction, and any other
+unit-modulus eigenvalue also gives $g_{\mathcal V}=0$. One can instead
+define a gap above an entire fixed-point space, but that is not a
+claim of relaxation to a unique state.
+
+The two gap conventions encode the same multiplier in different
+units. If $r_{\mathcal V}=1-g_{\mathcal V}$, the slow envelope is
+$r_{\mathcal V}^n=e^{-n\kappa_{\mathcal V}}$, and
+\begin{equation}
+ \kappa_{\mathcal V}=-\log(1-g_{\mathcal V})
+     =g_{\mathcal V}+\tfrac12g_{\mathcal V}^2+\cdots.
+ \label{eq:log_conversion}
+\end{equation}
+The dimensionless channel gap and the decay rate per cycle agree
+only near a closing. For a large gap, replacing one by the other
+can substantially change the numerical value.
+
+The absolute gap is $1-\max|\mu|$, not $\min|1-\mu|$.
+For a Lindbladian $\mathcal L$, the corresponding decay rate is
+\begin{equation}
+ \delta_{\mathcal L,\mathcal V}
+   =-\max_{\lambda\in\spec(\mathcal L|_{\mathcal V_0})}
+        \operatorname{Re}\lambda. \label{eq:Lgap}
+\end{equation}
+The stationary zero is excluded under the same sector convention.
+Additional zeros or purely imaginary modes obstruct mixing.
+
+There are three matrix sizes to distinguish. For $N$ fermion modes,
+$A$ and $\overline G$ are $N\times N$ matrices, a general linear map
+on their entries is $N^2\times N^2$, and the unrestricted many-body
+channel acts on an operator space of dimension $4^N$.
+The density matrix itself is $2^N\times2^N$. The simplification
+is that a tractable part of the exponentially larger evolution
+closes on the two-point function.
+
+Subtracting Eq.~\eqref{eq:fixedG} gives
+\begin{equation}
+ \delta G'=A\delta GA^\dagger,\qquad
+ \operatorname{vec}(\delta G')=(A^*\otimes A)
+                                      \operatorname{vec}(\delta G).
+ \label{eq:vec}
+\end{equation}
+Column vectorization means stacking the columns of $\delta G$ into
+one vector. It is a bookkeeping device, not another physical
+approximation. To see the spectrum directly, suppose first that
+$Aw_i=a_iw_i$ gives an eigenbasis. Then
+\begin{equation}
+ A(w_iw_j^\dagger)A^\dagger
+     =a_i a_j^*\,w_iw_j^\dagger.
+ \label{eq:pairwise_action}
+\end{equation}
+Each side of the covariance contributes one factor. Schur
+triangularization gives the same eigenvalues even without a
+complete eigenbasis. The covariance multipliers are therefore
+$a_i a_j^*$, including the positive multiplier $|a_i|^2$.
+Consequently
+\begin{equation}
+ g_C=1-r^2,\qquad \kappa_C=-2\log r,\qquad r=\max_i|a_i|.
+ \label{eq:covgap}
+\end{equation}
+No eigenvalue of $A$ is removed in computing $r$. The square comes
+from the two-sided action, not from a choice of gap convention.
+The spectral radius, rather than the largest singular value, controls
+asymptotic decay. Below we take $0<r<1$; if $r=0$, the finite-dimensional
+homogeneous map is nilpotent and its logarithmic rate is infinite.
+
+\subsection{A two-mode example of the projector product}
+For a concrete illustration, empty two real normalized modes in
+sequence, with coefficient vectors
+$v_1=(1,0)^{\mathsf T}$ and
+$v_2=(\cos\theta,\sin\theta)^{\mathsf T}$.
+Writing $c_\theta=\cos\theta$ and $s_\theta=\sin\theta$, their
+complementary projectors and ordered product are
+\begin{equation}
+ Q_1=\begin{pmatrix}0&0\\0&1\end{pmatrix},\qquad
+ Q_2=\begin{pmatrix}s_\theta^2&-c_\theta s_\theta\\
+              -c_\theta s_\theta&c_\theta^2\end{pmatrix},\qquad
+ A=Q_2Q_1=\begin{pmatrix}0&-c_\theta s_\theta\\
+                          0&c_\theta^2\end{pmatrix}.
+ \label{eq:two_mode_product}
+\end{equation}
+The eigenvalues of $A$ are $0,c_\theta^2$, whereas the covariance
+map has eigenvalues $0,0,0,c_\theta^4$. Hence
+$r=c_\theta^2$ and $g_C=1-c_\theta^4$. Nearly parallel measured
+modes leave an almost unmeasured direction and give slow
+relaxation. Orthogonal measured modes erase all initial
+correlations in one cycle. At $\theta=0$ the second physical mode
+is never measured, and the gap vanishes.
+
+Both targets in this example are empty, so $B=0$. For
+$0<\theta<\pi/2$ the stationary matrix is $G_\steady=0$ even
+though the relaxation rate varies with $\theta$. The example also
+separates eigenvalues from singular values: the largest singular
+value of $A$ is $|c_\theta|$, not $c_\theta^2$. A largest-singular-value
+calculation would therefore not give the same asymptotic rate.
+
+\subsection{Why covariance closure initially gives only a bound}
+Covariance closure alone proves an upper bound. The adjoint channel
+preserves the span of $\Id$ and the bilinears
+$\hat\psi_a^\dagger\hat\psi_b$. After centering about $G_\steady$,
+the covariance eigenvalues are contained in the many-body spectrum.
+Thus, for any mixing sector containing these operators,
+\begin{equation}
+ r_{\mathcal V}\ge r^2,\qquad
+ g_{\mathcal V}\le g_C,\qquad
+ \kappa_{\mathcal V}\le\kappa_C. \label{eq:bound}
+\end{equation}
+A positive upper bound cannot rule out a vanishing many-body gap.
+Knowing one family of decaying observables need not identify the
+slowest observable in the entire system. An unseen higher-order
+correlation could decay more slowly. To replace the inequality
+by an equality, we must rule out precisely that possibility.
+The continuous-time correlation hierarchy of Barthel and
+Zhang~\cite{BZ}, especially their Proposition 7, provides the analogous
+spectral-inclusion reasoning. Equality here will follow from the
+specific reset structure, not from closure by itself.
+
+The covariance mode can also be exhibited as an observable.
+For $A^\dagger u=a^*u$, define
+\begin{equation}
+ \hat O_u=\sum_{ab}u_a^*u_b
+   \left[\hat\psi_a^\dagger\hat\psi_b-(G_\steady)_{ab}\Id\right].
+ \label{eq:observable}
+\end{equation}
+Since its expectation is $u^\dagger\delta Gu$,
+$\E^\dagger(\hat O_u)=|a|^2\hat O_u$.
+Choosing $|a|=r$ realizes the slow neutral observable. A right
+eigenvector $Aw=aw$ instead gives the right covariance eigenmatrix
+$ww^\dagger$; these left and right constructions should not be
+interchanged for nonnormal $A$.
+
+\subsection{Higher moments and exterior powers}
+Within the parity-even sector, a perfect reset never creates
+a higher-degree observable from a lower-degree one. We use
+\emph{degree} to count creation and annihilation operators in a
+normal-ordered monomial. Bilinears have degree two; the corresponding
+four-point moments have degree four. We keep the full moments,
+not a Gaussian factorization of them.
+
+Choose a single-particle basis beginning with $\hat\chi_j$, and
+let $\hat B$ contain only orthogonal modes. On even total operators,
+direct substitution into Eq.~\eqref{eq:kraus} gives
+\begin{align}
+ \E_{j,s}^\dagger(\hat B)&=\hat B
+       &&(\hat B\text{ even}),\nonumber\\
+ \E_{j,s}^\dagger(\hat\chi_j^{(\dagger)}\hat B)&=0
+       &&(\hat B\text{ odd}),\nonumber\\
+ \E_{j,s}^\dagger(\hat N_j\hat B)&=s\hat B
+       &&(\hat B\text{ even}). \label{eq:localrule}
+\end{align}
+A single measured leg is erased, while a measured occupation pair
+is replaced by its target and lowers the degree by two. This is an
+operator identity and makes no use of Wick factorization.
+
+For increasing $p$-element index sets $I,J$, introduce
+\begin{equation}
+ F_{I;J}^{(p)}=\Tr\!\left(\hat\rho\,
+ \hat\psi_{i_1}^\dagger\cdots\hat\psi_{i_p}^\dagger
+ \hat\psi_{j_p}\cdots\hat\psi_{j_1}\right).
+ \label{eq:moments}
+\end{equation}
+For $p=1$ these are the entries of $\overline G$; for $p=2$ they are
+four-point moments. In vector form, the first levels of their
+update have the schematic structure
+\begin{equation}
+ \begin{pmatrix}1\\F^{(1)}\\F^{(2)}\\\vdots\end{pmatrix}'=
+ \begin{pmatrix}
+  1&0&0&\cdots\\
+  b_1&H_1&0&\cdots\\
+  b_2&T_{21}&H_2&\cdots\\
+  \vdots&\vdots&\vdots&\ddots
+ \end{pmatrix}
+ \begin{pmatrix}1\\F^{(1)}\\F^{(2)}\\\vdots\end{pmatrix}.
+ \label{eq:triangular_example}
+\end{equation}
+Here $b_p$ and $T_{21}$ denote lower-order source terms; their
+values are not needed to determine the eigenvalues of this
+block-triangular matrix. What matters is the diagonal block $H_p$
+propagating the degree-$2p$ part.
+
+The homogeneous degree-$2p$ term is obtained by projecting each leg
+onto the orthogonal complement of the measured mode.
+Antisymmetrization turns the $p$ creation-leg factors into the
+exterior power $\bigwedge^p Q_j$ and the annihilation-leg factors
+into its conjugate. The one-cycle homogeneous block is therefore
+\begin{equation}
+ H_p[I,J;K,L]=\det A[I,K]\,\det A[J,L]^*.
+ \label{eq:minors}
+\end{equation}
+The exterior-power notation is simply the antisymmetrized action
+on several fermionic indices. For example, on two creation legs,
+\begin{equation}
+ \left(\bigwedge\nolimits^2 A\right)_{\{i,j\},\{k,\ell\}}
+       =A_{ik}A_{j\ell}-A_{i\ell}A_{jk}.
+ \label{eq:wedge_example}
+\end{equation}
+The minus sign is the fermionic exchange sign. For $p$ legs,
+the same sum over signed permutations is the $p\times p$
+determinant in Eq.~\eqref{eq:minors}.
+Indeed, the Cauchy--Binet identity composes the minors of successive
+$Q_j$ in exactly the order in Eq.~\eqref{eq:affine}. All source
+terms from Eq.~\eqref{eq:localrule} belong to lower-degree blocks.
+The full hierarchy, ordered by $p$, is block triangular.
+
+The eigenvalues of $\bigwedge^p A$ are the products of $p$ distinct
+eigenvalues of $A$. This remains true for defective $A$, as follows
+by taking exterior powers of its Schur-triangular form. Hence the
+neutral-sector spectrum, with algebraic multiplicities, is
+\begin{equation}
+ \Lambda_{I,J}=\prod_{i\in I}a_i\prod_{j\in J}a_j^*,\qquad
+ |I|=|J|=p,\quad 0\le p\le N. \label{eq:hierarchy}
+\end{equation}
+The sets $I$ and $J$ are independently chosen and may overlap.
+In particular, the same eigenvalue may appear on both legs.
+
+To see that no neutral operators are omitted, the normal-ordered
+monomials with equal numbers of creation and annihilation operators
+form a basis. One may construct each number-preserving Fock-space
+matrix unit by multiplying its creation and annihilation string by
+occupation or vacancy projectors on the remaining sites. Expanding
+these projectors gives precisely such monomials. Their number is
+\begin{equation}
+ \sum_{p=0}^{N}\binom Np^2=\binom{2N}{N}, \label{eq:span}
+\end{equation}
+which is also the dimension of all operators block diagonal in
+particle number. Spanning and this dimension count establish
+completeness of Eq.~\eqref{eq:hierarchy}.
+
+The constant block $p=0$ contributes one eigenvalue 1. For $p\ge1$,
+$|\Lambda_{I,J}|\le r^{2p}\le r^2$, and the bound is attained at
+$p=1$ with $I=J$ corresponding to $|a_i|=r$. Thus the stationary
+eigenvalue is simple and
+\begin{equation}
+ \boxed{g_{q=0}=g_C=1-r^2,\qquad \kappa_{q=0}=\kappa_C.}
+ \label{eq:neutral}
+\end{equation}
+Higher neutral correlations cannot have a slower spectral decay.
+
+\subsection{Neutral, even, and odd sectors}
+Charge neutrality means $[\hat N_F,\hat\rho]=0$, with
+$\hat N_F=\sum_a\hat\psi_a^\dagger\hat\psi_a$.
+It permits mixtures of different particle numbers. The reset channel
+preserves neutrality, but it does not conserve particle number:
+its Kraus operators have definite, not necessarily zero, charge.
+Both maximally mixed initial states and fixed-number Slater states
+belong to the neutral sector.
+
+Examples clarify the distinction between charge and parity.
+$\hat\psi_1^\dagger\hat\psi_2$ is neutral because it has one
+creation and one annihilation operator.
+$\hat\psi_1\hat\psi_2$ is not neutral, but it is parity even
+because it contains two fermionic operators.
+$\hat\psi_1$ is parity odd.
+An invariant operator sector groups quantities whose evolution
+stays within that group; it is not necessarily a fixed-particle-number
+subspace of state vectors.
+
+For a monomial with $p$ creation and $\ell$ annihilation operators,
+the same even-operator argument gives a homogeneous block
+$\bigwedge^p A\otimes(\bigwedge^\ell A)^*$, up to the chosen
+vectorization order. Every nonconstant even monomial has
+$p+\ell\ge2$. Its eigenvalue modulus is at most $r^{p+\ell}\le r^2$,
+and the neutral bilinears attain $r^2$. Consequently
+\begin{equation}
+ g_{\rm even}=g_{q=0}=g_C,\qquad
+ \kappa_{\rm even}=\kappa_C. \label{eq:even}
+\end{equation}
+
+For completeness, the specified Kraus maps also define an extension
+to parity-odd operators. Let $\hat P_F=(-1)^{\hat N_F}$ and
+$\mathcal S(\hat O)=\hat P_F\hat O$, so $\mathcal S^2=\mathrm{Id}$.
+Writing $\hat J=\hat\chi$ or $\hat\chi^\dagger$ for the odd Kraus
+operator and $\hat R$ for the even projector Kraus operator,
+\begin{equation}
+ (\mathcal S\E_j^\dagger\mathcal S)(\hat O)
+   =-\hat J^\dagger\hat O\hat J+\hat R\hat O\hat R.
+ \label{eq:odd_similarity}
+\end{equation}
+On odd operators, this extra minus sign cancels the sign from moving
+an odd orthogonal-mode string past $\hat J$. The transformed map
+therefore leaves an orthogonal odd string unchanged, erases a
+single measured leg, and sends $\hat N\hat B$ to $s\hat B$.
+Its homogeneous hierarchy has odd $p+\ell$, with maximal modulus
+$r$ attained by one-leg blocks. Similarity preserves the spectrum
+and respects composition across the cycle. On unrestricted
+operator space,
+\begin{equation}
+ g_{\rm full}=1-r,\qquad
+ \kappa_{\rm full}=-\log r=\kappa_C/2. \label{eq:full}
+\end{equation}
+Physical fermionic density matrices are parity even; Eq.~\eqref{eq:even}
+is the relevant many-body gap for the preparations considered here.
+Equation~\eqref{eq:full} explains why an unrestricted spectral
+definition can differ without contradicting covariance closure.
+
+These equalities are specific to the exact reset hierarchy.
+Imperfect feedback, extra dephasing, or averaging over a new random
+schedule each cycle requires reexamining the higher moments.
+Nonnormality can also produce long transients and Jordan-polynomial
+prefactors. A spectral gap fixes the asymptotic exponential envelope
+at fixed size, not a size-uniform mixing time or a conditioned
+trajectory-purification time.
+
+\section{Stationary occupation gaps and counterexamples}
+\label{sec:stationary}
+\subsection{Distinct spectra}
+Let $n_a\in[0,1]$ be the eigenvalues of the full-system stationary
+correlation matrix $G_\steady$. We use
+\begin{equation}
+ \Delta=\min_a|n_a-\tfrac12|,\qquad
+ \Delta_{\rm pur}=2\Delta=\min_a|1-2n_a|.
+ \label{eq:purity}
+\end{equation}
+These are stationary occupation diagnostics; they are not eigenvalue
+gaps of a channel. Our normalization makes the purity gap unity for
+a pure number-conserving Gaussian state and zero when an occupation
+equals $1/2$. Other normalizations, including squared conventions,
+must be converted before comparison. The full-system matrix is also
+distinct from a subsystem restriction used for an entanglement spectrum.
+
+The reference point $1/2$ comes from the occupation of a maximally
+mixed fermion, not from a stationary eigenvalue of the evolution.
+For example, occupations $0.01$ and $0.99$ are far from maximal
+mixing and give $\Delta_{\rm pur}=0.98$, while an occupation
+$0.499$ gives $\Delta_{\rm pur}=0.002$. Neither statement says how
+long it took to prepare those occupations. Also, the symbol
+$\rho(A)$ denotes a \emph{spectral radius}; it is not a density
+matrix $\hat\rho$. Likewise, $n_a$ labels occupations of $G_\steady$,
+whereas $\mu$ labels multipliers of a dynamical map.
+
+For a Gaussian state the single-particle modular energies are
+\begin{equation}
+ \epsilon_a=\log\frac{1-n_a}{n_a}. \label{eq:modular}
+\end{equation}
+For a non-Gaussian outcome-averaged state, this defines the Gaussian
+reference state sharing its two-point function, not the spectrum of
+its actual many-body modular Hamiltonian $-\log\hat\rho_\steady$.
+An occupation at $1/2$ denotes maximal mixing of that covariance
+mode; it does not identify a conserved observable or a dark mode
+of the evolution.
+
+The separation is already visible in Eq.~\eqref{eq:affine}:
+relaxation of $\delta G$ depends on $A$, while $G_\steady$ also depends
+on $B$. For gauge-invariant quasi-free channels, complete positivity
+in this convention requires $0\le B\le\id-AA^\dagger$~\cite{DFP}.
+For example, $A=\sqrt q\,\id$ and $B=(1-q)G_0$, with
+$0\le G_0\le\id$ and $0\le q<1$, give $G_\steady=G_0$ and
+$g_C=1-q$, independently of the occupation gap of $G_0$.
+For a single occupation, the same construction is the elementary
+recursion
+\begin{equation}
+ n_{m+1}=q n_m+(1-q)n_*,
+ \qquad n_m-n_*=q^m(n_0-n_*).
+ \label{eq:scalar_source}
+\end{equation}
+The number $n_*$ specifies where the evolution ends; $q$ specifies
+how much of the deviation survives each step. One may change
+$n_*$ from nearly empty to exactly half-filled without changing
+$q$. This is the simplest way to see why a purity-gap closing does
+not force slow relaxation.
+
+This Gaussian-channel construction is illustrative; closure of the
+two-point equation does not itself make our full reset channel
+Gaussian on arbitrary inputs.
+
+\subsection{Global and local mixing examples}
+For any density matrix $\hat\sigma$, let
+$\mathcal T_\sigma(\hat X)=\Tr(\hat X)\hat\sigma$.
+The replacement channel
+\begin{equation}
+ \E_p=(1-p)\mathrm{Id}+p\mathcal T_\sigma,\qquad 0<p\le1,
+ \label{eq:replace}
+\end{equation}
+has the unique stationary state $\hat\sigma$ and multiplier $1-p$
+on every trace-zero operator. Its gap is $p$, independently of the
+stationary spectrum. To verify the claim, write
+$\hat\rho=\hat\sigma+\delta\hat\rho$ with
+$\Tr\delta\hat\rho=0$. Since
+$\mathcal T_\sigma(\delta\hat\rho)=0$, the channel maps the
+perturbation to $(1-p)\delta\hat\rho$ while leaving $\hat\sigma$
+unchanged. There is no additional slow subspace to inspect.
+Taking $\hat\sigma=\Id/d$ gives a maximally
+mixed endpoint and, for a fermionic Fock space, $G_\steady=\id/2$.
+The generator $\gamma(\mathcal T_\sigma-\mathrm{Id})$ has nonstationary
+eigenvalues $-\gamma$, and
+\begin{equation}
+ e^{t\gamma(\mathcal T_\sigma-\mathrm{Id})}
+   =\mathcal T_\sigma+e^{-\gamma t}
+           (\mathrm{Id}-\mathcal T_\sigma). \label{eq:replace_semigroup}
+\end{equation}
+Global replacement is generally nonlocal, so it alone does not
+address locality constraints.
+
+A strictly local example is independent depolarization of spins.
+Let $\mathcal T_i$ replace spin $i$ by $\id_2/2$ while tracing out
+its old state. Then
+\begin{equation}
+ \mathcal L_{\rm loc}=\gamma\sum_i(\mathcal T_i-\mathrm{Id})
+   =\frac{\gamma}{4}\sum_{i,a=x,y,z}\D[\hat\sigma_i^a].
+ \label{eq:local_depol}
+\end{equation}
+A Pauli string of weight $w$ has eigenvalue $-\gamma w$.
+The weight counts sites with a nonidentity Pauli factor.
+Replacing any such site erases that string, so each of its $w$
+sites contributes one decay rate $\gamma$. The identity string
+has weight zero and is stationary; the slowest nonconstant strings
+have weight one.
+The unique stationary state is maximally mixed and the gap is
+$\gamma$, uniformly in the number of spins. Sampling this local
+semigroup at time $\tau$ gives a channel gap $1-e^{-\gamma\tau}$.
+No locality-preserving spin-to-fermion mapping is needed or asserted.
+
+For a single fermionic mode, balanced gain and loss give
+\begin{equation}
+ \mathcal L_{\rm bal}=\eta\bigl(\D[\hat c]+\D[\hat c^\dagger]\bigr),
+ \qquad \dot n=\eta(1-2n). \label{eq:balanced}
+\end{equation}
+Its full spectrum is $\{0,-\eta,-\eta,-2\eta\}$ and its stationary
+state is $\Id/2$. The even population sector decays at $2\eta$;
+the unrestricted gap is $\eta$. Thus even the simplest fermionic
+example requires stating which operator sector is meant.
+
+\subsection{Period-two channel and stationary-mode exclusion}
+The channel
+\begin{equation}
+ \E_{\rm flip}(\hat\rho)=\hat c\hat\rho\hat c^\dagger
+                         +\hat c^\dagger\hat\rho\hat c
+ \label{eq:flip}
+\end{equation}
+is trace preserving because $\hat c^\dagger\hat c+
+\hat c\hat c^\dagger=\Id$. Its action on an arbitrary matrix is
+\begin{equation}
+ \E_{\rm flip}\!
+ \begin{pmatrix}x&z\\w&y\end{pmatrix}
+       =\begin{pmatrix}y&0\\0&x\end{pmatrix}.
+ \label{eq:flip_matrix}
+\end{equation}
+The diagonal entries are exchanged, while off-diagonal entries are
+erased. A fixed matrix must have $x=y$ and $z=w=0$, proving
+directly that the stationary space is spanned only by $\Id$.
+On $\Id,\hat\sigma_z,
+\hat\sigma_x,\hat\sigma_y$ it has eigenvalues
+$1,-1,0,0$, respectively. Its stationary space is one dimensional,
+spanned by $\Id$, yet it is not mixing: a population imbalance changes
+sign every step. The absolute channel gap is zero because of $-1$.
+The two zero multipliers instead describe coherences erased in one
+step. Neither taking the smallest eigenvalue nor simply deleting
+all unit-modulus eigenvalues gives the relaxation gap.
+
+Its Poissonized generator $\gamma(\E_{\rm flip}-\mathrm{Id})$
+has spectrum $\{0,-2\gamma,-\gamma,-\gamma\}$ and is precisely
+Eq.~\eqref{eq:balanced} with $\eta=\gamma$. Randomizing the number
+of flips removes the period-two obstruction without changing the
+stationary state. This supplies a counterexample to a general
+reverse implication from a gapped Poissonized generator to a
+mixing discrete channel.
+
+Finally, a gapped Hamiltonian can have a maximally mixed
+infinite-temperature Gibbs state: for example
+$\hat H=\varepsilon\sum_i\hat n_i$ has excitation gap $\varepsilon$
+but $\hat\rho_{\beta=0}=\Id/2^N$. This only distinguishes a
+Hamiltonian excitation gap from a state's occupation gap; unitary
+evolution under that Hamiltonian does not prepare this state as a
+unique attractor.
+
+\section{Continuous-time connection}
+\label{sec:continuous}
+\subsection{Probabilistic application and Poissonization}
+For an arbitrary channel $\E$, define
+\begin{equation}
+ \E_p=(1-p)\mathrm{Id}+p\E,\qquad 0<p\le1. \label{eq:lazy}
+\end{equation}
+Its fixed-point space is exactly that of $\E$, since
+$\E_p-\mathrm{Id}=p(\E-\mathrm{Id})$. Each eigenvalue transforms
+as $\mu_p=1-p+p\mu$, with no diagonalizability assumption.
+If $g=1-\max_{\mathcal V_0}|\mu|>0$, then
+\begin{equation}
+ |\mu_p|\le1-p+p|\mu|\le1-pg,\qquad
+ \boxed{g(p)\ge pg>0.} \label{eq:lazy_bound}
+\end{equation}
+Hence the mixing gap cannot close at any fixed $p>0$ along this
+particular deformation. The identity endpoint $p=0$ is excluded:
+every state is then stationary. This is a spectral estimate, not
+an argument from continuity alone.
+
+Taking $p=\gamma\,dt$ gives the generator
+\begin{equation}
+ \mathcal L_{\rm cyc}=\gamma(\E-\mathrm{Id})
+   =\sum_a\D[\sqrt\gamma\,\hat K_a], \label{eq:poissonL}
+\end{equation}
+where $\hat K_a$ are Kraus operators for the whole channel and
+$\sum_a\hat K_a^\dagger\hat K_a=\Id$.
+Equivalently, subtract the input state from the probabilistic
+update and divide by the elapsed time:
+\begin{equation}
+ \frac{\hat\rho(t+dt)-\hat\rho(t)}{dt}
+       =\gamma\bigl[\E(\hat\rho(t))-\hat\rho(t)\bigr].
+ \label{eq:time_step_derivative}
+\end{equation}
+The limit of repeated small steps is the continuous-time
+semigroup generated by this right-hand side. The Kraus expression
+in Eq.~\eqref{eq:poissonL} independently verifies that this is a
+valid Lindblad generator, not just a formal differential equation.
+Its semigroup has the
+explicit completely positive representation
+\begin{equation}
+ e^{t\mathcal L_{\rm cyc}}
+   =e^{-\gamma t}\sum_{n=0}^{\infty}
+            \frac{(\gamma t)^n}{n!}\E^n. \label{eq:poisson}
+\end{equation}
+It applies a Poisson-distributed number of complete cycles and has
+the same stationary space as $\E$. Physically, the deterministic
+sequence inside a cycle is unchanged; only the times at which
+complete cycles occur are randomized. A mode with multiplier $\mu$
+therefore acquires the averaged factor
+\begin{equation}
+ e^{-\gamma t}\sum_{n=0}^{\infty}
+       \frac{(\gamma t)^n}{n!}\mu^n
+       =e^{\gamma t(\mu-1)}.
+ \label{eq:poisson_multiplier}
+\end{equation}
+This also explains why phase oscillations can become damping:
+averaging over different numbers of steps can cancel them.
+The eigenvalues and gap obey
+\begin{align}
+ \lambda&=\gamma(\mu-1),\nonumber\\
+ \delta_{\mathcal L_{\rm cyc},\mathcal V}
+   &=\gamma\min_{\mathcal V_0}(1-\operatorname{Re}\mu)
+     \ge\gamma g. \label{eq:poisson_bound}
+\end{align}
+The converse fails: Eq.~\eqref{eq:flip} has $g=0$ but a positive
+Poissonized decay rate. More generally, eigenvalues elsewhere on
+the unit circle have negative real parts after subtracting 1.
+For the lazy flip channel the nonstationary eigenvalues are
+$1-2p,1-p,1-p$; it mixes for $0<p<1$, although the original
+$p=1$ channel does not.
+
+For the reset covariance spectrum, the dominant multiplier $r^2$
+is real, nonnegative, and present in the spectrum. It saturates
+both inequalities: its probabilistic multiplier is
+$1-p+pr^2$, and its Poissonized exponent is $\gamma(r^2-1)$.
+All other covariance multipliers obey the previously established
+bounds, so none can be slower. This gives the exact identities
+\begin{equation}
+ g_C(p)=p\,g_C,\qquad
+ \delta_{\mathcal L_{\rm cyc},C}=\gamma g_C. \label{eq:exact_poisson}
+\end{equation}
+By App.~\ref{sec:spectrum}, the same equalities hold in the
+neutral and even many-body sectors. The continuous-time rate in
+Eq.~\eqref{eq:exact_poisson} is $\gamma g_C$, not $\gamma\kappa_C$.
+A per-step gap proportional to $dt$ tends to zero when the clock
+step shrinks without implying slow relaxation in physical time.
+For example, applying a channel with probability $\gamma dt$
+per tick means that most sufficiently short ticks do nothing.
+The number of opportunities per unit time grows as $1/dt$ and
+compensates the small gap per tick. Poissonization measures this
+physical-time decay; $\kappa_C$ instead describes exactly one
+completed reset cycle per discrete step.
+
+\subsection{Finite-time semigroups and limits of the correspondence}
+If a relaxing Lindbladian is given first, its finite-time channel
+$\E_\tau=e^{\tau\mathcal L}$ has multipliers $e^{\tau\lambda}$.
+In the same invariant sector,
+\begin{equation}
+ g(\E_\tau)=1-e^{-\tau\delta_{\mathcal L}},\qquad
+ \kappa(\E_\tau)=\tau\delta_{\mathcal L}. \label{eq:semigroup}
+\end{equation}
+This spectral mapping statement differs from Poissonizing an
+arbitrary channel. In general $\E$ need not admit a Lindbladian
+logarithm; semigroup-embedding restrictions already occur for
+qubit channels~\cite{PRZ}. Equation~\eqref{eq:poissonL} always
+constructs a generator, but its exponential is not generally $\E$.
+
+Three qualifications are important. First, whole-cycle Kraus
+operators can extend across the system. A local gate sequence does
+not automatically make $\mathcal L_{\rm cyc}$ a finite-range
+Lindbladian, especially when the sequential depth grows with size.
+Weakening each elementary reset separately instead produces, to
+first order, $\sum_j\gamma_j(\E_j-\mathrm{Id})$. This generator
+need not share the stationary state of the ordered full-reset
+product. They do share a state if every reset fixes it individually,
+but such a common fixed state is an additional assumption.
+
+Second, finite-dimensional eigenvalue identities do not bound
+transient amplification or all mixing prefactors. The projector
+product and its induced maps can be nonnormal, and defective
+blocks introduce powers of time multiplying exponentials.
+Third, thermodynamic gap preservation requires a size-independent
+lower bound on $g$, with $p$ bounded away from zero or $\gamma$
+fixed. Positivity at each finite size is insufficient.
+Local mixing and clustering theorems such as those of Kastoryano
+and Eisert~\cite{KE} have further regularity and reversibility or
+stronger mixing assumptions. They cannot be imported for the
+whole-cycle construction without checking those hypotheses.
+
+\section{Trajectory dynamics and relation to the literature}
+\label{sec:trajectory}
+\subsection{Conditioning versus discarding the record}
+For a complete measurement record $\bm m$ let $\hat V_{\bm m}$ be
+the corresponding Kraus product. Then
+\begin{align}
+ p_{\bm m}&=\Tr(\hat V_{\bm m}\hat\rho_0\hat V_{\bm m}^\dagger),
+ &\hat\rho_{\bm m}&=\frac{\hat V_{\bm m}\hat\rho_0
+                   \hat V_{\bm m}^\dagger}{p_{\bm m}},\nonumber\\
+ \overline{\hat\rho}_n&=\sum_{\bm m}p_{\bm m}\hat\rho_{\bm m}
+                     =\E^n(\hat\rho_0).&& \label{eq:records}
+\end{align}
+Linear observables obey
+$\sum_{\bm m}p_{\bm m}\Tr(\hat\rho_{\bm m}\hat O)
+=\Tr(\overline{\hat\rho}_n\hat O)$.
+Entropies do not: generally
+\begin{equation}
+ \sum_{\bm m}p_{\bm m}S((\hat\rho_{\bm m})_R)
+       \ne S((\overline{\hat\rho}_n)_R), \label{eq:entropy}
+\end{equation}
+where $R$ is a spatial region. Different unravelings can yield the
+same averaged channel but different conditioned entanglement.
+The failure of entropy to commute with averaging is elementary.
+An equal ensemble of an empty and an occupied one-mode state
+has zero entropy in each member, but its averaged state
+$\Id/2$ has entropy $\log 2$. This is a statement about ensemble
+mixing, not an entanglement claim for that one mode; the same
+nonlinearity prevents replacing averaged subsystem entropies by
+the entropy of the averaged subsystem state.
+Accordingly, algebraic relaxation of trajectory-resolved
+entanglement is not, by itself, evidence that the one-copy
+outcome-averaged channel has zero gap. A relation would require an
+additional argument connecting that nonlinear record-dependent
+quantity to the relevant channel or a replicated evolution.
+
+This distinction separates the conditioned purification discussed
+in BPJ Fig.~9 from the averaged correlation matrix and occupation
+spectrum in BPJ Fig.~7~\cite{BPJ}. Spatial algebraic correlations,
+temporal decay of averaged linear observables, and temporal decay
+of conditioned entanglement are three different diagnostics.
+Even a temporal power law over a finite window need not determine
+the asymptotic finite-size rate if transients or crossovers remain.
+None of these distinctions negates a measured power law; they
+identify which spectral claim that measurement can support.
+
+\subsection{Local dissipative examples and scope of existing results}
+A relevant finite-range example is Bardyn \emph{et al.}~\cite{Bardyn},
+Eqs.~(68)--(69) and Fig.~6. Their competing one-dimensional jump
+families are
+\begin{equation}
+ \hat L_n^{(\ell)}=\tfrac12\bigl[
+   (\hat a_n^\dagger+\hat a_{n+\ell}^\dagger)
+   +(\hat a_n-\hat a_{n+\ell})\bigr],\qquad \ell=1,2.
+ \label{eq:bardyn}
+\end{equation}
+With their normalized relative-rate convention, the bulk damping
+spectrum remains flat and gapped as the bulk purity gap closes at
+equal competing strengths. This is a finite-range real-space
+construction, not merely independent control of nonlocal momentum
+modes. The bulk qualifier is essential: open boundaries can carry
+zero-damping Majorana edge modes. The example therefore does not
+establish a gapped full open-boundary generator. It establishes
+that locality alone does not equate the two bulk gaps.
+
+Relations can reappear with extra structure. In the Gaussian
+setting, damping and noise jointly determine the stationary
+covariance; special dark-state or frustration-free conditions can
+lock these quantities~\cite{Mittal}. Such restrictions are not a
+general identity between stationary purity and relaxation gaps.
+Likewise, the symmetry-class correspondence between quadratic
+Lindbladians and their unique Gaussian stationary states~\cite{Mao}
+is a statement about symmetry constraints, not equality of gaps.
+Its linear-jump assumptions do not automatically cover the
+number-dephasing term in Eq.~\eqref{eq:idplusL}.
+
+Discrete-channel studies also treat dynamical and invariant-state
+spectra as separate diagnostics. Spectral-support transitions in
+random Kraus maps~\cite{Sa} should not be conflated with a relaxation
+gap closing or a fermionic purity-gap crossing. Noisy Floquet
+channels provide examples with maximally mixed stationary states
+and nontrivial relaxation, while emphasizing the order of weak-noise
+and thermodynamic limits~\cite{YS}. Broader random-channel results
+give further context for spectra and invariant states~\cite{Kukulski},
+not a universal relation between their gaps. For the present reset
+model, the precise many-body statement remains the hierarchy proof
+in App.~\ref{sec:spectrum}.
+
+\section{Numerical illustration and verification}
+\label{sec:numerics}
+\subsection{Common protocol and postprocessing}
+We use two completed CPU campaigns of the canonical
+\texttt{run\_markov\_channel} implementation. Both use
+$\alpha_1=1,3$, $\alpha_2=30$, $n_{\rm shell}=1$, hard-wall
+support truncation, all slabs active, periodic boundaries, zero
+twist, $X$ trial orbitals, perfect correction, and double-precision
+complex arithmetic. Within each cell the order is
+$A+,A-,B+,B-$, with the raster-$y$ schedule ($x$ outer, $y$ inner).
+The initial correlation matrix is $\id/2$. These are exact
+outcome-averaged covariance calculations, not trajectory samples.
+
+Each run contains 61 cycles, with saved occupation spectra at
+$0,1,5,10,20,40,60,61$. We report cycle 61. For all 24 runs,
+the last five successive Frobenius changes are below $10^{-10}$,
+and the full and twirled purity gaps change by less than
+$2\times10^{-10}$ between cycles 60 and 61. This is a numerical
+stationarity check, not a rigorous norm bound on the error to the
+fixed point of a nonnormal map.
+
+The translation-twirled matrix is the postprocessed average
+\begin{equation}
+ \mathcal T_y(G)=\frac1{N_y}\sum_{r=0}^{N_y-1}
+        T_y^rG(T_y^\dagger)^r. \label{eq:twirl}
+\end{equation}
+It is block diagonal in $k_y=2\pi m/N_y$; its spectrum is the union
+of the spectra of those momentum blocks, not an average of the
+original eigenvalues. To see this, in a translation eigenbasis
+each matrix element between $k_y$ and $k_y'$ is multiplied by
+$N_y^{-1}\sum_r e^{ir(k_y-k_y')}=\delta_{k_y,k_y'}$.
+Twirling removes couplings between distinct momenta but retains
+the matrix within each momentum block; those retained matrices
+must then be diagonalized. Twirling does not alter the simulated
+schedule or produce another dynamics run. In particular,
+$\mathcal T_y(G_\steady)$ need not itself be a fixed point of the
+raster-ordered channel.
+
+\subsection{Fixed-width systems}
+The fixed-width campaign uses $N_x=20$ and
+$N_y=20,40,60,80,100$, with inclusive walls at $x=5,15$.
+Table~\ref{tab:fixed} reports the full and twirled purity gaps.
+The $\alpha_1=1$ values are small and nonmonotone; the
+$\alpha_1=3$ values remain near $0.986$. Occupation half-distances
+$\Delta$ are one half of every tabulated entry.
+
+\begin{table}[tbp]
+\caption{Fixed width $N_x=20$: stationary purity gaps
+$\Delta_{\rm pur}=\min|1-2n|$. ``Twirled'' refers to
+Eq.~\eqref{eq:twirl}. All entries are regenerated from the saved
+cycle-61 occupation spectra, with six decimal places.}
+\label{tab:fixed}
+\begin{ruledtabular}
+\begin{tabular}{rcccc}
+ &\multicolumn{2}{c}{$\alpha_1=1$}
+ &\multicolumn{2}{c}{$\alpha_1=3$}\\
+ $N_y$ & Full & Twirled & Full & Twirled\\
+ \input{fixed_width_table.tex}
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+Separate matched spectral calculations exist for these ten cases.
+Their covariance channel gaps decrease from $0.851086$ to
+$0.835675$ for $\alpha_1=1$, and from $0.961228$ to $0.957611$
+for $\alpha_1=3$, between $N_y=20$ and 100. These are $g_C$,
+not the logarithmic rates $\kappa_C$. Thus small stationary purity
+gaps coexist with large finite-size relaxation gaps in this
+fixed-width sequence. Increasing $N_y$ at fixed $N_x$ is not the
+two-dimensional fixed-aspect-ratio thermodynamic limit.
+
+For a concrete reading of the numbers, at
+$(N_x,N_y,\alpha_1)=(20,20,1)$ the full purity gap $0.086790$
+means that the closest occupation is a distance $0.043395$
+from half filling. Independently, $g_C=0.851086$ means that the
+slowest covariance multiplier is approximately $0.148914$
+per cycle. The first number locates an occupation in the final
+state; the second gives the asymptotic decay factor of a perturbation.
+Their sizes need not track one another.
+
+The twirled spectra provide evidence of momentum-grid effects:
+the relevant branch at $\alpha_1=1$ comes closest to half filling
+near $|k_y|\simeq0.05\pi$. Grids with $N_y=40$ and 80 sample that
+region especially closely. The overlapping branch shapes and
+nonmonotone minima are consistent with commensurability, but do
+not prove an exact crossing between grid points or a thermodynamic
+purity-gap closing. No interpolation or fit is used here.
+
+\subsection{Square systems and provenance}
+The square campaign uses $N_x=N_y=L=20,30,40,50,60,70,80$.
+The inclusive wall positions are $\lfloor L/4\rfloor$ and
+$\lfloor3L/4\rfloor$; their integer rounding is retained.
+Table~\ref{tab:square} again shows small, nonmonotone
+$\alpha_1=1$ purity gaps and large $\alpha_1=3$ gaps. These
+data vary both dimensions and must not be pooled with the
+fixed-width sequence as though the geometries were identical.
+This new square \emph{dynamics} sweep did not compute channel
+gaps. Table~\ref{tab:square} makes no claim about their size dependence.
+
+\begin{table}[tbp]
+\caption{Square systems $N_x=N_y=L$: full and postprocessed
+twirled purity gaps, with the same definitions and precision as
+Table~\ref{tab:fixed}. These are stationary occupation results,
+not a square-system channel-gap sweep.}
+\label{tab:square}
+\begin{ruledtabular}
+\begin{tabular}{rcccc}
+ &\multicolumn{2}{c}{$\alpha_1=1$}
+ &\multicolumn{2}{c}{$\alpha_1=3$}\\
+ $L$ & Full & Twirled & Full & Twirled\\
+ \input{square_table.tex}
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+The accompanying build script verifies byte counts and SHA-256
+digests for all 24 result/completion pairs, and independently
+recomputes both purity-gap columns from saved occupation spectra.
+It also verifies the ten matched fixed-width spectral pairs.
+The data roots are the October 5, 2026 runs
+\texttt{steady\_purity\_gap\_v1} (18:41:36 UTC) and
+\texttt{square\_steady\_purity\_gap\_v1} (22:54:46 UTC).
+Exact paths, configuration and source hashes, convergence checks,
+and unrounded values are retained in the machine-readable
+validation record. Small-Fock-space checks test the reset identity,
+covariance convention, exterior-power spectra, operator sectors,
+and continuous-time examples. No new dynamics, fits, or
+thermodynamic extrapolations enter this consolidation.
+
+\begin{thebibliography}{13}
+\bibitem{BPJ} A. Bhuiyan, H. Pan, and C.-M. Jian,
+\href{https://doi.org/10.1103/nk38-ygyq}{Free-fermion dynamics with measurements:
+Topological classification and adaptive preparation of topological states},
+Phys. Rev. Research \textbf{8}, 023147 (2026);
+\href{https://arxiv.org/abs/2507.13437}{arXiv:2507.13437}.
+\bibitem{Burgarth} D. Burgarth, G. Chiribella, V. Giovannetti,
+P. Perinotti, and K. Yuasa,
+\href{https://doi.org/10.1088/1367-2630/15/7/073045}{Ergodic and mixing
+quantum channels in finite dimensions}, New J. Phys. \textbf{15}, 073045 (2013);
+\href{https://arxiv.org/abs/1210.5625}{arXiv:1210.5625}.
+\bibitem{Wolf} M. M. Wolf,
+\href{https://mediatum.ub.tum.de/doc/1701036/document.pdf}{Quantum Channels
+\& Operations: Guided Tour}, lecture notes (2012), Sec.~7.1.
+\bibitem{BZ} T. Barthel and Y. Zhang,
+\href{https://doi.org/10.1088/1742-5468/ac8e5c}{Solving quasi-free and quadratic
+Lindblad master equations for open fermionic and bosonic systems},
+J. Stat. Mech. (2022) 113101;
+\href{https://arxiv.org/abs/2112.08344}{arXiv:2112.08344}.
+\bibitem{DFP} B. Dierckx, M. Fannes, and M. Pogorzelska,
+\href{https://doi.org/10.1063/1.2841326}{Fermionic quasi-free states and maps
+in information theory}, J. Math. Phys. \textbf{49}, 032109 (2008);
+\href{https://arxiv.org/abs/0709.1061}{arXiv:0709.1061}.
+\bibitem{PRZ} Z. Pucha\l{}a, \L{}. Rudnicki, and K. \.{Z}yczkowski,
+\href{https://doi.org/10.1016/j.physleta.2019.04.057}{Pauli semigroups and
+unistochastic quantum channels}, Phys. Lett. A (2019);
+\href{https://arxiv.org/abs/1903.12448}{arXiv:1903.12448}.
+\bibitem{KE} M. J. Kastoryano and J. Eisert,
+\href{https://doi.org/10.1063/1.4822481}{Rapid mixing implies exponential
+decay of correlations}, J. Math. Phys. \textbf{54}, 102201 (2013);
+\href{https://arxiv.org/abs/1303.6304}{arXiv:1303.6304}.
+\bibitem{Bardyn} C.-E. Bardyn, M. A. Baranov, C. V. Kraus, E. Rico,
+A. Imamoglu, P. Zoller, and S. Diehl,
+\href{https://doi.org/10.1088/1367-2630/15/8/085001}{Topology by dissipation},
+New J. Phys. \textbf{15}, 085001 (2013);
+\href{https://arxiv.org/abs/1302.5135}{arXiv:1302.5135}.
+\bibitem{Mittal} R. Mittal, T. Zander, J. Lang, and S. Diehl,
+\href{https://doi.org/10.1103/nj2d-l6pz}{Fermion quantum criticality far
+from equilibrium}, Phys. Rev. X \textbf{16}, 011069 (2026);
+\href{https://arxiv.org/abs/2507.14318}{arXiv:2507.14318}.
+\bibitem{Mao} L. Mao and F. Yang,
+\href{https://doi.org/10.1103/p8xr-4yzl}{Symmetry classification
+correspondence between quadratic Lindbladians and their steady states},
+Phys. Rev. B \textbf{112}, 085136 (2025);
+\href{https://arxiv.org/abs/2503.10763}{arXiv:2503.10763}.
+\bibitem{Sa} L. S\'a, P. Ribeiro, T. Can, and T. Prosen,
+\href{https://doi.org/10.1103/PhysRevB.102.134310}{Spectral transitions and
+universal steady states in random Kraus maps and circuits},
+Phys. Rev. B \textbf{102}, 134310 (2020);
+\href{https://arxiv.org/abs/2007.04326}{arXiv:2007.04326}.
+\bibitem{YS} T. Yoshimura and L. S\'a,
+\href{https://www.nature.com/articles/s41467-024-54164-7}{Robustness of
+quantum chaos and anomalous relaxation in open quantum circuits},
+Nat. Commun. \textbf{15}, 9808 (2024);
+\href{https://arxiv.org/abs/2312.00649}{arXiv:2312.00649}.
+\bibitem{Kukulski} R. Kukulski, I. Nechita, \L{}. Pawela, Z. Pucha\l{}a,
+and K. \.{Z}yczkowski,
+\href{https://doi.org/10.1063/5.0038838}{Generating random quantum channels},
+J. Math. Phys. \textbf{62}, 062201 (2021);
+\href{https://arxiv.org/abs/2011.02994}{arXiv:2011.02994}.
+\end{thebibliography}
+\end{document}

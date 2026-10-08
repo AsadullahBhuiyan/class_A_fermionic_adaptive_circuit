@@ -1,0 +1,5 @@
+build/
+__pycache__/
+.pytest_cache/
+!data/figure_data.npz
+!figures/*.png

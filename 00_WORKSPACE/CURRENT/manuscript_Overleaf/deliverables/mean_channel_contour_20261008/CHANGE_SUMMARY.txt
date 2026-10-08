@@ -1,0 +1,5 @@
+Figure 11 now uses the supplied four-panel presentation: ordered occupations, the alpha1=1 full-system entropy contour of the outcome-averaged Gaussian state, short-range correlations, and channel-gap size fits. The regenerated preview matches the supplied image pixel for pixel.
+
+The caption identifies the unnormalized entropy contour, both-orbital sum, Nx=20, Ny=64, and cycle128. Main-text panel references now point to (c) for correlations and (d) for gap scaling; a short blue paragraph explains that the new contour is evaluated from the averaged state, rather than averaged over trajectory contours.
+
+Existing scientific inputs, retained gap fits, other figures, bibliography, Conclusions and Outlook, and tangent appendix are unchanged. No dynamics were rerun. The manuscript remains 21 pages, with at most one vertical figure stack per page and all stacks at page tops. The standalone Overleaf source package uses figures/ paths.

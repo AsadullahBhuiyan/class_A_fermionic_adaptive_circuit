@@ -1,0 +1,41 @@
+Manuscript compression, 7 October 2026
+
+The revised manuscript is 18 pages, reduced from 25. Main-section order is unchanged. Four appendices remain: A finite-range truncation; B ancilla elimination and fermion counting; C purification/Lyapunov diagnostics; D averaged-channel relaxation.
+
+The full outlook text, proposed directions, and its three editorial comments are preserved exactly. Elsewhere, crossed-out text and addressed GPT/Claude comments are removed; accepted collaborator additions remain. New text is blue.
+
+Main text
+- Abstract tightened to 150 words, emphasizing conditioned boundary observables and their distinction from outcome-averaged dynamics.
+- Gaussian-boundary-limit construction and its reference removed. Weak U(1) explanation retained, with definite-charge Kraus phase cancellation explained in Section II.
+- Constant-depth and spatial-capacity inference removed from the bulk-results paragraph. Rapid Chern convergence and the bulk-boundary connection remain.
+- Mixed-state purification spectroscopy, occupation-to-Lyapunov equations, and spatial slow-mode profile retained. Pure-input polar decomposition and tangent-response discussion removed.
+- Restricted-spectra discussion now interprets two histograms; level-density derivation and window-count discussion removed, including the dependent introductory claim.
+- Existing contour comparison now precedes the per-wall entropy fits. Handedness sentence calibrated against QWZ conventions; modular time remains distinct from circuit time.
+- Repeated estimator information consolidated in the results methods paragraph. Captions retain ensemble counts, windows, and uncertainty types.
+
+Appendices and figures
+- Form-factor obstruction reduced to two sentences; leakage, frame identity, error bound, and topology-preserving theorem retained. Transition shift summarized in prose.
+- fSWAP formula, ordering convention, and gain/loss derivation retained; counting reduced to a single paragraph. Duplicate weak U(1) and Gaussian-boundary-limit subsections removed.
+- Supporting current-algebra and mutual-information derivations/plot removed from the manuscript. Standard current-algebra citation remains in the main text.
+- Figure 7 retains occupation and energy histograms; count panel removed.
+- Figure 8 adds saved alpha1=1,3 contour maps as (a), with shared square-root color scale; original wall fits become (b,c), unchanged numerically.
+- Figure A1 retains native parent-gap and retained-norm panels, stacked vertically.
+- Figure A2 adds Ny=30 slab-only mean Delta(t) and mean raw modular gap through 120 cycles. Means and SEMs checked against all saved trajectory rows.
+- Figure A3 is the unchanged pure-state c_eff convergence figure, now in Appendix C.
+- Seven-size changes summarized: mean Delta increases about 22–35% from 2Ny to 4Ny and 7–12% from 3Ny to 4Ny. The endpoint is a finite-time reference; no asymptotic gap is asserted. Slab-only and full-measurement protocols are not pooled.
+- Tangent-response subsection removed. Surviving support, entropy asymptotics, averaging distinctions, charge qualifications and finite-time limitations remain; zero limiting rate still permits subexponential purification.
+- Averaged-channel appendix retains the ordered affine map, explicit source, stationary series and compressed moment hierarchy, with charge-sector and transient qualifications. Parameter scan removed from the manuscript.
+
+Preservation and validation
+- No new simulations, time fits, or asymptotic extrapolations.
+- All 48 pre-existing scientific NPZ/NPY/CSV products retain their SHA-256 hashes. Retained fit values, covariance convention, averaging order, labels and minor ticks remain unchanged.
+- Fourteen original figure PDFs are unchanged; three figure layouts are revised and one diagnostic is added.
+- Bibliography source is unchanged. All 70 cited keys and all 44 equation/figure/section reference targets resolve; no duplicate labels.
+- latexmk build in /tmp/manuscript_compression_build passes, with no unresolved references/citations or overfull boxes. Only the existing RevTeX float-repair and nameref notices remain.
+- All pages inspected as raster previews; detailed native checks of changed figures and affected main-text, appendix and bibliography pages show readable figures without clipped labels or overlapping annotations.
+- Figure index, overview, checksum manifest and validation receipts updated. The complete pre-revision manuscript, bibliography, figures and renderer sources are preserved in notes/manuscript_revision/compression_review_20261007.
+
+Files
+- manuscript.pdf, manuscript.tex, references.bib
+- manuscript_sources.zip: LaTeX, bibliography, float-placement helper and all 13 included vector figure assets. Build from its root with: latexmk -pdf -outdir=build manuscript.tex
+- validation_notes.json: preservation hashes and audit results.

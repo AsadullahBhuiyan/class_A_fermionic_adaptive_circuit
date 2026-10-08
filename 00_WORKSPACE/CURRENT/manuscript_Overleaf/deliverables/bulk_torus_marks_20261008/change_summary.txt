@@ -1,0 +1,1 @@
+Added single slashes to the top/bottom and double slashes to the left/right of the torus schematic in Figure 2(a). Updated the caption to explain the periodic edge identifications. Numerical plots, data, and other manuscript text remain unchanged. Rebuilt the manuscript and inspected page 6; data/font/hash verification passed.

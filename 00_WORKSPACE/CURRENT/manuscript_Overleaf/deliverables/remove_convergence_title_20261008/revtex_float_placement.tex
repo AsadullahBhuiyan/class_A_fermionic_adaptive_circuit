@@ -1,0 +1,20 @@
+% RevTeX 4.2f: check a deferred float only after an eligible-width pass.
+% This preserves layout and genuine stuck-float detection in the column pass.
+\makeatletter
+% Delay the unchanged-queue check when the full-width pass has no eligible float.
+% The ordinary column pass still diagnoses a truly unplaceable column float.
+\let\manuscript@check@deferlist@stuck\check@deferlist@stuck
+\def\check@deferlist@stuck#1{%
+  \ifx#1\do@startpage
+    \begingroup
+    \def\manuscript@next{\endgroup}%
+    \def\@elt##1{%
+      \ifdim\wd##1<\textwidth\else
+        \def\manuscript@next{\endgroup\manuscript@check@deferlist@stuck#1}%
+      \fi}%
+    \@deferlist
+    \manuscript@next
+  \else
+    \manuscript@check@deferlist@stuck#1%
+  \fi}
+\makeatother

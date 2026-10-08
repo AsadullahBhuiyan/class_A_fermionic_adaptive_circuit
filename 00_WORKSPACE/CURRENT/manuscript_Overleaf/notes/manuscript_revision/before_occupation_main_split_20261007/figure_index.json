@@ -1,0 +1,167 @@
+[
+  {
+    "stem": "Figure_01_schematic",
+    "number": "1",
+    "title": "Domain-wall geometry and adaptive circuit",
+    "old_figure": "1",
+    "change": "Whole stacked figure at 0.75 column width; one generic geometry occupation label; printed font sizes retained",
+    "renderer": "plot_schematic.py",
+    "section": "II",
+    "bundle_number": "1",
+    "included": true
+  },
+  {
+    "stem": "Figure_02_adaptive_circuit",
+    "number": "Standalone circuit",
+    "title": "Adaptive measurement and feedback",
+    "old_figure": "1(b)",
+    "change": "Standalone flowchart retained; included as panel (b) of Figure 1",
+    "renderer": "plot_schematic.py",
+    "section": "Supplementary",
+    "bundle_number": "2 circuit",
+    "included": false
+  },
+  {
+    "stem": "Figure_03_bulk_topology",
+    "number": "2",
+    "title": "Bulk topology",
+    "old_figure": "11 + recent bulk validation",
+    "change": "Only panel letters (a,b) shifted 0.10 source inches left; subplot and colorbar positions restored; geometry border remains flush with convergence left axis",
+    "renderer": "plot_bulk_topology.py",
+    "section": "III",
+    "bundle_number": "3",
+    "included": true
+  },
+  {
+    "stem": "Figure_04_purification",
+    "number": "3",
+    "title": "Slow purification and boundary Lyapunov modes",
+    "old_figure": "7",
+    "change": "3\u00d71: total entropy, log\u2013log Lyapunov gap with alpha1=1 label, slowest-mode density; column entropy removed",
+    "renderer": "plot_purification.py",
+    "section": "III",
+    "bundle_number": "4",
+    "included": true
+  },
+  {
+    "stem": "Figure_05_correlations",
+    "number": "4",
+    "title": "Correlation functions",
+    "old_figure": "3",
+    "change": "Requested two-panel log\u2013log comparison/collapse; manuscript notation and overlines; ry>=2; unchanged beta=2.190333 fit",
+    "renderer": "plot_correlations.py",
+    "section": "III",
+    "bundle_number": "5",
+    "included": true
+  },
+  {
+    "stem": "Figure_06_entropy_charge",
+    "number": "5",
+    "title": "Entropy and charge fluctuations",
+    "old_figure": "4A/B",
+    "change": "Two panels; omit Ay=1; overlined means; common D chord label",
+    "renderer": "plot_entropy_charge.py",
+    "section": "III",
+    "bundle_number": "6",
+    "included": true
+  },
+  {
+    "stem": "Figure_07_entanglement_spectrum",
+    "number": "6",
+    "title": "Occupation spectrum, energy spectrum, and mode count",
+    "old_figure": "Replaces 4C; recent spectra analysis",
+    "change": "Compact 3\u00d71; both normalized histograms pool all 32 origins; raw alpha1=1 count preserved; common D chord label; fit annotation repositioned; shared alpha comparison colors",
+    "renderer": "plot_entanglement_spectrum.py",
+    "section": "III",
+    "bundle_number": "7",
+    "included": true
+  },
+  {
+    "stem": "Figure_09_wall_entropy",
+    "number": "7",
+    "title": "Entropy carried by each wall",
+    "old_figure": "5",
+    "change": "Two-column windows; omit Ay=1; overlined means; common D chord label",
+    "renderer": "plot_wall_entropy.py",
+    "section": "III",
+    "bundle_number": "9",
+    "included": true
+  },
+  {
+    "stem": "Figure_10_modular_evolution",
+    "number": "8",
+    "title": "Modular evolution",
+    "old_figure": "6",
+    "change": "Two snapshot panels across the top; full-width displacement below; prominent 11 pt alpha labels; unchanged data",
+    "renderer": "plot_modular_evolution.py",
+    "section": "III",
+    "bundle_number": "10",
+    "included": true
+  },
+  {
+    "stem": "Figure_11_mean_channel",
+    "number": "9",
+    "title": "Trajectory-averaged dynamics and channel gap",
+    "old_figure": "9",
+    "change": "Compact 4\u00d71; dimensionless channel-gap scan and inverse-length fit; mean-state correlation versus raw separation on log\u2013log axes, cutoff 1e-20; shared alpha comparison colors",
+    "renderer": "plot_mean_channel.py",
+    "section": "III",
+    "bundle_number": "11",
+    "included": true
+  },
+  {
+    "stem": "Figure_A01_ow_truncation",
+    "number": "A1",
+    "title": "Truncated OW modes",
+    "old_figure": "10",
+    "change": "Consistent typography; scientific curves and fits preserved",
+    "renderer": "plot_ow_truncation.py",
+    "section": "Appendix",
+    "bundle_number": "A1",
+    "included": true
+  },
+  {
+    "stem": "Figure_A02_mutual_information",
+    "number": "A2",
+    "title": "Entropy contours and antipodal mutual information",
+    "old_figure": "15",
+    "change": "2\u00d71: all-origin entropy-contour comparison above unchanged mutual information",
+    "renderer": "plot_mutual_information.py",
+    "section": "Appendix",
+    "bundle_number": "A2",
+    "included": true
+  },
+  {
+    "stem": "Figure_08_central_charge",
+    "number": "A3",
+    "title": "Central-charge convergence and size dependence",
+    "old_figure": "8 + recent endpoint-size panel",
+    "change": "Moved from main-text Figure 8 to Appendix C; original two-panel figure unchanged",
+    "renderer": "plot_central_charge.py",
+    "section": "Appendix",
+    "bundle_number": "8",
+    "included": true
+  },
+  {
+    "stem": "Figure_02_hard_wall",
+    "number": "Standalone (former 2)",
+    "title": "Hard-wall support truncation",
+    "old_figure": "2",
+    "change": "Preserved close-up; content incorporated into Figure 1",
+    "renderer": "plot_wall_schematics.py",
+    "section": "Not included",
+    "bundle_number": "2",
+    "included": false
+  },
+  {
+    "stem": "Figure_02_alt_soft_and_hard_walls",
+    "number": "Alternative",
+    "title": "Soft and hard walls",
+    "old_figure": "Original attachment",
+    "change": "Consistent typography; diagram geometry preserved; excluded from manuscript",
+    "renderer": "plot_wall_schematics.py",
+    "section": "Not included",
+    "bundle_number": "2 alt",
+    "included": false
+  }
+]

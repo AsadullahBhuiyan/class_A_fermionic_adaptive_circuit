@@ -1,0 +1,178 @@
+{
+  "schema": "matched_markov_lindblad_campaign_config_v1",
+  "campaign": "matched_markov_lindblad_perfect_correction_v1",
+  "purpose": "Matched deterministic perfect-correction Markov-channel and infinitesimal continuous Lindblad comparison",
+  "model": {
+    "Nx": 20,
+    "Ny": [32, 48, 64],
+    "domain_wall": true,
+    "wall_locations": [5, 15],
+    "wall_interval_inclusive": true,
+    "alpha_run_in_endpoint": 1.0,
+    "alpha_run_out": 30.0,
+    "alpha_prr_conversion": "alpha_PRR=-alpha_run",
+    "trial_orbitals": "X",
+    "finite_nshell": [1, 2],
+    "dw_truncation": [true, false],
+    "init_mode": "maxmix",
+    "n_a_metadata": 0.5,
+    "perfect_correction": true,
+    "periodic_y": true
+  },
+  "grids": {
+    "matched_endpoint_size_scan": {
+      "Ny": [32, 48, 64],
+      "alpha_run_in": [1.0],
+      "nshell": [1, 2],
+      "dw_truncation": [true, false]
+    },
+    "matched_static_alpha_scan": {
+      "Ny": [64],
+      "alpha_run_in": [1.0, 1.5, 1.75, 1.875, 2.125, 2.25, 2.5, 3.0],
+      "nshell": [1, 2],
+      "dw_truncation": [true]
+    },
+    "full_frame_lindblad_endpoint_control": {
+      "Ny": [32, 48, 64],
+      "alpha_run_in": [1.0],
+      "nshell": [null],
+      "dw_truncation": [true, false],
+      "dynamics": ["lindblad"]
+    },
+    "full_frame_lindblad_alpha_control": {
+      "Ny": [64],
+      "alpha_run_in": [1.0, 1.5, 1.75, 1.875, 2.125, 2.25, 2.5, 3.0],
+      "nshell": [null],
+      "dw_truncation": [true],
+      "dynamics": ["lindblad"]
+    }
+  },
+  "dynamics": {
+    "markov_channel": {
+      "canonical_entry_point": "classA_U1FGTN.run_markov_channel",
+      "adapter_entry_point": "dynamics_adapters.run_markov_channel_case",
+      "dephasing": [true],
+      "site_schedule": "random",
+      "root_seed": 20260814,
+      "matched_schedule_seed": true,
+      "cycles_rule": "2*Ny",
+      "save_internal_history": false,
+      "raw_return_convention": "Q=2*G-identity",
+      "excluded_production_arm": {
+        "dephasing": false,
+        "reason": "The literal unit-step dephasing-deleted covariance map is not positivity preserving; retain only as a separately labelled smoke diagnostic."
+      }
+    },
+    "lindblad": {
+      "adapter_entry_point": "dynamics_adapters.run_lindblad_case",
+      "reference_only": "/home/abhuiyan/Fermionic_Lindbladian/CI_Lindblad_DW.py",
+      "dephasing": [false, true],
+      "perfect_correction_coefficients": {
+        "gain": 1.0,
+        "loss": 1.0,
+        "number_dephasing_when_enabled": 1.0
+      },
+      "integrator": "RK4",
+      "dt": 0.05,
+      "dt_validation": [0.1, 0.05, 0.025],
+      "physical_time_rule": "2*Ny",
+      "exact_y_translation_symmetry": true
+    }
+  },
+  "schedule_seed_control": {
+    "enabled": true,
+    "dynamics": "markov_channel",
+    "Ny": 64,
+    "alpha_run_in": 1.0,
+    "nshell": 1,
+    "dw_truncation": true,
+    "dephasing": true,
+    "independent_samples": 10,
+    "separate_from_main_grid_single_seed_case": true
+  },
+  "observation_contract": {
+    "sample_axis": "one sample for the main grid; ten samples for the canonical schedule-seed control",
+    "cycle_coordinates_rule": "0,1,...,2*Ny",
+    "late_cycle_average_start_rule": "Ny+1",
+    "late_cycle_average_end_rule": "2*Ny",
+    "cycle_resolved_observables": [
+      "translation_residual",
+      "successive_state_distance"
+    ],
+    "spectral_checkpoint_rule": "0,Ny/2,Ny,3Ny/2,2Ny",
+    "spectral_checkpoint_observables": [
+      "occupation_min",
+      "occupation_max",
+      "half_occupation_gap",
+      "gaussian_entropy_proxy_per_circumference",
+      "gaussian_charge_variance_proxy"
+    ],
+    "checkpoint_resolved_states": ["G_final", "G_late_cycle_average"],
+    "terminal_products": [
+      "global_natural_occupations",
+      "twirled_ky_natural_occupations",
+      "twirled_ky_x_weights",
+      "wall_branch_occupations",
+      "wall_branch_weights",
+      "momentum_weights_for_global_modes",
+      "leading_relaxation_spectrum"
+    ]
+  },
+  "response": {
+    "enabled": true,
+    "campaign_roles": [
+      "matched_endpoint_size_scan",
+      "full_frame_lindblad_endpoint_control"
+    ],
+    "exclude_roles": ["channel_schedule_seed_control"],
+    "alpha_run_in": [1.0],
+    "finite_nshell": [1],
+    "finite_Ny": [32, 48, 64],
+    "full_frame_Ny": [64],
+    "kick": "local_density_phase",
+    "epsilon": 0.001,
+    "epsilon_multipliers": [0.5, 1.0, 2.0],
+    "horizon_rule": "Ny/2",
+    "lindblad_output_dt": 0.25,
+    "lindblad_q_batch_size": 1,
+    "channel_output_dt_cycles": 1,
+    "fit_time_min": 2.0,
+    "fit_time_max_rule": "0.375*Ny",
+    "wall_window_columns": 1,
+    "channel_source_y": "all",
+    "lindblad_source_y": [0],
+    "raw_profile_schema": "response_density_source_wall_time_y with shape (sample,source_y,wall,time,y)",
+    "derived_profile_schema": "response_density_ty_mean_source with shape (sample,wall,time,y)",
+    "velocity_schema": "response_velocity_source_wall with shape (sample,source_y,wall)"
+  },
+  "analysis": {
+    "wall_weight_threshold": 0.25,
+    "branch_cost_wall_penalty": 0.02,
+    "slope_cutoff_rule": "max(2.5*2*pi/Ny,0.22)",
+    "midgap_mode_count_rule": "2*Ny",
+    "physicality_tolerance": 1e-10,
+    "translation_tolerance_lindblad": 1e-11,
+    "stationarity_relative_tolerance": 1e-8,
+    "channel_momentum_representation": "exact y-twirl (spatial sliding estimator) of the cycles Ny+1,...,2Ny temporal average; always display the untwirled translation residual",
+    "entropy_label_with_dephasing": "Gaussian entropy proxy",
+    "no_thermodynamic_extrapolation": true
+  },
+  "storage": {
+    "result_schema": "matched_markov_lindblad_case_v1",
+    "compression": "np.savez_compressed",
+    "atomic_case_directories": true,
+    "success_marker": "_SUCCESS",
+    "failure_marker": "_FAILED",
+    "never_overwrite": true,
+    "manifest_hash": "sha256",
+    "legacy_archive_policy": "read-only; record hashes but never copy or relabel legacy numerical products"
+  },
+  "execution": {
+    "backend": "numpy_scipy_cpu_complex128",
+    "blas_threads_per_worker": 1,
+    "default_workers": 8,
+    "default_cpu_range": "0-7",
+    "cpu_range": "configurable; never infer sibling logical CPUs are free",
+    "production_launch": "disabled_until_adapters_and_smoke_gates_pass"
+  }
+}

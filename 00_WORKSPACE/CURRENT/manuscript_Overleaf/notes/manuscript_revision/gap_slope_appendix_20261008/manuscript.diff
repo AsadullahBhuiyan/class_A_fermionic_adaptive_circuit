@@ -1,0 +1,46 @@
+--- before/manuscript.tex
++++ after/manuscript.tex
+@@ -315,7 +315,7 @@
+ 
+ \newtext{Purification from maximal mixing thus gives access to the trajectory operator's Lyapunov spectrum, including the spectrum that filters pure Gaussian trajectories, whose full-system occupations are already zero or one. Relative spectral separations govern loss of initial-state memory and contraction of perturbations, with implications for local stability in the sense of dynamical systems theory~\cite{BulchandaniSondhiChalker2024}; Appendix~\ref{app:TrajectoryResponse} develops this connection and its sector and overlap qualifications. Related spectral transitions have been identified in monitored circuits~\cite{Oshima2025}, while the correlations, entanglement, and chirality measurements below establish the spatial character of the conditioned boundary states.}
+ 
+-The independent size sweep in Fig.~\ref{fig:Lyapunov}(a) gives $\overline\Delta\propto N_y^{-z}$ with $z=1.08\pm0.05$ at $t=2N_y$. The decrease is consistent with slow boundary modes, although a finite-time size scan alone does not determine the infinite-time Lyapunov gap. We locate the slowest mode by taking the normalized eigenvector $|\phi_{\Delta}\rangle$ whose occupation is closest to $1/2$, and compute
++The independent size sweep in Fig.~\ref{fig:Lyapunov}(a) gives $\overline\Delta\propto N_y^{-z}$ with $z=1.08\pm0.05$ at $t=2N_y$. The decrease is consistent with slow boundary modes, although a finite-time size scan alone does not determine the infinite-time Lyapunov gap. \newtext{A complementary analysis of the saved slab-only histories gives a late-window raw-gap growth rate $\overline a_{\rm late}/2\propto N_y^{-z_{\rm slope}}$ with $z_{\rm slope}=1.07\pm0.09$ [Fig.~\ref{fig:GapConvergence}(c)]. Taking this slope cancels a constant raw-gap offset, but the growth rate is a finite-window diagnostic and does not by itself determine the asymptotic gap (Appendix~\ref{app:Lyapunov}).} We locate the slowest mode by taking the normalized eigenvector $|\phi_{\Delta}\rangle$ whose occupation is closest to $1/2$, and compute
+ \begin{equation}
+  p_{\Delta}(x,y)=\sum_\mu|\langle x,y,\mu|\phi_{\Delta}\rangle|^2.
+  \label{eq:SlowestModeDensity}
+@@ -408,7 +408,7 @@
+ \begin{figure}[!htbp]
+     \centering
+     \includegraphics[width=\columnwidth]{Figure_06_entropy_charge.pdf}
+-    \caption{\newtext{\textbf{Entanglement and charge fluctuations.} (a) Mean strip entropy and (b) charge variance for $N_y=30,35,\ldots,60$, from $S=100$ independent random-pure half-filled trajectories after $2N_y$ cycles per size. The vertical-axis $\Delta$ subtracts the half-strip value; $D(N_y/2)$ uses the same rounded-down argument for odd $N_y$. Dashed lines are joint fits to Eq.~\eqref{eq:CFTScaling} over $8\leq A_y\leq\lfloor N_y/2\rfloor$ (shaded). Bars and fit errors in (a,b) are trajectory SEMs; $A_y=1$ is omitted from display only. (c) Saved $c_{\rm eff}=3m_1$ convergence for $N_x=20$, $N_y=30,40,50$, with $S=100$ independent random-pure trajectories per size through $2N_y$ cycles. Mean entropy curves are fit with a free intercept over $8\leq A_y\leq N_y/2$; points show every fifth cycle from $t=10$, with bars equal to three times the slope's regression standard error. The inset shows $|c_{\rm eff}-1|$ on a logarithmic axis.}}
++    \caption{\newtext{\textbf{Entanglement and charge fluctuations.} All panels use $S=100$ independent random-pure half-filled trajectories per size, $N_x=20$. (a,b) Mean strip entropy and charge variance at $2N_y$ cycles for $N_y=30,35,\ldots,60$. Vertical $\Delta$ subtracts the half-strip value; $D(N_y/2)$ uses $\lfloor N_y/2\rfloor$ for odd $N_y$. Dashed joint fits to Eq.~\eqref{eq:CFTScaling} use $8\leq A_y\leq\lfloor N_y/2\rfloor$ (shaded); bars and fit errors are trajectory SEMs. $A_y=1$ is omitted only from display. (c) Saved $c_{\rm eff}=3m_1$ for $N_y=30,40,50$ through $2N_y$ cycles: free-intercept fits of mean entropy over $8\leq A_y\leq N_y/2$, shown every fifth cycle from $t=10$. Bars are three slope regression standard errors; the inset shows $|c_{\rm eff}-1|$ on a log axis.}}
+     \label{fig:EntropyCharge}
+ \end{figure}
+ }
+@@ -700,6 +700,16 @@
+ Its eigenvector density weights the corresponding entropy contour. Thus a positive limiting gap gives exponential entropy rate $2\Delta$ at fixed size, whereas a closing gap removes a size-uniform rate. A zero limiting rate still permits subexponential purification. The number of modes and record fluctuations also affect total entropy. In particular, $\overline\Delta$ averages the minimum within each record; a typical-record rate need not govern the mean entropy if rare records dominate it. Born ensembles also depend on initialization.
+ 
+ Figure~\ref{fig:GapConvergence} uses saved slab-only histories with a Born-prepared pure exterior. At $N_y=30$, the raw modular gap $g_{\rm mod}(t)=2t\Delta(t)$ grows through $4N_y$ while $\overline\Delta(t)$ still drifts. Across $N_y=20,24,30,36,44,56,60$, the mean rate increases by about $22$--$35\%$ from $2N_y$ to $4N_y$ and $7$--$12\%$ from $3N_y$ to $4N_y$. Hence these results are not a constant numerator divided by time, but the endpoint is a finite-time reference, not an established asymptotic gap. An affine raw-gap growth $g_{\rm mod}\simeq at+b$ would give $\Delta\simeq a/2+b/(2t)$; at $t=2N_y$ the latter term scales as $1/N_y$ if $b$ is size independent. The fitted $z$ in Fig.~\ref{fig:Lyapunov} therefore remains a finite-time exponent. Slab-only histories and full-measurement histories are distinct protocols and are not pooled.
++
++\newtext{To test the size dependence after canceling a constant raw-gap offset, we compute half the secant slope over the last saved interval within each record,
++\begin{equation}
++ \frac{a_{\mathrm{late},\rec}}{2}
++ =\frac{g_{\mathrm{mod},\rec}(4N_y)-g_{\mathrm{mod},\rec}(3N_y)}{2N_y}.
++ \label{eq:LateRawGapGrowth}
++\end{equation}
++The mean and SEM are taken over the 100 trajectory slopes at each size, retaining the temporal covariance of the paired endpoints. Figure~\ref{fig:GapConvergence}(c) compares $\overline a_{\rm late}/2$ with $\overline\Delta(2N_y)$ on all seven sizes. A power-law fit weighted by the propagated log-space SEMs gives $z_{\rm slope}=1.068\pm0.086$, where the uncertainty is the formal weighted-regression standard error. As a consistency check, fitting $g_{\rm mod}(t)$ with a free intercept over all saved cycles in $[3N_y,4N_y]$ within each trajectory and then averaging half the fitted slopes gives $z_{\rm fit}=1.075\pm0.092$. No bootstrap is used.}
++
++\newtext{A constant intercept cancels exactly in Eq.~\eqref{eq:LateRawGapGrowth}, whereas interpreting this growth rate as a limiting Lyapunov gap requires asymptotically linear raw-gap growth. For nonlinear growth, a secant slope and $\Delta(t)=g_{\rm mod}(t)/(2t)$ are different quantities. The approximately inverse-circumference trend survives the slope comparison, strengthening the finite-time evidence, but the minimizing mode can change with cycle and the observation windows themselves grow with $N_y$. These results do not establish an infinite-time gap or exponent.}
+ }
+ 
+ {\color{blue}
+@@ -775,7 +785,7 @@
+ \begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{Figure_A05_gap_convergence.pdf}
+- \caption{\newtext{\textbf{Fixed-size purification diagnostic.} (a) Mean finite-time rate $\overline\Delta(t)$ and (b) mean raw modular gap $\overline{g_{\rm mod}}(t)$ for $N_x=20$, $N_y=30$, $\alpha_1=1$, $\alpha_2=30$, and $w=1$, through 120 cycles. The saved slab-only protocol starts with a maximally mixed slab and a Born-prepared pure exterior; $S=100$ independent trajectories. The minimum is taken within each trajectory before averaging. Bands are one trajectory SEM; the vertical reference marks $2N_y$. No time fit or extrapolation is shown.}}
++ \caption{\newtext{\textbf{Finite-time purification and raw-gap growth.} (a) Mean rate $\overline\Delta(t)$ and (b) mean raw modular gap $\overline{g_{\rm mod}}(t)$ for $N_x=20$, $N_y=30$, $\alpha_1=1$, $\alpha_2=30$, and $w=1$, through 120 cycles. The saved slab-only protocol starts with a maximally mixed slab and a Born-prepared pure exterior; $S=100$ independent trajectories. The minimum is taken within each trajectory before averaging. Bands are one trajectory SEM; the vertical reference marks $2N_y$. (c) Seven-size comparison of $\overline\Delta(2N_y)$ with half the mean raw-gap secant slope over $[3N_y,4N_y]$, defined in Eq.~\eqref{eq:LateRawGapGrowth}. Bars are trajectory SEMs, with endpoint differences formed within each trajectory. Dashed lines are SEM-weighted power-law fits over all seven sizes; the displayed slope exponent has a formal regression error. The growth rate is a finite-window diagnostic, not an established asymptotic gap.}}
+  \label{fig:GapConvergence}
+ \end{figure}
+ 

@@ -1,0 +1,34 @@
+{
+  "schema": "alpha3_frozen_exterior_endpoints_v1",
+  "Nx": 20,
+  "Ny": 64,
+  "wall_locations": [
+    5,
+    15
+  ],
+  "alpha_1": 3.0,
+  "alpha_2": 30.0,
+  "nshell": 1,
+  "wall": "soft",
+  "dw_truncation": false,
+  "meas_slab_only": false,
+  "active_initialization": "maxmix",
+  "exterior_preparation": "none",
+  "exterior_seed": 2026091403,
+  "perfect_correction": true,
+  "dephasing": true,
+  "dtype": "complex128",
+  "family": "lindblad",
+  "cycles": 128,
+  "dt": 0.05,
+  "site_schedule": "random",
+  "schedule_seed": 2257147520926244099,
+  "late_average_cycles": [
+    65,
+    128
+  ],
+  "smoke": false,
+  "canonical_entry_point": "classA_U1FGTN.run_lindblad_evolution",
+  "hard_schedule_note": "Uniform random permutations of active centers; not paired site words with full-system soft runs",
+  "conditional_ensemble": "Measurement outcomes averaged analytically"
+}

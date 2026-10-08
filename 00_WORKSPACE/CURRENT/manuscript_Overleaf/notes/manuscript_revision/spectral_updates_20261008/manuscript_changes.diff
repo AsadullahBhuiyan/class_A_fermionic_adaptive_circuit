@@ -1,0 +1,90 @@
+--- before/manuscript.tex
++++ after/manuscript.tex
+@@ -71,7 +71,7 @@
+ \date{\today}
+ 
+ \begin{abstract}
+-\newtext{We demonstrate an adaptive free-fermion circuit that prepares chiral critical boundaries in two dimensions using finite-range occupation measurements and local feedback, without postselection. Fresh ancillary modes correct undesired outcomes, yielding an equivalent description in terms of monitored fermion gain and loss. A spatially patterned protocol creates a Chern slab within a trivial exterior. The conditioned pure states exhibit algebraic boundary correlations and logarithmic entanglement and charge fluctuations with coefficients close to those of free chiral fermions. Wall-resolved entropy and opposite modular propagation support one chiral complex-fermion branch per interface. Purification from a mixed initial state exposes slow modes localized at the same interfaces, with finite-time Lyapunov gaps decreasing with circumference. Discarding the measurement record instead produces short-range two-point correlations and a finite relaxation gap in the averaged channel. These results establish critical chiral boundary signatures in the conditioned trajectories and distinguish their preparation dynamics from relaxation of the outcome average.}
++\newtext{We demonstrate an adaptive free-fermion circuit that prepares chiral critical boundaries in two dimensions using finite-range occupation measurements and local feedback, without postselection. The protocol addresses locality constraints on dissipative stabilization of pure Chern states. Fresh ancillary modes correct undesired outcomes, yielding an equivalent description in terms of monitored fermion gain and loss. A spatially patterned protocol creates a Chern slab within a trivial exterior. The conditioned pure states exhibit algebraic boundary correlations and logarithmic entanglement and charge fluctuations with coefficients close to those of free chiral fermions. Wall-resolved entropy and opposite modular propagation support one chiral complex-fermion branch per interface. Purification from a mixed initial state exposes slow modes localized at the same interfaces, with finite-time Lyapunov gaps decreasing with circumference. Discarding the measurement record instead produces short-range two-point correlations and a finite relaxation gap in the averaged channel. These results establish critical chiral boundary signatures in the conditioned trajectories and distinguish their preparation dynamics from relaxation of the outcome average.}
+ \end{abstract}
+ 
+ \maketitle
+@@ -227,7 +227,7 @@
+ 
+ In the following, we numerically study the adaptive circuit of Sec.~\ref{sec:Model} with hard domain walls. Unless stated otherwise, we use $N_x=20$ with interfaces at $x=5$ and $15$, $\alpha_2=30$, and truncation range $w=1$. We take $\alpha_1=1$ inside the slab, where the target state has $\mc C=1$, and use $\alpha_1=3$ as a trivial control. In Ref.~\cite{BhuiyanPanJian2026}, we found that the degrees of freedom near such a domain wall purify algebraically slowly, and we anticipated nonequilibrium analogs of chiral edge modes there. In this section, we characterize these modes.
+ {\color{blue}
+-Throughout this section, an overline denotes the Born-rule average over measurement trajectories, estimated using $S=100$ independent trajectories per parameter set unless stated otherwise. We use $t$ for the circuit cycle number throughout; modular evolution is parameterized separately by $t_{\rm mod}$. For subsystem observables, we also average over all translated origins $y_0$ along the periodic $y$ direction, first within each trajectory and then over trajectories. Entropies, charge variances, and other nonlinear observables are evaluated for each trajectory and subsystem position before averaging. Coordinates within a translated subsystem are reported relative to its origin, $\delta y=(y-y_0)\bmod N_y$. Additional spatial averages and exceptions are stated where they enter. Uncertainty bands and bars denote one trajectory SEM unless otherwise specified; the entropy and wall-fit errors retain correlations between strip widths, whereas the correlator exponent and $c_{\rm eff}$ use regression errors. For modular evolution we clip $2\nu-1$ at $\pm(1-10^{-10})$ when constructing $h_A$.
++Throughout this section, an overline denotes the Born-rule average over measurement trajectories, estimated using $S=100$ independent trajectories per parameter set unless stated otherwise. We use $t$ for the circuit cycle number throughout; modular evolution is parameterized separately by $t_{\rm mod}$. For subsystem observables, we also average over all translated origins $y_0$ along the periodic $y$ direction, first within each trajectory and then over trajectories. Entropies, charge variances, and other nonlinear observables are evaluated for each trajectory and subsystem position before averaging. Coordinates within a translated subsystem are reported relative to its origin, $\delta y=(y-y_0)\bmod N_y$. Additional spatial averages and exceptions are stated where they enter. Uncertainty bands and bars denote one trajectory SEM unless otherwise specified; the entropy and wall-fit errors retain correlations between strip widths, whereas the correlator exponent and $c_{\rm eff}$ use regression errors. For modular evolution we clip $2\nu-1$ at $\pm(1-10^{-10})$ when constructing $h_A$. The trivial-control purification histories use a numerically clipped covariance continuation after cycle 30.
+ 
+  We begin with the topology of the prepared bulk and the slow purification of its boundaries. We then characterize the pure boundary states through correlations, entanglement, charge fluctuations, and their restricted spectra, before resolving the two walls and their modular propagation. Finally, we compare these trajectory-resolved signatures with the outcome-averaged channel.
+ }
+@@ -328,7 +328,7 @@
+ \begin{figure}[!htbp]
+     \centering
+     \includegraphics[width=\columnwidth]{Figure_04_purification.pdf}
+-    \caption{\newtext{\textbf{Topological and trivial purification.} Full-system maximally mixed initial states on a $20\times30$ lattice, evolved for 60 cycles with $S=100$ independent trajectories per $\alpha_1$. (a) Mean entropy per circumference for $\alpha_1=1,3$ on logarithmic axes; bands are one trajectory SEM. The trivial plateau is a numerical floor. (b,c) Mean ascending occupation spectra at $t=1,5,60$ for (b) $\alpha_1=1$ and (c) $\alpha_1=3$. Eigenvalues are sorted within each trajectory and cycle before averaging at fixed rank; all 1,200 ranks are displayed as markers. Increasing cycle number runs from light to dark blue in (b) and orange-red in (c), with the same marker shapes in both panels. Insets show ranks $580\leq j\leq620$ with identical limits. Intermediate occupations persist longer in the topological case. For $\alpha_1=3$, covariance eigenvalues are numerically clipped after cycle 30; the endpoint retains this stabilization.}}
++    \caption{\newtext{\textbf{Topological and trivial purification.} Full-system maximally mixed initial states on a $20\times30$ lattice, evolved for 60 cycles with $S=100$ independent trajectories per $\alpha_1$. (a) Mean entropy per circumference for $\alpha_1=1,3$ on logarithmic axes; bands are one trajectory SEM. The trivial plateau is a numerical floor. (b,c) Mean ascending occupation spectra at $t=1,5,60$ for (b) $\alpha_1=1$ and (c) $\alpha_1=3$. Eigenvalues are sorted within each trajectory and cycle before averaging at fixed rank; all 1,200 ranks are displayed as markers. Increasing cycle number runs from light to dark blue in (b) and orange-red in (c), with the same marker shapes in both panels. Insets show ranks $580\leq j\leq620$ with identical limits. Intermediate occupations persist longer in the topological case.}}
+     \label{fig:Purification}
+ \end{figure}
+ 
+@@ -408,7 +408,7 @@
+ \begin{figure}[!htbp]
+     \centering
+     \includegraphics[width=\columnwidth]{Figure_06_entropy_charge.pdf}
+-    \caption{\newtext{\textbf{Entanglement and charge fluctuations.} (a) Mean strip entropy and (b) charge variance for $N_y=30,35,\ldots,60$, from $S=100$ independent random-pure half-filled trajectories after $2N_y$ cycles per size. The vertical-axis $\Delta$ subtracts the half-strip value; $D(N_y/2)$ uses the same rounded-down argument for odd $N_y$. Dashed lines are joint fits to Eq.~\eqref{eq:CFTScaling} over $8\leq A_y\leq\lfloor N_y/2\rfloor$ (shaded). Bars and fit errors are trajectory SEMs. The point $A_y=1$ is omitted from display only.}}
++    \caption{\newtext{\textbf{Entanglement and charge fluctuations.} (a) Mean strip entropy and (b) charge variance for $N_y=30,35,\ldots,60$, from $S=100$ independent random-pure half-filled trajectories after $2N_y$ cycles per size. The vertical-axis $\Delta$ subtracts the half-strip value; $D(N_y/2)$ uses the same rounded-down argument for odd $N_y$. Dashed lines are joint fits to Eq.~\eqref{eq:CFTScaling} over $8\leq A_y\leq\lfloor N_y/2\rfloor$ (shaded). Bars and fit errors in (a,b) are trajectory SEMs; $A_y=1$ is omitted from display only. (c) Saved $c_{\rm eff}=3m_1$ convergence for $N_x=20$, $N_y=30,40,50$, with $S=100$ independent random-pure trajectories per size through $2N_y$ cycles. Mean entropy curves are fit with a free intercept over $8\leq A_y\leq N_y/2$; points show every fifth cycle from $t=10$, with bars equal to three times the slope's regression standard error. The inset shows $|c_{\rm eff}-1|$ on a logarithmic axis.}}
+     \label{fig:EntropyCharge}
+ \end{figure}
+ }
+@@ -422,19 +422,24 @@
+  \varepsilon_a=\log\frac{1-\nu_a}{\nu_a}.
+  \label{eq:EntanglementEnergies}
+ \end{equation}
+-For the half-strip at $N_y=32$, the occupation spectrum is concentrated near $\nu=0,1$ [Fig.~\ref{fig:Spectrum}(a)], while the conditional energy density within $|2\nu-1|<0.99$ remains finite near $\varepsilon=0$ for $\alpha_1=1$ and is depleted there for $\alpha_1=3$ [Fig.~\ref{fig:Spectrum}(b)]. This supports the boundary-mode interpretation; the sparse near-zero levels remaining in the trivial histogram prevent an inference of a strict entanglement gap. The histograms characterize spectral shape at one width, while Fig.~\ref{fig:EntropyCharge} measures the entropy and charge scaling directly.
++For the half-strip at $N_y=32$, the occupation spectrum is concentrated near $\nu=0,1$ [Fig.~\ref{fig:Spectrum}(a)], while the conditional energy density within $|2\nu-1|<0.99$ remains finite near $\varepsilon=0$ for $\alpha_1=1$ and is depleted there for $\alpha_1=3$ [Fig.~\ref{fig:Spectrum}(b)]. This supports the boundary-mode interpretation; the sparse near-zero levels remaining in the trivial histogram prevent an inference of a strict entanglement gap. The histograms characterize spectral shape at one width. To resolve its width dependence, define
++\begin{equation}
++ N_{0.99}(A_y)=\sum_a\mathbf1_{\{|2\nu_a-1|<0.99\}}.
++ \label{eq:SpectralWindowCount}
++\end{equation}
++Figure~\ref{fig:Spectrum}(c) shows logarithmic growth of the mean count for $\alpha_1=1$ over the fitted widths, while the trivial control saturates. This is consistent with the logarithmic accumulation of low entanglement-energy levels in free-fermion spectra~\cite{EislerPeschel2013}; the slope depends on the chosen occupation window and is not a central charge.
+ }
+ 
+ \begin{figure}[!htbp]
+     \centering
+     \includegraphics[width=\columnwidth]{Figure_07_entanglement_spectrum.pdf}
+-    \caption{\newtext{\textbf{Restricted occupation and energy spectra.} Hard-wall states at $N_x=20$, $N_y=32$, cycle 64, from $S=100$ independent random-pure half-filled trajectories per $\alpha_1=1,3$. (a) Unit-area occupation histograms on a logarithmic vertical axis. (b) Conditional unit-area energy densities for $|2\nu-1|<0.99$, using 101 bins on $[-\log199,\log199]$. Both panels pool all 32 translated half-strips. The energy window contains 95,398 and 83,326 observations for $\alpha_1=1,3$.}}
++    \caption{\newtext{\textbf{Restricted occupation and energy spectra.} Hard-wall states at $N_x=20$, $N_y=32$, cycle 64, from $S=100$ independent random-pure half-filled trajectories per $\alpha_1=1,3$. (a) Unit-area occupation histograms on a logarithmic vertical axis. (b) Conditional unit-area energy densities for $|2\nu-1|<0.99$, using 101 bins on $[-\log199,\log199]$. Both panels pool all 32 translated half-strips. The energy window contains 95,398 and 83,326 observations for $\alpha_1=1,3$. (c) Mean $N_{0.99}(A_y)$ for both controls; translated origins are averaged within each trajectory before the trajectory mean and SEM. The dashed line fits $\alpha_1=1$ only over $5\leq A_y\leq16$ (shaded), retaining the existing fit and its trajectory SEM. No fit is applied to $\alpha_1=3$.}}
+     \label{fig:Spectrum}
+ \end{figure}
+ 
+ 
+ {\color{blue}
+-We next check how the entropy coefficient approaches its late-time value. For each size and cycle, we fit the mean strip entropy to Eq.~\eqref{eq:CFTScaling}, with a free intercept over $8\leq A_y\leq N_y/2$, and write $c_{\rm eff}=3m_1$ for the fitted slope. Figure~\ref{fig:Ceff} in Appendix~\ref{app:Lyapunov} shows the approach from random pure initial states. The coefficient decreases toward a value close to one. The inset resolves the remaining deviation for $N_y=30,40,50$; at late cycles, the excess over one is smaller for the larger circumferences shown. \claudeadd{Together with the charge fluctuations, these results support logarithmic boundary entanglement in the conditioned states, with a coefficient close to one over the sizes studied.}
++We next check how the entropy coefficient approaches its late-time value. For each size and cycle, we fit the mean strip entropy to Eq.~\eqref{eq:CFTScaling}, with a free intercept over $8\leq A_y\leq N_y/2$, and write $c_{\rm eff}=3m_1$ for the fitted slope. Figure~\ref{fig:EntropyCharge}(c) shows the approach from random pure initial states, independently of the mixed-state purification diagnostic. The coefficient decreases toward a value close to one. The inset resolves the remaining deviation for $N_y=30,40,50$; at late cycles, the excess over one is smaller for the larger circumferences shown. \claudeadd{Together with the charge fluctuations, these results support logarithmic boundary entanglement in the conditioned states, with a coefficient close to one over the sizes studied.}
+ }
+ 
+ 
+@@ -700,6 +705,7 @@
+ {\color{blue}
+ \subsection{Response to initial-state perturbations}
+ \label{app:TrajectoryResponse}
++\newtext{These results quantify how quickly a prepared trajectory forgets perturbations of its initial state, and hence its local stability along a fixed record.}
+ 
+ Hold the measurement outcomes fixed and vary the initial Gaussian covariance. Differentiating Eq.~\eqref{eq:CovarianceUpdate} gives
+ \begin{align}
+@@ -773,15 +779,6 @@
+  \label{fig:GapConvergence}
+ \end{figure}
+ 
+-\newtext{The independent pure-state diagnostic in Fig.~\ref{fig:Ceff} shows the entropy coefficient approaching one for $N_y=30,40,50$. Its initial states and regression errors differ from the mixed-state purification diagnostic above.}
+-
+-\begin{figure}[!htbp]
+-    \centering
+-    \includegraphics[width=\columnwidth]{Figure_08_central_charge.pdf}
+-    \caption{\newtext{\textbf{Convergence of the entropy coefficient.} Cycle dependence of $c_{\rm eff}=3m_1$ for $N_x=20$ and $N_y=30,40,50$, from $S=100$ independent random-pure trajectories per size evolved through $2N_y$ cycles. Strip origins are averaged within each trajectory, then trajectories are averaged before fitting $\overline S$ versus log chord length with a free intercept over $8\leq A_y\leq N_y/2$. Points show every fifth cycle from $t=10$; bars are three times the regression standard error of the mean-curve slope. The inset resolves $|c_{\rm eff}-1|$ on a logarithmic scale. The dashed horizontal reference is one.}}
+-    \label{fig:Ceff}
+-\end{figure}
+-
+ \section{Relaxation gap of the averaged channel}
+ \label{app:ChannelGap}
+ {\color{blue}

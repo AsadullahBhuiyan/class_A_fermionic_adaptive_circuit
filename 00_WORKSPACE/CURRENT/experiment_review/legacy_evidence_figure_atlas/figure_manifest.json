@@ -1,0 +1,468 @@
+{
+  "figures": [
+    {
+      "claim": "Exact wall recovers c=1, beta about 2.07, opposite physical/modular velocities, unit signed flow, and an accepted width N_x=20.",
+      "evidence_class": "completed deterministic audit",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_01_exact_wall_benchmark.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_01_exact_wall_benchmark.png",
+      "sources": [
+        "00_WORKSPACE/CURRENT/experiment_review/b0_exact_domain_wall/results/20260816_191957/manifest.json",
+        "00_WORKSPACE/CURRENT/experiment_review/b0_exact_domain_wall/results/20260816_191957/processed/tables/entropy_fits.csv",
+        "00_WORKSPACE/CURRENT/experiment_review/b0_exact_domain_wall/results/20260816_191957/processed/tables/correlator_fits.csv",
+        "00_WORKSPACE/CURRENT/experiment_review/b0_exact_domain_wall/results/20260816_191957/processed/tables/modular_velocities.csv",
+        "00_WORKSPACE/CURRENT/experiment_review/b0_exact_domain_wall/results/20260816_191957/processed/tables/response_velocities.csv",
+        "00_WORKSPACE/CURRENT/experiment_review/b0_exact_domain_wall/results/20260816_191957/processed/tables/twist_flow_counts.csv",
+        "00_WORKSPACE/CURRENT/experiment_review/b0_exact_domain_wall/results/20260816_191957/processed/tables/width_selection.csv"
+      ],
+      "stem": "result_01_exact_wall_benchmark"
+    },
+    {
+      "claim": "Wall tangent gaps are far below uniform controls and the selected slow sector is sharply wall localized.",
+      "evidence_class": "canonical CPU and GPU finite-time precursors",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_02_tangent_slow_sector.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_02_tangent_slow_sector.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/campaign_manifest.json",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny20_perfect/spectral/N20x20_dw_dwtrunc1_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny20_perfect/spectral/N20x20_dw_dwtrunc1_nsh1_perfect_correction/spectral_diagnostics.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny20_perfect/spectral/N20x20_uniform_dwtrunc0_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny20_perfect/spectral/N20x20_uniform_dwtrunc0_nsh1_perfect_correction/spectral_diagnostics.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny22_perfect/spectral/N20x22_dw_dwtrunc1_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny22_perfect/spectral/N20x22_dw_dwtrunc1_nsh1_perfect_correction/spectral_diagnostics.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny22_perfect/spectral/N20x22_uniform_dwtrunc0_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny22_perfect/spectral/N20x22_uniform_dwtrunc0_nsh1_perfect_correction/spectral_diagnostics.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny24_perfect/spectral/N20x24_dw_dwtrunc1_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny24_perfect/spectral/N20x24_dw_dwtrunc1_nsh1_perfect_correction/spectral_diagnostics.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny24_perfect/spectral/N20x24_uniform_dwtrunc0_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny24_perfect/spectral/N20x24_uniform_dwtrunc0_nsh1_perfect_correction/spectral_diagnostics.npz",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x30_DW1_dwtrunc1_a2-30_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x30_DW1_dwtrunc1_a2-30_nsh1_perfect_correction/lyapunov_min_abs_vector.npz",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x30_DW0_dwtrunc0_a2-1_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x30_DW0_dwtrunc0_a2-1_nsh1_perfect_correction/lyapunov_min_abs_vector.npz",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x40_DW1_dwtrunc1_a2-30_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x40_DW1_dwtrunc1_a2-30_nsh1_perfect_correction/lyapunov_min_abs_vector.npz",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x40_DW0_dwtrunc0_a2-1_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x40_DW0_dwtrunc0_a2-1_nsh1_perfect_correction/lyapunov_min_abs_vector.npz",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x50_DW1_dwtrunc1_a2-30_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x50_DW1_dwtrunc1_a2-30_nsh1_perfect_correction/lyapunov_min_abs_vector.npz",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x50_DW0_dwtrunc0_a2-1_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x50_DW0_dwtrunc0_a2-1_nsh1_perfect_correction/lyapunov_min_abs_vector.npz"
+      ],
+      "stem": "result_02_tangent_slow_sector"
+    },
+    {
+      "claim": "The topological wall purifies much more slowly than a trivial control and the late entropy is concentrated at the wall.",
+      "evidence_class": "canonical ensemble dynamics plus smaller spatial precursor",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_03_purification_wall_residual.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_03_purification_wall_residual.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/campaigns/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/campaign_manifest.json",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/analysis_outputs/purification_charge_sharpening_alpha_sweep_cpu/N16_alpha-fine21_nsh1_dwtrunc1_init-maxmix_S10_cycles-2Ny/tables/steady_state_summary.csv",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/campaigns/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/runs/N20x30_nsh1_init-maxmix_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/campaigns/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/runs/N20x40_nsh1_init-maxmix_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/campaigns/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/runs/N20x50_nsh1_init-maxmix_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/analysis_outputs/purification_entropy_contours_maxmix_cpu/N16x32_C100_dwtrunc0/y_integrated_entropy_curves.csv",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/analysis_outputs/purification_entropy_contours_maxmix_cpu/N16x32_C100_dwtrunc1/y_integrated_entropy_curves.csv"
+      ],
+      "stem": "result_03_purification_wall_residual"
+    },
+    {
+      "claim": "Direct GPU central-charge estimates c_eff=3m remain near one across both the controlled S=100 sequence and the broader time-scaled S=10 sequence.",
+      "evidence_class": "canonical GPU precursor plus small large-circumference pilot",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_04_entropy_log_chord.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_04_entropy_log_chord.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_large_entanglement_scaling_N20/gpu_data/pure_state_entanglement_slope_vs_cycle/runs/N20x40_nsh1_dwtrunc1_C100_S10/slope_vs_cycle.csv",
+        "00_WORKSPACE/COLAB/colab_large_entanglement_scaling_N20/gpu_data/pure_state_entanglement_slope_vs_system_size/runs/N20x30_nsh1_dwtrunc1_C50_S100/entropy_curves.csv",
+        "00_WORKSPACE/COLAB/colab_large_entanglement_scaling_N20/gpu_data/pure_state_entanglement_slope_vs_system_size/runs/N20x30_nsh1_dwtrunc1_C50_S100/fit_rows.csv",
+        "00_WORKSPACE/COLAB/colab_large_entanglement_scaling_N20/gpu_data/pure_state_entanglement_slope_vs_system_size/runs/N20x40_nsh1_dwtrunc1_C50_S100/entropy_curves.csv",
+        "00_WORKSPACE/COLAB/colab_large_entanglement_scaling_N20/gpu_data/pure_state_entanglement_slope_vs_system_size/runs/N20x40_nsh1_dwtrunc1_C50_S100/fit_rows.csv",
+        "00_WORKSPACE/COLAB/colab_large_entanglement_scaling_N20/gpu_data/pure_state_entanglement_slope_vs_system_size/runs/N20x50_nsh1_dwtrunc1_C50_S100/entropy_curves.csv",
+        "00_WORKSPACE/COLAB/colab_large_entanglement_scaling_N20/gpu_data/pure_state_entanglement_slope_vs_system_size/runs/N20x50_nsh1_dwtrunc1_C50_S100/fit_rows.csv",
+        "00_WORKSPACE/COLAB/colab_large_entanglement_scaling_N20/gpu_data/pure_state_entanglement_slope_vs_system_size_time_scaling/runs/N20x40_nsh1_dwtrunc1_C20_S10/fit_rows.csv",
+        "00_WORKSPACE/COLAB/colab_large_entanglement_scaling_N20/gpu_data/pure_state_entanglement_slope_vs_system_size_time_scaling/runs/N20x60_nsh1_dwtrunc1_C30_S10/fit_rows.csv",
+        "00_WORKSPACE/COLAB/colab_large_entanglement_scaling_N20/gpu_data/pure_state_entanglement_slope_vs_system_size_time_scaling/runs/N20x80_nsh1_dwtrunc1_C40_S10/fit_rows.csv",
+        "00_WORKSPACE/COLAB/colab_large_entanglement_scaling_N20/gpu_data/pure_state_entanglement_slope_vs_system_size_time_scaling/runs/N20x100_nsh1_dwtrunc1_C50_S10/fit_rows.csv",
+        "00_WORKSPACE/COLAB/colab_large_entanglement_scaling_N20/gpu_data/pure_state_entanglement_slope_vs_system_size_time_scaling/runs/N20x120_nsh1_dwtrunc1_C60_S10/fit_rows.csv"
+      ],
+      "stem": "result_04_entropy_log_chord"
+    },
+    {
+      "claim": "Raw full-width CMI and wall-contour contributions recover c_TMI=1.001806 from each exact wall contribution and 1.002697 across both walls. A symmetry-preserving fit-window scan moves the exact values still closer to one but does not remove the historical stochastic pilot's coefficient bias; stochastic sensitivity bars are whole-trajectory bootstrap intervals.",
+      "evidence_class": "machine-readable exact calibration and trajectory-resolved historical stochastic pilot",
+      "format_mode": "recomputed raw curves; no transcribed coefficients or digitized points",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_05_tripartite_information.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_05_tripartite_information.png",
+      "sources": [
+        "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/data/result_05_tripartite_information_reduction.npz",
+        "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/data/result_05_tripartite_information_reduction.json",
+        "cache/G_history_samples/N12x31/N12x31_C100_S100_nshNone_DW1_init-default_n_a0.5_seq-dw_symmetric_exclNone_ps0_pst0_fm0_pc0_markov_circuit.npz",
+        "PROJECT_ADMIN/archive_manifests/cache_G_history_samples.json",
+        "notebooks/exact_DW_GS_benchmark.ipynb",
+        "src/fgtn/classA_U1FGTN.py",
+        "00_WORKSPACE/LEGACY/sample_average_testing/sample_average_entanglement_contour_fit_testing_v2.py",
+        "00_WORKSPACE/LEGACY/exact_DW_benchmark_notes/DW_GS_Benchmark_Figs/MI_linear_fits.png",
+        "00_WORKSPACE/LEGACY/sample_average_testing/figs/N12x31_C100_S100_nshNone_DW1_init-default_n_a0.5_seq-dw_symmetric_exclNone_ps0_pst0_fm0_pc0_markov_circuit_xsum_window_integrated_contour_and_mi_fits_v2.pdf",
+        "00_WORKSPACE/LEGACY/sample_average_testing/figs/N12x31_C100_S100_nshNone_DW1_init-default_n_a0.5_seq-dw_symmetric_exclNone_ps0_pst0_fm0_pc0_markov_circuit_sample_average_y0_average_integrated_contour_and_mi_fits_v2.pdf"
+      ],
+      "stem": "result_05_tripartite_information"
+    },
+    {
+      "claim": "The uniform adaptive controller drives the saved trajectory-resolved Chern estimator very close to one at all three tested sizes.",
+      "evidence_class": "canonical GPU trajectory precursor",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_06_uniform_topology.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_06_uniform_topology.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/campaign_manifest.json",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x30_DW0_dwtrunc0_a2-1_nsh1_perfect_correction/real_space_chern.npz",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x40_DW0_dwtrunc0_a2-1_nsh1_perfect_correction/real_space_chern.npz",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x50_DW0_dwtrunc0_a2-1_nsh1_perfect_correction/real_space_chern.npz"
+      ],
+      "stem": "result_06_uniform_topology"
+    },
+    {
+      "claim": "Wrong outcomes are strongly enhanced at the wall and coexist with a much smaller wall tangent gap.",
+      "evidence_class": "canonical CPU finite-size precursor",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_07_feedback_activity.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_07_feedback_activity.png",
+      "sources": [
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny20_perfect/activity/N20x20_dw_dwtrunc1_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny20_perfect/activity/N20x20_dw_dwtrunc1_nsh1_perfect_correction/activity_analysis.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny20_perfect/activity/N20x20_dw_dwtrunc1_nsh1_perfect_correction/activity_raw.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny20_perfect/spectral/N20x20_dw_dwtrunc1_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny20_perfect/spectral/N20x20_dw_dwtrunc1_nsh1_perfect_correction/spectral_diagnostics.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny20_perfect/activity/N20x20_uniform_dwtrunc0_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny20_perfect/activity/N20x20_uniform_dwtrunc0_nsh1_perfect_correction/activity_analysis.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny20_perfect/activity/N20x20_uniform_dwtrunc0_nsh1_perfect_correction/activity_raw.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny20_perfect/spectral/N20x20_uniform_dwtrunc0_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny20_perfect/spectral/N20x20_uniform_dwtrunc0_nsh1_perfect_correction/spectral_diagnostics.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny22_perfect/activity/N20x22_dw_dwtrunc1_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny22_perfect/activity/N20x22_dw_dwtrunc1_nsh1_perfect_correction/activity_analysis.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny22_perfect/activity/N20x22_dw_dwtrunc1_nsh1_perfect_correction/activity_raw.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny22_perfect/spectral/N20x22_dw_dwtrunc1_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny22_perfect/spectral/N20x22_dw_dwtrunc1_nsh1_perfect_correction/spectral_diagnostics.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny22_perfect/activity/N20x22_uniform_dwtrunc0_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny22_perfect/activity/N20x22_uniform_dwtrunc0_nsh1_perfect_correction/activity_analysis.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny22_perfect/activity/N20x22_uniform_dwtrunc0_nsh1_perfect_correction/activity_raw.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny22_perfect/spectral/N20x22_uniform_dwtrunc0_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny22_perfect/spectral/N20x22_uniform_dwtrunc0_nsh1_perfect_correction/spectral_diagnostics.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny24_perfect/activity/N20x24_dw_dwtrunc1_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny24_perfect/activity/N20x24_dw_dwtrunc1_nsh1_perfect_correction/activity_analysis.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny24_perfect/activity/N20x24_dw_dwtrunc1_nsh1_perfect_correction/activity_raw.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny24_perfect/spectral/N20x24_dw_dwtrunc1_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny24_perfect/spectral/N20x24_dw_dwtrunc1_nsh1_perfect_correction/spectral_diagnostics.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny24_perfect/activity/N20x24_uniform_dwtrunc0_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny24_perfect/activity/N20x24_uniform_dwtrunc0_nsh1_perfect_correction/activity_analysis.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/activity_Ny24_perfect/activity/N20x24_uniform_dwtrunc0_nsh1_perfect_correction/activity_raw.npz",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny24_perfect/spectral/N20x24_uniform_dwtrunc0_nsh1_perfect_correction/scalar_metrics.csv",
+        "00_WORKSPACE/CURRENT/topological_frustration_diagnostics/results/campaigns/20260813_121340_Nx20_perfect_Ny20_22_24/spectral_Ny24_perfect/spectral/N20x24_uniform_dwtrunc0_nsh1_perfect_correction/spectral_diagnostics.npz"
+      ],
+      "stem": "result_07_feedback_activity"
+    },
+    {
+      "claim": "Transfer and max-mix purification diagnostics independently change sharply in the neighborhood of the exact alpha=2 transition.",
+      "evidence_class": "canonical GPU and CPU transition precursors",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_08_alpha_transition.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_08_alpha_transition.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/analysis_outputs/gpu_data_summary/tables/run_summary_metrics.csv",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/analysis_outputs/purification_charge_sharpening_alpha_sweep_cpu/N16_alpha-fine21_nsh1_dwtrunc1_init-maxmix_S10_cycles-2Ny/tables/steady_state_summary.csv"
+      ],
+      "stem": "result_08_alpha_transition"
+    },
+    {
+      "claim": "Exact and trajectory-derived modular packet motion exhibits the expected orientation-dependent sign structure; stochastic bands and endpoint bars are trajectory SEM after within-trajectory origin averaging.",
+      "evidence_class": "completed exact calibration plus canonical stochastic precursor",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_09_modular_handedness.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_09_modular_handedness.png",
+      "sources": [
+        "00_WORKSPACE/CURRENT/experiment_review/b0_exact_domain_wall/results/20260816_191957/raw/coupled__Nx020__Ny048.npz",
+        "00_WORKSPACE/CURRENT/experiment_review/b0_exact_domain_wall/results/20260816_191957/processed/tables/modular_velocities.csv",
+        "00_WORKSPACE/CURRENT/experiment_review/b0_exact_domain_wall/results/20260816_191957/processed/tables/response_velocities.csv",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/analysis_outputs/dynamic_modular_charge_spreading/sample_y0_averaged_dy_com/runs/N16x40_nsh1_perfect_correction/sample_y0_averaged_dy_com.npz",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/analysis_outputs/dynamic_modular_charge_spreading/sample_y0_averaged_dy_com/runs/N16x40_nsh2_perfect_correction/sample_y0_averaged_dy_com.npz"
+      ],
+      "stem": "result_09_modular_handedness"
+    },
+    {
+      "claim": "The sequential probability record has a stable extensive Shannon background and roughly tenfold enhanced uncertainty near the walls.",
+      "evidence_class": "canonical GPU chain-entropy feasibility result",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_10_record_uncertainty.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_10_record_uncertainty.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/streaming_covariance_observables/campaigns/N20_selected_nsh1_dwtrunc1_init-default_S100_cycles-2Ny/runs/N20x30_nsh1_init-default_perfect_correction/measurement_frustration.npz",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/streaming_covariance_observables/campaigns/N20_selected_nsh1_dwtrunc1_init-default_S100_cycles-2Ny/runs/N20x40_nsh1_init-default_perfect_correction/measurement_frustration.npz",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/streaming_covariance_observables/campaigns/N20_selected_nsh1_dwtrunc1_init-default_S100_cycles-2Ny/runs/N20x50_nsh1_init-default_perfect_correction/measurement_frustration.npz"
+      ],
+      "stem": "result_10_record_uncertainty"
+    },
+    {
+      "claim": "The translation-resolved flattened spectrum contains counter-propagating in-gap branches crossing zero at the two walls; X and Y give the cleanest separation.",
+      "evidence_class": "rendered deterministic flattened-Hamiltonian benchmark",
+      "format_mode": "preserved legacy render; cropped and resized only",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_11_flattened_wall_spectrum.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_11_flattened_wall_spectrum.png",
+      "sources": [
+        "00_WORKSPACE/LEGACY/exact_DW_benchmark_notes/DW_GS_Benchmark_Figs/flattened_hamiltonian_spec.png",
+        "notebooks/exact_DW_GS_benchmark.ipynb"
+      ],
+      "stem": "result_11_flattened_wall_spectrum"
+    },
+    {
+      "claim": "The uniform n_shell=1 flattened parent is spectrally gapped, and the same occupied lower-band projector gives real-space Chern response -0.999999829 and FHS integer -1; the alpha=3 control is trivial, while separate domain-wall tables show that entropy coefficients converge earlier than wall-correlator tails.",
+      "evidence_class": "deterministic uniform-topology and domain-wall flattened-Hamiltonian benchmark",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_12_flattened_shell_benchmark.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_12_flattened_shell_benchmark.png",
+      "sources": [
+        "notebooks/flattened_hamiltonian_analysis/flattened_hamiltonian_analysis.ipynb",
+        "notebooks/flattened_hamiltonian_analysis/data/slope_fit_summary_df.csv",
+        "notebooks/flattened_hamiltonian_analysis/data/slope_fit_df.csv",
+        "notebooks/flattened_hamiltonian_analysis/data/cavg_fit_summary_df.csv",
+        "src/fgtn/classA_U1FGTN.py"
+      ],
+      "stem": "result_12_flattened_shell_benchmark"
+    },
+    {
+      "claim": "Independent topology, tangent, entanglement, and charge-noise maps all resolve the domain-wall geometry rather than a featureless bulk.",
+      "evidence_class": "rendered exact calibration plus canonical adaptive spatial precursors",
+      "format_mode": "mixed: preserved local-Chern render plus three rebuilt numeric maps",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_13_spatial_evidence_maps.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_13_spatial_evidence_maps.png",
+      "sources": [
+        "00_WORKSPACE/LEGACY/exact_DW_benchmark_notes/DW_GS_Benchmark_Figs/chern_marker.png",
+        "notebooks/exact_DW_GS_benchmark.ipynb",
+        "00_WORKSPACE/COLAB/colab_lyapunov/gpu_data/lyapunov_spectra/campaigns/N20_Ny30-50_nsh1_a1-1_S25_cyclesNy/runs/N20x40_DW1_dwtrunc1_a2-30_nsh1_perfect_correction/lyapunov_min_abs_vector.npz",
+        "00_WORKSPACE/COLAB/colab_lyapunov/notebooks/characterization/characterize_lyapunov_spectra_N20_Ny30-50_S25_cyclesNy.ipynb",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_strip_entropy_contours/runs/N16x40_nsh1_perfect_correction/Ay_020/strip_entropy_contour_Ay020.npz",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/notebooks/characterization/run_pure_state_strip_entropy_contours.ipynb",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/campaigns/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/runs/N20x40_nsh1_init-maxmix_perfect_correction/local_charge_cell_variance.npz",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/notebooks/data_generation/run_purification_dynamics_maxmix_multi_geometry.ipynb",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/notebooks/characterization/load_purification_charge_fluctuation_data_cpu_edited.ipynb"
+      ],
+      "stem": "result_13_spatial_evidence_maps"
+    },
+    {
+      "claim": "The archived modular evolution resolves spatial propagation and redistribution along the wall subsystem underlying the signed center-of-mass velocities.",
+      "evidence_class": "canonical modular-density precursor",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_14_modular_density_heatmaps.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_14_modular_density_heatmaps.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_small_system_testing/analysis_outputs/dynamic_modular_charge_spreading/selected_cycle50/N16x40_nsh1_perfect_correction/sample_y0_avg_hmod_cycle50_charge_spreading.npz",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/notebooks/characterization/analyze_dynamic_modular_charge_spreading.ipynb"
+      ],
+      "stem": "result_14_modular_density_heatmaps"
+    },
+    {
+      "claim": "Most trajectories lie near c=1 and C=1, but finite-size central-charge excess, discrete charge drift, rare low-Chern records, and a broad purification tail remain visible.",
+      "evidence_class": "canonical trajectory-resolved ensemble diagnostics",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_15_trajectory_distributions.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_15_trajectory_distributions.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/analysis_outputs/perfect_correction_slope_excess_diagnostics/tables/slope_excess_feature_table.csv",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/notebooks/characterization/diagnose_perfect_correction_slope_excess_cpu.ipynb",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/notebooks/characterization/load_purification_charge_fluctuation_data_cpu_edited.ipynb",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/campaigns/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/runs/N20x30_nsh1_init-maxmix_perfect_correction/total_charge_variance.npz",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/campaigns/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/runs/N20x40_nsh1_init-maxmix_perfect_correction/total_charge_variance.npz",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/campaigns/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/runs/N20x50_nsh1_init-maxmix_perfect_correction/total_charge_variance.npz"
+      ],
+      "stem": "result_15_trajectory_distributions"
+    },
+    {
+      "claim": "The inferred central-charge excess is not removed uniformly by cleaning: charge-drift conditioning can worsen it, while wall-charge or Chern conditioning helps only at selected sizes and retention fractions.",
+      "evidence_class": "post hoc trajectory-conditioning diagnostic",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_16_ensemble_cleaning_sensitivity.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_16_ensemble_cleaning_sensitivity.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/analysis_outputs/perfect_correction_slope_excess_diagnostics/tables/test2_conditioned_subset_slopes.csv",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/analysis_outputs/perfect_correction_slope_excess_diagnostics/tables/slope_excess_feature_table.csv",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/notebooks/characterization/diagnose_perfect_correction_slope_excess_cpu.ipynb"
+      ],
+      "stem": "result_16_ensemble_cleaning_sensitivity"
+    },
+    {
+      "claim": "The size-normalized filling distribution narrows with circumference in both pure-state correction and max-mix purification; its final variance falls by about 44% and 40%, respectively, from Ny=30 to Ny=50.",
+      "evidence_class": "two canonical trajectory-resolved S=100 charge campaigns",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_17_filling_variance_scaling.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_17_filling_variance_scaling.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/notebooks/characterization/diagnose_perfect_correction_slope_excess_cpu.ipynb",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/notebooks/characterization/load_purification_charge_fluctuation_data_cpu_edited.ipynb",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/analysis_outputs/streaming_covariance_characterization/N20_selected_nsh1_dwtrunc1_init-default_S100_cycles-2Ny/tables/perfect_cycle_summary.csv",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/analysis_outputs/purification_total_charge_histogram_video_cpu/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/tables/purification_centered_total_charge_sample_stats_vs_cycle.csv",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/streaming_covariance_observables/campaigns/N20_selected_nsh1_dwtrunc1_init-default_S100_cycles-2Ny/runs/N20x30_nsh1_init-default_perfect_correction/local_charge_cell.npz",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/campaigns/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/runs/N20x30_nsh1_init-maxmix_perfect_correction/local_charge_cell_mean.npz",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/streaming_covariance_observables/campaigns/N20_selected_nsh1_dwtrunc1_init-default_S100_cycles-2Ny/runs/N20x40_nsh1_init-default_perfect_correction/local_charge_cell.npz",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/campaigns/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/runs/N20x40_nsh1_init-maxmix_perfect_correction/local_charge_cell_mean.npz",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/streaming_covariance_observables/campaigns/N20_selected_nsh1_dwtrunc1_init-default_S100_cycles-2Ny/runs/N20x50_nsh1_init-default_perfect_correction/local_charge_cell.npz",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/purification_dynamics_maxmix/campaigns/N20_multi_geometry_nsh1_dwtrunc1_init-maxmix_S100_cycles-2Ny/runs/N20x50_nsh1_init-maxmix_perfect_correction/local_charge_cell_mean.npz"
+      ],
+      "stem": "result_17_filling_variance_scaling"
+    },
+    {
+      "claim": "A separate perfect-correction archive gives near-c=1 entropy and a wall-localized near-r^-2 correlator at two shell depths, while the explicit endpoint sweep shows why the correlator is a qualified rather than precision exponent result.",
+      "evidence_class": "canonical small-system pure-state covariance cross-check",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_18_small_system_state_crosscheck.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_18_small_system_state_crosscheck.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_small_system_testing/analysis_outputs/pure_state_entanglement_vs_system_size_cpu/full_x_late_window_log_chord_fit_rows.csv",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/analysis_outputs/correlator_scaling_diagnostics/tables/n16_wall_localized_fit_sweep.csv",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/analysis_outputs/correlator_scaling_diagnostics/tables/n16_wall_localized_correlator_curves.csv",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/notebooks/characterization/analyze_pure_state_entanglement_vs_system_size_cpu.ipynb",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/notebooks/characterization/analyze_pure_state_square_correlations_cpu.ipynb",
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/notebooks/characterization/diagnose_correlator_scaling_windows_cpu.ipynb",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/campaign_manifest.json"
+      ],
+      "stem": "result_18_small_system_state_crosscheck"
+    },
+    {
+      "claim": "Perfect correction sharply localizes the topological-side finite transfer mode near the reduced-slab edges; the localization weakens approaching alpha=2, but this is a conditioned Choi-transfer result rather than a physical tangent eigenmode.",
+      "evidence_class": "canonical GPU finite particle-Choi transfer-mode analysis",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_19_transfer_mode_localization.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_19_transfer_mode_localization.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/analysis_outputs/gpu_data_summary/lyapunov_modes/tables/gap_lyapunov_mode_metrics.csv",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/analyze_lyapunov_modes.executed.ipynb",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_none_alpha_1/samples/sample_0000.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_none_alpha_1/samples/sample_0001.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_none_alpha_1/samples/sample_0002.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_none_alpha_1/samples/sample_0003.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_none_alpha_1/samples/sample_0004.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_none_alpha_1/samples/sample_0005.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_none_alpha_1/samples/sample_0006.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_none_alpha_1/samples/sample_0007.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_none_alpha_1/samples/sample_0008.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_none_alpha_1/samples/sample_0009.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_perfect_alpha_1/samples/sample_0000.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_perfect_alpha_1/samples/sample_0001.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_perfect_alpha_1/samples/sample_0002.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_perfect_alpha_1/samples/sample_0003.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_perfect_alpha_1/samples/sample_0004.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_perfect_alpha_1/samples/sample_0005.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_perfect_alpha_1/samples/sample_0006.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_perfect_alpha_1/samples/sample_0007.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_perfect_alpha_1/samples/sample_0008.npz",
+        "00_WORKSPACE/COLAB/colab_no_feedback_alpha_sweep_transfer/gpu_data/alpha_sweep_transfer_dwtrunc1_no_feedback_and_perfect_correction/campaigns/N20_Ny20-30-40_nsh1_dwtrunc1_init-default_S10_cycles2Ny_alpha-sweep_corr-none-perfect/runs/N20x40_dwtrunc1_corr_perfect_alpha_1/samples/sample_0009.npz"
+      ],
+      "stem": "result_19_transfer_mode_localization"
+    },
+    {
+      "claim": "A completed DW=True, alpha_out=30 campaign retains the explicit interface with domain-wall truncation disabled; its purification crossover is sharp near alpha=2 and its subcritical residual is generally smaller than in the support-terminated construction.",
+      "evidence_class": "canonical CPU perfect-correction overlapping-interface comparison",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_20_untruncated_interface.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_20_untruncated_interface.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_charge_fluctuations/analysis_outputs/purification_charge_sharpening_alpha_sweep_cpu/dwtrunc0_vs_dwtrunc1_N16_alpha_sweep/tables/steady_state_comparison.csv"
+      ],
+      "stem": "result_20_untruncated_interface"
+    },
+    {
+      "claim": "The same pure-state snapshots that give near-c=1 entropy also give logarithmic full-strip quantum charge variance with k_eff near one at both sizes and shell depths, providing a direct current-sector precursor without partial post-selection.",
+      "evidence_class": "canonical GPU perfect-correction trajectory-resolved subsystem charge fluctuations",
+      "format_mode": "rebuilt from machine-readable artifacts",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_21_subsystem_charge_fluctuations.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_21_subsystem_charge_fluctuations.png",
+      "sources": [
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/campaign_manifest.json",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/analysis_outputs/pure_state_entanglement_vs_system_size_cpu/full_x_late_window_log_chord_fit_rows.csv",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/notebooks/characterization/analyze_pure_state_entanglement_vs_system_size_cpu.ipynb",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/runs/N16x30_nsh1_perfect_correction/latest_run.json",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/runs/N16x30_nsh1_perfect_correction/run_7e11a0a6345c/manifest.json",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/runs/N16x30_nsh1_perfect_correction/run_7e11a0a6345c/batch_00000_snapshots.npy",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/runs/N16x30_nsh2_perfect_correction/latest_run.json",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/runs/N16x30_nsh2_perfect_correction/run_60d11c578e5b/manifest.json",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/runs/N16x30_nsh2_perfect_correction/run_60d11c578e5b/batch_00000_snapshots.npy",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/runs/N16x40_nsh1_perfect_correction/latest_run.json",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/runs/N16x40_nsh1_perfect_correction/run_3301a140f933/manifest.json",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/runs/N16x40_nsh1_perfect_correction/run_3301a140f933/batch_00000_snapshots.npy",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/runs/N16x40_nsh2_perfect_correction/latest_run.json",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/runs/N16x40_nsh2_perfect_correction/run_d3ff4c38b5aa/manifest.json",
+        "00_WORKSPACE/COLAB/colab_small_system_testing/gpu_data/pure_state_covariance_snapshots/runs/N16x40_nsh2_perfect_correction/run_d3ff4c38b5aa/batch_00000_snapshots.npy"
+      ],
+      "stem": "result_21_subsystem_charge_fluctuations"
+    },
+    {
+      "claim": "At alpha=1 the n_shell=1 three-by-three OW mask retains 99.2155% of the unwindowed norm and preserves the target-band overlap zero with winding -1 near kx/pi=0.4922, while the smooth compact-support spinor itself has Chern number zero.",
+      "evidence_class": "deterministic finite-support overcomplete-Wannier form-factor reconstruction",
+      "format_mode": "recomputed from the documented deterministic windowed-Chern model",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_22_windowed_chern_form_factor.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_22_windowed_chern_form_factor.png",
+      "sources": [
+        "00_WORKSPACE/LEGACY/form_factor_analysis/docs/windowed_chern.tex",
+        "00_WORKSPACE/LEGACY/form_factor_analysis/docs/windowed_chern.pdf",
+        "00_WORKSPACE/LEGACY/form_factor_analysis/form_factor_analysis.ipynb",
+        "00_WORKSPACE/LEGACY/form_factor_analysis/figs/continuum_shifted_zeros.png",
+        "00_WORKSPACE/LEGACY/form_factor_analysis/figs/effective_form_factor_maps.png"
+      ],
+      "stem": "result_22_windowed_chern_form_factor"
+    },
+    {
+      "claim": "For unwindowed and n_shell=0,1,2 X-trial modes, total overlap winding is -1 at alpha=1 and 1.5 where the target band has C=+1, while alpha=3 and 30 have a finite overlap gap and zero winding in the trivial target band.",
+      "evidence_class": "deterministic target-band overlap-winding parameter sweep",
+      "format_mode": "recomputed global zero search, local phase circulation, and independent FHS band check",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_23_overlap_winding_alpha_sweep.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_23_overlap_winding_alpha_sweep.png",
+      "sources": [
+        "00_WORKSPACE/LEGACY/form_factor_analysis/docs/windowed_chern.tex",
+        "00_WORKSPACE/LEGACY/form_factor_analysis/docs/windowed_chern.pdf",
+        "00_WORKSPACE/LEGACY/form_factor_analysis/form_factor_analysis.ipynb",
+        "00_WORKSPACE/LEGACY/form_factor_analysis/figs/continuum_shifted_zeros.png",
+        "00_WORKSPACE/LEGACY/form_factor_analysis/figs/effective_form_factor_maps.png"
+      ],
+      "stem": "result_23_overlap_winding_alpha_sweep"
+    },
+    {
+      "claim": "The untruncated arm supplies stationary wall occupation bands, while an exact density-phase pulse resolves the deterministic real-space response on both walls. Circumference and domain-truncation controls determine whether directionality survives, and the finite Gaussian channel converges quadratically to the continuous response at fixed physical time.",
+      "evidence_class": "deterministic selected-observable reconstruction from the audited L1 solver",
+      "format_mode": "hybrid deterministic CPU reconstruction; static and response observables; no covariance archive",
+      "pdf": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_24_continuous_lindblad_interface.pdf",
+      "png": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/figures/result_24_continuous_lindblad_interface.png",
+      "sources": [
+        "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/data/result_24_continuous_lindblad_reconstruction.npz",
+        "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/data/result_24_continuous_lindblad_reconstruction.json",
+        "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/reconstruct_continuous_lindblad_result.py",
+        "00_WORKSPACE/CURRENT/mean_channel_lindblad_cpu_campaign/mean_channel_lindblad_cpu.py"
+      ],
+      "stem": "result_24_continuous_lindblad_interface"
+    }
+  ],
+  "generated_utc": "2026-08-17T23:30:33.757695+00:00",
+  "notebook": "00_WORKSPACE/CURRENT/experiment_review/legacy_evidence_figure_atlas/legacy_evidence_figure_atlas.ipynb",
+  "schema_version": 1,
+  "style": {
+    "colors": {
+      "black": "#000000",
+      "blue": "#1F77B4",
+      "green": "#2CA02C",
+      "red": "#D92725"
+    },
+    "font": "Times-compatible serif with Computer Modern mathematics",
+    "line_styles": [
+      "dotted",
+      "dashed",
+      "solid"
+    ],
+    "markers": [
+      "triangle",
+      "square",
+      "circle"
+    ]
+  },
+  "style_reference": "00_WORKSPACE/LEGACY/repo_synthesis/PRR_paper.pdf"
+}

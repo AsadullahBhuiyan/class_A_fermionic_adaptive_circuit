@@ -1,0 +1,15 @@
+Resolved the nine figure and appendix comments.
+
+1. Figure 2(a): center the single and double periodic slash pairs on their corresponding borders; raise the alpha labels to clear the top slash.
+2. Figure 2(c): move the size legend to the lower-left corner.
+3. Figure 2(c) inset: move both labels closer to their axes, with 8-pt printed labels (previously 9 pt). Curves, SEMs, inset and axis limits preserved.
+4. Figure 8: simplify the y-label to c_eff(t). The extraction c_eff=3m_1 remains in the caption.
+5. Figure 9: remove the contour comparison and its manuscript paragraph/caption; restore a single-column figure with two vertically stacked wall fits, relabeled (a,b). Keep simplified log-sine axes, c_L/R annotations and c_L/R divided by 6 legends, source curves, windows, covariance SEMs and fit values.
+6. Figure A1(a): replace the unexplained xi label with exponential fit. Define xi~1.36 in the caption through |Delta_0(w)-2| proportional to exp(-w/xi). It is a static parent-gap convergence length measured in truncation shells. The existing fit curve is unchanged.
+7. Figure A1(b): remove the w=1 retained-weight callout/arrow, and report 99.2155 percent in Appendix A prose. All plotted norm data unchanged.
+8. Remove the float barrier before Appendix B that left the lower part of the preceding column empty. The appendix columns now fill naturally.
+9. Divide Appendix C into four subsections: purification spectroscopy and entropy; finite-time gap diagnostics; covariance response along a fixed record; pure-state response and physical sectors. Place the late-gap figure with its discussion, update the main-text pointer, and retain every tangent equation and qualification.
+
+Validation: isolated latexmk build; 20 pages, no undefined equations/citations/figure references, no overfull boxes or oversized floats. Figure fonts and all bundle checks pass, followed by a read-only manifest verification. Main-text pages 6, 11, 12 and appendix pages 16-18 were inspected. All 54 scientific NPZ/CSV products, other figure assets, bibliography, and every Appendix C equation are unchanged. The entire outlook and its comments are preserved byte for byte. Only pre-existing nameref-label and RevTeX float-package notices remain. No simulation or refit was performed.
+
+Original manuscript and complete figure bundle are archived in notes/manuscript_revision/figure_appendix_cleanup_20261008.

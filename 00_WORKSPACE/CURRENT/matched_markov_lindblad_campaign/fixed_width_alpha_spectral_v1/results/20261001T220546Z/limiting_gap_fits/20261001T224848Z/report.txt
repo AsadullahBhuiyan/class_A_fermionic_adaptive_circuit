@@ -1,0 +1,11 @@
+Limiting-gap fit: fixed Nx=20, only alpha_1=1 and 3.
+No new simulation; all ten input pairs verified. Raw data and earlier results unchanged.
+Primary fit: Delta(Ny)=Delta_infinity+a/Ny; ordinary unweighted least squares.
+Comparator: b*(Ny/20)^(-z), 0<=z<=4, also two parameters and raw-gap least squares.
+Sensitivity: fit windows Ny>=20,40,60 and an all-size quadratic inverse-length correction.
+No trajectory noise model: no standard-error bars, confidence intervals, p-values or model probabilities.
+The sensitivity range is descriptive, not an error bound. Small residuals do not prove an asymptotic law.
+{"alpha_1": 1, "limiting_gap": 1.780849136483392, "correction_a": 2.465647267882366, "sensitivity_low": 1.780849136483392, "sensitivity_high": 1.7825739632072757, "plateau_rmse": 0.0003653379614038525, "closing_rmse": 0.00781877367473595, "closing_exponent": 0.033300199122607586, "plateau_holdout_error": -0.0006233248657081525, "closing_holdout_error": -0.015658241661191008, "max_eigenvalue_condition_number": 1.2399005662282891}
+{"alpha_1": 3, "limiting_gap": 3.1386957330192984, "correction_a": 2.2276907600430893, "sensitivity_low": 3.138371589965449, "sensitivity_high": 3.1386957330192984, "plateau_rmse": 6.023551520604765e-05, "closing_rmse": 0.006813248366896919, "closing_exponent": 0.01738931824410725, "plateau_holdout_error": 0.00015803657786372938, "closing_holdout_error": -0.01370785924149942, "max_eigenvalue_condition_number": 1348.988226052476}
+Conclusion: both datasets favor a positive fixed-width limiting covariance gap within the tested models and sizes.
+This is not evidence of a full many-body gap or a simultaneous Nx,Ny thermodynamic limit.

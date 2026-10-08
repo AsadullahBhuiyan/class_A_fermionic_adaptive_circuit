@@ -1,0 +1,123 @@
+--- before/manuscript.tex
++++ after/manuscript.tex
+@@ -313,7 +313,7 @@
+ Here $\hat U_{\rec}$ is the polar partial isometry, and the positive Hermitian factor filters the state even when there is no entropy to lose.
+ }
+ 
+-\newtext{Purification from maximal mixing thus gives access to the trajectory operator's Lyapunov spectrum, including the spectrum that filters pure Gaussian trajectories, whose full-system occupations are already zero or one. Relative spectral separations govern loss of initial-state memory and contraction of perturbations, with implications for local stability in the sense of dynamical systems theory~\cite{BulchandaniSondhiChalker2024}; Appendix~\ref{app:TrajectoryResponse} develops this connection and its sector and overlap qualifications. Related spectral transitions have been identified in monitored circuits~\cite{Oshima2025}, while the correlations, entanglement, and chirality measurements below establish the spatial character of the conditioned boundary states.}
++\newtext{Purification from maximal mixing thus gives access to the trajectory operator's Lyapunov spectrum, including the spectrum that filters pure Gaussian trajectories, whose full-system occupations are already zero or one. Relative spectral separations govern loss of initial-state memory and contraction of perturbations, with implications for local stability in the sense of dynamical systems theory~\cite{BulchandaniSondhiChalker2024}; Appendix~\ref{app:Lyapunov} develops this connection and its sector and overlap qualifications. Related spectral transitions have been identified in monitored circuits~\cite{Oshima2025}, while the correlations, entanglement, and chirality measurements below establish the spatial character of the conditioned boundary states.}
+ 
+ The independent size sweep in Fig.~\ref{fig:Lyapunov}(a) gives $\overline\Delta\propto N_y^{-z}$ with $z=1.08\pm0.05$ at $t=2N_y$. The decrease is consistent with slow boundary modes, although a finite-time size scan alone does not determine the infinite-time Lyapunov gap. \newtext{A complementary analysis of the saved slab-only histories gives a late-window raw-gap growth rate $\overline a_{\rm late}/2\propto N_y^{-z_{\rm slope}}$ with $z_{\rm slope}=1.07\pm0.09$ [Fig.~\ref{fig:GapConvergence}(c)]. Taking this slope cancels a constant raw-gap offset, but the growth rate is a finite-window diagnostic and does not by itself determine the asymptotic gap (Appendix~\ref{app:Lyapunov}).} We locate the slowest mode by taking the normalized eigenvector $|\phi_{\Delta}\rangle$ whose occupation is closest to $1/2$, and compute
+ \begin{equation}
+@@ -463,14 +463,9 @@
+     \label{eq:Contour}
+ \end{equation}
+ which distributes $S(A)$ over the sites of $A$. For a half-strip, the averaged contour is concentrated on the two wall columns, apart from area-law contributions along the cuts inside the slab, while the trivial exterior contributes almost nothing.
+-\newtext{Figure~\ref{fig:WallEntropy}(a) compares the mean contour for $\alpha_1=1,3$. At $\alpha_1=1$, weight follows the physical interfaces as well as the entanglement cuts; for the trivial control it is concentrated near the cuts. The maps align rows relative to each strip origin and use the same color scale, separating wall entanglement from the cut contribution.}
+-
+-\begin{figure*}[t]
+-    \centering
+-    \includegraphics[width=\textwidth]{Figure_09_wall_entropy.pdf}
+-    \caption{\newtext{\textbf{Spatial entanglement and entropy carried by each wall.} Each ensemble uses $S=100$ independent random-pure half-filled trajectories, $N_x=20$, with a Born-prepared pure exterior. (a) Mean half-strip contours at $N_y=32$, cycle 64: the $\alpha_1=1$ endpoint ensemble of (b,c) and an independent $\alpha_1=3$ control, on a shared square-root scale; $\delta y$ is relative to the strip origin. (b,c) Contour weight in columns $x=5,6$ and $x=14,15$ at $\alpha_1=1$, for $N_y=24,28,32,40,50,60$ after $2N_y$ slab-only cycles. Vertical $\Delta$ subtracts each trajectory's half-strip value. Dashed joint fits use $8\leq A_y\leq N_y/2$ (shaded), with equal total weight per size. The fit slopes are $c_{\rm L,R}/6$; bars and coefficient errors are trajectory SEMs. Insets mark the integrated columns; $A_y=1$ is omitted only from display.}}
+-    \label{fig:WallEntropy}
+-\end{figure*}
++
++
++
+ 
+ We then average the contour of each trajectory over the strip position $y_0$, with coordinates $\delta y=y-y_0$ measured from the start of the strip, and integrate it over a two-column window adjacent to each wall,
+ \begin{align}
+@@ -484,7 +479,14 @@
+ 
+ 
+ 
+-\newtext{As shown in Fig.~\ref{fig:WallEntropy}(b,c), the two windows contribute entropy weights $c_{\rm L}/2\approx0.52$ and $c_{\rm R}/2\approx0.49$. Their sum, approximately $1.01$, accounts for most of the full-strip coefficient, with the remaining contour weight outside these windows. Each contribution is close to the half-unit weight expected for a single chiral branch with $|c_-|=1$.  These entropy weights do not determine the propagation direction. We turn to that question next.}
++\begin{figure}[!htbp]
++    \centering
++    \includegraphics[width=\columnwidth]{Figure_09_wall_entropy.pdf}
++    \caption{\newtext{\textbf{Entropy carried by each wall.} Each ensemble uses $S=100$ independent random-pure half-filled trajectories, $N_x=20$, with a Born-prepared pure exterior. (a,b) Contour weight in columns $x=5,6$ and $x=14,15$ at $\alpha_1=1$, for $N_y=24,28,32,40,50,60$ after $2N_y$ slab-only cycles. Vertical $\Delta$ subtracts each trajectory's half-strip value. Dashed joint fits use $8\leq A_y\leq N_y/2$ (shaded), with equal total weight per size. The fit slopes are $c_{\rm L,R}/6$; bars and coefficient errors are trajectory SEMs. Insets mark the integrated columns; $A_y=1$ is omitted only from display.}}
++    \label{fig:WallEntropy}
++\end{figure}
++
++\newtext{As shown in Fig.~\ref{fig:WallEntropy}(a,b), the two windows contribute entropy weights $c_{\rm L}/2\approx0.52$ and $c_{\rm R}/2\approx0.49$. Their sum, approximately $1.01$, accounts for most of the full-strip coefficient, with the remaining contour weight outside these windows. Each contribution is close to the half-unit weight expected for a single chiral branch with $|c_-|=1$.  These entropy weights do not determine the propagation direction. We turn to that question next.}
+ 
+ {\color{blue}
+ \subsection{Opposite chiralities from modular evolution}
+@@ -670,16 +672,15 @@
+ Note that $h_w$ is finite range, gapped, and carries Chern number 1. This does not contradict the no-go theorem of Ref.~\cite{DubailRead2015}, which concerns compactly supported functions that span a Chern band. The projector $R_w$ is obtained from $F_w$ by a spectral projection, which restores exponential tails, so $R_w$ is not spanned by compactly supported functions.
+ }
+ 
+-\newtext{At $\alpha=1$, the parent gap is $\Delta_0(1)\approx1.80$ and approaches $\Delta_0(\infty)=2$ [Fig.~\ref{fig:Truncation}(a)]. The onsite limit is trivial, with $\delta_0\approx0.75$ at $\Gamma$. Truncation shifts the auxiliary-parent transition to $\alpha_c(1)\approx1.80$, $\alpha_c(2)\approx1.93$, and $\alpha_c(4)\approx1.98$; these are not measurements of a dynamical transition. The topology of the prepared states is established independently in Sec.~\ref{sec:BulkTopology}.}
++\newtext{At $\alpha=1$, the parent gap is $\Delta_0(1)\approx1.80$ and approaches $\Delta_0(\infty)=2$ [Fig.~\ref{fig:Truncation}(a)]. The squared OW norm retained at $w=1$ is $99.2155\%$ [Fig.~\ref{fig:Truncation}(b)]. The onsite limit is trivial, with $\delta_0\approx0.75$ at $\Gamma$. Truncation shifts the auxiliary-parent transition to $\alpha_c(1)\approx1.80$, $\alpha_c(2)\approx1.93$, and $\alpha_c(4)\approx1.98$; these are not measurements of a dynamical transition. The topology of the prepared states is established independently in Sec.~\ref{sec:BulkTopology}.}
+ 
+ \begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{Figure_A01_ow_truncation.pdf}
+- \caption{\newtext{\textbf{Finite-range truncation at $\alpha=1$.} (a) Deviation of the truncated-parent half-filling gap from its untruncated value, with the existing exponential fit for $w\geq4$ on a logarithmic vertical axis. (b) Fraction of the squared OW norm retained inside the window. These are deterministic parent-band calculations.}}
++ \caption{\newtext{\textbf{Finite-range truncation at $\alpha=1$.} (a) Deviation of the truncated-parent half-filling gap from its untruncated value, with the existing fit $|\Delta_0(w)-2|\propto e^{-w/\xi}$ for $w\geq4$ on a logarithmic vertical axis. Here $\xi\simeq1.36$ is the convergence length measured in truncation shells. (b) Fraction of the squared OW norm retained inside the window. These are deterministic parent-band calculations.}}
+  \label{fig:Truncation}
+ \end{figure}
+ 
+-\FloatBarrier
+ \section{Ancilla Elimination and Fermion Counting}
+ \label{app:FermionCounting}
+ {\color{blue}
+@@ -699,6 +700,8 @@
+ \section{\newtext{Purification, trajectory response, and the Lyapunov spectrum}}
+ \label{app:Lyapunov}
+ {\color{blue}
++\subsection{Purification spectroscopy and entropy}
++\label{app:PurificationSpectroscopy}
+ For maximal mixing, Eqs.~\eqref{eq:PurificationKrausProduct}--\eqref{eq:LyapunovFromOccupations} expose the positive part of the trajectory operator~\cite{XiaoKawabata2026}. For a maximally mixed slab they apply after factoring out the initially pure, decoupled exterior. Projective records may be singular: logarithms are restricted to surviving support, and pinned occupations have infinite single-particle energies. The purification experiment includes all charge sectors of its mixed subsystem; each fixed gain/loss record has a definite net charge shift and must be restricted to its surviving output support.
+ 
+ A nearly pure mode contributes
+@@ -709,6 +712,8 @@
+ \end{equation}
+ Its eigenvector density weights the corresponding entropy contour. Thus a positive limiting gap gives exponential entropy rate $2\Delta$ at fixed size, whereas a closing gap removes a size-uniform rate. A zero limiting rate still permits subexponential purification. The number of modes and record fluctuations also affect total entropy. In particular, $\overline\Delta$ averages the minimum within each record; a typical-record rate need not govern the mean entropy if rare records dominate it. Born ensembles also depend on initialization.
+ 
++\subsection{Finite-time gap diagnostics}
++\label{app:FiniteTimeGap}
+ Figure~\ref{fig:GapConvergence} uses saved slab-only histories with a Born-prepared pure exterior. At $N_y=30$, the raw modular gap $g_{\rm mod}(t)=2t\Delta(t)$ grows through $4N_y$ while $\overline\Delta(t)$ still drifts. Across $N_y=20,24,30,36,44,56,60$, the mean rate increases by about $22$--$35\%$ from $2N_y$ to $4N_y$ and $7$--$12\%$ from $3N_y$ to $4N_y$. Hence these results are not a constant numerator divided by time, but the endpoint is a finite-time reference, not an established asymptotic gap. An affine raw-gap growth $g_{\rm mod}\simeq at+b$ would give $\Delta\simeq a/2+b/(2t)$; at $t=2N_y$ the latter term scales as $1/N_y$ if $b$ is size independent. The fitted $z$ in Fig.~\ref{fig:Lyapunov} therefore remains a finite-time exponent. Slab-only histories and full-measurement histories are distinct protocols and are not pooled.
+ 
+ \newtext{To test the size dependence after canceling a constant raw-gap offset, we compute half the secant slope over the last saved interval within each record,
+@@ -722,8 +727,15 @@
+ \newtext{A constant intercept cancels exactly in Eq.~\eqref{eq:LateRawGapGrowth}, whereas interpreting this growth rate as a limiting Lyapunov gap requires asymptotically linear raw-gap growth. For nonlinear growth, a secant slope and $\Delta(t)=g_{\rm mod}(t)/(2t)$ are different quantities. The approximately inverse-circumference trend survives the slope comparison, strengthening the finite-time evidence, but the minimizing mode can change with cycle and the observation windows themselves grow with $N_y$. These results do not establish an infinite-time gap or exponent.}
+ }
+ 
+-{\color{blue}
+-\subsection{Response to initial-state perturbations}
++\begin{figure}[!htbp]
++ \centering
++ \includegraphics[width=\columnwidth]{Figure_A05_gap_convergence.pdf}
++ \caption{\newtext{\textbf{Finite-time purification and raw-gap growth.} (a) Mean rate $\overline\Delta(t)$ and (b) mean raw modular gap $\overline{g_{\rm mod}}(t)$ for $N_x=20$, $N_y=30$, $\alpha_1=1$, $\alpha_2=30$, and $w=1$, through 120 cycles. The saved slab-only protocol starts with a maximally mixed slab and a Born-prepared pure exterior; $S=100$ independent trajectories. The minimum is taken within each trajectory before averaging. Bands are one trajectory SEM; the vertical reference marks $2N_y$. (c) Seven-size comparison of $\overline\Delta(2N_y)$ with half the mean raw-gap secant slope over $[3N_y,4N_y]$, defined in Eq.~\eqref{eq:LateRawGapGrowth}. Bars are trajectory SEMs, with endpoint differences formed within each trajectory. Dashed lines are SEM-weighted power-law fits over all seven sizes; the displayed slope exponent has a formal regression error. The growth rate is a finite-window diagnostic, not an established asymptotic gap.}}
++ \label{fig:GapConvergence}
++\end{figure}
++
++{\color{blue}
++\subsection{Covariance response along a fixed record}
+ \label{app:TrajectoryResponse}
+ \newtext{These results quantify how quickly a prepared trajectory forgets perturbations of its initial state, and hence its local stability along a fixed record.}
+ 
+@@ -764,6 +776,8 @@
+ \end{equation}
+ with the Hilbert--Schmidt norm on covariance perturbations. Near-half-filled modes are the least-suppressed output response directions; pinned occupations give exact null directions. A limiting gap $\Delta>0$ gives exponential rate $2\Delta$ for this full differential, and $\Delta$ for its matrix factor. These are rates of the accumulated cocycle, not eigenvalues of one cycle. The identities apply to the maximally mixed subsystem, after factoring out the decoupled pure exterior in the slab experiment; they do not determine the response about a pure input.
+ 
++\subsection{Pure-state response and physical sectors}
++\label{app:PureTrajectoryResponse}
+ For a pure input, choose a perturbation $\kett{\chi_0}$ with $\braa{\psi_0}\chi_0\rangle\!\rangle=0$. Removing normalization and global phase gives the exact physical tangent
+ \begin{equation}
+  \kett{\chi_{\rec}(t)}=
+@@ -792,12 +806,7 @@
+ Lyapunov diagnostics of trajectory stability have also been developed for quantum-jump unravelings of open-system master equations~\cite{Yusipov2019}; that setting is distinct from the fixed-record Gaussian response considered here.
+ }
+ 
+-\begin{figure}[!htbp]
+- \centering
+- \includegraphics[width=\columnwidth]{Figure_A05_gap_convergence.pdf}
+- \caption{\newtext{\textbf{Finite-time purification and raw-gap growth.} (a) Mean rate $\overline\Delta(t)$ and (b) mean raw modular gap $\overline{g_{\rm mod}}(t)$ for $N_x=20$, $N_y=30$, $\alpha_1=1$, $\alpha_2=30$, and $w=1$, through 120 cycles. The saved slab-only protocol starts with a maximally mixed slab and a Born-prepared pure exterior; $S=100$ independent trajectories. The minimum is taken within each trajectory before averaging. Bands are one trajectory SEM; the vertical reference marks $2N_y$. (c) Seven-size comparison of $\overline\Delta(2N_y)$ with half the mean raw-gap secant slope over $[3N_y,4N_y]$, defined in Eq.~\eqref{eq:LateRawGapGrowth}. Bars are trajectory SEMs, with endpoint differences formed within each trajectory. Dashed lines are SEM-weighted power-law fits over all seven sizes; the displayed slope exponent has a formal regression error. The growth rate is a finite-window diagnostic, not an established asymptotic gap.}}
+- \label{fig:GapConvergence}
+-\end{figure}
++
+ 
+ \section{Relaxation gap of the averaged channel}
+ \label{app:ChannelGap}

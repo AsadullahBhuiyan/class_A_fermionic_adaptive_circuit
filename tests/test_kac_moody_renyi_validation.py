@@ -97,29 +97,37 @@ def test_note_structure_outputs_and_curated_registration() -> None:
     )
     assert "Kac--Moody Level and R\\'enyi Entanglement" in source
     for section in (
-        "Purpose, scope, and hierarchy of claims",
-        "Conditioned Gaussian trajectories and interval geometry",
-        "Reduced Gaussian state and R\\'enyi entropies",
-        "Charge full counting statistics",
-        "Shared susceptibility spectrum",
-        "Numerical validation ladder",
-        "Acceptance criteria and failure semantics",
+        "Gaussian reduced states and interval entropies",
+        "Charge statistics and measurement-record averages",
+        "Replica derivation of the interval entropy",
+        "The physical current and its Kac--Moody level",
+        "Why central charge and current level are distinct",
+        "A common susceptibility spectrum",
+        "What can be inferred about individual walls?",
     ):
         assert rf"\section{{{section}}}" in source
     for required_text in (
-        r"G_{\xi,A}",
-        r"C_{\xi,A}",
+        r"G_{\boldsymbol m,A}",
+        r"\label{eq:transpose}",
+        r"\label{eq:twist-weight}",
+        r"\label{eq:kernel-integrals}",
+        r"\label{eq:contour-sum}",
         "annealed replica moment",
         "entropy of the Born mixture",
         "record-to-record charge wandering",
-        "That inventory statement is stale",
         "Static entropy and charge",
-        "The completed Tier-0 builder",
-        "scientific-status ledger marks the strict",
-        "license as blocked while preserving",
     ):
-        assert required_text in source
-    assert r"\appendix" in source
+        assert required_text in " ".join(source.split())
+    assert r"\tableofcontents" in source
+    # Historical numerical products remain covered above and below, but the
+    # pedagogical document must compile without loading any of them.
+    assert not re.search(r"\\(?:input|include|includegraphics)\b", source)
+    for removed_section in (
+        "Numerical validation ladder",
+        "Acceptance criteria and failure semantics",
+        "Existing evidence and provenance audit",
+    ):
+        assert removed_section not in source
     assert not re.search(r"\\mathbbm?\{?(?:1|I)\}?", source)
 
     notes_builder = _load_module(

@@ -1,0 +1,52 @@
+{
+  "estimator": {
+    "all_cycles_saved_to_csv": true,
+    "c_eff": "3 * fitted slope",
+    "fit_window": "Ay=8..Ny/2 inclusive",
+    "order": "mean entropy over trajectories, then OLS log-chord fit",
+    "plotted_cycles": "multiples of 5 from cycle 10 through 2Ny",
+    "uncertainty": "3 * OLS standard error of the mean-curve fit slope; not a trajectory confidence interval"
+  },
+  "figure": "cycle-resolved effective central charge for multiple circumferences",
+  "outputs": {
+    "csv": "00_WORKSPACE/CURRENT/experiment_review/entropy_ceff_multisize/data/ceff_vs_cycle_Nx20_Ny30_40_50_S100.csv",
+    "pdf": "00_WORKSPACE/CURRENT/experiment_review/entropy_ceff_multisize/figures/ceff_vs_cycle_Nx20_Ny30_40_50_S100.pdf",
+    "png": "00_WORKSPACE/CURRENT/experiment_review/entropy_ceff_multisize/figures/ceff_vs_cycle_Nx20_Ny30_40_50_S100.png"
+  },
+  "scientific_contract": {
+    "Nx": 20,
+    "Ny": [
+      30,
+      40,
+      50
+    ],
+    "alpha_1": 1.0,
+    "alpha_2": 30.0,
+    "cycles": "1..2Ny",
+    "dtype": "complex128",
+    "dw_truncation": true,
+    "initial_state": "default random pure state",
+    "nshell": 1,
+    "perfect_correction": true,
+    "postselect": false,
+    "samples_per_size": 100,
+    "sequence": "raster_y"
+  },
+  "sources": [
+    {
+      "bytes": 664685,
+      "path": "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/streaming_covariance_observables/campaigns/N20_selected_nsh1_dwtrunc1_init-default_S100_cycles-2Ny/runs/N20x30_nsh1_init-default_perfect_correction/entropy_y0avg_vs_ay.npz",
+      "sha256": "27284ab332855476d7660976a1485e38034c3cfb355dcd8b17417f0ddab1e8d7"
+    },
+    {
+      "bytes": 1176168,
+      "path": "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/streaming_covariance_observables/campaigns/N20_selected_nsh1_dwtrunc1_init-default_S100_cycles-2Ny/runs/N20x40_nsh1_init-default_perfect_correction/entropy_y0avg_vs_ay.npz",
+      "sha256": "1afda73149650567593bcd1acf6d7b9cafd8bc889ed860f92249e945acf4d309"
+    },
+    {
+      "bytes": 1831946,
+      "path": "00_WORKSPACE/COLAB/colab_charge_fluctuations/gpu_data/streaming_covariance_observables/campaigns/N20_selected_nsh1_dwtrunc1_init-default_S100_cycles-2Ny/runs/N20x50_nsh1_init-default_perfect_correction/entropy_y0avg_vs_ay.npz",
+      "sha256": "4b8edc524748a3c70d0df7e9a590a72f03e67683c96ab0d0d725aab469743de3"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schema": "alpha3_endpoints_v2",
+  "Nx": 20,
+  "Ny": 64,
+  "wall_locations": [
+    5,
+    15
+  ],
+  "alpha_1": 3.0,
+  "alpha_2": 30.0,
+  "nshell": 1,
+  "wall": "hard",
+  "dw_truncation": true,
+  "meas_slab_only": false,
+  "hard_exterior": "evolve",
+  "evolution_domain": "full_system",
+  "active_initialization": "maxmix",
+  "exterior_preparation": "none",
+  "exterior_seed": null,
+  "perfect_correction": true,
+  "dephasing": true,
+  "dtype": "complex128",
+  "family": "markov_channel",
+  "cycles": 128,
+  "dt": 0.05,
+  "site_schedule": "random",
+  "schedule_seed": 2257147520926244099,
+  "late_average_cycles": [
+    65,
+    128
+  ],
+  "smoke": false,
+  "canonical_entry_point": "classA_U1FGTN.run_markov_channel",
+  "hard_schedule_note": "All physical centers; same random site words for hard and soft channel runs",
+  "conditional_ensemble": "Measurement outcomes averaged analytically"
+}

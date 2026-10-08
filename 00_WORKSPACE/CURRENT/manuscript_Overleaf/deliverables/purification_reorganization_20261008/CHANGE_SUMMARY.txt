@@ -1,0 +1,12 @@
+Implemented purification and layout reorganization, 8 October 2026.
+
+Figure1: full-width horizontal geometry on left and adaptive circuit on right. Original geometry, support positions, aspect ratios, periodic identifications, transparency, labels and connections retained.
+Figure3: two-panel stack with raw total entropy (former mean and SEM times30) and unnormalized alpha1=1 cycle60 entropy contour, same axes width and undistorted20-by30 lattice aspect. The contour is the mean of100 full-system, fully maximally mixed trajectories and sums to0.33041968419464895 nats. Raw color scale0..0.0075.
+Figure4: alpha1=3 ordered occupations, alpha1=1 occupations, then unchanged finite-time gap scaling. Cycles1,5,60, gradients, open markers and central-rank insets retained. The selected slow-mode map and original renderers/figures are archived.
+Text/captions: defined entropy contour and its sum rule; emphasized residual entropy along walls and finite-window algebraically slow purification; moved spectrum discussion; preserved full-measurement versus slab-only distinction and finite-time limitations.
+Pagination: every remaining multirow figure begins at the top of a fresh physical page. Actual PDF placements verify at most one vertical stack per page; insets are not stacks. Figure1 is horizontal. PDF has26 pages (previous20).
+Preserved: outlook and comments exactly, tangent appendix exactly, polar decomposition,54 existing scientific NPZ/CSV inputs, bibliography, fits and uncertainties. No new simulations.
+Separate preview: raw versus per-trajectory-normalized alpha1=1 contour comparison with independently labeled color scales; normalized alternative is not included in manuscript.
+Build: latexmk in isolated output directory. No undefined references/citations or overfull boxes. Existing RevTeX/float and label-package compatibility warnings remain; some underfull line warnings occur with the forced pagination.
+Archive: notes/manuscript_revision/purification_reorganization_20261008 contains the original manuscript, bibliography, float helper, full figure bundle and54 input hashes.
+Delivery: revised PDF, LaTeX, bibliography, float helper, three updated figure PDF/PNG pairs, separate comparison PDF/PNG, validation receipts and Overleaf-compatible source ZIP.

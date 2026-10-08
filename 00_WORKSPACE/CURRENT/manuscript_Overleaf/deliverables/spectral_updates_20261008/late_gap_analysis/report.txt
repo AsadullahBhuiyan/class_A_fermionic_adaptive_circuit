@@ -1,0 +1,22 @@
+Late-time gap analysis — saved slab-only histories
+
+These are finite-window estimates, not established infinite-time gaps.
+Primary estimator: [g_mod(4Ny)-g_mod(3Ny)]/(2Ny) within each trajectory.
+Comparison: half the OLS slope of g_mod on saved times in [3Ny,4Ny].
+SEM is computed across 100 paired trajectory estimators. No bootstrap.
+
+Ny | Delta(2Ny) +/- SEM | late endpoint +/- SEM | late OLS +/- SEM
+20 | 0.0413565 +/- 0.0024817 | 0.0668790 +/- 0.0062900 | 0.0653368 +/- 0.0065299
+24 | 0.0373647 +/- 0.0018530 | 0.0591202 +/- 0.0046761 | 0.0576656 +/- 0.0045969
+30 | 0.0280345 +/- 0.0014647 | 0.0439509 +/- 0.0036377 | 0.0436491 +/- 0.0038286
+36 | 0.0223442 +/- 0.0014085 | 0.0345873 +/- 0.0031042 | 0.0335365 +/- 0.0032222
+44 | 0.0179013 +/- 0.0009137 | 0.0287171 +/- 0.0024908 | 0.0276973 +/- 0.0026975
+56 | 0.0146678 +/- 0.0008048 | 0.0218604 +/- 0.0019412 | 0.0219964 +/- 0.0021403
+60 | 0.0131738 +/- 0.0007177 | 0.0225539 +/- 0.0019393 | 0.0215781 +/- 0.0020555
+
+Power-law fits (formal errors from supplied SEMs; covariance not residual-rescaled):
+Delta_2Ny: z=1.0788 +/- 0.0540; reduced chi2=0.489; weighted R2=0.99392
+late_endpoint: z=1.0682 +/- 0.0859; reduced chi2=0.332; weighted R2=0.98937
+late_OLS: z=1.0751 +/- 0.0921; reduced chi2=0.238; weighted R2=0.99134
+
+Taking a slope cancels a constant raw-gap intercept only if approximately affine growth holds over the fitted window. The minimizing mode may change with time. All seven sizes use times scaled with Ny, so this analysis is still finite time and cannot alone establish an asymptotic gap or exponent. Full-measurement data were not pooled. The current manuscript claims and Figures 4/A2 are unchanged.

@@ -1,0 +1,11 @@
+--- before/manuscript.tex
++++ merged/manuscript.tex
+@@ -533,6 +533,8 @@
+ 
+ Figure~\ref{fig:TrajectoryAveraged}(c) shows that $g_C$ remains nonzero across $1\leq\alpha_1\leq3$ for $N_y=20,40,60,80,100$ at fixed $N_x=20$. Fitting $g_C=g_\infty+a/N_y$ gives $g_\infty\approx0.83$ and $0.96$ for $\alpha_1=1$ and $3$, respectively [Fig.~\ref{fig:TrajectoryAveraged}(d)]. These are finite-width extrapolations of the channel spectrum, not purification rates or bounds on a size-uniform mixing time.
+ 
++\claudeadd{The intermediate occupations in Fig.~\ref{fig:TrajectoryAveraged}(a) do not signal slow averaged dynamics. In Eq.~\eqref{eq:CycleChannel}, the relaxation is controlled by $A$ alone, whereas the stationary two-point function also depends on the source $B$, which carries the target occupations. An occupation near $1/2$ thus reflects a mixture over records, in which different trajectories occupy the wall modes differently, rather than a slow mode of the channel. Balanced single-mode gain and loss, $\mc L=\eta(\mc D[\hat c]+\mc D[\hat c^\dagger])$, relaxes in the same way at the finite rate $\eta$ to the maximally mixed occupation $n=1/2$. A similar separation between purity and damping gaps appears in dissipatively prepared topological states~\cite{BardynEtAl2013}.}
++
+ The contrast is therefore between the critical conditioned states and their outcome average. The algebraic correlations and logarithmic entanglement established above require access to individual records; discarding them gives short-range two-point correlations and a channel with a finite relaxation gap over the sizes studied. In this sense, the boundary criticality lives at the level of the trajectories. \claudedel{To our knowledge, preparation of such critical chiral boundaries by repeated finite-range measurements and local feedback under Born sampling has not previously been demonstrated.} \claudedel{This comparison concerns monitored adaptive preparation, rather than unitary or unmonitored dissipative preparation.} \claudecom{Removed here; the novelty claim and the comparison with unitary and dissipative preparation now live in the introduction.}
+ }
+ 

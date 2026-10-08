@@ -15,8 +15,9 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator, NullLocator
+from matplotlib.ticker import FixedLocator, ScalarFormatter, LogFormatterMathtext
 import numpy as np
+from log_ticks import add_log_minor_ticks
 from manuscript_typography import configure_style as manuscript_style, prepare_figure, record_typography
 
 BUNDLE = Path(__file__).resolve().parent.parent
@@ -76,31 +77,73 @@ def load_verified():
             assert (row["displayed"] == "True") == (curve[r] > 1e-8)
         np.testing.assert_allclose([float(row["x"]), float(row["y"])], [xx, yy], rtol=2e-14, atol=1e-14)
     # Independently recover the pinned through-origin fit with equal weight per Ny.
-    numerator = denominator = 0.0
+    numerator = denominator = residual = anchored_total = 0.0
+    nonanchor_fit_points = 0
     for ny in SIZES:
         r = np.arange(8, ny // 2 + 1)
         xx = np.log(np.sin(np.pi * r / ny))
         yy = np.log(means[ny][r] / means[ny][-1])
         numerator += np.mean(xx * yy)
         denominator += np.mean(xx * xx)
+        residual += np.mean((yy + EXPECTED_BETA * xx)**2)
+        anchored_total += np.mean(yy**2)
+        # The normalized antipodal point is fixed at (0,0), not an observation.
+        nonanchor_fit_points += int(np.count_nonzero(r < ny // 2))
     recovered_beta = -numerator / denominator
     assert summary["primary_fit"]["beta"] == EXPECTED_BETA
     np.testing.assert_allclose(recovered_beta, EXPECTED_BETA, rtol=0, atol=2e-14)
-    rows = [row for row in original if row["panel"] in ("a", "c") or
-            (row["panel"] == "b" and row["series"] in {rf"$x={site}$" for site in SITES})]
-    # Plot the exact archived coordinate strings, retaining every A/C point.
-    for panel in ("a", "c"):
-        assert [r for r in rows if r["panel"] == panel] == [r for r in original if r["panel"] == panel]
-    actual_sites = sorted({int(r["series"].split("=")[1].rstrip("$")) for r in rows if r["panel"] == "b"})
-    assert actual_sites == list(SITES)
+    recovered_r_squared = 1 - residual / anchored_total
+    np.testing.assert_allclose(recovered_r_squared, summary['primary_fit']['R0_squared'], rtol=0, atol=2e-14)
+    # Retain original source-panel IDs A/C; displayed panels are (a,b).
+    endpoints = {ny: float(next(row['unmasked_correlator'] for row in original
+                                if row['panel'] == 'c' and int(row['Ny']) == ny
+                                and int(row['ry']) == ny//2)) for ny in SIZES}
+    rows = []
+    for old in original:
+        if old['panel'] not in ('a', 'c') or int(old['ry']) < 2:
+            continue
+        row = dict(old)
+        ny, r, value = int(row['Ny']), int(row['ry']), float(row['unmasked_correlator'])
+        row['source_log_x'], row['source_log_y'] = row['x'], row['y']
+        row['x'] = str(float(r) if row['panel'] == 'a' else float(np.sin(np.pi*r/ny)))
+        row['y'] = str(value if row['panel'] == 'a' else value/endpoints[ny])
+        row['displayed'] = str(row['panel'] == 'c' or value > 1e-20)
+        rows.append(row)
+    with (DATA/'requested_plotted_data.csv').open() as stream:
+        requested = list(csv.DictReader(stream))
+    assert len(rows) == len(requested)
+    for row, target in zip(rows, requested):
+        assert int(row['ry']) == int(target['ry']) and int(row['Ny']) == int(target['Ny'])
+        assert row['displayed'] == target['displayed'] and row['in_fit'] == target['in_fit']
+        np.testing.assert_allclose([float(row['x']),float(row['y'])],
+                                   [float(target['x']),float(target['y'])],rtol=2e-14,atol=0)
     return rows, summary, {
         "input_hashes_verified": True,
-        "panel_a_and_c_rows_exactly_preserved": True,
-        "panel_b_columns": actual_sites,
-        "removed_panel_b_columns": [6, 14],
+        "archived_curves_recovered": True,
+        "requested_presentation_values_matched": True,
+        "display_panel_source_mapping": {"a": "a", "b": "c"},
+        "removed_source_panels": ["b"],
+        "display_min_ry": 2,
+        "panel_a_cutoff": 1e-20,
         "max_abs_difference_compact_vs_archived_correlator": max_abs_difference,
         "primary_beta_archived": EXPECTED_BETA,
         "primary_beta_independently_recovered": float(recovered_beta),
+        "beta_uncertainty": {
+            "method": "formal weighted least-squares regression standard error in log-normalized coordinates, with intercept fixed to zero",
+            "beta_point_estimate": EXPECTED_BETA,
+            "beta_standard_error": float(np.sqrt(residual / (nonanchor_fit_points - 1) / denominator)),
+            "weighted_residual_sum_squares": float(residual),
+            "weighted_design_sum_squares": float(denominator),
+            "nonanchor_fit_points": nonanchor_fit_points,
+            "residual_degrees_of_freedom": nonanchor_fit_points - 1,
+            "weighting": "each original size-specific fit window has total weight one",
+            "anchor_handling": "six deterministic antipodal anchors excluded from residual degrees of freedom; original weights and fitted slope unchanged",
+            "scope": "conditional regression error; does not account for correlations among separations or fit-window and finite-size systematics",
+            "compact_curves_sha256": sha256(DATA / "compact_curves.npz"),
+        },
+        "displayed_R_squared": summary['primary_fit']['R0_squared'],
+        "R_squared_independently_recovered": float(recovered_r_squared),
+        "R_squared_definition": "uncentered, in log normalized coordinates; equal total weight per size; archived statistic unchanged",
         "archived_generation_sources": summary["sources"],
         "raw_input_provenance": "data/correlations/original_summary.json:inputs",
     }
@@ -115,73 +158,74 @@ def series(rows, panel, label):
 
 def render(output):
     rows, summary, checks = load_verified()
+    uncertainty = checks["beta_uncertainty"]
     manuscript_style({'text.color': 'black', 'axes.labelcolor': 'black', 'xtick.color': 'black', 'ytick.color': 'black', 'pdf.fonttype': 42, 'ps.fonttype': 42, 'axes.linewidth': 0.8, 'xtick.direction': 'in', 'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True, 'savefig.bbox': None})
-    fig, axes = plt.subplots(3, 1, figsize=(3.375, 6.0))
-    for label, color, marker, ls in ((r"$\alpha_1=1$", "#0072B2", "o", "-"),
-                                    (r"$\alpha_1=3$", "#D55E00", "^", ":")):
-        axes[0].plot(*series(rows, "a", label), color=color, marker=marker, ls=ls,
-                     ms=3, mfc="white", mew=.65, lw=.75, label=label)
-    axes[0].set_ylabel(r"$\log\overline{C_G^{\mathrm{av}}(r_y)}$")
-    axes[0].legend(loc="lower left", frameon=False, handletextpad=.4)
-    for site, color, marker, ls in ((5, "#0072B2", "o", "-"),
-                                    (10, "#555555", "D", ":"),
-                                    (15, "#D55E00", "v", ":")):
-        label = rf"$x={site}$"
-        axes[1].plot(*series(rows, "b", label), color=color, marker=marker, ls=ls,
-                     ms=3, mfc="white", mew=.65, lw=.75, label=label)
-    axes[1].set_ylabel(r"$\log\overline{C_G(x,r_y)}$")
-    axes[1].text(.97, .95, r"DWs at $x=5,15$", transform=axes[1].transAxes,
-                 ha="right", va="top", fontsize=8)
-    axes[1].legend(loc="lower left", frameon=False, ncol=2, columnspacing=.7,
-                   handlelength=1.3, handletextpad=.3, labelspacing=.25)
-    for ax in axes[:2]:
-        ax.set_xlim(-.06, 3.03); ax.set_xticks([0, 1, 2, 3])
-        ax.set_ylim(np.log(1e-8) - .3, -2.5)
-        ax.set_xlabel(r"$\log D(r_y)$", labelpad=2)
-    for span in (summary["fit_shading"]["union"], summary["fit_shading"]["intersection"]):
-        axes[2].axvspan(*span, color="0.5", alpha=.12, lw=0, zorder=0)
-    for ny, color, marker in zip(SIZES,
-            ("#D55E00", "#009E73", "#0072B2", "#CC79A7", "#E69F00", "#333333"),
-            ("^", "s", "o", "v", "D", ">")):
-        axes[2].plot(*series(rows, "c", str(ny)), marker=marker, ls="none", color=color,
-                     ms=3, mfc="white", mew=.65, label=rf"${ny}$")
-    grid = np.linspace(-3.02, 0, 200)
-    axes[2].plot(grid, summary["primary_fit"]["slope"] * grid, "k--", lw=.9, zorder=5)
-    axes[2].text(.04, .09, rf"$\beta={EXPECTED_BETA:.2f}$", transform=axes[2].transAxes, fontsize=8)
-    axes[2].legend(title=r"$N_y$", loc="upper right", ncol=3, frameon=False,
-                   handlelength=.6, columnspacing=.5, handletextpad=.15,
-                   labelspacing=.2, title_fontsize=8)
-    axes[2].set_xlabel(r"$\log[D(r_y)/D(N_y/2)]$", labelpad=2)
-    axes[2].set_ylabel(r"$\log[\overline{C_G^{\mathrm{av}}(r_y)}/\overline{C_G^{\mathrm{av}}(N_y/2)}]$")
-    axes[2].set_xlim(-3.04, .06); axes[2].set_xticks([-3, -2, -1, 0])
-    axes[2].set_ylim(-.3, 9.4)
-    for ax, letter in zip(axes, "abc"):
-        ax.tick_params(direction="in", top=True, right=True)
-        ax.xaxis.set_minor_locator(NullLocator()); ax.yaxis.set_minor_locator(NullLocator())
-        ax.yaxis.set_major_locator(MaxNLocator(4))
-        ax.text(-.10, 1.035, f"({letter})", transform=ax.transAxes, fontsize=9)
+    fig, axes = plt.subplots(2, 1, figsize=(3.375, 4.5))
+    for alpha, color, marker, style in ((1, '#0072B2', 'o', '-'), (3, '#D55E00', '^', ':')):
+        label = rf'$\alpha_1={alpha}$'
+        axes[0].plot(*series(rows, 'a', label), color=color, marker=marker, ls=style,
+                     lw=.85, ms=3, mfc='white', mew=.7, label=label)
+    axes[0].set(xscale='log', yscale='log', xlim=(1.88, 32), ylim=(5e-21, .001),
+                xlabel=r'$r_y$', ylabel=r'$\overline{C_G}(r_y)$')
+    axes[0].xaxis.set_major_locator(FixedLocator([2, 5, 10, 20, 30]))
+    axes[0].xaxis.set_major_formatter(ScalarFormatter())
+    axes[0].yaxis.set_major_locator(FixedLocator([1e-20, 1e-16, 1e-12, 1e-8, 1e-4]))
+    axes[0].legend(loc='lower left', frameon=False, handlelength=1.8, handletextpad=.4)
+    # Match the entropy figures: one uniform band for the union of fit windows.
+    axes[1].axvspan(*np.exp(summary['fit_shading']['union']),
+                   color='0.5', alpha=.15, lw=0, zorder=0)
+    for ny, color, marker in zip(SIZES, ('#D55E00','#009E73','#0072B2','#CC79A7','#E69F00','#333333'),
+                                 ('^','s','o','v','D','>')):
+        axes[1].plot(*series(rows, 'c', str(ny)), marker=marker, ls='none', color=color,
+                     ms=3, mfc='white', mew=.65, label=rf'${ny}$')
+    grid = np.geomspace(.1, 1, 200)
+    size_handles, size_labels = axes[1].get_legend_handles_labels()
+    fit_line, = axes[1].plot(grid, grid**(-EXPECTED_BETA), 'k--', lw=.9, zorder=5,
+                             label=r'$[\sin(\pi r_y/N_y)]^{-\beta}$')
+    fit_legend = axes[1].legend(handles=[fit_line], loc='lower left',
+                               bbox_to_anchor=(.04, .27), frameon=False,
+                               handlelength=1.3, handletextpad=.35, borderaxespad=0)
+    axes[1].add_artist(fit_legend)
+    axes[1].text(.04,.09,rf'$\beta={EXPECTED_BETA:.3f}\pm{uncertainty["beta_standard_error"]:.3f}$' + '\n' +
+                 rf"$R^2={summary['primary_fit']['R0_squared']:.6f}$",
+                 transform=axes[1].transAxes, va='bottom', linespacing=1.7)
+    axes[1].set(xscale='log',yscale='log',xlim=(.098,1.06),ylim=(.75,200),
+                xlabel=r'$\sin(\pi r_y/N_y)$',
+                ylabel=r'$\overline{C_G}(r_y)/\overline{C_G}(N_y/2)$')
+    axes[1].xaxis.set_major_locator(FixedLocator([.1,.2,.5,1]))
+    axes[1].xaxis.set_major_formatter(ScalarFormatter())
+    axes[1].yaxis.set_major_locator(FixedLocator([1,10,100]))
+    axes[1].legend(handles=size_handles, labels=size_labels,
+                   title=r'$N_y$',loc='upper right',ncol=3,frameon=False,
+                   handlelength=.6,columnspacing=.5,handletextpad=.15,labelspacing=.2)
+    for ax,letter in zip(axes,'ab'):
+        ax.yaxis.set_major_formatter(LogFormatterMathtext())
+        ax.tick_params(direction='in',top=True,right=True)
+        ax.text(-.19,1.045,f'({letter})',transform=ax.transAxes)
+        assert ax.get_xscale() == ax.get_yscale() == 'log'
+    add_log_minor_ticks(fig)
     prepare_figure(fig, STEM)
-    fig.subplots_adjust(left=.205, right=.975, bottom=.075, top=.975, hspace=.53)
-    assert all(ax.get_xscale() == ax.get_yscale() == "linear" for ax in axes)
+    fig.subplots_adjust(left=.22,right=.975,bottom=.105,top=.955,hspace=.48)
     fig.canvas.draw()
-    for axis in axes:
-        bounds = axis.get_tightbbox(fig.canvas.get_renderer())
+    for ax in axes:
+        bounds = ax.get_tightbbox(fig.canvas.get_renderer())
         assert bounds.x0 >= 0 and bounds.y0 >= 0
         assert bounds.x1 <= fig.bbox.width and bounds.y1 <= fig.bbox.height
     output.mkdir(parents=True, exist_ok=True)
     record_typography(fig, STEM)
-    for ext in ("pdf", "png"):
-        fig.savefig(output / f"{STEM}.{ext}", dpi=300)
+    for ext in ('pdf','png'):
+        fig.savefig(output/f'{STEM}.{ext}',dpi=300)
     plt.close(fig)
-    with (output / "data/correlations/plotted_data.csv").open("w", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
-        writer.writeheader(); writer.writerows(rows)
-    checks.update({"axes": "linear axes showing log chord and log correlator; manuscript unchanged",
-                   "canvas_inches": [3.375, 6.0], "PNG_dpi": 300,
-                   "renderer_sha256": sha256(__file__),
-                   "output_sha256": {f"{STEM}.{ext}": sha256(output / f"{STEM}.{ext}") for ext in ("pdf", "png")}})
-    (output / "data/correlations/validation.json").write_text(json.dumps(checks, indent=2) + "\n")
-    print(json.dumps(checks, indent=2))
+    with (output/'data/correlations/plotted_data.csv').open('w',newline='') as stream:
+        writer=csv.DictWriter(stream,fieldnames=list(rows[0]));writer.writeheader();writer.writerows(rows)
+    checks.update({'axes':'log-log axes; raw separation in (a), normalized chord in (b)',
+                   'beta_uncertainty': uncertainty,
+                   'canvas_inches':[3.375,4.5], 'layout':[2,1], 'PNG_dpi':300,
+                   'renderer_sha256':sha256(__file__),
+                   'output_sha256':{f'{STEM}.{ext}':sha256(output/f'{STEM}.{ext}') for ext in ('pdf','png')}})
+    (output/'data/correlations/validation.json').write_text(json.dumps(checks,indent=2)+'\n')
+    (output/'data/correlations/beta_uncertainty.json').write_text(json.dumps(uncertainty,indent=2)+'\n')
+    print(json.dumps(checks,indent=2))
 
 
 if __name__ == "__main__":

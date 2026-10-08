@@ -1,0 +1,7 @@
+Replaced Figure 6(a,b) and Figure 8 wall-fit panels using the fresh Nx20, Ny=24,28,32,40,50,60 endpoint data. Figure 8(a) now uses the fresh Ny32 topological contour with the existing independent trivial control. Figure 6(c) retains its independent convergence histories.
+
+Half-strip anchors and fitting limits are now Ny/2 exactly, with odd-size rounding qualifications removed. The figure layout, Computer Modern typography, marker styles, R-squared display convention, and single fit-window shading are preserved. Figure values and text now report c=1.0438 +/- 0.0022, k=1.0418 +/- 0.0022, m_L=0.17264 +/- 0.00053, and m_R=0.16332 +/- 0.00056. Joint fits use equal total weight per size with trajectory covariance SEMs. Captions identify the distinct ensembles and sampling/fitting procedure.
+
+The imported package, all old scientific inputs, bibliography, outlook and its comments, and other figure assets remain unchanged. Superseded figures, sources, and manuscript are in notes/manuscript_revision/endpoint_even_replacement_20261008. Compact provenance-bound endpoint arrays are in figures/new_figure/data/endpoint_even_20261008. No new simulations.
+
+Validation: 20-page isolated latexmk build; all references/citations resolve; no overfull boxes or oversized floats; changed figure pages inspected; figure data/font/hash audit and 468 curve-row comparisons passed.

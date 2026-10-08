@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     rows = json.loads((ROOT / 'data/figure_index.json').read_text())
-    canvas = Image.new('RGB', (2400, 2620), 'white')
+    canvas = Image.new('RGB', (2400, 120 + 625 * ((len(rows) + 3) // 4)), 'white')
     draw = ImageDraw.Draw(canvas)
     font_path = str(Path(matplotlib.get_data_path()) / 'fonts/ttf/cmr10.ttf')
     font = ImageFont.truetype(font_path, 23)
@@ -28,49 +28,28 @@ def main():
             canvas.paste(im, (x+(580-im.width)//2, y+53+(542-im.height)//2))
     canvas.save(ROOT / 'overview.png', dpi=(300, 300))
 
+    included = [r for r in rows if r['included']]
     lines = ['# Manuscript figure bundle', '',
-        'Fifteen figure versions, each with a vector PDF and 300-dpi PNG: Figures 1–2 belong to Section II, Figures 3–11 to Section III, and A1–A2 are the only appendix figures. The standalone hard-wall close-up and soft/hard-wall alternative are retained but excluded from the manuscript. Filenames retain their stable bundle numbers; the index shows current manuscript numbers. Original figures, the earlier `restructured` bundle, and campaign data remain unchanged; this bundle accompanies the authorized manuscript revision.', '',
-        '[Combined figure notes](FIGURE_NOTES.md) · [Ordered overview](overview.png) · [Verification](validation.json)', '',
-        '## Ordered index', '',
-        '| Figure | Section | Contents | Previous figure | Change | Files |',
-        '|---|---|---|---|---|---|']
+        f"{len(included)} manuscript figures and {len(rows)-len(included)} archived or standalone versions. Figures 1–12 are in the main text; A1–A2 are in the four appendices. Stable asset filenames are independent of manuscript numbering.", '',
+        '[Combined figure notes](FIGURE_NOTES.md) · [Overview including archived assets](overview.png) · [Verification](validation.json)', '',
+        '## Ordered index', '', '| Figure | Section | Contents | Change | Files |', '|---|---|---|---|---|']
     for row in rows:
-        stem = row['stem']
-        anchor = stem.lower().replace('_', '-')
+        stem = row['stem']; anchor = stem.lower().replace('_','-')
         links = f'[PDF]({stem}.pdf) · [Preview]({stem}.png) · [Notes](FIGURE_NOTES.md#{anchor})'
-        lines.append(f"| {row['number']} | {row['section']} | {row['title']} | {row['old_figure']} | {row['change']} | {links} |")
-    lines += ['', 'Old Figures 12–14 and the old Figure 4(c) are excluded. The old tri-junction schematic is incorporated into manuscript Figure 3 (asset Figure_03); manuscript Figure 7 (asset Figure_07) contains the replacement occupation and entanglement-energy comparisons.', '',
-        '## Data and interpretation', '',
-        'The figure numbers in the following provenance summary are stable bundle IDs (the numeric filename prefixes), not the renumbered manuscript labels. Use the index above for current manuscript numbers.', '',
-        '- Figure 3 uses the complete S=100 square-system Chern analysis. The finite-disk estimator and local marker are distinct observables; the marker retains periodic-coordinate seam effects.',
-        '- Figure 4 retains its original purification data and independent gap-size ensemble. Scientific protocol details remain in the combined note.',
-        '- Figure 7 pools all 32 strip origins within each of 100 trajectories per parameter value at Ny=32. The full occupation histograms contain 2,048,000 observations each; the conditional energy histograms contain 95,398 and 83,326 retained observations for alpha1=1 and 3. Both histogram types integrate to one. Panel (c) retains the raw mean window count for alpha1=1 and its unchanged fit and trajectory SEM.',
-        '- Figure 8 uses separate ensembles. Panel (a) bars are regression errors of mean-entropy fits; panel (b) bars propagate trajectory sampling fluctuations.',
-        '- Figure 9 integrates two-column wall windows x=5,6 and x=14,15. Its displayed Ay=1 points are excluded without changing the fits.',
-        '- Figure 10 retains snapshots at modular times 0, 0.1, and 0.2. Absolute direction depends on the explicitly stated correlation-matrix index convention; the numerical curves are preserved.',
-        '- Figure 11 uses deterministic outcome-averaged dynamics and the dimensionless channel gap g_C=1−rho(A)^2. The inverse-length fits use fixed Nx=20; they are not a simultaneous two-dimensional thermodynamic extrapolation.',
-        '- Figure A2(a) compares origin-averaged half-strip entropy contours for alpha1=1 and 3 at Nx=20, Ny=32, Ay=16, cycle 64: average all 32 origins within each trajectory, then average 100 trajectories. The maps share a square-root color scale. Panel (b) preserves the 63-point mutual-information scan and trajectory SEMs.', '',
-        'All input data, fit windows, averaging order, uncertainties, exclusions, and notation conventions are documented in the combined note. No new circuit simulations were used.', '',
+        lines.append(f"| {row['number']} | {row['section']} | {row['title']} | {row['change']} | {links} |")
+    lines += ['', '## Current revision, 8 October 2026', '',
+        'Figures 1 and 6 retain their full-width horizontal layouts. Figure 3 pairs raw total purification entropy with the alpha1=1 cycle60 full-system entropy contour; both axes now have the same width and height, and the alpha label remains centered. Figures 4 and 5 restore the original single-column vertical stacks. Figure 8 restores the original single-column convergence plot and inset, and Figure 9 restores the two vertically stacked wall fits. PDF placement checks enforce at most one vertical figure stack per page.',
+        'Figure 7 retains the occupation and conditional-energy histograms and restores window counts for both phases. The original topological fit is unchanged; trivial-control counts come from saved endpoint frames.',
+        'Figures 6(a,b) and 9(a,b) use the fresh endpoint campaign with Ny=24,28,32,40,50,60, 100 independent trajectories per size at 2Ny cycles. Half-strip labels use Ny/2 exactly. Joint fits and errors match the imported per-trajectory data, including covariance between widths. Figure 8 presents independent convergence histories. Figure 11 contains the ordered spectrum and entropy contour of the averaged Gaussian state. Figure 12 separately contains the correlator and channel-gap fits, relabeled (a,b). The contour is evaluated from the averaged state, not averaged trajectory contours. Figure 9 contains only the two vertically aligned wall fits; the contour comparison is excluded.',
+        'Figure A1 retains only the native parent-gap and retained-norm arrays. The form-factor and transition panels are preserved in the dated review bundle.',
+        'Figure A2 displays saved slab-only Ny=30 histories through 4Ny, with 100 trajectories and one trajectory SEM. The full-measurement protocol is not pooled. Every mean and SEM is verified against saved sample rows, and g_mod=2t Delta is checked. Panel (c) compares the seven-size half-secant growth rates over 3Ny–4Ny with the existing 2Ny rates, with paired trajectory SEMs and SEM-weighted power-law fits. No simulation or asymptotic extrapolation is used.',
+        'Figure 8 contains the pure-state c_eff convergence curves and inset as its own figure. The c_eff(t) axis label is simplified; its extraction is defined in the caption. Its initialization and regression errors differ from the purification diagnostic. The mutual-information and parameter-scan figures remain archived and are excluded from the manuscript.',
+        'Other figures, correlation conventions, minor ticks, averaging order, scientific arrays and retained fit values are preserved. Parameter colors are defined in sources/manuscript_palette.py. The complete original manuscript, figures and source scripts are preserved in notes/manuscript_revision/compression_review_20261007 at the manuscript root.', '',
+        '## Separate previews and analysis, 8 October 2026', '',
+        'The occupation-density previews and late-gap slope comparison are in deliverables/spectral_updates_20261008 at the manuscript root. The occupation-density previews remain excluded. The late-window comparison is now incorporated in Appendix C with a main-text pointer; its growth rate is distinguished from an asymptotic gap. The late endpoint and OLS slopes give finite-window size exponents 1.0682 +/- 0.0859 and 1.0751 +/- 0.0921, using paired trajectory SEMs and formal weighted-regression exponent errors, without bootstrapping.', '',
         '## Reproduction', '',
-        'Run the matching renderer from this directory. Renderers use bundled compact data and write only inside this bundle. The original large trajectory datasets are not needed for plotting.', '',
-        '| Figure | Command |', '|---|---|']
-    for row in rows:
-        command = f"python sources/{row['renderer']}"
-        if row['stem'] == 'Figure_02_adaptive_circuit':
-            command += ' --only circuit'
-        elif row['stem'] == 'Figure_01_schematic':
-            command += ' --only geometry'
-        if row['renderer'] == 'restore_existing.py':
-            command += f" --figure {row['stem']}"
-        lines.append(f"| {row['number']} | `{command}` |")
-    lines += ['',
-        'All fifteen versions now use dedicated renderers to preserve their typography updates. `restore_existing.py` rejects restoring an outdated figure over these products; its `--check-only` mode verifies original source assets without writing files.', '',
-        'Requirements: Python, NumPy, Matplotlib, Pillow, pypdf, Poppler, and a working LaTeX installation with AMS, bm, type1cm/type1ec (cm-super), and dvipng. All figure text and mathematics are rendered through LaTeX in Computer Modern; no font fallback is allowed. The shared sources/manuscript_typography.py enforces final-print sizes: axes and panel letters 9 pt, ticks/legends/annotations 8 pt, prominent schematic labels 10–11 pt. The non-included hard-wall close-up retains its historical 0.8-column print-size calibration. Per-figure records are in data/typography/. Figures 3, 7, and 11 retain their stacked layouts; A1 retains its original canvas aspect ratio.', '',
-        'After intentional edits, rebuild this index and overview with `python sources/build_index.py`, then record the validated bundle with `python sources/verify_bundle.py --record`. Use `python sources/verify_bundle.py` for a read-only check. The verifier checks the original assets against `notes/manuscript_revision/baseline/original_figure_checksums.json`; it permits the authorized manuscript and bibliography revision. The top-level `manifest.json` binds the delivered bundle to SHA-256 checksums.', '',
-        '## Separate diagnostics', '',
-        '[Earlier fixed-origin energy comparison](diagnostics/normalized_entanglement_energy_alpha1_1_vs_3.pdf) and [normalized mode-fraction diagnostic](diagnostics/normalized_mode_fraction_vs_log_chord.pdf) are retained for reference. Neither is included in the manuscript; the spectrum figure (asset Figure_07, manuscript Figure 7) uses all origins and raw mean counts.', '']
+        'Run the matching sources/plot_*.py renderer with the compact bundled data. Renderers require NumPy, Matplotlib, Pillow, Poppler, LaTeX and dvipng. All final figure fonts are Computer Modern/AMS through LaTeX; receipts record printed font sizes and bounds.',
+        'After an intentional revision, run python sources/build_index.py and python sources/verify_bundle.py --record. Run python sources/verify_bundle.py for a read-only audit. The manifest binds the delivered bundle to SHA-256 checksums; the verifier also checks pre-revision numerical products and the protected outlook.', '']
     (ROOT / 'README.md').write_text('\n'.join(lines))
 
-
-if __name__ == '__main__':
-    main()
+if __name__ == '__main__': main()

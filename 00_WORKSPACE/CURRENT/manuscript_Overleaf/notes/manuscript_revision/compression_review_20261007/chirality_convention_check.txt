@@ -1,0 +1,7 @@
+Chirality convention audit (analytic, no new simulation)
+
+The manuscript uses c(k)=sum_r exp(+i k.r)c(r), and annihilation-mode coefficient evolution exp(-i h_A^T t_mod). Near Gamma, n(k)=(kx,ky,m), m=alpha-2. Transposing the real-space parent changes h(k) to h(-k)^T=(-kx,ky,m). With spatial waves exp(-iky y), the interface generator is -i sigma_x d/dx + ky sigma_y + m(x) sigma_z.
+
+At the left wall m is positive on the left and negative on the right. The localized solution has sigma_y=-1 and E(ky)=-ky. A packet exp(-iky y-iE t_mod) therefore moves with dy/dt_mod=-dE/dky=+1. At the right wall sigma_y=+1, E(ky)=+ky and the direction is -y. This matches the collaborator calibration and plotted directions.
+
+The main-text sentence compares handedness using a positive representative of the local parent-edge dynamics. It does not identify modular time with circuit time or infer a real-time transport velocity.

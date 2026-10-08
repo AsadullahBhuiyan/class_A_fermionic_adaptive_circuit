@@ -1,0 +1,7 @@
+Added the late-window gap-growth analysis to Section III.B and Appendix C, with a new panel in Fig. A2.
+
+The estimator is half the raw-modular-gap secant slope over [3Ny,4Ny], evaluated per trajectory before its mean and SEM. The seven-size exponent is z_slope = 1.068 +/- 0.086; the free-intercept regression check gives 1.075 +/- 0.092. Both are finite-window diagnostics, not established infinite-time Lyapunov gaps or exponents. The constant-offset cancellation and the distinction for nonlinear raw-gap growth are explicit.
+
+The purification figure, tangent appendix, polar decomposition, numerical inputs, other figure assets, bibliography, and outlook/comments remain unchanged. Tightened the entropy figure caption to resolve an oversized float, retaining all sampling/fit details.
+
+Validation: isolated latexmk build; 20-page PDF; no undefined references/citations, duplicate labels, overfull boxes, or oversized floats; affected pages inspected. Figure bundle data/font audit and preserved-asset hash checks passed. No new simulations.

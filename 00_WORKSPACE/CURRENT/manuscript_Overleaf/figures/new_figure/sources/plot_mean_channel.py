@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Figure 11: preserved mean-state observables plus saved channel gaps and fits."""
+"""Render separate averaged-state and channel-relaxation figures from saved data."""
 import argparse
 import csv
 import hashlib
@@ -10,12 +10,18 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.ticker import FixedLocator, ScalarFormatter, NullFormatter
 import numpy as np
+from manuscript_palette import ALPHA_COLORS
+from log_ticks import add_log_minor_ticks
 from manuscript_typography import configure_style as manuscript_style, prepare_figure, record_typography
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / 'data/mean_channel'
 STEM = 'Figure_11_mean_channel'
+RELAXATION_STEM = 'Figure_12_channel_relaxation'
+SCAN_STEM = 'Figure_A04_channel_gap_scan'
+DISPLAY_CUTOFF = 1e-20
 
 
 def sha(path):
@@ -34,6 +40,8 @@ def read_csv(filename):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output-dir', type=Path, default=ROOT)
+    parser.add_argument('--render-archived-scan', action='store_true',
+                        help='Also regenerate the excluded parameter-scan asset.')
     args = parser.parse_args()
     out = args.output_dir.resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -48,52 +56,84 @@ def main():
         assert spectrum['config'] == correlator['config']
 
     manuscript_style({'xtick.direction': 'in', 'ytick.direction': 'in', 'pdf.fonttype': 42, 'ps.fonttype': 42})
-    # Match Figure 4's taller panel aspect, with slightly narrower plotting axes.
-    fig, axes = plt.subplots(4, 1, figsize=(3.375, 7.15))
-    top, correlator_ax, gap_ax, fit_ax = axes
+    # Keep each panel's physical dimensions while separating the two pairs.
+    panel_height = 7.15 * (.97 - .06) / (4 + 3 * .45)
+    state_fig = plt.figure(figsize=(3.375, 3.25))
+    relaxation_fig = plt.figure(figsize=(3.375, 3.25))
+    pairs = [(state_fig, STEM), (relaxation_fig, RELAXATION_STEM)]
+    bottoms = [value/3.25 for value in (2.00, .50)]
+    axes = [state_fig.add_axes([.20, y, .66 if row == 1 else .77, 1.02/3.25])
+            for row,y in enumerate(bottoms)]
+    axes += [relaxation_fig.add_axes([.20, y, .77, 1.02/3.25]) for y in bottoms]
+    top, heat, correlator_ax, fit_ax = axes
+    spectral_provenance = read_json('untwirled_spectra_provenance.json')
+    assert sha(DATA / 'untwirled_spectra.npz') == spectral_provenance['sha256']
+    scan_fig, gap_ax = plt.subplots(figsize=(3.375, 2.0))
     displayed_distances = {}
     panel_b_rows = []
-    with np.load(DATA / 'spectra.npz', allow_pickle=False) as spectra, \
+    with np.load(DATA / 'untwirled_spectra.npz', allow_pickle=False) as spectra, \
             np.load(DATA / 'curves.npz', allow_pickle=False) as curves:
         r = np.arange(1, 33)
         xx = np.log((64 / np.pi) * np.sin(np.pi * r / 64))
         for alpha, color, marker, size, ls in (
-            (1, '#2468ad', 'o', 10, '-'), (3, '#c0392b', '^', 8, ':')
+            (1, ALPHA_COLORS[1], 'o', 10, '-'), (3, ALPHA_COLORS[3], '^', 12, ':')
         ):
-            occupations = spectra[f'alpha{alpha}_hard']
-            assert occupations.shape == (64, 40)
-            top.scatter(np.repeat(spectra['ky'] / np.pi, 40), occupations.ravel(),
+            occupations = spectra[f'alpha{alpha}']
+            assert occupations.shape == (2560,) and np.all(np.diff(occupations) >= 0)
+            # Every occupation is displayed with an open marker; no subsampling.
+            top.scatter(np.arange(1, 2561), occupations,
                         s=size, marker=marker, facecolors='none', edgecolors=color,
                         linewidths=.55, label=rf'$\alpha_1={alpha}$',
                         zorder=3 if alpha == 3 else 2)
             values = curves[f'alpha{alpha}_xavg'][1:]
-            displayed = values > correlator_summary['display_cutoff']
+            displayed = np.isfinite(values) & (values >= DISPLAY_CUTOFF) & (r >= 2)
             displayed_distances[str(alpha)] = r[displayed].tolist()
-            assert displayed_distances[str(alpha)] == [1, 2, 3, 4]
             yy = np.full(values.shape, np.nan)
-            yy[displayed] = np.log(values[displayed])
-            correlator_ax.plot(xx, yy, color=color, marker=marker, ls=ls, ms=3.5,
+            yy[displayed] = values[displayed]
+            correlator_ax.plot(r, yy, color=color, marker=marker, ls=ls, ms=3.5,
                                mfc='white', mew=.65, lw=.75, label=rf'$\alpha_1={alpha}$')
             panel_b_rows += [{'alpha_1': alpha, 'r_y': int(d), 'log_chord': x,
-                              'squared_mean_correlator': value, 'log_correlator': y}
+                              'squared_mean_correlator': value, 'log_correlator': np.log(y)}
                              for d, x, value, y in zip(r[displayed], xx[displayed], values[displayed], yy[displayed])]
     top.axhline(.5, color='.5', ls='--', lw=.7, zorder=0)
-    top.set(xlabel=r'$k_y/\pi$', ylabel=r'Occupation $\nu_a(k_y)$',
-            xlim=(-1.03, 1.03), ylim=(-.035, 1.035))
-    top.set_xticks([-1, -.5, 0, .5, 1])
+    top.set(xlabel=r'Ordered mode index $j$', ylabel=r'Occupation $\nu_j$',
+            xlim=(-50, 2610), ylim=(-.035, 1.035))
+    top.set_xticks([1, 1280, 2560])
+    top.get_xticklabels()[-1].set_horizontalalignment('right')
     top.set_yticks([0, .5, 1])
-    top.legend(loc='center left', frameon=False, handletextpad=.3)
-    correlator_ax.set(xlabel=r'$\log D(r_y)$',
-                      ylabel=r'$\log C_{\overline{G}}^{\mathrm{av}}(r_y)$',
-                      xlim=(-.06, 3.08), ylim=(np.log(1e-8) - .3, -2.5))
-    correlator_ax.set_xticks([0, 1, 2, 3])
-    correlator_ax.set_yticks([-15, -10, -5])
-    correlator_ax.legend(loc='lower right', frameon=False, handletextpad=.3)
+    top.legend(loc='upper left', frameon=False, handletextpad=.3)
+    correlator_ax.set(xscale='log', yscale='log', xlabel=r'$r_y$',
+                      ylabel=r'$C_{\overline{G}}(r_y)$',
+                      xlim=(1.9, 33), ylim=(DISPLAY_CUTOFF, .05))
+    correlator_ax.xaxis.set_major_locator(FixedLocator([2, 5, 10, 30]))
+    correlator_ax.xaxis.set_major_formatter(ScalarFormatter())
+    correlator_ax.xaxis.set_minor_formatter(NullFormatter())
+    correlator_ax.yaxis.set_major_locator(FixedLocator([1e-20, 1e-14, 1e-8, 1e-2]))
+    correlator_ax.legend(loc='upper right', frameon=False, handletextpad=.3)
+
+    contour_provenance = read_json('entropy_contour_provenance.json')
+    assert sha(DATA/'entropy_contours.npz') == contour_provenance['cache_sha256']
+    assert contour_provenance['cases']['1']['source_sha256'] == spectral_provenance['cases']['1']['source_sha256']
+    with np.load(DATA/'entropy_contours.npz', allow_pickle=False) as saved:
+        contour = saved['alpha1_contour']
+    assert contour.shape == (20,64)
+    np.testing.assert_allclose(contour.sum(),contour_provenance['cases']['1']['total_entropy_nats'],atol=1e-10)
+    image = heat.imshow(contour.T, origin='lower', cmap='Blues',
+        vmin=0, vmax=float(contour.max()), interpolation='nearest',
+        extent=(-.5,19.5,-.5,63.5), aspect='auto')
+    np.testing.assert_array_equal(image.get_array(),contour.T)
+    heat.set(xlabel=r'$x$', ylabel=r'$y$', xticks=[0,5,10,15,19], yticks=[0,32,63])
+    for wall in (4.5,15.5): heat.axvline(wall,color='.55',ls='--',lw=.4)
+    heat.text(.5,.5,r'$\alpha_1=1$',transform=heat.transAxes,ha='center',va='center')
+    cax = state_fig.add_axes([.90,bottoms[1],.023,1.02/3.25])
+    colorbar = state_fig.colorbar(image,cax=cax,ticks=[0,.2,.4])
+    colorbar.ax.set_title(r'$s(x,y)$',pad=3)
+    colorbar.ax.tick_params(direction='in',length=2,pad=1)
 
     rows = read_csv('multiplier_gaps.csv')
     assert len(rows) == 105 and all(r['status'] == 'resolved_positive' and int(r['Nx']) == 20 for r in rows)
     for size, color, marker, style in zip(
-        (20, 40, 60, 80, 100), ('#c0392b', '#23934c', '#2468ad', '#8e44ad', '#d17b0f'),
+        (20, 40, 60, 80, 100), (ALPHA_COLORS[3], '#23934c', ALPHA_COLORS[1], '#8e44ad', '#d17b0f'),
         ('^', 's', 'o', 'D', 'v'), (':', '--', '-', '-.', (0, (3, 1, 1, 1)))
     ):
         selected = sorted((r for r in rows if int(r['Ny']) == size), key=lambda r: float(r['alpha_1']))
@@ -112,7 +152,7 @@ def main():
     fits = read_json('multiplier_fits.json')['results']
     fit_rows = read_csv('multiplier_fit_inputs.csv')
     handles, checked_fits = [], {}
-    for alpha, color, marker in ((1, '#2468ad', 'o'), (3, '#c0392b', '^')):
+    for alpha, color, marker in ((1, ALPHA_COLORS[1], 'o'), (3, ALPHA_COLORS[3], '^')):
         selected = sorted((r for r in fit_rows if int(r['alpha_1']) == alpha), key=lambda r: int(r['Ny']))
         n = np.array([int(r['Ny']) for r in selected])
         y = np.array([float(r['g_C']) for r in selected])
@@ -147,20 +187,37 @@ def main():
     fit_ax.set_yticks([.84, .88, .92, .96])
     fit_ax.legend(handles=handles, frameon=False, loc='center right',
                    handlelength=1.2, handletextpad=.35, borderpad=.1, labelspacing=.12)
-    for ax, letter in zip(axes, 'abcd'):
+    for ax, letter in zip(axes, 'abab'):
         ax.tick_params(top=True, right=True)
-        ax.text(-.19, 1.04, f'({letter})', transform=ax.transAxes, fontsize=9)
-    prepare_figure(fig, STEM)
-    fig.subplots_adjust(left=.20, right=.89, top=.97, bottom=.06, hspace=.45)
-    fig.canvas.draw()
-    renderer = fig.canvas.get_renderer()
-    boxes = [ax.get_tightbbox(renderer) for ax in axes]
-    assert all(b.x0 >= 0 and b.y0 >= 0 and b.x1 <= fig.bbox.width and b.y1 <= fig.bbox.height for b in boxes)
-    assert all(boxes[i].y0 > boxes[i+1].y1 for i in range(3)), 'Panels overlap'
-    record_typography(fig, STEM)
-    for ext in ('pdf', 'png'):
-        fig.savefig(out / f'{STEM}.{ext}', dpi=300)
-    plt.close(fig)
+        ax.text((.054-ax.get_position().x0)/ax.get_position().width, 1.04,
+                f'({letter})', transform=ax.transAxes, fontsize=9)
+    for index, (fig, stem) in enumerate(pairs):
+        add_log_minor_ticks(fig)
+        prepare_figure(fig, stem)
+        fig.canvas.draw()
+        renderer = fig.canvas.get_renderer()
+        boxes = [ax.get_tightbbox(renderer) for ax in axes[2*index:2*index+2]]
+        assert all(b.x0 >= 0 and b.y0 >= 0 and b.x1 <= fig.bbox.width and b.y1 <= fig.bbox.height for b in boxes), [(b.bounds, fig.bbox.bounds) for b in boxes]
+        assert boxes[0].y0 > boxes[1].y1, 'Panels overlap'
+        record_typography(fig, stem)
+        for ext in ('pdf', 'png'):
+            fig.savefig(out / f'{stem}.{ext}', dpi=300)
+        plt.close(fig)
+
+    if args.render_archived_scan or not (out/f'{SCAN_STEM}.pdf').exists():
+        gap_ax.tick_params(top=True, right=True)
+        add_log_minor_ticks(scan_fig)
+        prepare_figure(scan_fig, SCAN_STEM)
+        scan_fig.subplots_adjust(left=.20, right=.89, bottom=.25,
+                                 top=.25+panel_height/2.0)
+        scan_fig.canvas.draw()
+        box = gap_ax.get_tightbbox(scan_fig.canvas.get_renderer())
+        assert box.x0 >= 0 and box.y0 >= 0
+        assert box.x1 <= scan_fig.bbox.width and box.y1 <= scan_fig.bbox.height
+        record_typography(scan_fig, SCAN_STEM)
+        for ext in ('pdf', 'png'):
+            scan_fig.savefig(out / f'{SCAN_STEM}.{ext}', dpi=300)
+    plt.close(scan_fig)
 
     # Keep a readable numerical receipt, including the actual displayed A/B selection.
     if out == ROOT:
@@ -169,20 +226,38 @@ def main():
             writer.writeheader()
             writer.writerows(panel_b_rows)
     receipt = {
-        'layout': [4, 1], 'figure_inches': [3.375, 7.15], 'dpi': 300,
-        'panels_ab_same_arrays_axes_and_estimators': True,
-        'panel_b_display_cutoff': correlator_summary['display_cutoff'],
-        'panel_b_displayed_separations': displayed_distances,
-        'panel_c_scan_points': len(rows), 'Nx': 20, 'Ny': [20, 40, 60, 80, 100],
+        'layout': [2, 1], 'figure_inches': [3.375, 3.25], 'dpi': 300,
+        'relaxation_layout': [2, 1], 'relaxation_stem': RELAXATION_STEM,
+        'relaxation_figure_inches': [3.375, 3.25],
+        'displayed_panels': ['occupation_spectrum', 'averaged_state_entropy_contour', 'mean_correlator', 'gap_size_fit'],
+        'previous_to_current_panel_mapping': {'a':'11(a)','b':'11(b)','c':'12(a)','d':'12(b)'},
+        'appendix_scan_stem': SCAN_STEM, 'appendix_scan_layout': [1, 1],
+        'appendix_scan_figure_inches': [3.375, 2.0],
+        'retained_panels_acd_same_input_arrays_and_estimators': True,
+        'panel_b_entropy_contour': dict(alpha_1=1, cycle=128, shape=[20,64],
+            total_entropy_nats=float(contour.sum()),color_limits=[0,float(contour.max())],
+            input_sha256=contour_provenance['cache_sha256'],
+            meaning=contour_provenance['meaning'],normalization=contour_provenance['normalization']),
+        'panel_a_spectrum': spectral_provenance,
+        'panel_a_cycle':128, 'panel_a_markers':'Open marker for every eigenvalue; no subsampling',
+        'panel_a_matrix':'Untwirled final trajectory-averaged covariance',
+        'relaxation_panel_a_axes': {'x': 'r_y', 'y': 'C_Gbar(r_y)', 'xscale': 'log', 'yscale': 'log'},
+        'relaxation_panel_a_display_cutoff': DISPLAY_CUTOFF,
+        'relaxation_panel_a_min_ry': 2,
+        'relaxation_panel_a_displayed_separations': displayed_distances,
+        'appendix_scan_points': len(rows), 'Nx': 20, 'Ny': [20, 40, 60, 80, 100],
         'gap_definition': 'g_C=1-rho(A)^2', 'gap_units': 'dimensionless',
-        'panel_d_fit_objective': 'unweighted least squares on g_C; all five sizes',
-        'panel_d_saved_fits_recovered': checked_fits,
+        'relaxation_panel_b_fit_objective': 'unweighted least squares on g_C; all five sizes',
+        'relaxation_panel_b_saved_fits_recovered': checked_fits,
         'text_within_canvas_and_panels_separated': True,
-        'outputs': {f'{STEM}.{ext}': sha(out / f'{STEM}.{ext}') for ext in ('pdf', 'png')},
+        'outputs': {f'{stem}.{ext}': sha(out / f'{stem}.{ext}')
+                    for stem in (STEM, RELAXATION_STEM, SCAN_STEM) for ext in ('pdf', 'png')},
     }
     receipt_path = DATA / 'validation.json' if out == ROOT else out / 'validation.json'
     receipt_path.write_text(json.dumps(receipt, indent=2) + '\n')
     print(out / f'{STEM}.pdf')
+    print(out / f'{RELAXATION_STEM}.pdf')
+    print(out / f'{SCAN_STEM}.pdf')
 
 
 if __name__ == '__main__':

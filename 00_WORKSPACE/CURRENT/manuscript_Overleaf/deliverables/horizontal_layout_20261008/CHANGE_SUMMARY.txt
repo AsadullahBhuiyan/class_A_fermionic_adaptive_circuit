@@ -1,0 +1,14 @@
+Updated layout, 8 October 2026
+
+- Figure 3: original entropy axes proportions restored; raw contour display height reduced by half; alpha label centered at the entropy legend font size. Data and color limits unchanged.
+- Figure 4: full-width horizontal row of three panels; cycles, spectra, insets, gap points and fit values preserved.
+- Figures 5, 6 and 9: full-width horizontal pairs.
+- Figure 8: full-width convergence plot with a larger residual inset.
+- Removed blanket forced page breaks and adjusted float anchors. The final main-text figure can float beside the appendix opening; text fills the formerly empty column tails.
+- Fixed RevTeX's false stuck-float diagnostic when a column float precedes a wide float.
+
+The manuscript is 21 pages, reduced from 26. All seven remaining vertical stacks start at page tops, with at most one per physical page. All manuscript prose and equations, references, outlook and comments, tangent appendix, 55 scientific input files, fit values and uncertainty definitions are unchanged. No simulations were run.
+
+Validation: isolated latexmk build; all citations and cross-references resolve; no overfull boxes, stuck-float warnings or clipped figure text; embedded Computer Modern/AMS fonts; all six changed previews and all 21 manuscript pages inspected. The source upload ZIP was independently extracted and rebuilt.
+
+Original manuscript, figures and renderers are preserved in notes/manuscript_revision/horizontal_layout_20261008 at the manuscript root. Source ZIP uses figures/ paths for Overleaf.

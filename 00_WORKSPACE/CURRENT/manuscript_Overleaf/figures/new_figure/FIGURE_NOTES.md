@@ -1,38 +1,101 @@
 # Combined manuscript figure notes
 
+## Vertical layouts and split averaged-channel figures (2026-10-08)
+
+This revision supersedes earlier layout descriptions below. Figure 3(a) is enlarged to the same 2.0 × 1.5 inch axes dimensions as panel (b), without changing entropy means, SEMs or contour values. Figures 4 and 5 restore their original 3×1 and 2×1 single-column stacks, including original inset tick and legend spacing. Figure 8 restores its 3.375 × 2.8 inch single-column convergence canvas and inset. Figure 9 restores its 2×1 single-column wall fits. Figures 1 and 6 remain full width.
+
+The former four-row Figure 11 is split into two 2×1 figures, each 3.375 × 3.25 inches. Figure 11 retains the spectrum and averaged-state entropy contour; Figure 12 retains the correlator and channel-gap fits, relabeled (a,b). Their physical axes dimensions, plotted values, colors, markers and fit values are preserved. Captions and main-text references follow the split. The previous manuscript, all figures and renderers are archived in ../../notes/manuscript_revision/vertical_layout_split_20261008/. All saved scientific inputs and retained fit values are unchanged; no dynamics were rerun.
+
+
+## Approved averaged-state contour figure (2026-10-08)
+
+Before the subsequent split, Figure 11 matched the supplied four-row preview: (a) ordered occupations, (b) full-system entropy contour of the outcome-averaged Gaussian state at alpha1=1, (c) the same short-range two-point correlator, and (d) the unchanged channel-gap fits. The saved contour is evaluated from the untwirled averaged covariance at Nx=20, Ny=64, cycle128; both orbitals are summed, with natural logarithms and no spatial normalization. It sums to 76.0854181426 nats. This is s[mean G], not the average of trajectory contours. It therefore measures the entropy left after discarding records, not a purification rate. The color scale is 0–0.4699662492, with ticks 0,0.2,0.4.
+
+The saved contour cache, producer configuration and source hashes are in data/mean_channel/entropy_contour_provenance.json. No dynamics were rerun. The previous manuscript, figures and renderers are preserved in ../../notes/manuscript_revision/mean_channel_contour_20261008/. The previously retained occupation, correlator and gap arrays and fits are unchanged; the parameter-scan asset remains excluded. Main-text panel references and the caption follow the four-panel order.
+
+
+## Horizontal layout polish (2026-10-08)
+
+This revision supersedes the earlier layout descriptions. Figure 3(a) restores the original width/height ratio (1.8220368); its raw means and SEMs remain exactly the saved per-circumference values times 30. Figure 3(b) is reduced from 3.0 to 1.5 display inches in height, with alpha1=1 centered inside the map at the same 10 pt as the entropy legend. Its pixels, averaging order, unnormalized values and 0–0.0075 color scale are unchanged.
+
+Figure 4 is a full-width 1x3 row. Its central-rank insets still contain every saved rank and retain limits 580–620; only the middle inset tick label is omitted for clearance. Cycle legends are compacted, and the gap-fit legend wraps onto two lines without changing values. Figures 5, 6 and 9 are full-width 1x2 rows. Figure 8 uses the full text width, with a larger residual inset and unchanged data.
+
+The 26-page pre-edit version, figures and renderers are preserved in ../../notes/manuscript_revision/horizontal_layout_20261008/. The revised PDF has 21 pages. Every figure is present exactly once; every horizontal row spans the text width, and each remaining vertical stack starts at a page top, with at most one stack per page. Float anchors let text fill columns; the RevTeX queue helper checks whether the head float is eligible for the width pass before diagnosing a stuck queue. This avoids a false warning when a wide float follows a tall column float. All scientific input arrays, fit values, manuscript prose, equations, references, protected outlook and tangent appendix remain unchanged.
+
+
+## Chord-length reference and overline scope (2026-10-07)
+
+The correlations subsection introduces the chiral free-fermion CFT ground state in 1+1 dimensions as a comparison, followed immediately by the displayed chord-length definition. Average bars cover function symbols only: $\overline{C_G}(r_y)$, $\overline{C}(\boldsymbol r)$, and $\overline{\nu_j}(t)$. This convention is applied to manuscript prose, captions, and the labels in Figures 2, 3, and 5. The spectral-density definition now separates the trajectory function from its mean, $\varrho=\overline{\varrho_G}$, retaining the original order of averaging over cuts and trajectories. No data, fit, estimator, axis range, or figure size changes.
+
+## Fit labels and spectrum sizing (2026-10-07)
+
+Figure 5(a) uses a 9 pt parameter legend. Figure 5(b) labels its dashed fit as $[\sin(\pi r_y/N_y)]^{-\beta}$ and displays $\beta=2.190\pm0.005$ and $R^2=0.999707$ at 8 pt, matching the fit legend, with additional line spacing. The fit legend is lowered and its dashed handle shortened to avoid the data curve. The uncertainty is the formal weighted-regression standard error. The goodness of fit is independently recovered from the unchanged $r_y\geq8$ log-normalized data, with equal total weight per circumference.
+
+All displayed goodness-of-fit labels use $R^2$, including both panels of Figures 6 and 8. For these anchored fits and Figure 5(b), this denotes the unchanged uncentered statistic $1-\sum_i w_i(y_i-\widehat y_i)^2/\sum_i w_i y_i^2$ in the fitted coordinates; the historical data key `R0_squared` is preserved. The free-intercept fit in Figure 7(c) retains its centered statistic. This is a notation update, with no change to any fit or estimator.
+
+Figure 7 uses a 3.375 × 6.25 inch canvas, with panels about 8% wider and 12% taller within the existing manuscript column. Its legends and in-panel annotations print at 9 pt and panel letters at 10 pt. The $N_y=32$, $A_y=16$ title is removed from panel (a); the unchanged caption specifies the size and half-strip geometry. All bins, counts, curves, uncertainties, and fitted values are preserved.
+
+## Annotation polish (2026-10-07)
+
+All 20 manuscript annotations are applied. Modular-map parameter labels have white backgrounds, share the same vertical position, and sit below the top axis borders; displacement legend entries read `(left)` and `(right)`. The mode-count panel retains its fit curve, shading, and $R^2$, removes the slope and fit-window text, and places $\alpha_1=1$ below $R^2$ at the lower left. Purification uses blue and orange-red cycle gradients, larger parameter labels, raised insets, and no $N_y$ in-panel label. The gap panel omits its data-series legend entry, the slow-mode map omits the time/size annotation, and its density is $\overline{p_{\Delta}}(x,y)$, matching $p_{\Delta}$ and $\phi_{\Delta}$ in the manuscript. Figure 1 is now 1.2 times its original size in a centered single-column float. Data and fitted quantities are unchanged.
+
+## Current circumferential correlation figure and notation
+
+Manuscript Figure 5 (`Figure_05_correlations`) now uses the requested two-panel comparison/collapse from `xavg_summary_2x1_loglog_v2_ry_ge2`. Its panels show (a) $\alpha_1=1,3$ at $N_y=60$ versus raw separation $r_y$, and (b) the six-size topological collapse versus $\sin(\pi r_y/N_y)=D(r_y)/D(N_y/2)$. Both axes in each panel are logarithmic, and only $r_y\geq2$ is displayed. Panel (a) masks values at or below $10^{-20}$, preserving the requested display threshold. All curve values, the power-law exponent $\beta=2.1903330477862717$, and fit windows match the supplied plot's saved data. The two panels use the manuscript's shared Computer Modern typography, regular panel letters, black labels, and unchanged parameter/size color encodings.
+
+The spatially averaged quantity is now defined directly as the circumferential correlation function $C_G(r_y)$; no `av` superscript is used. Its trajectory average is $\overline{C_G}(r_y)$. The deterministic mean-channel figure uses $C_{\overline G}(r_y)$, which squares the already averaged two-point matrix and is a different observable. At nonzero separation, $C_G$ is the positive magnitude of the corresponding connected density correlation, not the signed connected correlation itself. This notation update changes no estimator or data.
+
+The previous column-resolved figure and manuscript are preserved in `../../notes/manuscript_revision/before_correlation_comparison_20261007/`. The reference plot's CSV and provenance are copied into `data/correlations/requested_plotted_data.csv` and `requested_provenance.json`. Earlier revision summaries below describe historical layouts; use the index and the detailed correlation section for the active version.
+
+## Purification reorganization (Figures 3 and 4, 2026-10-08)
+
+Figure 3 contains mean total entropy and the raw alpha1=1 cycle60 full-system entropy contour, with equal axes widths. The contour display is compressed vertically without resampling its 20-by-30 cells. The former entropy means and SEMs are multiplied by exactly 30; the cycle axis remains t/Ny. The saved contour sums to the mean total entropy, 0.33041968419464895 nats. The Blues scale is linear from 0 to 0.0075. Both orbitals are summed; no translation average, smoothing, or per-sample normalization is applied in the manuscript. The separate comparison preview normalizes each trajectory by its own total entropy before averaging, with its own colorbar and no manuscript inclusion.
+
+Figure 4 contains (a) alpha1=3 ordered occupations, (b) alpha1=1 ordered occupations, and (c) the unchanged finite-time Lyapunov gap. Spectra retain cycles 1,5,60, open markers, phase-specific gradients and rank580--620 insets. The full-measurement, fully maximally mixed spectra and the slab-only, mixed-slab/pure-exterior gap sweep remain distinct protocols. All 100-trajectory ensembles, occupation CSVs, gap arrays, SEMs and fitted exponent are unchanged. The former selected slowest-mode density remains archived and its scientific input is retained.
+
+The new spatial definition weights all eigenmode densities by their entropy contributions; it is not the density of a selected eigenmode. Finite-time and late-window qualifications, the polar decomposition, tangent appendix and protected outlook remain intact.
+
+## Enlarged schematic
+
+Figure 1 (`Figure_01_schematic`) is included at `0.90\columnwidth` in a centered single-column float, exactly 1.2 times its original linear size at `0.75\columnwidth`. The shared typography configuration compensates the source fonts so the printed labels retain their prescribed sizes. The crowded upper-left occupation label is removed; the single geometry label above the central bulk support now reads $\hat{\mathcal N}_{\boldsymbol r,\nu,\sigma}(\alpha_{\boldsymbol r})$. It is offset slightly to the right to clear the neighboring interface support. All five supports, lattice sites, periodic marks, and circuit branches are unchanged. Dimension arrows label $N_x$ below the cell and $N_y$ (circumference) on the right. The two connectors adjoining the decision diamond are each lengthened by the same amount, and the occupation definitions below the ancilla use aligned $s_-$/$s_+$ and equals signs. The canvas height accommodates these additions without shrinking labels or boxes. The bypass and arrowed connectors use the same 0.9-pt patch stroke. The separately preserved flowchart uses the same connector and label adjustments. Regenerate the included schematic with `python sources/plot_schematic.py --only combined`.
+
+## Entropy-coefficient figure moved to the appendix
+
+Former manuscript Figure 8 (`Figure_08_central_charge`) is now Figure A3 in Appendix C, Supporting Entanglement Diagnostics. It now retains only the cycle-convergence plot and residual inset, without panel letters; the endpoint-size panel is removed. The caption and main-text discussion refer to this single-panel figure. All scientific inputs, including the removed endpoint scan, remain preserved. Wall entropy, modular evolution, and averaged dynamics become main-text Figures 8, 9, and 10.
+
+## Latest figure polish
+
+Manuscript Figure 3(a) now uses blue circles with a solid line for $\alpha_1=1$ and vermilion triangles with a dotted line for $\alpha_1=3$. Numerical curves, bands, and sampling times are unchanged.
+
+Manuscript Figure 5 omits the former full-x parameter-comparison panel. Its remaining column-resolved and normalized-collapse panels are relabelled (a,b), on a 3.375 × 4.1 inch canvas. The exported data retain their original source-panel keys `b,c`; `validation.json` records the mapping to displayed panels `a,b`. Original inputs and the removed panel's data remain preserved. The collapse still hides $r_y=1$ and keeps the original $r_y\geq8$ fit. Captions and main-text references follow the two-panel layout.
+
+In manuscript Figure 2, geometry (a) and marker map (b) are aligned 1.08-inch squares on the source canvas. Only the panel letters (a) and (b) are shifted 0.10 source inches left. The diagrams and color bar retain their earlier positions: the geometry border remains flush with the convergence plot's left vertical axis. The color bar is vertical beside (b), with matching top and bottom edges. The source canvas is 3.95 × 4.2 inches and is fitted to the existing manuscript column width; the shared typography configuration compensates font sizes before inclusion. Convergence retains its source axes dimensions and data; its inset is moved upward by 0.01 of the axes height to preserve clearance after font compensation. The marker-map title remains absent. All numerical inputs, uncertainties, captions, and the $\tanh[\overline C]$ display are unchanged.
+
+## Earlier purification split (superseded) and compact bulk figure
+
+The entropy evolution is manuscript Figure 3 (`Figure_04_purification`), and the finite-time gap/slow-mode density is Figure 4 (`Figure_04_lyapunov`). Each is a 3.375 × 3.65 inch two-panel vector figure with unchanged numerical inputs, fit, error bars, and colors. This split layout is superseded by the three-panel combination described above. The original four-panel PDF, preview, and renderer are preserved in `../../notes/manuscript_revision/before_purification_split_20261005/`.
+
+Section III now introduces the positive trajectory operator, effective Gaussian Hamiltonian, and occupation/Lyapunov relation before interpreting the slow boundary modes. It also explains singular-value filtering for pure inputs without extracting rates from their already-pure correlation matrices. Singular-support and ensemble qualifications remain in the appendix. Added and revised text is blue. The existing Xiao--Kawabata citation is retained; Section II and the bibliography are unchanged.
+
+The bulk figure remains manuscript Figure 2: geometry (a) and marker map (b) share the top row, with convergence (c) beneath. The marker display is $\tanh[\overline{C(\boldsymbol r)}]$, applied after trajectory averaging, with a linear color scale from -1 to 1. The original marker values and the finite-disk Chern estimator are unchanged; this bounded display is not a renormalized Chern invariant.
+
+## Focused correlation and color update
+
+Parameter comparisons in the active purification, spectrum, and mean-channel parameter comparisons now share `sources/manuscript_palette.py`: $\alpha_1=1$ is blue (`#0072B2`) and $\alpha_1=3$ is vermilion (`#D55E00`). The purification comparison previously reversed these color meanings. Position, system-size, time, and scalar-field colors retain their separate meanings; the other active figures use those encodings rather than competing parameter palettes. Historical diagnostic assets remain unchanged. Markers, line styles, data, and fits are preserved.
+
+In manuscript Figure 5(b) (asset `Figure_05_correlations`), the six $r_y=1$ points are hidden. Their coordinates remain in `plotted_data.csv` with `displayed=False`; original inputs are untouched, and the fit still uses $r_y\geq8$ with $\beta=2.1903330477862717$. The Section III explanation now distinguishes the negative connected density correlation within each number-conserving Gaussian trajectory from the positive squared two-point function being plotted. Trajectory averaging follows the within-trajectory connected subtraction and squaring. Section II is unchanged.
+
 ## Latest manuscript merge: correlator convention
 
-The newly supplied Claude revision has been merged while retaining the separate geometry and adaptive-circuit figures. The manuscript now defines $G_{ij}=\operatorname{Tr}(\hat\rho\,\hat c_j^\dagger\hat c_i)$, so its occupied projector is $P=G$ and each mode projector is $P_j=W_jW_j^\dagger$. Earlier source/protocol descriptions below use the saved computation's transposed convention: if that matrix is called $G_{\rm old}$, then the current manuscript matrix is $G=G_{\rm old}^{\mathsf T}$. The old centered matrix and its spectrum remain useful source notation; the incoming main text writes the update directly in terms of $G$.
+The supplied Claude revision was merged before the latest schematic combination described below. The manuscript now defines $G_{ij}=\operatorname{Tr}(\hat\rho\,\hat c_j^\dagger\hat c_i)$, so its occupied projector is $P=G$ and each mode projector is $P_j=W_jW_j^\dagger$. Earlier source/protocol descriptions below use the saved computation's transposed convention: if that matrix is called $G_{\rm old}$, then the current manuscript matrix is $G=G_{\rm old}^{\mathsf T}$. The old centered matrix and its spectrum remain useful source notation; the incoming main text writes the update directly in terms of $G$.
 
 No saved arrays, figure PDFs, previews, or propagation results were changed during this merge. In particular, the imported modular-evolution expression uses $h_A^{\mathsf T}$ for the annihilation-mode coefficient vector, keeping the mapping to the previously documented saved convention explicit. The imported truncation appendix and six new bibliography entries are preserved as supplied; this merge is not a new numerical verification of those added analytical claims. Existing revision colors and comments are retained.
 
-## Separate geometry and adaptive-circuit figures (October 5, 2026)
+## Full-width horizontal schematic (2026-10-08)
 
-Figures 1 and 2 are now separate, single-column figures without panel letters. Figure 1 preserves the taller domain-wall cell and five example local supports; Figure 2 is a vertical measurement-and-feedback flowchart. The manuscript contains thirteen figures: 1–2 in Section II, 3–11 in Section III, and A1–A2 in the appendices. Fifteen PDF/PNG asset versions are retained, including the non-included hard-wall close-up and soft/hard alternative. Numerical figure filenames and manuscript numbers now agree again.
+Figure 1 places the approved four-time-slice geometry on the left and the existing measurement/fSWAP flowchart on the right in a 7.05-by-4.20 inch vector canvas, included at full text width. Each component retains its original aspect ratio and drawing coordinates. The lattice remains 16 by 18 with a 4--8--4 partition; supports, centers, seam marks, transparencies, arrow direction and circuit branch connections are unchanged. Computer Modern/AMS labels print at the shared prescribed sizes. All original assets are preserved in the dated review archive.
 
-| Manuscript figure | Asset stem | Contents |
-|---|---|---|
-| 1 | `Figure_01_schematic` | Domain-wall geometry and local supports |
-| 2 | `Figure_02_adaptive_circuit` | Adaptive measurement and feedback |
-| 3 | `Figure_03_bulk_topology` | Bulk topology |
-| 4 | `Figure_04_purification` | Slow purification |
-| 5 | `Figure_05_correlations` | Correlation functions |
-| 6 | `Figure_06_entropy_charge` | Entropy and charge fluctuations |
-| 7 | `Figure_07_entanglement_spectrum` | Occupation spectrum, energy spectrum, and mode count |
-| 8 | `Figure_08_central_charge` | Central-charge convergence and size dependence |
-| 9 | `Figure_09_wall_entropy` | Entropy carried by each wall |
-| 10 | `Figure_10_modular_evolution` | Modular evolution |
-| 11 | `Figure_11_mean_channel` | Trajectory-averaged dynamics and channel gap |
-| A1 | `Figure_A01_ow_truncation` | Truncated OW modes |
-| A2 | `Figure_A02_mutual_information` | Entropy contours and antipodal mutual information |
-| Standalone (former 2) | `Figure_02_hard_wall` | Hard-wall support truncation |
-| Alternative | `Figure_02_alt_soft_and_hard_walls` | Soft and hard walls |
-
-The geometry is a conceptual 24-by-28 lattice drawing with equal site spacing, not a new simulated system. Its vertical circumference is 7/6 times its horizontal dimension. The central slab occupies half the cell width. Five nominal 3-by-3 supports occupy distinct heights: trivial bulk, left interface on the slab side, slab bulk, right interface on the slab side, and right interface on the exterior side. The horizontal partition is 6–12–6 unit-cell columns. The exterior dimension arrows and their $N_x,N_y$ labels are omitted. Matching short black oblique strokes at opposite borders indicate periodic identifications: single slashes for the top–bottom pair and double slashes for the left–right pair. The first support is lowered by two lattice rows and shifted one site left. All five time labels sit to the right of their retained supports, vertically level with their associated Wannier centers, with a common 0.65-site gap from the support edge. The trivial-bulk occupation-measurement label uses $\alpha_2$, and the topological-bulk label uses $\alpha_1$; the first is shifted half a site right to clear the exterior border, while the third remains centered over its bulk support. Black support outlines are drawn above the dashed domain-wall strokes, including their shared edges at interfaces. The domain walls retain their original deep-blue color (#164A7B) and 1.5 pt source linewidth. Each dashed stroke starts at the upper gray border, so there is no terminal gap at the top. The enlarged 11 pt phase headers specify $\alpha_{\boldsymbol r}=\alpha_2,\alpha_1,\alpha_2$ across the three regions. The five supports carry $t_1,\ldots,t_5$ labels. All 672 lattice sites are drawn; opaque label backgrounds have been removed so that they do not mask the sites. These are illustrative operation labels, not five full circuit cycles or a complete raster sequence. Interface supports retain two columns by three rows. Salmon denotes exterior modes and darker blue denotes slab modes; dots mark their centers. The circuit-time layers and interface-coordinate labels remain absent.
-
-The new flowchart reads downward: measurement, decision, either bypass or conditional fSWAP, branch merger, and next measurement. The measurement, decision, fSWAP, and next measurement share one vertical centerline. The yes bypass is a continuous rectangular connector meeting a plain T-junction; one downward arrow enters the next measurement. A fresh ancilla enters the fSWAP laterally. The rightward arrow and ellipsis after the next-mode box indicate repetition of the same adaptive step over subsequent modes; they do not denote continuous-time evolution. Branch logic, target occupations, and all scientific data are unchanged. Captions explain the separate figures, and newly written text is blue.
-
-Reproduce both schematics with `python sources/plot_schematic.py`. Their canvases are 3.375 by 4.35 inches (geometry) and 3.375 by 3.65 inches (flowchart), calibrated to the actual manuscript column width by the shared typography helper. The old hard-wall close-up retains its historical 0.8-column typography calibration despite no longer being included. Regenerate the index/overview and validation manifest after rendering.
+There are thirteen included figures: main figures1--11 and appendix figuresA1--A2. Stable asset filenames and figure labels are unchanged. The seven remaining multirow figures are placed at page tops, with at most one per PDF page; insets do not count as rows. Blanket forced page breaks are removed. Current numbering is given in data/figure_index.json and README.md. Earlier layout descriptions below are historical.
 
 ## Typography standard (October 5, 2026)
 
@@ -88,13 +151,13 @@ Panel letters use plain, regular-weight CMU Sans Serif at 9 pt. Numerical plot l
 
 ### Earlier notation used for saved computations (before the latest merge)
 
-The two-point matrix is $G_{ij}=\operatorname{Tr}(\hat\rho\,\hat c_i^\dagger\hat c_j)$ and the centered matrix is $G_c=2G-\mathbf1$. Occupations are $\nu_a\in[0,1]$, centered occupations are $\lambda_a=2\nu_a-1$, and finite-time purification rates are $\gamma_a(T)$. The squared two-point diagnostic remains $C_G$; it is distinct from the disk Chern number $\mathcal C_G$ and the local marker $C(\boldsymbol r)$. For the topology formulas, the occupied projector in the creation-wavefunction basis is $P=G^{\mathsf T}$. This is a notation mapping of the saved computation, with no change of Chern sign or data.
+The two-point matrix is $G_{ij}=\operatorname{Tr}(\hat\rho\,\hat c_i^\dagger\hat c_j)$ and the centered matrix is $G_c=2G-\mathbf1$. Occupations are $\nu_a\in[0,1]$, centered occupations are $\lambda_a=2\nu_a-1$, and finite-time purification rates are $\gamma_a(t)$. The squared two-point diagnostic remains $C_G$; it is distinct from the disk Chern number $\mathcal C_G$ and the local marker $C(\boldsymbol r)$. For the topology formulas, the occupied projector in the creation-wavefunction basis is $P=G^{\mathsf T}$. This is a notation mapping of the saved computation, with no change of Chern sign or data.
 
 An overline means a Born trajectory average. For subsystem observables it additionally includes the average over translated $y_0$ **within each trajectory first**. Nonlinear observables are formed before either average. Relative row coordinates are $\delta y=(y-y_0)\bmod N_y$. SEMs use the independent trajectories, never the correlated translated cuts. Exceptions are specified below: e.g. the bulk disk uses ten random centers; the deterministic averaged channel sums outcomes analytically; the central-charge coefficient is fitted to averaged entropy. 
 
-We use one chord-length convention throughout: $D(\ell)=(N_y/\pi)\sin(\pi\ell/N_y)$, with the circumference supplied by the curve's geometry, not by a subscript in the axis label. Figures 5(a,b) and 11(b) use $\log D(r_y)$; Figure 5(c) uses $\log[D(r_y)/D(N_y/2)]$; Figures 6 and 9 use $\log[D(A_y)/D(A_y^\star)]$, where $A_y^\star=\lfloor N_y/2\rfloor$; Figure 7(c) uses $\log D(A_y)$. These are label changes only: absolute and reference-normalized coordinates remain distinct, and every input value, fit, cutoff, and uncertainty is preserved. Historical source column names such as `delta_log_sine_chord` are retained for provenance.
+We use one chord-length convention throughout: $D(\ell)=(N_y/\pi)\sin(\pi\ell/N_y)$, with the circumference supplied by the curve's geometry, not by a subscript in the axis label. Figure 5(b) labels its normalized chord directly as $\sin(\pi r_y/N_y)=D(r_y)/D(N_y/2)$ on logarithmic axes; Figures 6 and 9 use $\log[D(A_y)/D(N_y/2)]$, where the reference argument $N_y/2$ is rounded down for odd circumferences; Figure 7(c) uses $\log D(A_y)$. These are label changes only: absolute and reference-normalized coordinates remain distinct, and every input value, fit, cutoff, and uncertainty is preserved. Historical source column names such as `delta_log_sine_chord` are retained for provenance.
 
-Measurement outcomes are upright $\mathrm m$, with the record $\mathbf m$. In the text $S=S_1$, $s=s_1$, and $c=c_1$ denote the von Neumann quantities.
+Measurement outcomes are upright $\mathrm m$, with the record $\mathbf m$. In the text $S=S_1$ and $s=s_1$ denote the von Neumann entropy and contour; its coefficient is written $c$ consistently in the manuscript and figures.
 
 New and revised manuscript text is blue; sparse review notes are magenta `[GPT: ...]`. The baseline manuscript and original-asset checksums are preserved in `notes/manuscript_revision/baseline/`. Numerical provenance distinguishes the ensembles even when their decoupled hard-wall interior dynamics coincide.
 
@@ -103,31 +166,33 @@ New and revised manuscript text is blue; sparse review notes are magenta `[GPT: 
 
 <a id="figure-01-schematic"></a>
 
-## Figure 1 — Domain-wall geometry and local supports
+## Figure 1 — Domain-wall geometry and adaptive circuit
 
 [Vector PDF](Figure_01_schematic.pdf) · [300-dpi preview](Figure_01_schematic.png)
 
 [PDF](Figure_01_schematic.pdf) · [PNG](Figure_01_schematic.png)
 
-**Contents.** One portrait lattice contains the central topological slab, trivial exterior, two interfaces, and five example local occupation measurements. Complete bulk supports contain 3×3 unit cells; the interface supports are clipped to the regions containing their centers. Phase and operation labels are retained; matching border slashes indicate periodic identification without dimension arrows or exterior captions.
+**Contents.** Panel (a): four offset time slices show exterior-bulk, exterior-interface, slab-interface, and slab-bulk OW supports at fixed local y. Each plane has a 4–8–4 horizontal partition and 18 rows. Matching boundary slashes identify periodic directions. Phase labels are just above the top border; both exterior labels read $\alpha_2$ and align with their region centerlines; the caption states that $\alpha_2$ is fixed at $30$. The compact occupation label lies to the right of its support and is vertically aligned with the mode center. Time and spatial-dimension arrows are retained, with tightly cropped exterior margins.
+
+Panel (b) contains the adaptive flowchart described under the standalone circuit asset below.
 
 **Protocol.** The geometry is periodic in both spatial directions. Each OW mode uses the parameter at its center, $\alpha_{\boldsymbol r}$; support across a hard interface is removed and the surviving mode is renormalized. Shading depicts support, not wavefunction amplitude. The lattice count in the drawing is illustrative, not a numerical campaign specification.
 
 **Data and analysis.** No sampled trajectories, initialization, evolution time, averaging, estimator, normalization, fit, or uncertainty applies to this conceptual schematic.
 
-**Source and reproduction.** The active native vector source is [plot_schematic.py](sources/plot_schematic.py), adapted from the original domain-wall and hard-wall drawing sources. Run `python sources/plot_schematic.py` to regenerate Figures 1 and 2. The current 6–12–6 geometry has retained support cell counts (9,6,9,6,6) and a height/width ratio of 7/6. Reproduce only this figure with `python sources/plot_schematic.py --only geometry`. The diagram is wider in aspect while retaining single-column inclusion and the shared typography standard. The Figure 2 flowchart is unchanged.
+**Source and reproduction.** The active native vector source is [plot_schematic.py](sources/plot_schematic.py), adapted from the original domain-wall and hard-wall drawing sources. Run `python sources/plot_schematic.py` to regenerate combined Figure 1 and the standalone flowchart. The current 4–8–4 geometry has retained support cell counts (9,6,6,9) and a height/width ratio of 18/16. Reproduce only this figure with `python sources/plot_schematic.py --only combined`. The diagram is wider in aspect while retaining single-column inclusion and the shared typography standard. The standalone flowchart remains preserved.
 
 ---
 
 <a id="figure-02-adaptive-circuit"></a>
 
-## Figure 2 — Adaptive measurement and feedback
+## Standalone circuit — Adaptive measurement and feedback (Figure 1b)
 
 [Vector PDF](Figure_02_adaptive_circuit.pdf) · [300-dpi preview](Figure_02_adaptive_circuit.png)
 
 **Contents and protocol.** Measure $\hat{\mathcal N}_{\boldsymbol r,\nu,\sigma}(\alpha_{\boldsymbol r})$ with Born outcome $\mathrm m$. Matching outcomes bypass correction. Mismatches trigger an fSWAP with a fresh ancilla prepared at $s_-=1$ (fill) or $s_+=0$ (empty). The branches rejoin before the next OW-mode measurement. The outgoing arrow and ellipsis indicate further repetitions. The ancilla is discarded after use, as specified in the manuscript protocol.
 
-**Layout.** Single column, no panel letter. Measurement, diamond, fSWAP, and next measurement share one centerline; the two measurement boxes have identical dimensions and corner radii. Equal vertical gaps separate the stages. The no branch descends directly into fSWAP; the yes branch follows a rectangular bypass to a plain T-junction below it, without a junction dot or competing arrowheads. One arrow enters the next measurement. The lateral ancilla is level with fSWAP, with its title above and target occupations below. The two target-occupation definitions are left-aligned within their centered text block so that $s_-$ and $s_+$ share a common horizontal start. The outgoing right arrow and ellipsis share the final box’s horizontal center. All positions derive from shared alignment anchors. LaTeX Computer Modern labels use the shared print-size standard: 10 pt prominent text, 9 pt decision formula, 8 pt branch/ancilla and target-occupation annotations.
+**Layout.** Single column, no panel letter. Measurement, diamond, fSWAP, and next measurement share one centerline; the two measurement boxes have identical dimensions and corner radii. Equal vertical gaps separate the stages. The no branch descends directly into fSWAP; the yes branch follows a rectangular bypass to a plain T-junction below it, without a junction dot or competing arrowheads. One arrow enters the next measurement. The lateral ancilla is level with fSWAP, with its title above and target occupations below. The two target-occupation definitions are left-aligned within their centered text block so that $s_-$ and $s_+$ share a common horizontal start. The outgoing right arrow and ellipsis share the final box’s horizontal center, with a compact 0.045 drawing-unit gap after the arrowhead. All positions derive from shared alignment anchors. LaTeX Computer Modern labels use the shared print-size standard: 10 pt prominent text, 9 pt decision formula, 8 pt branch/ancilla and target-occupation annotations.
 
 **Data and analysis.** This is an algorithmic schematic rather than a sampled result. There is no ensemble size, initialization, averaging, fit window or uncertainty. It describes one elementary step repeated according to the manuscript schedule, not a new circuit simulation.
 
@@ -180,13 +245,13 @@ New and revised manuscript text is blue; sparse review notes are magenta `[GPT: 
 
 [Vector PDF](Figure_03_bulk_topology.pdf) · [300-dpi preview](Figure_03_bulk_topology.png)
 
-**Files:** `Figure_03_bulk_topology.pdf` (vector) and `.png` (300 dpi), 3.375 × 7.0 inches. Three vertically stacked panels (3×1) combine a new geometry drawing with the complete September 30 bulk-validation result. No dynamics was rerun. Panel (b) is taller to separate its inset from the curves; the marker map is enlarged, with a centered colorbar shorter than the map.
+**Files:** `Figure_03_bulk_topology.pdf` (vector) and `.png` (300 dpi), 3.95 × 4.2 inch source canvas, scaled to column width with compensated fonts. Only the upper panel letters are shifted left; the geometry retains its flush-left alignment with convergence; the vertical color bar sits beside the map. No dynamics was rerun; the convergence inset remains clear of the uncertainty bands.
 
 ### Panels
 
 - **(a) Geometry and estimator.** A 30 × 30 unit-cell lattice with trivial/topological/trivial regions labelled $\alpha_2,\alpha_1,\alpha_2$. The canonical integer interfaces are $x_L=8$ and $x_R=22$. A disk centered at $(15,15)$ with $R=6=0.2L$ is partitioned into three counterclockwise sectors: $A=[0,2\pi/3)$, $B=[2\pi/3,4\pi/3)$, $C=[4\pi/3,2\pi)$. One dot denotes one unit cell with two orbitals; both orbitals belong to the same sector. The drawn $y_0=15$ is illustrative: actual measurements use independently sampled transverse centers, with periodic minimum-image coordinates.
-- **(b) Chern convergence.** $|\overline{\mathcal C_G}-1|$ against cycles 0–40 for $L=20,30,40$; inset shows the same $\overline{\mathcal C_G}$ on a linear scale. Curves, markers, line styles, and one-SEM shading retain the source data. The order is the absolute deviation of the ensemble mean, **not** the ensemble mean absolute deviation. The interval $[\overline{\mathcal C_G}-\mathrm{SEM},\overline{\mathcal C_G}+\mathrm{SEM}]$ is transformed through $|x-1|$; a zero lower endpoint is clipped to $10^{-6}$ only for logarithmic display. No fitting is applied.
-- **(c) Local Chern marker.** The trajectory-averaged marker for $L=30$ at cycle 40, from all 100 endpoint projectors; orbitals are summed before averaging trajectories. Dashed lines mark the interfaces. The original `RdBu_r` scale is preserved with zero-centered separate linear ranges spanning the full data range, $[-13.8929122546,1.31778476234]$. There is no smoothing, clipping, or $\tanh$ transformation. Ordinary position coordinates on the periodic sample retain the large seam contribution. This is a position-commutator marker, not a spatial map of the finite-radius disk estimator in (b).
+- **(b) Local Chern marker.** The trajectory-averaged marker for $L=30$ at cycle 40, from all 100 endpoint projectors; orbitals are summed before averaging trajectories. Dashed lines mark the interfaces. The raw marker range remains $[-13.8929122546,1.31778476234]$. The displayed values are $\tanh[\overline{C(\boldsymbol r)}]$, using `RdBu_r` with a linear color scale on $[-1,1]$. The transformation follows averaging, rather than averaging transformed trajectories; no smoothing or input-data clipping is applied. Ordinary position coordinates on the periodic sample retain the large seam contribution. This is a position-commutator marker, not a spatial map of the finite-radius disk estimator in (c).
+- **(c) Chern convergence.** $|\overline{\mathcal C_G}-1|$ against cycles 0–40 for $L=20,30,40$; inset shows the same $\overline{\mathcal C_G}$ on a linear scale. Curves, markers, line styles, and one-SEM shading retain the source data. The order is the absolute deviation of the ensemble mean, **not** the ensemble mean absolute deviation. The interval $[\overline{\mathcal C_G}-\mathrm{SEM},\overline{\mathcal C_G}+\mathrm{SEM}]$ is transformed through $|x-1|$; a zero lower endpoint is clipped to $10^{-6}$ only for logarithmic display. No fitting is applied.
 
 ### Data and circuit protocol
 
@@ -226,56 +291,30 @@ From this figure bundle, run:
 python sources/plot_bulk_topology.py
 ```
 
-The renderer needs Python, NumPy, and Matplotlib; CMU Sans Serif is used with Computer Modern LaTeX math notation. It resolves data relative to itself and needs no source-campaign checkout. It verifies copied hashes; checks all 123 cycle mean/SEM pairs and 900 marker values against the original CSV files; reconstructs the marker mean and SEM from the 100 cached per-trajectory maps; and checks that displayed curves and image values equal the cache exactly. It writes `data/bulk_topology/validation.json` with source/output hashes and numerical results. The originating marker calculation agreed with the canonical CPU implementation to $4.31\times10^{-13}$, and its checked finite-disk contraction agreed with the saved observer to $1.45\times10^{-15}$.
+The renderer needs Python, NumPy, and Matplotlib; Computer Modern text and mathematics are rendered with LaTeX through the shared typography configuration. It resolves data relative to itself and needs no source-campaign checkout. It verifies copied hashes; checks all 123 cycle mean/SEM pairs and 900 marker values against the original CSV files; reconstructs the marker mean and SEM from the 100 cached per-trajectory maps; and checks that displayed curves equal the cache and image values equal the hyperbolic tangent of the cached trajectory mean exactly. It writes `data/bulk_topology/validation.json` with source/output hashes and numerical results. The originating marker calculation agreed with the canonical CPU implementation to $4.31\times10^{-13}$, and its checked finite-disk contraction agreed with the saved observer to $1.45\times10^{-15}$.
 
 
 ---
 
 <a id="figure-04-purification"></a>
 
-## Figure 04 — Purification and wall-localized slow modes
+## Figure 3 — Slow purification and residual entropy
 
 [Vector PDF](Figure_04_purification.pdf) · [300-dpi preview](Figure_04_purification.png)
 
-The four panels preserve the original `purification_ny30_full_measurement_4x1.pdf` values and fits. The regenerated vector figure overlines the trajectory means and uses a 3.375 × 6.8 inch layout.
+Two aligned column-width panels: mean raw full-system entropy and mean cycle60 entropy contour for alpha1=1. All 100 trajectories start fully maximally mixed, Nx20,Ny30, full measurement. Panel(a) plots former means and SEMs times30. Panel(b) averages the saved contour per trajectory without normalization; it sums to the mean total entropy. Color limits0--0.0075, natural logarithms, both orbitals summed, no y-average or smoothing. The numerical entropy log cutoff is1e-12; alpha1=3 uses the existing clipped continuation after cycle30.
 
-**Protocol.** Hard/support-truncated domain walls at $x=5,15$, $N_x=20$,
-overcomplete Wannier (OW) range $n_{\mathrm{shell}}=1$, $\alpha_2=30$,
-maximally mixed initialization, perfect correction, and raster-y ordering.
-Panels (a,b,d) use full-system measurements at $N_y=30$, $T=60=2N_y$,
-with 100 independent Born trajectories per parameter: production campaign 21
-for $\alpha_1=1$, and campaign 22 for $\alpha_1=3$.
+Sources and receipts are in data/purification/. Run sources/extract_purification_contour.py only to refresh from verified original shards; sources/plot_purification.py reproduces Figures3,4 from compact data and the separate normalization comparison. The original manuscript, figures and renderers are in ../../notes/manuscript_revision/purification_reorganization_20261008/.
 
-**Panels and estimators.** (a) Mean total von Neumann entropy divided by
-$N_y$, comparing $\alpha_1=1,3$. (b) At $\alpha_1=1$, the entropy
-contour summed over y and divided by $N_y$, separately at wall columns
-$x=5,15$ and trivial-slab columns $x=2,18$. Entropies and contours are
-computed per trajectory before averaging. Shading is ordinary trajectory SEM;
-cycle zero is excluded only from the logarithmic display. No entropy fit is
-included. (d) At $T=60$, one unique minimum-absolute-rate mode is selected
-and normalized per trajectory; its orbital-summed probability density is then
-averaged. The plotted rates obey
-$\gamma_j=\log[(1-\nu_j)/\nu_j]/(2T)$.
+---
 
-**The distinct panel (c) protocol.** This retained panel uses campaign 13's
-slab-only measurements, $\alpha_1=1$, 100 trajectories per size, and
-$N_y=20,24,30,36,44,56,60$, each evaluated at $T=2N_y$. It plots the
-trajectory mean and SEM of
-$\Delta=\min_j|\log[(1-\nu_j)/\nu_j]|/(2T)$.
-The SEM-weighted log-space fit $A N_y^{-z}$ uses all seven sizes and gives
-$z=1.0788\pm0.0540$. This is not a size sweep of the full-system protocol
-in (a,b,d); the ensembles are not pooled.
+<a id="figure-04-lyapunov"></a>
 
-**Numerical qualifications.** The $\alpha_1=3$ curve retains its original
-observations through cycle 30, then uses spectral clipping at the handoff and
-subsequent cycle ends. Entropy occupations are clipped to
-$[10^{-12},1-10^{-12}]$; near-zero tails reflect this estimator floor.
+## Figure 4 — Ordered occupations and finite-time gap
 
-**Source and reproduction.** Original producer:
-[make_figure.py](/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/experiment_review/purification_full_measurement_ny30/make_figure.py).
-The source caption, analysis manifest, and gap summary are preserved under
-`data/preserved_protocols/purification/`. Run `python sources/plot_purification.py`; the portable `data/purification/` inputs contain saved entropy/contour means and SEMs, the slow-mode density, and all seven gap points. `notation_validation.json` checks their reconstruction against the original source; no new dynamics or eigensolve is required. The full-system versus slab-only measurement distinction is retained here for provenance; the manuscript states the different initializations without exposing implementation flags.
+[Vector PDF](Figure_04_lyapunov.pdf) · [300-dpi preview](Figure_04_lyapunov.png)
 
+Panel(a) is the former Figure3(c) alpha1=3 occupation spectrum; panel(b) is the former Figure3(b) alpha1=1 spectrum. All1200 ranks at cycles1,5,60, gradients, open markers and identical central-rank insets are retained. Sort per cycle and trajectory, then average ranks over100 trajectories; ranks are not tracked modes and these are not eigenvalues of an averaged covariance. Panel(c) retains the seven-size slab-only gap scan and SEM-weighted fit, z=1.078776053090479 +/-0.05397871775824417 at2Ny cycles. Full-measurement spectra and slab-only gaps have different initializations and are not pooled. The removed slow-mode density data and original panels are preserved in the review archive.
 
 ---
 
@@ -285,23 +324,16 @@ The source caption, analysis manifest, and gap summary are preserved under
 
 [Vector PDF](Figure_05_correlations.pdf) · [300-dpi preview](Figure_05_correlations.png)
 
-This revises manuscript Figure 3 by removing only the inward-neighbor columns
-`x=6,14` from panel B. The manuscript's logarithmic chord coordinates, panel A/C
-data, curve styles, plotting cutoff, and collapse fit are preserved.
+This asset is manuscript Figure 4. It reproduces the requested two-panel log–log comparison and collapse with manuscript notation and typography. The former column-resolved panel is no longer displayed.
 
 ### Panels and data
 
-- **A:** Full-x average of the squared one-body correlation at `Ny=60`, comparing
-  slab parameters `alpha1=1` and `3`.
-- **B:** Column-resolved correlation at `alpha1=1`, `Ny=60`: walls `x=5,15` and
-  slab center `x=10`. These retain their original blue-circle, orange-downward-
-  triangle, and gray-diamond encodings respectively.
-- **C:** Antipodally anchored full-x correlation for `Ny=24,28,32,40,50,60`,
-  with the original common power-law fit.
+- **A:** Spatially averaged correlation $\overline{C_G}(r_y)$ at $N_y=60$ for $\alpha_1=1,3$, versus raw separation. Points require $r_y\geq2$ and mean correlation $>10^{-20}$.
+- **B:** $\overline{C_G}(r_y)/\overline{C_G}(N_y/2)$ at $\alpha_1=1$, versus $D(r_y)/D(N_y/2)$ for $N_y=24,28,32,40,50,60$. Only $r_y\geq2$ is displayed. The retained fit still uses $r_y\geq8$.
 
 Each ensemble contains **100 independent trajectories** on `Nx=20` unit cells,
 with two orbitals per cell and periodic x/y boundaries. Data are endpoint
-observations after `T=2Ny` cycles (48–120 cycles). The small sizes come from
+observations after `t=2Ny` cycles (48–120 cycles). The small sizes come from
 campaign 08; `Ny=40,50,60` from campaign 14; the `alpha1=3`, `Ny=60` control
 comes from campaign 15. The trajectories are not regenerated for this figure.
 
@@ -318,29 +350,20 @@ production uses `classA_U1FGTN_gpu.run_markov_circuit` in complex128 arithmetic.
 
 ### Estimator, fit, and uncertainty
 
-For each trajectory the plotted column observable is
+For each trajectory the circumferential correlation function is
 
 $$
-C_G(x,r_y)=\frac{1}{2N_y}\sum_{y,\mu,\nu}
-\left|G_{(x,y,\mu),(x,y+r_y,\nu)}\right|^2,
-\qquad C_G^{\mathrm{av}}(r_y)=\frac1{N_x}\sum_x C_G(x,r_y).
+C_G(r_y)=\frac{1}{2N_xN_y}\sum_{x,y,\mu,\nu}
+\left|G_{(x,y,\mu),(x,y+r_y,\nu)}\right|^2.
 $$
 
-The periodic y-origin and orbital sums occur within each trajectory; then
-trajectory observables are averaged arithmetically, **before taking logarithms**.
-This is not a squared correlation computed from an averaged matrix. The chord is
-`D(r)=(Ny/pi) sin(pi r/Ny)`, with natural logarithms throughout. Panels A/B
-display `r=1,...,Ny/2` only where the mean exceeds `1e-8`; no plotted values are
-replaced by that cutoff. Hidden values remain in the bundled data.
+Position and orbital sums occur within each trajectory, then the values are averaged arithmetically over trajectories. The overline denotes this last average. For $r_y>0$, this is the magnitude of the negative connected density correlation. It is not a squared correlation computed from an averaged matrix. The chord is $D(r)=(N_y/\pi)\sin(\pi r/N_y)$. Panel A shows raw separations and mean correlations on logarithmic axes; no plotted value is clamped to the cutoff.
 
-Panel C divides the ensemble mean at each separation by the ensemble mean at
-`Ny/2`, then takes its logarithm. It is not the mean of trajectory-wise ratios.
+Panel B divides the ensemble mean at each separation by the ensemble mean at $N_y/2$. It is not the mean of trajectory-wise ratios. The displayed ratios remain unlogged values on logarithmic axes, while the unchanged regression is performed on their natural logarithms.
 The through-origin joint fit uses **8 <= r_y <= Ny/2**, giving each size equal
-total weight, with `beta=2.1903330477862717` and `R0²=0.9997073485391841`.
-Light/darker gray show the union/intersection of the size-specific fit windows.
-No sampling error bars or confidence bands are displayed, and no uncertainty on
-beta is claimed. The preserved fit-window sensitivity table documents systematic
-window dependence; this figure does not add a new fit.
+total weight, with `beta=2.1903330477862717` and uncentered `R²=0.9997073485391841` (archived key `R0_squared`).
+A single gray band shows the union of the size-specific fit windows, matching the entropy, charge-variance, and wall-entropy figures. It uses gray 0.5 at opacity 0.15; there is no additional overlap band. Each size is still fitted only over its own $8\leq r_y\leq N_y/2$ window.
+The displayed uncertainty is the formal weighted-regression standard error, $s_\beta=\sqrt{[\sum_i w_i(y_i+\beta x_i)^2]/[(n-1)\sum_i w_i x_i^2]}=0.0045445889$, rounded to 0.005. The intercept is fixed to zero and $n=69$: the six antipodal anchors are identically (0,0) and do not contribute residual degrees of freedom. The original fit weights, exponent, and fit curve are unchanged. This conditional regression error does not account for correlations among separations, shared normalization, or systematic fit-window/finite-size effects; no bootstrap is used. No pointwise error bars or confidence band is added. The preserved fit-window sensitivity table documents systematic window dependence. Details are recorded in `data/correlations/beta_uncertainty.json`.
 
 ### Reproduction and provenance
 
@@ -354,8 +377,7 @@ plotted-data CSV, and validation JSON. `--output-dir` supports an isolated remak
 `correlator_summary_3x1_v2_r8_half`; the latter records original data, receipts,
 generation-source paths, and their SHA-256 hashes. `import_manifest.json` binds
 these copied files and the original manuscript PDF to hashes. `validation.json`
-checks exact preservation of A/C table rows, B columns `[5,10,15]`, reconstruction
-of archived means, and independent recovery of the unchanged fitted exponent.
+checks retained source-panel A/C correlators, the A→A and C→B display mapping, reconstruction of every archived mean, agreement with the requested reference plot, the $r_y\geq2$ display mask, and independent recovery of the unchanged fitted exponent. Derived CSV fields `x,y` now store physical displayed coordinates; `source_log_x,source_log_y` retain the original logarithmic coordinates.
 
 
 ---
@@ -370,9 +392,9 @@ of archived means, and independent recovery of the unchanged fitted exponent.
 
 **Contents.** Former Figure 4(a,b), now a standalone figure: anchored mean von Neumann entropy and subsystem charge variance versus anchored log chord length. Display excludes Aᵧ=1; all fit inputs are unchanged.
 
-**Data and protocol.** Campaign 05, hard-wall endpoint ensemble: Nₓ=20, Nᵧ=30,35,40,45,50,55,60; 100 independent random-pure trajectories per size; α₁=1, α₂=30, n_shell=1, perfect correction, raster-y order, periodic geometry, endpoint T=2Nᵧ. Circuit measurements act only on the slab (`meas_slab_only=True`); Born-conditioned onsite measurements prepare the exterior before cycle zero. The saved shards explicitly record `cycle_zero_semantics=after_born_conditioned_exterior_preparation`. The measured region differs from the observable's subsystem: each entropy/charge subsystem contains all x, both orbitals, and Aᵧ consecutive y rows. Periodic strip positions are averaged within each trajectory before averaging trajectories. The seven sizes comprise separate ensembles.
+**Data and protocol.** Campaign 05, hard-wall endpoint ensemble: Nₓ=20, Nᵧ=30,35,40,45,50,55,60; 100 independent random-pure trajectories per size; α₁=1, α₂=30, n_shell=1, perfect correction, raster-y order, periodic geometry, endpoint t=2Nᵧ. Circuit measurements act only on the slab (`meas_slab_only=True`); Born-conditioned onsite measurements prepare the exterior before cycle zero. The saved shards explicitly record `cycle_zero_semantics=after_born_conditioned_exterior_preparation`. The measured region differs from the observable's subsystem: each entropy/charge subsystem contains all x, both orbitals, and Aᵧ consecutive y rows. Periodic strip positions are averaged within each trajectory before averaging trajectories. The seven sizes comprise separate ensembles.
 
-**Analysis.** For each observable X, subtract its value at Aᵧ*=floor(Nᵧ/2) and use x=log[D(Aᵧ)/D(Aᵧ*)]. Fit ΔX=m x through the fixed origin over 8≤Aᵧ≤floor(Nᵧ/2), assigning equal total weight to each size. Panel (a) reports c₁=3m; panel (b) reports k=π²m. Error bars are ordinary trajectory SEMs of anchored curves. Slope errors propagate the full within-trajectory covariance across widths; no bootstrap or residual-based replacement is used. Fits remain c₁=1.0429488183±0.0018259189 and k=1.0414242468±0.0018854260. Shading identifies the fitted long-distance region.
+**Analysis.** For each observable X, subtract its value at Aᵧ=floor(Nᵧ/2) and use x=log[D(Aᵧ)/D(Aᵧ*)]. Fit ΔX=m x through the fixed origin over 8≤Aᵧ≤floor(Nᵧ/2), assigning equal total weight to each size. Panel (a) reports c=3m; panel (b) reports k=π²m. Error bars are ordinary trajectory SEMs of anchored curves. Slope errors propagate the full within-trajectory covariance across widths; no bootstrap or residual-based replacement is used. Fits remain c=1.0429488183±0.0018259189 and k=1.0414242468±0.0018854260. Shading identifies the fitted long-distance region.
 
 **Source and reproduction.** Saved numerical two-panel output, regenerated with overlined labels, from [entropy_charge_endpoint_sample_resolved](/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/experiment_review/entropy_charge_endpoint_sample_resolved). The bundled [sample curves, original manifest, and input provenance](data/entropy_charge) preserve 700 sample identities and the original source hashes. Run `python sources/plot_entropy_charge.py` from this directory; `--output-dir /tmp/entropy-charge-preview` redirects the regenerated figure. No dynamics or original campaign writes occur.
 
@@ -391,31 +413,32 @@ Vector PDF and 300-dpi PNG; three vertically stacked panels (3×1), 3.375 × 5.8
 
 Each of the two saved ensembles contains 100 independent Born-rule trajectories at $N_x=20$, $N_y=32$, endpoint cycle $64=2N_y$. They use hard, support-terminated domain walls, overcomplete Wannier (OW) range $n_{\mathrm{shell}}=1$, $\alpha_1=1$ or $3$, $\alpha_2=30$, interfaces $x=5,15$, pure initialization with a product-state exterior, slab-only measurements, perfect correction, no postselection, and `raster_y` ordering. Production used `classA_U1FGTN_gpu.run_markov_circuit`; this figure uses saved spectra and endpoint occupied frames only. No trajectory was rerun. The two parameter values are separate ensembles with matching geometry and protocol, not paired samples.
 
-Each subsystem contains all x columns, both orbitals, and a periodic y interval of width $A_y$. The centered occupation is $\lambda=2\nu-1$, where $\nu$ is an eigenvalue of the restricted single-particle occupation matrix. **Every panel includes all 32 translated cut origins $y_0=0,\ldots,31$.** Panels (a,b) compare both parameter values at $A_y=16$; panel (c) retains the existing width sweep for $\alpha_1=1$ only. Origins within a trajectory are correlated; there are 100 independent samples per ensemble, not 3,200. At half width, complementary cuts have equal retained counts, verified for every trajectory. Spectra are computed per trajectory and cut before pooling; the figure does not diagonalize an ensemble-averaged correlation matrix.
+Each subsystem contains all x columns, both orbitals, and a periodic y interval of width $A_y$. The occupation $\nu\in[0,1]$ is an eigenvalue of the restricted single-particle occupation matrix. **Every panel includes all 32 translated cut origins $y_0=0,\ldots,31$.** Panels (a,b) compare both parameter values at $A_y=16$; panel (c) retains the existing width sweep for $\alpha_1=1$ only. Origins within a trajectory are correlated; there are 100 independent samples per ensemble, not 3,200. At half width, complementary cuts have equal retained counts, verified for every trajectory. Spectra are computed per trajectory and cut before pooling; the figure does not diagonalize an ensemble-averaged correlation matrix.
 
 ### Panel (a): normalized full occupation spectrum
 
-At $A_y=16$, each strip has $2N_xA_y=640$ modes. For a saved occupied frame $F$, the restricted occupation matrix is $G_A=F_AF_A^\dagger$; diagonalize $2G_A-\mathbf{1}_{640}$. Pool all eigenvalues over 100 trajectories and 32 origins separately for each $\alpha_1$, giving **2,048,000 observations per parameter value**, with no spectral-window exclusion or equilibrium data.
+At $A_y=16$, each strip has $2N_xA_y=640$ modes. For a saved occupied frame $F$, the restricted occupation matrix is $G_A=F_AF_A^\dagger$; the saved eigenvalues of $2G_A-\mathbf{1}_{640}$ are mapped to occupations by adding one and dividing by two. Pool all eigenvalues over 100 trajectories and 32 origins separately for each $\alpha_1$, giving **2,048,000 observations per parameter value**, with no spectral-window exclusion or equilibrium data.
 
-Use 100 equal-width bins over the full centered range $[-1,1]$, $\Delta\lambda=0.02$. For bin count $h_{\alpha,j}$, the displayed probability density is
+Use 100 equal-width bins over the full occupation range $[0,1]$, $\Delta\nu=0.01$. For bin count $h_{\alpha,j}$, the displayed probability density is
 
 $$
-\rho_{\alpha,j}=\frac{h_{\alpha,j}}{2048000\,\Delta\lambda},
-\qquad \sum_j\rho_{\alpha,j}\Delta\lambda=1.
+\rho_{\alpha,j}=\frac{h_{\alpha,j}}{2048000\,\Delta\nu},
+\qquad \sum_j\rho_{\alpha,j}\Delta\nu=1.
 $$
 
-Normalize after pooling. The logarithmic ordinate resolves sparse interior weight alongside the endpoint peaks. Zero-count bins are absent on the log axis; no pseudocounts or smoothing are added. Numerical excursions beyond $[-1,1]$ are clipped only after checking a $10^{-8}$ tolerance; the largest observed excursion is below $5\times10^{-13}$. No observations, including endpoint modes, are dropped. Histogram curves have no error bars; modes and origins are not treated as independent trajectories.
+The density includes the factor of two from transforming the saved centered-coordinate bins to occupation bins; bin counts are unchanged. Normalize after pooling. The logarithmic ordinate resolves sparse interior weight alongside the endpoint peaks. Zero-count bins are absent on the log axis; no pseudocounts or smoothing are added. Numerical excursions beyond $[-1,1]$ are clipped only after checking a $10^{-8}$ tolerance; the largest observed excursion is below $5\times10^{-13}$. No observations, including endpoint modes, are dropped. Histogram curves have no error bars; modes and origins are not treated as independent trajectories.
 
 ### Panel (b): normalized entanglement-energy distribution within the window
 
-Retain $W=\{|\lambda|\leq0.99\}$ separately for each trajectory and origin, and transform each retained eigenvalue before pooling:
+The window annotation sits at axes height 0.93, slightly below the top border.
+
+Retain $|2\nu-1|<0.99$ separately for each trajectory and origin, and transform each retained eigenvalue before pooling:
 
 $$
-\varepsilon=\log\frac{1-\nu}{\nu}
-=\log(1-\lambda)-\log(1+\lambda).
+\varepsilon=\log\frac{1-\nu}{\nu}.
 $$
 
-The cutoff $|\lambda|\leq0.99$ gives $0.005\leq\nu\leq0.995$. Its endpoints map to $\varepsilon=\pm\log(0.995/0.005)=\pm\log199$, with $\log199=5.2933048247$. Thus 199 is the occupation ratio at the selected cutoff, not a fitted constant, a system size, or a physical gap scale.
+The cutoff $|2\nu-1|<0.99$ gives $0.005<\nu<0.995$. Its endpoints map to $\varepsilon=\pm\log(0.995/0.005)=\pm\log199$, with $\log199=5.2933048247$. Thus 199 is the occupation ratio at the selected cutoff, not a fitted constant, a system size, or a physical gap scale.
 
 These are signed single-particle entanglement energies, not many-body levels. The 101 equal-width bins span $[-\log199,\log199]$, with one centered on zero. For retained bin counts $g_{\alpha,j}$ and total retained count $M_\alpha$, display the conditional density
 
@@ -424,7 +447,7 @@ p_{W,\alpha,j}=\frac{g_{\alpha,j}}{M_\alpha\,\Delta\varepsilon},
 \qquad \sum_jp_{W,\alpha,j}\Delta\varepsilon=1.
 $$
 
-Each curve is normalized after pooling, not by averaging individually normalized cut or trajectory histograms. There is no smoothing, energy clipping, equilibrium reference, or histogram fit. The different total populations remain recorded below and in the CSV; unit-area curves compare shapes rather than mode numbers.
+There are no saved half-strip levels exactly at the cutoff, so using a strict inequality preserves the prior histogram counts. Each curve is normalized after pooling, not by averaging individually normalized cut or trajectory histograms. There is no smoothing, energy clipping, equilibrium reference, or histogram fit. The different total populations remain recorded below and in the CSV; unit-area curves compare shapes rather than mode numbers.
 
 | Quantity, all 32 half-strip origins | $\alpha_1=1$ | $\alpha_1=3$ |
 |---|---:|---:|
@@ -438,7 +461,7 @@ The rows count correlated observations, not independent samples. Count SEMs firs
 
 ### Panel (c): raw mean mode count against log chord length
 
-For $\alpha_1=1$, count modes satisfying $|\lambda|\leq0.99$ separately for every trajectory, origin, and width. Average origins within each trajectory to obtain $n_s(A_y)$, then average trajectories. Error bars are ordinary trajectory SEM, $\mathrm{std}_s[n_s]/\sqrt{100}$, using sample standard deviation (`ddof=1`). **Counts are not divided by $2N_xA_y$.** No $\alpha_1=3$ width-scaling curve is inferred from its half-strip histogram.
+For $\alpha_1=1$, count modes satisfying $|2\nu-1|<0.99$ separately for every trajectory, origin, and width. Average origins within each trajectory to obtain $n_s(A_y)$, then average trajectories. Error bars are ordinary trajectory SEM, $\mathrm{std}_s[n_s]/\sqrt{100}$, using sample standard deviation (`ddof=1`). **Counts are not divided by $2N_xA_y$.** No $\alpha_1=3$ width-scaling curve is inferred from its half-strip histogram.
 
 All widths $A_y=1,\ldots,16$ are displayed. The shaded fit window is $5\leq A_y\leq16$. The dashed, unweighted two-parameter fit is extended across the displayed range:
 
@@ -459,7 +482,7 @@ Sources are campaign 09's `centered_spectral_window_origin_averaged_n20x32_hard_
 - `occupation_histogram.csv` and `energy_histogram_comparison.csv` record both raw pooled counts and displayed densities for both parameter values. `half_strip_window_counts.npz` records each sample/origin count. The unchanged `energy_histogram.csv` retains the original $\alpha_1=1$ raw counts for auditing; its raw ordinate is no longer displayed.
 - The earlier `occupation_inputs.npz` and `occupation_provenance.json` are retained for the separate fixed-origin diagnostic below; they are not the current Figure 7 histogram inputs.
 
-Run `python sources/plot_entanglement_spectrum.py` from the bundle directory. Dependencies: NumPy, Matplotlib, and CMU Sans Serif. The current renderer uses native Computer Modern mathtext and does not require LaTeX. The renderer verifies pooled inputs and histogram normalization, reproduces the count fit/SEM, and writes PDF, PNG, numerical CSVs, and `data/entanglement_spectrum/validation.json`.
+Run `python sources/plot_entanglement_spectrum.py` from the bundle directory. Dependencies: NumPy, Matplotlib, Poppler, and LaTeX. The shared manuscript typography module renders Computer Modern text and mathematics and verifies embedded fonts. The renderer verifies pooled inputs and histogram normalization, reproduces the count fit/SEM, and writes PDF, PNG, numerical CSVs, and `data/entanglement_spectrum/validation.json`.
 
 To repeat the optional extraction from original repository data, run `python sources/extract_pooled_half_strip_spectra.py --repo-root /path/to/repository --workers 8` first (additional dependencies: SciPy, threadpoolctl, tqdm). It performs endpoint eigendecompositions only and writes exclusively inside this figure bundle. Reusing the bundled compact spectra needs no endpoint eigendecomposition or circuit simulation.
 
@@ -567,21 +590,19 @@ At $A_y=16$, the result is $\overline f=0.0465810546875\pm0.0000531904519$, or $
 
 <a id="figure-08-central-charge"></a>
 
-## Figure 8 — Central-charge convergence and size dependence
+## Figure A3 — Entropy-coefficient convergence (asset Figure 8)
 
 [Vector PDF](Figure_08_central_charge.pdf) · [300-dpi preview](Figure_08_central_charge.png)
 
-[PDF](Figure_08_central_charge.pdf) · [PNG](Figure_08_central_charge.png)
+**Contents.** A single plot shows c_eff versus t/Nᵧ for Nᵧ=30,40,50, with an inset of |c_eff−1| on a logarithmic vertical axis. The former endpoint-size panel (b) is removed, and the retained plot has no panel letter. The 3.375 × 2.8 inch canvas preserves the former panel (a)'s physical axes dimensions, curves, errors, and inset placement.
 
-**Contents.** Panel (a) shows c_eff versus t/Nᵧ for Nᵧ=30,40,50, with an inset of |c_eff−1| on a logarithmic vertical axis. Panel (b) shows endpoint c_eff versus Nᵧ=30,35,40,45,50,55,60. This is the recent two-panel replacement for manuscript Figure 8, now stacked vertically (2×1) at 3.375 × 5.6 inches. Only the layout changed; data, fit parameters, error bars, and inset content are preserved.
+**Data and protocol.** The cycle-resolved S100 campaign uses Nₓ=20, hard walls, α₁=1, α₂=30, n_shell=1, perfect correction, raster-y updates, periodic boundaries, and 100 independent random-pure trajectories per size, evolved through t=2Nᵧ. Average over periodic strip positions within each trajectory and then over trajectories before fitting. The saved legacy `config_json` does not record the measurement-region flag or exterior preparation; these details remain unspecified for this ensemble.
 
-**Data and protocol.** Both panels use Nₓ=20, hard walls, α₁=1, α₂=30, n_shell=1, perfect correction, raster-y updates, periodic boundaries, and 100 independent random-pure trajectories per size, evolved through T=2Nᵧ. **The panels use separate ensembles:** (a) uses the legacy cycle-resolved S100 campaign, and (b) uses the campaign-05 endpoint ensemble. They are never pooled. Average over periodic strip positions within each trajectory and then over trajectories before fitting.
+**Analysis.** At each cycle, fit the mean full-strip entropy versus log D(Aᵧ), with a free intercept (the saved log-sine coordinate differs only by the constant log(Nᵧ/π), so the slope is identical), over 8≤Aᵧ≤floor(Nᵧ/2); c_eff=3m₁. The plot displays multiples of five cycles from t=10 through 2Nᵧ. Bars are three times the OLS slope standard error of the mean-curve fit, **not trajectory-sampling SEMs**. The horizontal reference is c_eff=1. The inset compares finite-size residuals and is not an extrapolation establishing an exact asymptotic coefficient.
 
-For **panel (b)**, circuit measurements act only on the slab (`meas_slab_only=True`), after Born-conditioned onsite preparation of the exterior before cycle zero; campaign-05 shards record this cycle-zero convention explicitly. For **panel (a)**, the saved legacy `config_json` does not record the measurement-region flag or exterior preparation. These details remain unspecified for that ensemble; the modern campaign's preparation is not assigned to it.
+**Preserved endpoint scan.** The former panel (b) used the separate campaign-05 endpoint ensemble with Nᵧ=30,35,40,45,50,55,60, not pooled with the cycle ensemble. Its input tables, fitted coefficients, trajectory-sampling SEMs propagated with the full covariance across widths, and original provenance remain unchanged in [data/central_charge](data/central_charge). In that endpoint campaign, circuit measurements act only on the slab (`meas_slab_only=True`), following Born-conditioned onsite preparation of the exterior before cycle zero. These preparation details are not assigned to the legacy cycle ensemble.
 
-**Analysis.** At each time or endpoint, fit the mean full-strip entropy versus log D(Aᵧ), with a free intercept (the saved log-sine coordinate differs only by the constant log(Nᵧ/π), so the slope is identical), over 8≤Aᵧ≤floor(Nᵧ/2); c_eff=3m. Panel (a) displays multiples of five cycles from t=10 through 2Nᵧ. Its bars are three times the OLS slope standard error of the mean-curve fit, **not trajectory-sampling SEMs**. Panel (b) bars are trajectory-sampling SEMs propagated with the full covariance across widths. The horizontal reference is c_eff=1. Dashes connecting endpoint sizes are visual guides, not a size-extrapolation fit.
-
-**Source and reproduction.** Replotted in a vertical layout from the same saved inputs as `ceff_cycle_and_endpoint_size_1x2` from [entropy_ceff_multisize](/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/experiment_review/entropy_ceff_multisize). The two input tables and original provenance are in [data/central_charge](data/central_charge). Run `python sources/plot_central_charge.py`; `--output-dir /tmp/central-charge-preview` preserves the delivered copy while regenerating a preview.
+**Source and reproduction.** The retained plot uses the same saved cycle inputs as `ceff_cycle_and_endpoint_size_1x2` from [entropy_ceff_multisize](/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/experiment_review/entropy_ceff_multisize). Original input tables and provenance are in [data/central_charge](data/central_charge). Run `python sources/plot_central_charge.py`; `--output-dir /tmp/central-charge-preview` preserves the delivered copy while regenerating a preview.
 
 
 ---
@@ -594,11 +615,13 @@ For **panel (b)**, circuit measurements act only on the slab (`meas_slab_only=Tr
 
 [PDF](Figure_09_wall_entropy.pdf) · [PNG](Figure_09_wall_entropy.png)
 
+**Label spacing (7 October 2026).** Raised the wall name and slope by 4.10 pt in both panels, leaving the R² baseline unchanged. This separates the slope from the superscript without moving the data, insets, or axes.
+
 **Contents.** Anchored entropy contour integrated over the left and right walls. The plotted windows are **x=5,6** and **x=14,15**, respectively. These are two-column windows; the revised manuscript caption now matches the plotted windows.
 
-**Data and protocol.** Completed campaign-16 Lane-B contour ensemble, Nₓ=20, Nᵧ=30,35,40,45,55, 100 independent random-pure trajectories per size, endpoint T=2Nᵧ. Hard walls, α₁=1, α₂=30, n_shell=1, periodic boundary conditions, perfect correction and raster-y order. Circuit measurements act only on the slab (`meas_slab_only=True`); Born-conditioned onsite measurements prepare the exterior before cycle zero, as confirmed by the shards' `cycle_zero_semantics=after_born_conditioned_exterior_preparation`. The full-width strip contour is averaged over all periodic strip positions within each trajectory, in relative-y coordinates, then integrated over the indicated x columns and all Aᵧ subsystem rows. These ensembles are separate from the full-strip scalar curves used in Figure 6.
+**Data and protocol.** Completed campaign-16 Lane-B contour ensemble, Nₓ=20, Nᵧ=30,35,40,45,55, 100 independent random-pure trajectories per size, endpoint t=2Nᵧ. Hard walls, α₁=1, α₂=30, n_shell=1, periodic boundary conditions, perfect correction and raster-y order. Circuit measurements act only on the slab (`meas_slab_only=True`); Born-conditioned onsite measurements prepare the exterior before cycle zero, as confirmed by the shards' `cycle_zero_semantics=after_born_conditioned_exterior_preparation`. The full-width strip contour is averaged over all periodic strip positions within each trajectory, in relative-y coordinates, then integrated over the indicated x columns and all Aᵧ subsystem rows. These ensembles are separate from the full-strip scalar curves used in Figure 6.
 
-**Analysis.** Anchor each trajectory at Aᵧ*=floor(Nᵧ/2). Fit the resulting mean curves through the origin against $\log[D(A_y)/D(A_y^\star)]$ over 8≤Aᵧ≤floor(Nᵧ/2), with equal total weight per size. Errors use trajectory SEMs and the full covariance across widths. Left m=0.1728818152±0.0004422961; right m=0.1624067405±0.0005319065. No fit or uncertainty changed when Aᵧ=1 was removed from display. The inset's right-wall dashed line is drawn at the outer edge of cell x=15; this is a grid drawing convention, not a change in the integrated window.
+**Analysis.** Anchor each trajectory at Aᵧ=floor(Nᵧ/2). Fit the resulting mean curves through the origin against $\log[D(A_y)/D(N_y/2)]$ over 8≤Aᵧ≤floor(Nᵧ/2), with equal total weight per size. Errors use trajectory SEMs and the full covariance across widths. Left m=0.1728818152±0.0004422961; right m=0.1624067405±0.0005319065. No fit or uncertainty changed when Aᵧ=1 was removed from display. The inset's right-wall dashed line is drawn at the outer edge of cell x=15; this is a grid drawing convention, not a change in the integrated window.
 
 **Source and reproduction.** Reused `lane_B_wall_two_cell_entropy_collapse_2x1` from [hard_wall_all_ay_half_entropy](/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/experiment_review/hard_wall_all_ay_half_entropy). Bundled [curves, fits, and manifest](data/wall_entropy) specify exact source provenance. Run `python sources/plot_wall_entropy.py`; use `--output-dir /tmp/wall-entropy-preview` to render elsewhere.
 
@@ -611,7 +634,7 @@ For **panel (b)**, circuit measurements act only on the slab (`meas_slab_only=Tr
 
 [Vector PDF](Figure_10_modular_evolution.pdf) · [300-dpi preview](Figure_10_modular_evolution.png)
 
-The plotted arrays and snapshots from `modular_packets_n20x32_y8_stacked.pdf` are preserved: density panels for $\alpha_1=3$ and 1, followed by the $\alpha_1=1$ displacement. The regenerated 3.375 × 6.2 inch figure overlines the mean displacement.
+The plotted arrays and snapshots from `modular_packets_n20x32_y8_stacked.pdf` are preserved: density panels for $\alpha_1=3$ and 1, followed by the $\alpha_1=1$ displacement. The figure uses a 3.95 × 3.9 inch canvas fitted to the manuscript column: equal-aspect density panels (a,b) share the top row, and displacement panel (c) spans both below. The density panels share one time-color legend and a y-axis label. Parameter labels are 11 pt at final inclusion size: top center in (a,b), and centered below the zero-displacement line in (c). The mean displacement remains overlined; all arrays, marker-area scaling, times, SEM bands, and source coordinates are preserved.
 
 **Data and protocol.** Campaign 09 supplies 100 independent pure-state Born
 trajectories per $\alpha_1=1,3$, at $N_x=20,N_y=32$, endpoint cycle 64.
@@ -641,6 +664,12 @@ realization by its instantaneous retained window charge before calculating
 displacement; then average origins and trajectories. Shading is one SEM of
 the 100 trajectory-level origin means, not 3,200 independent cuts.
 
+The capital $\Delta y$ in panel (c) is a displacement, distinct from the local row coordinate $\delta y=(y-y_0)\bmod N_y$ in the maps. For each trajectory/cut and source $x_s=5$ or 15,
+
+$$\Delta y_{x_s}(t)=\frac{\sum_{x\in W_{x_s},\,\delta y}(\delta y-8)p_{x_s}(x,\delta y;t)}{\sum_{x\in W_{x_s},\,\delta y}p_{x_s}(x,\delta y;t)},\qquad W_{x_s}=\{x_s-2,\ldots,x_s+2\}.$$
+
+Here $p_{x_s}$ sums the squared amplitudes of both evolved orbital profiles and both output orbitals; its full-subsystem weight is two. The source starts at row 8, and the row sum runs from 0 to 15. Positive displacement means motion toward increasing y. This matches `evolve_spectrum` in the original `analyze_endpoint_packets.py`: instantaneous window-normalized center of mass minus its time-zero value. The manuscript now defines this estimator explicitly; no plotted value or figure asset changes.
+
 There is no smoothing, unwrapping, wall-sign adjustment, or velocity fit.
 Modular time is not monitored-circuit time. Motion magnitude and oscillation
 frequency depend on the eigenvalue cutoff; this plot alone does not establish
@@ -656,17 +685,15 @@ The exact caption, plotting metadata, and analysis summary are under
 
 <a id="figure-11-mean-channel"></a>
 
-## Figure 11 — Mean-channel spectrum, correlations, and relaxation gap
+## Figure 11 — Spectrum and entropy of the outcome-averaged state
 
 [Vector PDF](Figure_11_mean_channel.pdf) · [300-dpi preview](Figure_11_mean_channel.png)
 
-**Layout:** four vertically stacked panels, 3.375 × 7.15 inches, vector PDF
-and 300-dpi PNG. The plotting panels are narrower and taller to match Figure 4’s panel proportions; fonts remain 8 pt. Panels (a,b) retain the original occupation and correlator
-arrays, styles, axis limits, normalizations, and display cutoff. Panel (c)
-shows the dimensionless multiplier gap $g_C=1-\rho(A)^2$ versus $\alpha_1$;
-panel (d) shows its direct inverse-length fits. These replace the earlier
-logarithmic-rate panels, $\Delta_C=-2\log\rho(A)$. The
-original two-panel manuscript PDF remains unchanged in the parent folder.
+**Layout:** two vertically stacked panels, 3.375 × 3.25 inches, vector PDF and 300-dpi PNG. Panel (a) retains the ordered occupation spectrum, and panel (b) retains the full-system entropy contour of the outcome-averaged Gaussian state at alpha1=1. Both use the same raw input arrays, scales and physical axes dimensions as the approved four-row version. Its former correlator and gap panels are now [Figure 12](#figure-12-channel-relaxation). The parameter scan remains archived as [Figure A4](#figure-a04-channel-gap-scan) and excluded from the manuscript.
+
+Panel (a) shows all 2560 eigenvalues of the final trajectory-averaged covariance directly, sorted in ascending order. Every eigenvalue has an open marker: blue circles for alpha1=1 and orange triangles for alpha1=3. There is no momentum display or inset. Both panels use the same cycle-128 covariance at Nx=20, Ny=64, with no spatial averaging of the matrix before the observables are computed. Panel (b) sums both orbitals and uses natural-log entropy in nats per unit cell, without normalization; its sum is 76.0854181426 nats. It is s[mean G], not the mean of trajectory contours. The final-cycle normalized covariance changes are approximately 1.1e-16 and 1.6e-17.
+
+The compact spectral input is `data/mean_channel/untwirled_spectra.npz`. Its source hashes, saved keys and independent eigenvalue checks are in `untwirled_spectra_provenance.json`. To regenerate it from saved campaign outputs, run `OPENBLAS_NUM_THREADS=4 python sources/extract_untwirled_spectra.py`; this does not run dynamics. Agreement with direct diagonalization is within 3.2e-14. The earlier momentum-display data remain archived in `spectra.npz`.
 
 ### Identification of the replacement screenshots
 
@@ -687,7 +714,7 @@ and producer paths are recorded in [provenance.json](data/mean_channel/provenanc
 
 ### Shared measurement protocol
 
-All four panels use a periodic two-orbital lattice with $N_x=20$,
+The three main-text panels and appendix scan use a periodic two-orbital lattice with $N_x=20$,
 inclusive central slab $x=5,\ldots,15$, and active exterior sites
 $x=0,\ldots,4,16,\ldots,19$. The exterior joins across the periodic seam.
 The parent parameter is $\alpha_1$ inside and $\alpha_2=30$ outside.
@@ -719,29 +746,28 @@ then x increases, with within-cell channel order `Ap, Am, Bp, Bm`. Both panels
 use the cycle-128 endpoint; there is no temporal or schedule average. The
 last ten normalized Frobenius increments are below $10^{-12}$.
 
-**Panel (a).** Spatial y-translation averaging of the endpoint precedes
-momentum block diagonalization. All 40 occupation eigenvalues at each of
-64 momenta are retained, including exterior modes. The dashed line is
-occupation $1/2$.
+**Panel (a).** The eigenvalues of the full endpoint covariance are sorted in ascending order and plotted against rank j=1,...,2560, including exterior modes. All modes are shown with open markers. The dashed line is occupation 1/2. Sorting the eigenvalues does not alter the covariance.
 
 **Panel (b).** Write $\overline G$ for the occupation matrix of the
 outcome-averaged endpoint. The plotted quantity is
 
 $$
-C_{\overline G}^{\mathrm{av}}(r)=\frac1{N_x}\sum_x\frac1{2N_y}
+C_{\overline G}(r)=\frac1{N_x}\sum_x\frac1{2N_y}
 \sum_{y,\mu,\nu}
 |\overline G_{(x,y,\mu),(x,y+r,\nu)}|^2.
 $$
 
-The ordinate is its logarithm; the abscissa is
-$\log D(r_y)$ with $N_y=64$ in the common chord-length definition.
-No additional spatial twirl precedes squaring in this panel. Only values
-above $10^{-8}$ are displayed, leaving $r=1,2,3,4$ for both parameters.
+Both axes are logarithmic, plotting $C_{\overline G}(r_y)$ directly against
+raw separation $r_y$ at $N_y=64$. No additional spatial twirl precedes
+squaring in this panel. Values below $10^{-20}$ are omitted, without
+clamping; $r_y=0,1$ are excluded, leaving $r_y=2,\ldots,13$ for $\alpha_1=1$ and
+$r_y=2,\ldots,11$ for $\alpha_1=3$. The original input summaries retain
+the historical display cutoff; the current selection is recorded in validation.json.
 This is the squared correlator of the mean state, not the trajectory mean
 of a squared correlator. There are no sampling error bars, fits, or
 finite-size collapse claims in panels (a,b).
 
-### Panel (c): direct channel-spectrum scan
+### Figure A4: direct channel-spectrum scan (former panel c)
 
 The completed `fixed_width_alpha_spectral_v1` run contains **105 cases**:
 $N_y=20,40,60,80,100$ and $\alpha_1=1.0,1.1,\ldots,3.0$, always
@@ -779,7 +805,7 @@ $8.59\times10^{-15}$ (rounded upward), and the largest difference between
 the block action and an independently applied full-system projector word
 is $3.04\times10^{-16}$. These are numerical checks, not statistical
 uncertainties. Lines connect discrete parameter values to guide the eye;
-no fit is applied in (c). There are no rate units on the plotted gap.
+no fit is applied to the appendix scan. There are no rate units on the plotted gap.
 
 The plotted data are [multiplier_gaps.csv](data/mean_channel/multiplier_gaps.csv),
 which retain the spectral radius and logarithmic rate alongside $g_C$.
@@ -796,9 +822,9 @@ $1-\rho(A)^2$ and $1-\exp(-\Delta_C)$.
 Compact copies of all case receipts are in
 [gap_case_receipts.json](data/mean_channel/gap_case_receipts.json).
 
-### Panel (d): fixed-width extrapolation
+### Panel (c): fixed-width extrapolation (former panel d)
 
-Select $\alpha_1=1,3$ from (c), retaining all five sizes. Fit
+Select $\alpha_1=1,3$ from the Figure A4 scan, retaining all five sizes. Fit
 
 $$
 g_C(N_y)=g_\infty+\frac{a}{N_y}
@@ -973,7 +999,7 @@ The spectral calculation uses canonical CPU
 `classA_U1FGTN.construct_OW_projectors` to construct the represented
 `classA_U1FGTN.run_markov_channel` map; it does not run covariance dynamics.
 
-Rebuild the complete four-panel figure with
+Rebuild the three-panel main figure and the single-panel appendix scan together with
 `python sources/plot_mean_channel.py`. This uses only the compact bundled
 inputs; it does not rerun the campaign or eigensolver. An isolated render
 can use `--output-dir /tmp/mean-channel-preview`. To recopy and audit
@@ -984,6 +1010,27 @@ selection checks are in [validation.json](data/mean_channel/validation.json).
 obsolete two-panel bundle version. Original campaign/manuscript assets
 remain available at their recorded paths.
 
+
+---
+
+
+<a id="figure-12-channel-relaxation"></a>
+
+## Figure 12 — Correlations and relaxation of the averaged channel
+
+[Vector PDF](Figure_12_channel_relaxation.pdf) · [300-dpi preview](Figure_12_channel_relaxation.png)
+
+This 2×1 single-column figure contains the former Figure 11(c,d), relabeled (a,b). Panel (a) preserves the cycle-128 squared correlator at Nx=20, Ny=64, the separation cutoff ry≥2 and the 10^-20 display floor. Panel (b) preserves all five channel-gap points for each control and the saved unweighted fits g_C=g_infinity+a/Ny. The exact source files, retained fit values and checks remain in data/mean_channel/. These deterministic calculations have no sampled-trajectory SEMs. The averaged-state spectrum and full-system entropy contour are now in Figure 11.
+
+---
+
+<a id="figure-a04-channel-gap-scan"></a>
+
+## Figure A4 — Parameter dependence of the averaged-channel gap
+
+[Vector PDF](Figure_A04_channel_gap_scan.pdf) · [300-dpi preview](Figure_A04_channel_gap_scan.png)
+
+This single-panel figure in Appendix E contains the former main Figure 10(c), with no panel letter. It preserves all 105 deterministic gap values for 21 equally spaced α₁ values from 1 to 3 and Nᵧ=20,40,60,80,100 at Nₓ=20. The 3.375 × 2.0 inch canvas retains the original scan's axes dimensions and legend; curves are guides, without fits or statistical error bars. Its detailed protocol and provenance are documented [above](#figure-11-mean-channel). Run `python sources/plot_mean_channel.py` to regenerate both main Figure 10 and Figure A4. The manuscript moves the scan-specific discussion to Appendix E and retains the two-parameter size fits in main Figure 10(c).
 
 ---
 
@@ -1025,7 +1072,7 @@ The figure is a **2×1 vertical composition**, 3.375 × 4.8 inches, suitable for
 
 ### Panel (a): latest all-origin entropy contours
 
-For each $\alpha_1=1,3$, use $N_x=20$, $N_y=32$, $A_y=16$, cycle $T=64$, $S=100$ independent random-pure half-filled Born trajectories, hard walls at $x=5,15$, exterior $\alpha_2=30$, and OW range $n_{\rm shell}=1$. The origin-averaged revision evaluates **all 32 cuts** $y_0=0,\ldots,31$ in every trajectory. Each cut is diagonalized independently to compute its Gaussian entropy contour; rows are aligned by $\delta y=y-y_0$, then averaged over origins within the trajectory and finally over trajectories. No contour is constructed from an averaged correlation matrix.
+For each $\alpha_1=1,3$, use $N_x=20$, $N_y=32$, $A_y=16$, cycle $t=64$, $S=100$ independent random-pure half-filled Born trajectories, hard walls at $x=5,15$, exterior $\alpha_2=30$, and OW range $n_{\rm shell}=1$. The origin-averaged revision evaluates **all 32 cuts** $y_0=0,\ldots,31$ in every trajectory. Each cut is diagonalized independently to compute its Gaussian entropy contour; rows are aligned by $\delta y=y-y_0$, then averaged over origins within the trajectory and finally over trajectories. No contour is constructed from an averaged correlation matrix.
 
 Both maps share `Blues` with `PowerNorm(gamma=0.5)`, lower limit zero and upper limit **0.4416719467194624**, and ticks 0, 0.10, 0.30, 0.44. The display has no interpolation or smoothing. The map sums are **9.324998607129578** and **1.9343572633145107**, agreeing with the corresponding mean half-strip entropies. Portable per-trajectory maps have shape `[100,16,20]`; means and SEMs have shape `[16,20]`. SEMs are retained in the data but not represented as map error bars. The 3,200 translated cuts are correlated within their 100 independent trajectories.
 
@@ -1165,3 +1212,60 @@ The logarithmic count supports the spectral mechanism behind the entropy scaling
 A more quantitative connection would estimate the change in the spectral density with $\log D(A_y)$ from multiple saved widths, integrate that change against the entropy weight, and compare with an entropy fit on the **same trajectories and widths**. This also separates the fixed background. Figure 6 currently uses different endpoint ensembles and system sizes, and the finite energy cutoff omits contributions from nearly empty/full modes, so the current two figures do not implement that quantitative comparison. No new circuit simulation or scaling fit is introduced by this figure update.
 
 **Suggested interpretation for the paper:** For $\alpha_1=1$, the nearly uniform pooled entanglement-energy distribution and the logarithmic growth of the number of modes in a fixed energy window support a spectral origin of the boundary entropy scaling. They complement the direct entropy and charge-fluctuation measurements; the count coefficient is a window-dependent diagnostic rather than an independent central-charge estimate.
+
+The entropy/charge and wall-entropy dashed-line legends state their exact through-origin forms using the same chord ratio as the horizontal axes. The integer half-strip reference and all saved numerical fits are unchanged.
+
+### Logarithmic minor ticks (2026-10-07)
+
+The active log axes, including the entropy-coefficient inset, use short inward unlabeled minor ticks via `sources/log_ticks.py`. Ranges wider than six decades use subdivisions 2 and 5, plus unlabeled decades where major labels skip them; narrower ranges use subdivisions 2 through 9. Existing custom minor positions remain intact. Linear axes plotting an explicit logarithm retain their linear spacing. Figure 2(c) places both inset labels beside their axes; the inset is raised and shortened slightly to keep those labels clear of the convergence bands. Scientific arrays, fits, axis limits, and major ticks are unchanged. Captions identify the log scales.
+
+
+<a id="figure-a05-gap-convergence"></a>
+## Figure A2: saved fixed-size purification diagnostic (7 October 2026)
+
+Two stacked panels show mean finite-time rate and mean raw modular gap for slab-only Ny=30 histories through 120 cycles. Source: `data/gap_convergence/`, copied from the existing purification_gap_cycle_convergence analysis. Sample means and one-SEM bands are verified against the saved 100 sample rows per cycle; g_mod=2t Delta is checked. The dashed vertical reference is 2Ny. No time fit, asymptotic extrapolation or simulation is performed. Full-measurement data are not pooled.
+
+## Compression layout changes (7 October 2026)
+
+This revision supersedes historical layout descriptions above. Main Figure 7 now contains two histogram panels, with historical count data and fit preserved for review. Main Figure 8 uses the saved shared-scale contour comparison as panel (a) above unchanged wall fits (b,c). Figure A1 keeps native parent-gap and retained-norm panels, with every retained line array checked against the native source. Pure-state c_eff remains unchanged as A3. The original A2 mutual-information and A4 parameter scan are archived and excluded. Scientific arrays, fit values, uncertainty definitions and approved axis conventions are preserved. Original manuscript and figures are retained in the dated compression review bundle.
+
+## Spectral updates — 8 October 2026
+
+This revision supersedes the compression layout descriptions above. Figure 6 adds the saved pure-state c_eff curves and residual inset as panel (c), preserving all fit values and regression errors. The former standalone A3 remains archived, and is no longer included. Figure 7 restores its window-count panel with both phases: the original alpha1=1 counts and fit are unchanged, and alpha1=3 counts are extracted from saved final frames across all translated origins and widths. The trivial count saturates near 26.0394; the topological count follows its retained log-chord fit over widths 5–16. All pre-existing scientific products and the outlook remain unchanged.
+
+Purification occupation-density plots are standalone previews only; they pool all occupations at cycles 1,5,60, include endpoint bins, normalize to unit area and use logarithmic density axes. The current manuscript purification figure remains in place. A separate paired-trajectory late-gap analysis gives z=1.0682 +/- 0.0859 for endpoint slopes and z=1.0751 +/- 0.0921 for fitted slopes over 3Ny–4Ny, with formal SEM-weighted regression errors. These finite-window diagnostics have not been inserted into the manuscript or used to alter its gap claims.
+
+## Raw-gap slope integration — 8 October 2026
+
+Figure A2 now includes the seven-size comparison as panel (c). The new quantity is half the mean late-window raw-gap secant slope, overline a_late/2, rather than an assumed infinite-time gap. Its exponent is 1.068 +/- 0.086; multi-time OLS gives 1.075 +/- 0.092 as a textual consistency check. Both use paired trajectory estimators and formal SEM-weighted regression errors. Constant-offset cancellation is exact; interpreting the slope as an asymptotic gap requires asymptotically linear raw-gap growth. Appendix C gives the estimator and limitations, and Section III.B briefly reports the finite-window scaling. The purification spectral-density previews are rejected and remain excluded; the existing purification figure is unchanged.
+
+
+Endpoint data replacement (2026-10-08): Figures 6(a,b) and 8(b,c) now use the imported Nx20 endpoint campaign at Ny=24,28,32,40,50,60. All sizes are even; the half-strip anchor and fit limit are Ny/2 exactly. Fits have equal total weight per size and reproduce the supplied slopes and trajectory covariance SEMs. The R-squared display convention is retained (uncentered statistic for the anchored fits). Figure 6(c) keeps its independent saved convergence histories; Figure 8(a) uses the fresh alpha_1=1 Ny32 contour with the independent saved alpha_1=3 control. Superseded inputs and figures remain archived. No simulation was performed.
+
+Figure 6(c) presentation update (2026-10-08): removed the Nx=20, S=100 title; the caption retains these details. Curves, fit errors, axes, inset, and legends are unchanged.
+
+Figure 2(a) torus schematic update (2026-10-08): added matching single slashes on top/bottom and double slashes on left/right. The caption identifies periodic edges. Numerical plots and scientific data are unchanged.
+
+Figure 2(c) inset placement (2026-10-08): lowered the inset slightly, keeping its size and all data/labels unchanged. It retains clearance from the convergence uncertainty bands.
+
+
+## Log-sine labels and wall figure layout, 8 October 2026
+
+Figure 6 contains two entropy/charge panels with individual x-axis labels and legends using log[sin(pi Ay/Ny)]. This is exactly log[D(Ay)/D(Ny/2)] for the even-Ny endpoint data, since D(Ny/2)=Ny/pi. All fits, covariance SEMs, arrays, and single-region fit shading are unchanged. The independent pure-state c_eff histories are now their own Figure 8, with no Nx/S title.
+
+Figure 9 is a full-width row: (a) paired contour maps with a shared scale, (b) left-wall fit, (c) right-wall fit. Both fits use log-sine axes and c_wall/6 legends. Positive wall coefficients c_L=1.0358 +/- 0.0032 and c_R=0.9799 +/- 0.0034 are six times the retained slopes and SEMs; these wall indices do not specify propagation direction. Original layouts and source are preserved in notes/manuscript_revision/sine_axes_wall_central_charges_20261008 at the manuscript root.
+
+
+## Figure and appendix cleanup, 8 October 2026
+
+This entry supersedes the preceding horizontal wall-figure layout. Figure 9 now has two vertically stacked panels only: (a) left-wall entropy and (b) right-wall entropy. Log-sine labels, c_L/R annotations, c_L/R divided by 6 fit legends, fits, covariance SEMs, and single-gray fit windows are preserved. The contour comparison and its manuscript paragraph/caption are removed; original source maps and the previous complete figure remain archived.
+
+Figure 2(a) centers the paired periodic edge marks and raises the alpha labels to clear the top slash. Its convergence legend is lower left. The inset uses compact 8-pt labels closer to the axes, keeping all source data unchanged. Figure 8's y axis is simply c_eff(t), with the factor-of-three slope extraction in the caption. Figure A1's retained-weight callout is replaced by its value in Appendix A text; the dashed curve is labeled exponential fit. The caption defines xi=1.36 as the static parent-gap convergence length in truncation shells, with deficit proportional to exp(-w/xi).
+
+Appendix C now has four subsections: purification spectroscopy and entropy, finite-time gap diagnostics, covariance response along a fixed record, and pure-state response and physical sectors. Every tangent equation and sector/overlap qualification is retained. The late-gap figure is placed with its own discussion. The unnecessary float barrier before Appendix B is removed to allow text to fill the column previously left blank. The entire outlook and its comments remain unchanged.
+
+Pre-revision manuscript, figures, renderers, numerical files and metadata are preserved in notes/manuscript_revision/figure_appendix_cleanup_20261008 at the manuscript root.
+
+### Marker-only legends (2026-10-08)
+
+Figures 6(a) and 9(a) use the compact Figure 5(b) size legend: one $N_y$ heading, three columns of size numbers, and open markers without line or error-bar glyphs. Figure 7(c) likewise uses marker-only legend handles. Actual error bars, scientific arrays, fit values, coefficient uncertainties, figure dimensions, and panel layouts are unchanged. The methods paragraph explains that error bars smaller than markers may be hidden.

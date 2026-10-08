@@ -1,0 +1,205 @@
+{
+  "estimator": "Sort eigenvalues ascending independently within each sample and cycle; average each rank over 100 samples.",
+  "layout": [
+    2,
+    1
+  ],
+  "inset_titles": false,
+  "shape_per_alpha": [
+    100,
+    2,
+    1600
+  ],
+  "cycles": [
+    120,
+    160
+  ],
+  "Nx": 20,
+  "Ny": 40,
+  "alpha_1": [
+    1,
+    3
+  ],
+  "initialization": "maximally mixed active slab; Born-conditioned pure exterior; slab-only measurements",
+  "rank_is_not_a_tracked_mode": true,
+  "inset_rank_limits": [
+    780,
+    820
+  ],
+  "spectrum_scope": "Full physical layer: 1600 modes, including the prepared pure exterior; 880 initially mixed slab modes.",
+  "display": "All 1600 ranks plotted as markers only; no connecting lines.",
+  "uncertainty": "Means plotted; ordinary trajectory SEM recorded in CSV, not displayed.",
+  "inputs": [
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_000_samples_000-004.npz",
+      "sha256": "c672977768a35e041dd5ebadf4b175576ea3b92c4eeba678d6549c330e979216"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_001_samples_005-009.npz",
+      "sha256": "9a103e0d0bc6fee6f8baa6ac480a35842c137163ec1bc14d730c2fb37de3950b"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_002_samples_010-014.npz",
+      "sha256": "62efada81c8d6d3d59fc5a887d6473ee46d824a99a0a8cb3271a742b44d7db4a"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_003_samples_015-019.npz",
+      "sha256": "9cb096d5b1e3302944e6fbb347c1f755b757209cec3e9a9974b32ee7ae78e055"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_004_samples_020-024.npz",
+      "sha256": "94f27720c991f12e764a8b5cc8687416db8399a54d6834d2d86c98aa73d23223"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_005_samples_025-029.npz",
+      "sha256": "25c2c45ac05de5cb2a710bc2a6e1320afd7cbe3e2e6d84437739e1e24a0fe963"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_006_samples_030-034.npz",
+      "sha256": "50526b00f8716a0035d8643f7aefe372599aef5452771645b6a099eeacd2092e"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_007_samples_035-039.npz",
+      "sha256": "a5abb9eeff9416dc657ddbb1522379befb1fe53264ad2ef33febec6bc30db16b"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_008_samples_040-044.npz",
+      "sha256": "66109aad423fc6725d075427486f1d83346b758b7e1009987771e54fd6bf74e3"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_009_samples_045-049.npz",
+      "sha256": "55e72567f702a5fe6ef5d97c3716a54ae3a5929422d05f97682f7c0ff549131f"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_010_samples_050-054.npz",
+      "sha256": "a07204d3d19238cfc2962a4fc6bf8c6dfc7f9d70e532d1d3167c3907e235cf15"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_011_samples_055-059.npz",
+      "sha256": "eed1fb1c39916f34f76b253a25354078ceb3825d5a2cc378e3cb5890d21e06b5"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_012_samples_060-064.npz",
+      "sha256": "695d8a2a3b0ed7172ef5fed2992f800f01315815318f405076a843c702fe61e8"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_013_samples_065-069.npz",
+      "sha256": "2b6b9e19f76f51ab8394dd16bdef2797597e7a0f9f16b1ae9a58d751452cd6c8"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_014_samples_070-074.npz",
+      "sha256": "eda2b65b7839292713814ff7686b3b372fb20e0aa66e377ce2dcdaa9c40861b4"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_015_samples_075-079.npz",
+      "sha256": "90b529e5d19ea0287950f3fda4dddc9bb42a781a56a2145b776e7f0042f787f5"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_016_samples_080-084.npz",
+      "sha256": "676b0cb8026c159994529c9c676c1578c60fd6b7c2b997074bc9de0f2f115fa6"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_017_samples_085-089.npz",
+      "sha256": "251f15c824bc96df8dc0b1f5cd0ca5f64c4e7b96720c066ee9da7137ec473ab4"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_018_samples_090-094.npz",
+      "sha256": "bc430d22fe7f1733d3d77ffd8256e07d0589553069662be7204d942f06191ce9"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/07_maxmix_hard_soft_purification/gpu_data/maxmix_hard_soft_purification_nx20_ny20-40_s100_4ny_raster_v2/hard/Ny040/shard_019_samples_095-099.npz",
+      "sha256": "e0ba3b5e92b2c82a71d6cb2963a6af1b20cd6937de3798050e6066d50fc91bea"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_000_samples_000-004.npz",
+      "sha256": "55a8497c02082fc2ee10ead8db4d912ce92a0ce68d3ad797ec98764741516f67"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_001_samples_005-009.npz",
+      "sha256": "887fbebf5c084fa9934a412642bb94b5004b243a1891f6f38add130ba7d746bd"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_002_samples_010-014.npz",
+      "sha256": "26314a9ef25fb6c6a7c070e517b1371bf6aa75a04cafd8f8c47e559a2480f3f2"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_003_samples_015-019.npz",
+      "sha256": "f15ab28cfaa6c30d3ec4db4f8a344c4efbac4e3f8b8efc6c1ee877b2acc628a3"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_004_samples_020-024.npz",
+      "sha256": "f8bd228ed291c38a5def039b246787e36a338896dbb52d433d0d67093bbe25ae"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_005_samples_025-029.npz",
+      "sha256": "302e74d71d0bff8e209b627bbe46e10d30700cfba97fbd4a2ff757e255533f56"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_006_samples_030-034.npz",
+      "sha256": "40012b1e36c751d3f7a0b21b6d336b3b1154be7ad37f8b146e1c92d98a739b51"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_007_samples_035-039.npz",
+      "sha256": "9147f45edbfcad4fcda47b9f98c4a7de06d6b9b2ef3cf7b615b02dafaeec181e"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_008_samples_040-044.npz",
+      "sha256": "11825c32787694694f57e83e5087731d79f3d8636b914d40eaba17835c9f747f"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_009_samples_045-049.npz",
+      "sha256": "394dd61e7d12de4d7d4b0a5a6192c5f8dcf3cf38530e051153086504b6cf9133"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_010_samples_050-054.npz",
+      "sha256": "c9be40eeee7938b237f16b31382c7dd1dad8537972a0356927f4ab4c78864459"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_011_samples_055-059.npz",
+      "sha256": "1c93ed3932d7ab49fc26628369eddeced7411c755b8d0f719f6b5cb9c9eebbcf"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_012_samples_060-064.npz",
+      "sha256": "1ee126045938add89b13b7ad37d400902dae3f8fa55c250f297fe88abe33a6ad"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_013_samples_065-069.npz",
+      "sha256": "c93a6e8ac79aa29a4600bf5d4b2c095ee24bd93f4c85dc2fdcfa9fa9842228cf"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_014_samples_070-074.npz",
+      "sha256": "86d9fd9fd194007d36e2eccece6f119ae16cb5f0b6150048124c0cc0fcf0c7ed"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_015_samples_075-079.npz",
+      "sha256": "b33b057b786e821483a52142e18448715dc37928304fa623431547a4fcfc8793"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_016_samples_080-084.npz",
+      "sha256": "389f1c3ef4d1eb2d1abbeae316ff610f6fa9cdf485098119149dd54e3e173ebc"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_017_samples_085-089.npz",
+      "sha256": "ae827e43d02815a072a7e0479a2dcf9d525198e3500105d1ccf54d4e9761ad53"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_018_samples_090-094.npz",
+      "sha256": "a38dfca66334d7d6c36b8c89a1a503b8c9fcd8b155befcf52cacc21db0285b73"
+    },
+    {
+      "path": "/home/abhuiyan/class_A_fermionic_adaptive_circuit/00_WORKSPACE/CURRENT/final_production_new_designs/20_hard_wall_alpha3_purification/gpu_data/hard_wall_alpha3_maxmix_nx20_ny40_s100_4ny_v1/results/hard/Ny040/shard_019_samples_095-099.npz",
+      "sha256": "0112f973db8e5f19f39bf886719751d1cd69c69122508df2396e079b84b67e71"
+    }
+  ],
+  "fonts": [
+    "CMMI6",
+    "CMMI8",
+    "CMMI9",
+    "CMR6",
+    "CMR8",
+    "CMR9"
+  ],
+  "dpi": 300,
+  "script_sha256": "9d6e6c181c1a280a41422d494347566e547c54dd4c452ba5d7cc71a3cba2e6b8",
+  "checks": "Input receipt hashes, sample IDs 0..99, physical bounds, 880 initial slab occupations 1/2, trace preservation under sorting, and ascending means verified."
+}

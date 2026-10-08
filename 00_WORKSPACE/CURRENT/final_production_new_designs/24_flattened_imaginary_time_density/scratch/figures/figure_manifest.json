@@ -1,0 +1,67 @@
+{
+  "result_filename": "density_cd3ab6cc66a0cd6f.npz",
+  "result_sha256": "8dad9111bd7e837bce2aebde3c6afdc6abc431212136a8e3e528c133356add6b",
+  "dimensions_inches": [
+    3.375,
+    2.6
+  ],
+  "dpi": 300,
+  "sampling_uncertainty": null,
+  "fits": null,
+  "normalized_color_range": [
+    1e-12,
+    1
+  ],
+  "curve_display_y_range": [
+    1e-12,
+    1
+  ],
+  "zero_handling": "Undefined normalized curves are NaN; zero raw values omitted on log axes",
+  "outputs": [
+    {
+      "filename": "column_loglog.pdf",
+      "bytes": 19559,
+      "sha256": "61afbb6273fafdc807a313b0b73bc72d029ee054bd74428f1dcd4a9d66432c29"
+    },
+    {
+      "filename": "column_loglog.png",
+      "bytes": 61083,
+      "sha256": "d80bf3f67b07be729d4031b6b5f577bc8eef05c1aa8bd2eee511da106bdb0201"
+    },
+    {
+      "filename": "curves.csv",
+      "bytes": 516279,
+      "sha256": "83310561554d78a5ea5e178eeb973cd116d8b473371d1e51a0819bd62412746f"
+    },
+    {
+      "filename": "local_loglog.pdf",
+      "bytes": 19442,
+      "sha256": "16fb5e0b6591dd73e00cb8306eba891900cbbca13b57b9d62ffdfe04cafcc15e"
+    },
+    {
+      "filename": "local_loglog.png",
+      "bytes": 63466,
+      "sha256": "b4b82b4204e83b4d65ccf76485ee5d77e71dd59b4ec5bf0285eeee37afe0f436"
+    },
+    {
+      "filename": "local_semilog.pdf",
+      "bytes": 17790,
+      "sha256": "0d19dcb4d82f59c166bcbdf43bc5395cbb5d875c75d82dc683d1dfabe9c2da8f"
+    },
+    {
+      "filename": "local_semilog.png",
+      "bytes": 53960,
+      "sha256": "225c61a694ba180a4344ae6f4b7c09195574b8d38e87a1b043363d60eb4e3019"
+    },
+    {
+      "filename": "local_x_tau.pdf",
+      "bytes": 79769,
+      "sha256": "3eefae5182b830bbda82861dab488725aee1f4c9a4af5406a37ef514d8a1155e"
+    },
+    {
+      "filename": "local_x_tau.png",
+      "bytes": 49353,
+      "sha256": "49062d9866ad685f3b044f8443e250e0997f7e3deee65f0ee1f0649d34bcd9dc"
+    }
+  ]
+}

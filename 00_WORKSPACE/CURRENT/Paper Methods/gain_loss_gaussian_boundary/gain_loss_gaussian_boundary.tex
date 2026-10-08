@@ -1,0 +1,485 @@
+\documentclass[aps,prb,onecolumn,nofootinbib,superscriptaddress]{revtex4-2}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+\newcommand{\One}{\hat{\mathbf{1}}}
+\newcommand{\Id}{\mathbf{1}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\ket}[1]{\lvert #1\rangle}
+\newcommand{\bra}[1]{\langle #1\rvert}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\hc}{\mathrm{h.c.}}
+\hypersetup{pdftitle={Gain and Loss as Singular Limits of Gaussian Transfer Matrices},
+pdfauthor={Asadullah Bhuiyan}}
+\begin{document}
+\title{Gain and Loss as Singular Limits of Gaussian Transfer Matrices}
+\author{Asadullah Bhuiyan}
+\noaffiliation
+\date{October 7, 2026}
+\begin{abstract}
+Fermion creation and annihilation preserve Gaussian conditional states but
+are nilpotent, so they have no invertible conjugation action on fermion
+operators. We resolve this apparent mismatch by representing each jump as
+a projectively rescaled limit of an invertible odd Gaussian operator. Its
+polar decomposition is a weak occupation measurement followed by a
+Majorana flip; its action on Majoranas lies in the disconnected component
+of $O(2N,\mathbb C)$. Outcome-dependent feedback gives finite-strength
+instruments whose limits are precisely the fill and deplete steps of a
+fresh-ancilla adaptive circuit. Ordered products have a well-defined
+normalized state limit for every fixed finite, nonzero branch, even when
+their transfer matrices diverge. We derive the exact Slater-projector
+updates at the endpoint and explain why regulator singularities, physical
+trajectory singular values, and tangent Lyapunov rates must be kept distinct.
+\end{abstract}
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{The physical question and conventions}
+An adaptive occupation measurement may have to add or remove a fermion
+after detecting the wrong occupation. Such an operation is Gaussian in
+its action on states, but cannot be written as an invertible exponential
+of a quadratic operator: a creation or annihilation operator squares to
+zero. The useful statement is not that the jump itself belongs to a
+classical matrix group. Rather, it is a singular limit of operators whose
+Majorana conjugation actions belong to that group. The scalar used to
+take the limit and the state on which the operator acts are indispensable.
+
+We use $N$ complex modes $\hat\psi_i$ with
+$\{\hat\psi_i,\hat\psi_j^\dagger\}=\delta_{ij}$ and
+$\{\hat\psi_i,\hat\psi_j\}=0$. A normalized column $\chi\in\mathbb C^N$
+defines
+\begin{equation}
+ \hat\chi^\dagger=\sum_i\chi_i\hat\psi_i^\dagger,\qquad
+ \hat\chi=\sum_i\chi_i^*\hat\psi_i,\qquad
+ \hat n=\hat\chi^\dagger\hat\chi,\qquad \hat n^2=\hat n.
+ \label{eq:mode}
+\end{equation}
+Many-body operators carry hats. Following Bhuiyan, Pan, and Jian
+(BPJ)~\cite{BhuiyanPanJian2026}, the correlation matrix is
+$G_{ij}=\Tr(\hat\rho\hat\psi_i^\dagger\hat\psi_j)$. For occupied columns
+in the convention~\eqref{eq:mode}, it is convenient to use
+\begin{equation}
+ C=G^{\mathsf T},\qquad C_{ij}=\Tr(\hat\rho\hat\psi_j^\dagger\hat\psi_i).
+ \label{eq:C-convention}
+\end{equation}
+Thus a Slater determinant with orthonormal occupied columns $F$ has
+$C=FF^\dagger$; no centered covariance is denoted by $G$ here.
+
+The Majoranas
+\begin{equation}
+ \hat\gamma_{2i-1}=\hat\psi_i+\hat\psi_i^\dagger,\qquad
+ \hat\gamma_{2i}=-i(\hat\psi_i-\hat\psi_i^\dagger),\qquad
+ \{\hat\gamma_a,\hat\gamma_b\}=2\delta_{ab}
+ \label{eq:majoranas}
+\end{equation}
+span a $2N$-dimensional space. We allow both even Gaussian operators and
+their products with Majorana operators, which are odd. This extends the
+invertible quadratic-exponential description by its odd Clifford sector;
+the state and measurement formalism is consistent with fermionic linear
+optics~\cite{Bravyi2005}. A physical implementation of an odd system branch
+exchanges parity with an ancillary fermion, rather than violating total
+fermion-parity conservation.
+
+\section{From a nilpotent jump to an orthogonal transformation}
+\subsection{An invertible regulator and its polar decomposition}
+For $0<\eps\leq1$, define
+\begin{align}
+ \hat j_+(\eps)&=\hat\chi^\dagger+\eps\hat\chi,&
+ \hat j_-(\eps)&=\hat\chi+\eps\hat\chi^\dagger,\nonumber\\
+ \hat v_\pm(\eps)&=\eps^{-1/2}\hat j_\pm(\eps).
+ \label{eq:regulators}
+\end{align}
+The canonical anticommutation relations give
+\begin{equation}
+ \hat j_\pm^2=\eps\One,\qquad \hat v_\pm^2=\One,\qquad
+ \sqrt\eps\,\hat v_+\longrightarrow\hat\chi^\dagger,\quad
+ \sqrt\eps\,\hat v_-\longrightarrow\hat\chi.
+ \label{eq:limits}
+\end{equation}
+Every nonzero regulator therefore supplies an inverse. Exact gain and
+loss do not: $\hat\chi^2=(\hat\chi^\dagger)^2=0$.
+
+To identify the physical content, set
+\begin{equation}
+ \hat\Gamma=\hat\chi+\hat\chi^\dagger,\qquad
+ \hat\Gamma^\dagger=\hat\Gamma,\qquad \hat\Gamma^2=\One,\qquad
+ \lambda=-\tfrac12\log\eps.
+\end{equation}
+Direct multiplication gives
+\begin{align}
+ \hat v_+^\dagger\hat v_+
+ &=\eps^{-1}(\One-\hat n)+\eps\hat n
+   =e^{-2\lambda(2\hat n-\One)},\nonumber\\
+ \hat v_-^\dagger\hat v_-
+ &=\eps(\One-\hat n)+\eps^{-1}\hat n
+   =e^{+2\lambda(2\hat n-\One)}.
+ \label{eq:positive-squares}
+\end{align}
+Since $\hat\Gamma\hat n=\hat\chi$ and
+$\hat\Gamma(\One-\hat n)=\hat\chi^\dagger$, their polar decompositions are
+\begin{equation}
+ \hat v_\pm=\hat\Gamma\,e^{\mp\lambda(2\hat n-\One)}.
+ \label{eq:polar}
+\end{equation}
+The positive factor filters occupation; the odd unitary factor flips it.
+The filter has the form of the weak single-mode measurement used in
+BPJ Appendix B.2~\cite{BhuiyanPanJian2026}. A scalar normalization and a
+complete set of outcomes are still required to make a physical instrument.
+
+\subsection{The group and the meaning of its boundary}
+For any complex column $z$, let
+$\hat\mu(z)=\sum_a z_a\hat\gamma_a$. The relevant quadratic form is
+bilinear, not Hermitian:
+\begin{equation}
+ \hat\mu(z)^2=(z^{\mathsf T}z)\One.
+\end{equation}
+When $z^{\mathsf T}z\ne0$, anticommuting $\hat\gamma_a$ through
+$\hat\mu(z)$ gives
+\begin{equation}
+ \hat\mu(z)\hat\gamma_a\hat\mu(z)^{-1}
+ =\sum_b t[z]_{ab}\hat\gamma_b,\qquad
+ t[z]=-\Id+\frac{2zz^{\mathsf T}}{z^{\mathsf T}z}.
+ \label{eq:reflection}
+\end{equation}
+The rank-one factor in this expression is an idempotent, hence
+\begin{equation}
+ t[z]^{\mathsf T}t[z]=\Id,\qquad t[z]^2=\Id,\qquad
+ \det t[z]=(-1)^{2N-1}=-1.
+ \label{eq:orthogonal}
+\end{equation}
+Thus an invertible odd Clifford operator induces a single-particle transfer
+matrix (sTM) in the disconnected component of $O(2N,\mathbb C)$. On the
+two Majoranas of the measured mode,
+\begin{equation}
+ z_+(\eps)=\tfrac12
+ \begin{pmatrix}\eps^{-1/2}+\eps^{1/2}\\
+ i(\eps^{1/2}-\eps^{-1/2})\end{pmatrix},\qquad
+ z_+^{\mathsf T}z_+=1,
+ \label{eq:regulated-z}
+\end{equation}
+represents $\hat v_+$. The creation operator instead corresponds to
+$z_0=(1,-i)^{\mathsf T}/2$, with $z_0^{\mathsf T}z_0=0$. The jump is a
+null Clifford direction, so Eq.~\eqref{eq:reflection} cannot be evaluated
+there by ordinary matrix substitution.
+
+The same degeneration is transparent in the local Nambu basis:
+\begin{equation}
+ \hat v_+\begin{pmatrix}\hat\chi\\\hat\chi^\dagger\end{pmatrix}\hat v_+^{-1}
+ =\begin{pmatrix}0&\eps^{-1}\\\eps&0\end{pmatrix}
+ \begin{pmatrix}\hat\chi\\\hat\chi^\dagger\end{pmatrix}.
+ \label{eq:nambu}
+\end{equation}
+Orthogonal spectator modes acquire a minus sign under this odd
+conjugation. In an orthonormal mode basis the full sTM has singular values
+$\{\eps^{-1},1,\ldots,1,\eps\}$, although all its eigenvalues are $\pm1$.
+The divergent singular values are not divergent eigenvalues.
+
+Here ``boundary'' means a boundary of the projective operator or
+normalized-state description: $[\hat v_+]\to[\hat\chi^\dagger]$, with
+the rescaling specified in Eq.~\eqref{eq:limits}. It is \emph{not} a finite
+singular matrix in the ordinary closure of $O(2N,\mathbb C)$. A finite
+limit of matrices satisfying $t^{\mathsf T}t=\Id$ still satisfies that
+identity and is invertible. In the present limit the conjugation matrix
+escapes to infinity, while its rescaled many-body representative has a
+finite nonzero limit. Normalized Choi states supply a concrete way to
+retain that limit, as developed below.
+
+\section{A physical measurement and the adaptive feedback choices}
+Define two positive weak-measurement operators,
+\begin{equation}
+ \hat M_0=\frac{\One-\hat n+\eps\hat n}{\sqrt{1+\eps^2}},\qquad
+ \hat M_1=\frac{\hat n+\eps(\One-\hat n)}{\sqrt{1+\eps^2}}.
+ \label{eq:weak-measurement}
+\end{equation}
+The subscripts label outcomes that become ``empty'' and ``occupied'' in
+the strong limit. Their effects obey
+\begin{equation}
+ \hat E_0=\frac{\One-\hat n+\eps^2\hat n}{1+\eps^2},\qquad
+ \hat E_1=\frac{\hat n+\eps^2(\One-\hat n)}{1+\eps^2},\qquad
+ \hat E_0+\hat E_1=\One.
+ \label{eq:effects}
+\end{equation}
+This is a positive-operator-valued measure (POVM). In the weighted
+convention $\sum_m w_m\hat K_m^\dagger\hat K_m=\One$, our displayed
+Kraus operators absorb $\sqrt{w_m}$, so all remaining weights equal one.
+For example,
+$p_0=[1-\langle\hat n\rangle+\eps^2\langle\hat n\rangle]/(1+\eps^2)$.
+
+Outcome-dependent unitary feedback leaves these effects unchanged. The
+following three choices have distinct physical purposes:
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Feedback & $\hat K_0$ & $\hat K_1$ & $\eps\to0$ endpoint\\
+\midrule
+Fill & $\hat\Gamma\hat M_0$ & $\hat M_1$
+ & $\{\hat\chi^\dagger,\hat n\}$\\
+Deplete & $\hat M_0$ & $\hat\Gamma\hat M_1$
+ & $\{\One-\hat n,\hat\chi\}$\\
+Flip both & $\hat\Gamma\hat M_0$ & $\hat\Gamma\hat M_1$
+ & $\{\hat\chi^\dagger,\hat\chi\}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+In particular,
+\begin{equation}
+ \hat\Gamma\hat M_0=\frac{\hat j_+(\eps)}{\sqrt{1+\eps^2}},\qquad
+ \hat\Gamma\hat M_1=\frac{\hat j_-(\eps)}{\sqrt{1+\eps^2}}.
+ \label{eq:normalized-jumps}
+\end{equation}
+Every listed finite-$\eps$ branch is invertible and Gaussian. The first
+two instruments approach exactly the target-fill and target-empty
+measurement-and-correction steps, up to irrelevant branch phases. They
+are the fresh-ancilla idealization of the occupation-measurement and
+fermionic-swap (fSWAP) construction
+in BPJ Sec.~III~\cite{BhuiyanPanJian2026}, not its finite-bath dynamics.
+The third instrument flips either result and must not be substituted for
+targeted feedback. Pairing gain with loss is therefore one completion,
+not a unique requirement. At $\eps=1$ no occupation information is gained;
+these instruments reduce to random unitary evolution.
+
+Equivalently, the flip-both pair uses the unnormalized $\hat v_\pm$ with
+equal weights
+\begin{equation}
+ w_+=w_-=\frac1{\eps+\eps^{-1}}=\frac1{2\cosh(2\lambda)}.
+\end{equation}
+This recovers the scalar that conjugation matrices discard. Multiplying
+operators along a selected record is legitimate, but does not specify a
+Born-sampled ensemble until the instrument and its branch probabilities
+are fixed.
+
+There are two symmetry distinctions. First, finite-$\eps$ jump branches
+superpose charge raising and lowering and generally break $U(1)$
+covariance. At $\eps=0$ every branch has a definite charge change, so
+$e^{i\theta\hat N_F}\hat\chi^{\dagger}e^{-i\theta\hat N_F}
+=e^{i\theta}\hat\chi^\dagger$ and its conjugate make the branch map
+$\hat\rho\mapsto\hat K\hat\rho\hat K^\dagger$ $U(1)$ covariant.
+The regulator is an auxiliary deformation, not a claim that the original
+protocol leaves its symmetry class. Equality of the measurement effects
+with a BPJ construction alone does not classify all feedback-dressed
+many-body evolution operators (mEOs).
+
+Second, an odd Kraus operator does not create a parity-odd density
+operator. If $\hat P=(-1)^{\hat N_F}$, $\hat P\hat K\hat P=-\hat K$, and
+$\hat P\hat\rho\hat P=\hat\rho$, then
+\begin{equation}
+ \hat P(\hat K\hat\rho\hat K^\dagger)\hat P
+ =\hat K\hat\rho\hat K^\dagger.
+ \label{eq:parity}
+\end{equation}
+A definite-parity state can switch sectors without acquiring coherence
+between them. A globally parity-preserving dilation supplies the exchanged
+parity through an ancilla. No extension of symmetry-class POVM no-go
+theorems is needed for these elementary statements.
+
+\section{Ordered products and a controlled singular limit}
+\subsection{Composition before the limit}
+Fix a finite record $\boldsymbol m$ and write its chronological operator
+as
+\begin{equation}
+ \hat V_{\boldsymbol m}=\hat O_q\cdots\hat O_1,
+ \label{eq:word}
+\end{equation}
+where the rightmost factor acts first. The factors can include gain,
+loss, occupation projectors, and invertible charge-conserving Gaussian
+operations. Any feedback schedule is held fixed by the record.
+Replace each jump by $\hat j_\pm(\eps_k)$ and each projector by
+$\One-\hat n+\eps_k\hat n$ or
+$\hat n+\eps_k(\One-\hat n)$ as appropriate. At every nonzero regulator
+the product $\hat W(\bm\eps)$ is invertible and Gaussian.
+
+With BPJ's row-index convention,
+\begin{equation}
+ \hat V\hat\gamma_a\hat V^{-1}=\sum_b t[\hat V]_{ab}\hat\gamma_b,
+ \qquad
+ t[\hat V_2\hat V_1]=t[\hat V_1]t[\hat V_2].
+ \label{eq:order}
+\end{equation}
+The order reversal follows by applying $\hat V_2$ to each operator in
+$\hat V_1\hat\gamma_a\hat V_1^{-1}$. Thus $t[\hat W]=t[\hat O_1]\cdots
+t[\hat O_q]$ with the regulated factors understood; transposed sTMs
+instead multiply in the same order as Eq.~\eqref{eq:word}. Scalar branch
+weights do not appear in either convention. An even quadratic factor has
+determinant $+1$; a product with $r$ odd factors has determinant $(-1)^r$.
+
+The product must be formed with its chronological data intact. Already
+on one mode,
+\begin{equation}
+ \hat\chi\hat\chi^\dagger=\One-\hat n,\qquad
+ \hat\chi^\dagger\hat\chi=\hat n,
+ \label{eq:order-example}
+\end{equation}
+whereas opposite diagonal ``zero/pole'' factors can multiply to the
+identity and erase this distinction. At finite regulator the full Nambu
+matrix, including its anomalous blocks, is needed. If its blocks are
+$\bigl(\begin{smallmatrix}A&B\\C&D\end{smallmatrix}\bigr)$, the upper-left
+block of a product contains $A_1A_2+B_1C_2$, not just $A_1A_2$.
+
+\subsection{What converges, and under which assumptions}
+For a fixed finite number of factors and fixed mode wavefunctions,
+polynomial continuity gives, in any finite-dimensional operator norm,
+\begin{equation}
+ \hat W(\bm\eps)=\hat V_{\boldsymbol m}+O(\eta),\qquad
+ \eta=\max_k|\eps_k|.
+ \label{eq:word-convergence}
+\end{equation}
+The same statement holds with the physical normalizations in
+Eqs.~\eqref{eq:weak-measurement} and \eqref{eq:normalized-jumps}.
+For an input with $\|\hat V_{\boldsymbol m}\ket{\psi}\|>0$, normalization
+is continuous, so the normalized branch converges independently of
+regulator ratios. The constants depend on the word and its nonzero
+success probability; this is not a uniform statement at large depth or
+near a forbidden outcome.
+
+For an operator-level version choose a normalized, maximally entangled
+Gaussian reference with $N$ reference modes and $N$ physical modes,
+\begin{equation}
+ \ket{\mathrm{REF}}=2^{-N/2}\prod_{i=1}^N
+ (\hat\psi_{i,R}^\dagger+\hat\psi_{i,P}^\dagger)\ket{0},\qquad
+ \|\hat V_P\ket{\mathrm{REF}}\|^2=2^{-N}\Tr(\hat V^\dagger\hat V).
+ \label{eq:choi-reference}
+\end{equation}
+A fixed fermionic mode ordering is implicit. If $\hat V\ne0$, its
+normalized Choi vector and full covariance are therefore limits of those
+of $\hat W$, irrespective of how the regulators approach zero. This is
+a concrete state-level meaning of the boundary, with no assertion that
+a chosen homogeneous transfer chart remains finite or invertible.
+
+There is a useful sharper rate for \emph{jump-only regularization}, with
+charge-conserving invertible factors between jumps and a fixed-charge
+input (including the reference above). Flipping one regulated jump from
+gain to loss or vice versa changes the output charge by two. Thus
+\begin{equation}
+ \ket{\Psi(\bm\eps)}=\ket{\Psi_0}
+       +\sum_k\eps_k\ket{\Psi_k}+O(\eta^2)
+\end{equation}
+has no first-order cross term in its norm or in any charge-neutral
+bilinear expectation. For a nonzero limiting branch,
+\begin{equation}
+ G(\bm\eps)-G(0)=O(\eta^2),\qquad
+ \langle\hat\psi_i\hat\psi_j\rangle_{\bm\eps}=O(\eta).
+ \label{eq:rates}
+\end{equation}
+The \emph{normal} correlation block converges quadratically; the full
+Majorana covariance generally converges only linearly. If projectors are
+also regularized, their first-order corrections need not change charge,
+so only the general $O(\eta)$ bound is asserted.
+
+The nonzero-branch hypothesis cannot be removed. Two same-mode gains
+give zero exactly, but their regulated product is
+\begin{equation}
+ (\hat\chi^\dagger+\eps_2\hat\chi)
+ (\hat\chi^\dagger+\eps_1\hat\chi)
+ =\eps_1\hat n+\eps_2(\One-\hat n).
+ \label{eq:zero-branch}
+\end{equation}
+Normalizing this vanishing operator can retain the arbitrary ratio
+$\eps_1/\eps_2$. There is no exact physical branch to which that normalized
+state should converge.
+
+\section{The exact endpoint without a regulator}
+The regularization explains the geometry, but exact state propagation
+need not use ill-conditioned matrices. Let a normalized pure Slater
+state have occupied projector $C=FF^\dagger$, with $F^\dagger F=\Id$.
+For a gain, decompose its column as
+$\chi=C\chi+(\Id-C)\chi$. Creation in the occupied component vanishes by
+Pauli exclusion. The surviving vector is orthogonal to the old occupied
+space, so it adds one normalized column. A loss removes the occupied
+component $C\chi$. Consequently,
+\begin{align}
+ p_+&=\chi^\dagger(\Id-C)\chi,&
+ C_+&=C+\frac{(\Id-C)\chi\chi^\dagger(\Id-C)}{p_+},\nonumber\\
+ p_-&=\chi^\dagger C\chi,&
+ C_-&=C-\frac{C\chi\chi^\dagger C}{p_-}.
+ \label{eq:exact-updates}
+\end{align}
+These expressions require $p_\pm>0$; a zero denominator signals a
+vanishing branch, not a prescription for a pseudoinverse. They give
+$C_\pm^2=C_\pm$, $\tr C_\pm=\tr C\pm1$,
+$C_+\chi=\chi$, and $C_-\chi=0$. They are the pure-state specialization
+of Gaussian measurement propagation~\cite{Bravyi2005}.
+
+The two projective branches needed alongside the jumps follow from
+$\hat n=\hat\chi^\dagger\hat\chi$ and
+$\One-\hat n=\hat\chi\hat\chi^\dagger$. After loss the mode is empty,
+so refilling it adds $P_\chi=\chi\chi^\dagger$; after gain the mode is
+filled, so emptying it subtracts the same projector. Therefore
+\begin{equation}
+ C_{\hat n}=C_-+P_\chi,\quad p_{\hat n}=p_-,\qquad
+ C_{\One-\hat n}=C_+-P_\chi,\quad p_{\One-\hat n}=p_+.
+ \label{eq:projective-updates}
+\end{equation}
+Equations~\eqref{eq:exact-updates} and \eqref{eq:projective-updates}
+handle all four outcomes of the exact fill/deplete instruments using only
+one-particle matrices. The second step of either projector factorization
+has conditional probability one, explaining the displayed probabilities.
+
+For an intervening even operator
+$\hat V=\exp[-\sum_{ij}M_{ij}\hat\psi_i^\dagger\hat\psi_j]$, define
+$A=e^{-M}=t^{-1}$. It sends the occupied columns to $AF$, giving
+\begin{equation}
+ C'=AF(F^\dagger A^\dagger AF)^{-1}F^\dagger A^\dagger,
+ \qquad
+ \|\hat V\ket F\|^2=\det(F^\dagger A^\dagger AF).
+ \label{eq:even-update}
+\end{equation}
+An additional scalar multiplying $\hat V$ contributes its squared modulus
+to the norm. These formulas follow from the Gram matrix of the transformed
+Slater columns, and do not assume $A$ is unitary. Using
+Eq.~\eqref{eq:exact-updates} after each even step automatically retains
+chronology and Pauli blocking. The product of successive conditional norm
+factors is the norm squared of the complete word; those factors are Born
+probabilities only when the operations belong to the specified instrument.
+
+\section{Consequences for trajectory spectra}
+The group description does not by itself identify a physical Lyapunov
+spectrum. A single regulated jump has logarithmic sTM singular values
+$\pm\log(1/\eps)$, but these are regulator scales, not long-time rates.
+For a particularly simple counterexample, repeating the same normalized
+odd element twice gives $\hat v_+^2=\One$ and $t[\hat v_+]^2=\Id$.
+At fixed $\eps>0$ an arbitrarily long repetition has zero asymptotic sTM
+growth rates even though one step becomes arbitrarily ill-conditioned
+as $\eps\to0$. For the rescaled operator,
+$\hat j_+^2=\eps\One$, so the many-body scalar has a different fate.
+The regulator limit and the long-record limit cannot be interchanged
+on the strength of Eq.~\eqref{eq:word-convergence}.
+
+The physical endpoint can instead be characterized directly. For a
+nonzero exact Gaussian record with a definite charge shift, propagate a
+maximally mixed input and set
+\begin{equation}
+ \hat\rho_{\boldsymbol m}=\frac{\hat V_{\boldsymbol m}
+ \hat V_{\boldsymbol m}^\dagger}{Z_{\boldsymbol m}},\qquad
+ Z_{\boldsymbol m}=\Tr(\hat V_{\boldsymbol m}\hat V_{\boldsymbol m}^\dagger)
+                 =2^N p_{\boldsymbol m}.
+ \label{eq:maxmix}
+\end{equation}
+The endpoint is number-conserving Gaussian. If its occupation eigenvalues
+are $\nu_a$, natural-orbital factorization gives its Fock-space eigenvalues
+and hence the squared singular values of the mEO:
+\begin{equation}
+ \sigma_{\bm n}(\hat V_{\boldsymbol m})^2
+ =Z_{\boldsymbol m}\prod_a\nu_a^{n_a}(1-\nu_a)^{1-n_a},
+ \qquad n_a\in\{0,1\}.
+ \label{eq:fock-spectrum}
+\end{equation}
+The exact occupations $0$ and $1$ encode genuine zero singular values;
+the preferred occupation factor equals one, including at an endpoint.
+There is no need to turn them into small nonzero numbers by clipping.
+Covariance eigenvalues determine relative many-body singular values,
+while the record probability restores their absolute scale. This is an
+operator spectrum, distinct from the derivative of normalized conditional
+state evolution with respect to its initial state.
+
+The conclusion is that gain/loss feedback admits a controlled Gaussian boundary representation,
+and exact covariance propagation remains well defined on each successful
+branch. This observation is not a proof of criticality, a determination
+of central charge, or an identification of every regulator-stable
+one-particle rate with a many-body or tangent Lyapunov exponent.
+
+\bibliographystyle{apsrev4-2}
+\bibliography{references}
+\end{document}

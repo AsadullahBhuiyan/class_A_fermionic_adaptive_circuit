@@ -1,0 +1,48 @@
+SLAB TOPOLOGY AND CHARGE: COMPLETE OFFLINE STUDY
+
+Both independent cohorts are analyzed separately: 600 trajectories,38 input batches. No dynamics were rerun.
+Charge histories and common-window comparisons use cycles21–40. Square endpoint frames are cycle40; rectangular frames are cycles40,60,80.
+The frozen exterior is verified as a decoupled occupation product state before deriving slab charge histories.
+The following charge variance budget uses unnormalized charges and averages the per-cycle sample variance over cycles21–40. Covariance is not omitted.
+
+square 20x20: Var(total)=63.8382; Var(slab)=6.04967; Var(exterior)=56.8787; 2Cov=0.909869. Endpoint saved-center Chern=0.997574410 +/- 0.00047 SEM; all-y R4=0.997644313.
+  R4 trajectory 5/50/95 percentiles: [0.9905617069769236, 0.9990324331568501, 0.9999626270665428]; mean absolute error=0.00235569. Radius means (R=[2, 3, 4]): [0.9843695465973777, 0.9945936505125647, 0.9976443134252384].
+  nsh1_half: expected particles=4.77513, holes=3.79513; per-orbital mismatch core=0.00304384, interface strips=0.0331729.
+  dense_below: expected particles=6.17038, holes=4.19038; per-orbital mismatch core=0.00734349, interface strips=0.0370503.
+  dense_above: expected particles=5.03102, holes=5.05102; per-orbital mismatch core=0.00734349, interface strips=0.0358889.
+square 30x30: Var(total)=136.304; Var(slab)=10.7597; Var(exterior)=122.7; 2Cov=2.84465. Endpoint saved-center Chern=0.999856978 +/- 7.63e-05 SEM; all-y R4=0.998972253.
+  R4 trajectory 5/50/95 percentiles: [0.9963369759952033, 0.9995682939005148, 0.9999645034723359]; mean absolute error=0.00102775. Radius means (R=[2, 3, 4, 5, 6]): [0.9900755985452088, 0.9967647938943783, 0.998972253260052, 0.9997292362774719, 0.9998790877244497].
+  nsh1_below: expected particles=7.88597, holes=6.01597; per-orbital mismatch core=0.00250002, interface strips=0.0348665.
+  nsh1_above: expected particles=6.80599, holes=6.93599; per-orbital mismatch core=0.00250003, interface strips=0.0344222.
+  dense_below: expected particles=9.65643, holes=7.78643; per-orbital mismatch core=0.0068425, interface strips=0.0381886.
+  dense_above: expected particles=8.57642, holes=8.70642; per-orbital mismatch core=0.0068425, interface strips=0.0377441.
+square 40x40: Var(total)=237.91; Var(slab)=14.3278; Var(exterior)=219.563; 2Cov=4.01879. Endpoint saved-center Chern=0.999985680 +/- 3.62e-06 SEM; all-y R4=0.998539168.
+  R4 trajectory 5/50/95 percentiles: [0.9955673670877861, 0.9992057489481676, 0.9999574846921386]; mean absolute error=0.00146083. Radius means (R=[2, 3, 4, 5, 6, 7, 8, 9]): [0.9876477334328829, 0.9958450035161199, 0.998539167512169, 0.9996153578622284, 0.9998852833359828, 0.9999625554871976, 0.9999851458352913, 0.9999903305336272].
+  nsh1_below: expected particles=11.7595, holes=8.59951; per-orbital mismatch core=0.00273399, interface strips=0.0355797.
+  nsh1_above: expected particles=10.6582, holes=9.49824; per-orbital mismatch core=0.00273399, interface strips=0.0351577.
+  dense_below: expected particles=15.1765, holes=12.0165; per-orbital mismatch core=0.00709189, interface strips=0.0389222.
+  dense_above: expected particles=14.0752, holes=12.9152; per-orbital mismatch core=0.00709189, interface strips=0.0385004.
+rectangle 20x20: Var(total)=68.9469; Var(slab)=6.13037; Var(exterior)=63.711; 2Cov=-0.894444. Endpoint saved-center Chern=0.998239520 +/- 0.000352 SEM; all-y R4=0.998158509.
+  R4 trajectory 5/50/95 percentiles: [0.993437467097636, 0.9996468515205863, 0.9999651165737178]; mean absolute error=0.00184149. Radius means (R=[2, 3, 4]): [0.9872020608742814, 0.9957207618062721, 0.9981585087254734].
+  nsh1_half: expected particles=4.95131, holes=3.95131; per-orbital mismatch core=0.00267661, interface strips=0.0348637.
+  dense_below: expected particles=6.33249, holes=4.33249; per-orbital mismatch core=0.00697953, interface strips=0.0386212.
+  dense_above: expected particles=5.21707, holes=5.21707; per-orbital mismatch core=0.00697953, interface strips=0.0376593.
+rectangle 20x30: Var(total)=86.0973; Var(slab)=9.69072; Var(exterior)=75.5122; 2Cov=0.894364. Endpoint saved-center Chern=0.997929963 +/- 0.000389 SEM; all-y R4=0.997712595.
+  R4 trajectory 5/50/95 percentiles: [0.9890376136364386, 0.9989767419571527, 0.9999524924206462]; mean absolute error=0.00228741. Radius means (R=[2, 3, 4]): [0.9871609058251458, 0.9952118811445655, 0.9977125948484066].
+  nsh1_half: expected particles=7.31958, holes=5.84958; per-orbital mismatch core=0.00268527, interface strips=0.0343433.
+  dense_below: expected particles=9.11525, holes=6.64525; per-orbital mismatch core=0.00702562, interface strips=0.0379245.
+  dense_above: expected particles=8.02431, holes=7.55431; per-orbital mismatch core=0.00702562, interface strips=0.0374193.
+rectangle 20x40: Var(total)=124.762; Var(slab)=12.6987; Var(exterior)=112.83; 2Cov=-0.766545. Endpoint saved-center Chern=0.997646379 +/- 0.000381 SEM; all-y R4=0.997678896.
+  R4 trajectory 5/50/95 percentiles: [0.992591697381062, 0.9983196261665759, 0.9999511123411365]; mean absolute error=0.0023211. Radius means (R=[2, 3, 4]): [0.9858378274942173, 0.9947762734258191, 0.9976788955773915].
+  nsh1_half: expected particles=10.2151, holes=7.8551; per-orbital mismatch core=0.00295225, interface strips=0.035186.
+  dense_below: expected particles=12.4424, holes=9.0824; per-orbital mismatch core=0.00730611, interface strips=0.0387549.
+  dense_above: expected particles=11.3353, holes=9.9753; per-orbital mismatch core=0.00730611, interface strips=0.0383086.
+
+INTERPRETATION AND LIMITS
+Inspect the regional budget rather than interpreting total-charge variance as bulk excitation density. The exterior is frozen random preparation, not a ground-state target.
+A mean close to unity does not establish concentration: trajectory distributions, mean absolute deviations, and radius curves are supplied separately.
+The equilibrium references use active-slab restrictions of OW modes built on the original geometry. They are not assumed to be the circuit steady state.
+Nonzero occupation mismatch can reflect a topologically harmless deformation. Degenerate cutoff cases are reported as below/above sensitivity projectors, not a unique half-filled state.
+Core correlations and buffer sensitivity diagnose locality over the available finite distances. Neither exponential localization nor a mobility gap is proven by these finite-size data.
+No asymptotic scaling exponent is claimed from three sizes. The two 20x20 ensembles remain independent. Rectangular endpoint comparisons are not time-matched across Ny.
+The study supplies evidence concerning sampled trajectories, not a theorem for arbitrary monitored records.

@@ -1,0 +1,1 @@
+Lowered the inset in Figure 2(c) slightly, retaining its size, axes, labels, curves and uncertainty bands. Data and manuscript text are unchanged. Rebuilt the manuscript and inspected page 6; figure data/font/hash audit passed.
